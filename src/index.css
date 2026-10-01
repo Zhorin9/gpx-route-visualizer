@@ -1,0 +1,76 @@
+:root {
+  color-scheme: dark;
+  --bg: #0a0a0d;
+  --panel-bg: #16171b;
+  --surface: #1c1d22;
+  --surface-2: #24262c;
+  --surface-3: #2d2f37;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --text: #f2f3f5;
+  --text-muted: #9a9ca5;
+  --accent-1: #8b5cf6;
+  --accent-2: #22d3c8;
+  --accent-grad: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+  --accent-soft: rgba(139, 92, 246, 0.16);
+  --focus: #4f9dff;
+  --danger: #f0605a;
+  --danger-soft: rgba(240, 96, 90, 0.1);
+  --radius-lg: 18px;
+  --radius: 11px;
+  --radius-sm: 8px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --font-ui: 'Inter', system-ui, sans-serif;
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-md: 13px;
+  --transition: 0.15s ease;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+/* Keyboard users get a clear ring; mouse clicks don't. */
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

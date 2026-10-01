@@ -1,0 +1,75 @@
+import { useRef } from 'react'
+import { Circle, Group, Line, Text } from 'react-konva'
+import type Konva from 'konva'
+import useInlineTextEditor from '../hooks/useInlineTextEditor'
+import { useAppStore } from '../store/useAppStore'
+import { konvaFontStyle } from '../utils/fonts'
+import SelectionOutline from './SelectionOutline'
+import type { Point2D } from '../utils/geometry'
+import type { Waypoint } from '../types'
+
+export interface WaypointLabelProps {
+  waypoint: Waypoint
+  // Anchor on the route, already in stage coordinates.
+  anchor: Point2D
+}
+
+// Lives outside the route group on purpose: rotating or scaling the route
+// moves the label with it, but the text itself stays upright and legible.
+export default function WaypointLabel({ waypoint, anchor }: WaypointLabelProps) {
+  const isSelected = useAppStore((s) => s.selection?.kind === 'waypoint' && s.selection.id === waypoint.id)
+  const select = useAppStore((s) => s.select)
+  const updateWaypoint = useAppStore((s) => s.updateWaypoint)
+  const { hidden, edit } = useInlineTextEditor()
+  const textRef = useRef<Konva.Text>(null)
+  const leaderRef = useRef<Konva.Line>(null)
+  const { dx, dy } = waypoint
+
+  function startEditing(e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) {
+    edit(e.target as Konva.Text, { value: waypoint.text, onCommit: (text) => updateWaypoint(waypoint.id, { text }) })
+  }
+
+  const onSelect = () => select({ kind: 'waypoint', id: waypoint.id })
+
+  return (
+    <Group x={anchor.x} y={anchor.y}>
+      <Line
+        ref={leaderRef}
+        points={[0, 0, dx, dy + waypoint.fontSize / 2]}
+        stroke={waypoint.color}
+        strokeWidth={1.5}
+        opacity={0.7}
+        shadowColor="#000000"
+        shadowBlur={4}
+        shadowOpacity={0.5}
+        listening={false}
+      />
+      <Circle radius={6} fill={waypoint.color} stroke="#000000" strokeWidth={1.5} strokeScaleEnabled={false} listening={false} />
+      <Text
+        ref={textRef}
+        text={waypoint.text}
+        x={dx}
+        y={dy}
+        fontFamily={waypoint.fontFamily}
+        fontStyle={konvaFontStyle(waypoint.fontFamily)}
+        fontSize={waypoint.fontSize}
+        fill={waypoint.color}
+        shadowColor="#000000"
+        shadowBlur={8}
+        shadowOpacity={0.6}
+        perfectDrawEnabled={false}
+        visible={!hidden}
+        draggable
+        onMouseDown={onSelect}
+        onTouchStart={onSelect}
+        onDblClick={startEditing}
+        onDblTap={startEditing}
+        onDragMove={(e) => {
+          leaderRef.current?.points([0, 0, e.target.x(), e.target.y() + waypoint.fontSize / 2])
+        }}
+        onDragEnd={(e) => updateWaypoint(waypoint.id, { dx: e.target.x(), dy: e.target.y() })}
+      />
+      <SelectionOutline targetRef={textRef} visible={isSelected && !hidden} />
+    </Group>
+  )
+}

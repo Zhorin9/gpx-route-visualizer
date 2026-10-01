@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="test" xmlns="http://www.topografix.com/GPX/1/1">
+  <trk>
+    <name>Sample Ride</name>
+    <trkseg>
+      <trkpt lat="50.8290" lon="15.5231"><ele>340</ele><time>2026-06-01T08:00:00Z</time></trkpt>
+      <trkpt lat="50.8350" lon="15.5410"><ele>410</ele><time>2026-06-01T08:10:00Z</time></trkpt>
+      <trkpt lat="50.8410" lon="15.5600"><ele>520</ele><time>2026-06-01T08:25:00Z</time></trkpt>
+      <trkpt lat="50.8500" lon="15.5900"><ele>610</ele><time>2026-06-01T08:45:00Z</time></trkpt>
+      <trkpt lat="50.8600" lon="15.6200"><ele>700</ele><time>2026-06-01T09:05:00Z</time></trkpt>
+      <trkpt lat="50.8550" lon="15.6500"><ele>650</ele><time>2026-06-01T09:25:00Z</time></trkpt>
+      <trkpt lat="50.8400" lon="15.6700"><ele>580</ele><time>2026-06-01T09:45:00Z</time></trkpt>
+      <trkpt lat="50.8200" lon="15.6800"><ele>500</ele><time>2026-06-01T10:05:00Z</time></trkpt>
+      <trkpt lat="50.8000" lon="15.6750"><ele>430</ele><time>2026-06-01T10:25:00Z</time></trkpt>
+      <trkpt lat="50.7900" lon="15.6500"><ele>380</ele><time>2026-06-01T10:45:00Z</time></trkpt>
+    </trkseg>
+  </trk>
+</gpx>

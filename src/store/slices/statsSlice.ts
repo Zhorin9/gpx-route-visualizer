@@ -1,0 +1,25 @@
+import { DEFAULT_STATS_LAYOUT } from '../defaults'
+import type { SliceContext, StatsSlice } from '../types'
+
+export function createStatsSlice({ commit }: SliceContext): StatsSlice {
+  return {
+    updateStatsStyle: (patch) =>
+      commit(`statsStyle:${Object.keys(patch).join()}`, (s) => ({ statsStyle: { ...s.statsStyle, ...patch } })),
+    updateStatsContent: (patch) =>
+      commit(`statsContent:${Object.keys(patch).join()}`, (s) => ({ statsContent: { ...s.statsContent, ...patch } })),
+    setStatVisible: (key, visible) =>
+      commit(`statVisible:${key}`, (s) => ({
+        statsContent: { ...s.statsContent, visible: { ...s.statsContent.visible, [key]: visible } },
+      })),
+    setStatOverride: (key, value) =>
+      commit(`statOverride:${key}`, (s) => ({
+        statsContent: { ...s.statsContent, overrides: { ...s.statsContent.overrides, [key]: value } },
+      })),
+    setStatsPosition: (x, y) => commit('stats:move', (s) => ({ statsLayout: { ...s.statsLayout, x, y } })),
+    setChipOffset: (key, offset) =>
+      commit(`stats:chip:${key}`, (s) => ({
+        statsLayout: { ...s.statsLayout, chipOffsets: { ...s.statsLayout.chipOffsets, [key]: offset } },
+      })),
+    resetStatsLayout: () => commit('stats:reset', { statsLayout: DEFAULT_STATS_LAYOUT }),
+  }
+}
