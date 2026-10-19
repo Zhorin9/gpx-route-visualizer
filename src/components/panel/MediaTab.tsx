@@ -181,7 +181,7 @@ export default function MediaTab() {
       )}
 
       {!panorama && (
-        <Section title={slides.length > 1 ? `Układ — slajd ${activeSlide + 1}` : 'Układ'}>
+        <Section collapseId="layout" title={slides.length > 1 ? `Układ — slajd ${activeSlide + 1}` : 'Układ'}>
           <Segmented label="Rodzaj układów" value={group} options={GROUP_OPTIONS} onChange={setGroup} />
           <div className="layout-grid" role="group" aria-label="Układy zdjęć">
             {LAYOUTS.filter((l) => l.group === group).map((def) => (

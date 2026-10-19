@@ -258,3 +258,11 @@ export function IconMountain(props: SVGProps<SVGSVGElement>) {
     </svg>
   )
 }
+
+export function IconChevron(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...common} width="16" height="16" aria-hidden="true" {...props}>
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  )
+}
