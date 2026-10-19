@@ -5,8 +5,10 @@ import { schematicLines } from '../store/derived'
 import { useProjectedTrack, useRouteLines } from '../store/selectors'
 import { useAppStore } from '../store/useAppStore'
 import { UI_ONLY } from '../utils/exportImage'
-import { applyTransform, nearestPointOnPolyline, pointAt } from '../utils/geometry'
+import { applyTransform, decimate, nearestPointOnPolyline, pointAt } from '../utils/geometry'
+import { schematicizeRoute } from '../utils/schematicRoute'
 import { flatBounds } from '../utils/gpx'
+import KmMarkers from './KmMarkers'
 import WaypointLabel from './WaypointLabel'
 import type { RouteTransform } from '../types'
 
@@ -23,12 +25,27 @@ export default function NeonRouteGroup() {
   const adding = useAppStore((s) => s.addingWaypoint)
   const range = useAppStore((s) => s.range)
   const waypoints = useAppStore((s) => s.waypoints)
+  const days = useAppStore((s) => s.routeDays)
   const setRouteTransform = useAppStore((s) => s.setRouteTransform)
   const addWaypoint = useAppStore((s) => s.addWaypoint)
 
   const projected = useProjectedTrack()
   const { active, completed, remaining } = useRouteLines()
   const schematic = style.shape === 'schematic' ? schematicLines(active, style.schematicSimplify) : null
+
+  // Several GPX files: every visible day is its own line with its own colour and dash.
+  const dayLines = useMemo(() => {
+    if (days.length < 2 || !projected) return null
+    return days
+      .filter((d) => d.visible)
+      .map((day) => {
+        const from = Math.max(range.start, day.startIdx)
+        const to = Math.min(range.end, day.endIdx)
+        const line = to > from ? decimate(projected, from, to) : []
+        const points = style.shape === 'schematic' && line.length >= 4 ? schematicizeRoute(line, { simplify: style.schematicSimplify }) : line
+        return { day, points }
+      })
+  }, [days, projected, range.start, range.end, style.shape, style.schematicSimplify])
 
   const groupRef = useRef<Konva.Group>(null)
   const transformerRef = useRef<Konva.Transformer>(null)
@@ -74,7 +91,13 @@ export default function NeonRouteGroup() {
     listening: false,
     perfectDrawEnabled: false,
   }
-  const coreProps = { stroke: style.color, strokeWidth: style.coreWidth, listening: false, perfectDrawEnabled: false }
+  const coreProps = {
+    stroke: style.color,
+    strokeWidth: style.coreWidth,
+    dash: style.dashed ? [style.coreWidth * 3, style.coreWidth * 2] : undefined,
+    listening: false,
+    perfectDrawEnabled: false,
+  }
   const round = { lineCap: 'round', lineJoin: 'round' } as const
   const square = { lineCap: 'square', lineJoin: 'miter' } as const
 
@@ -100,7 +123,24 @@ export default function NeonRouteGroup() {
           />
         )}
 
-        {schematic ? (
+        {dayLines ? (
+          dayLines.map(({ day, points }) => {
+            if (points.length < 4) return null
+            const cap = style.shape === 'schematic' ? square : round
+            return (
+              <Group key={day.id}>
+                {style.glowEnabled && <Line points={points} {...glowProps} stroke={day.color} shadowColor={day.color} {...cap} />}
+                <Line
+                  points={points}
+                  {...coreProps}
+                  stroke={day.color}
+                  dash={day.dashed ? [style.coreWidth * 3, style.coreWidth * 2] : undefined}
+                  {...cap}
+                />
+              </Group>
+            )
+          })
+        ) : schematic ? (
           <>
             {style.glowEnabled && schematic.length > 0 && <Line points={schematic} {...glowProps} {...square} />}
             {schematic.length > 0 && <Line points={schematic} {...coreProps} {...square} />}
@@ -132,15 +172,17 @@ export default function NeonRouteGroup() {
           <WaypointLabel key={wp.id} waypoint={wp} anchor={applyTransform(pointAt(projected, wp.trackPos), transform)} />
         ))}
 
+      <KmMarkers />
+
       {editable && (
         <Transformer
           ref={transformerRef}
           name={UI_ONLY}
           rotateEnabled
           rotationSnaps={[0, 90, 180, 270]}
-          anchorStroke="#4f9dff"
+          anchorStroke="#b68235"
           anchorFill="#ffffff"
-          borderStroke="#4f9dff"
+          borderStroke="#b68235"
           borderDash={[6, 4]}
         />
       )}

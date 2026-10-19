@@ -83,3 +83,21 @@ describe('projection', () => {
     expect(b.maxY).toBeLessThanOrEqual(1920)
   })
 })
+
+describe('multi-day tracks', () => {
+  const day = (lat: number, hour: number) => [0, 1].map((i) => ({ lat: lat + i * 0.01, lon: 19, ele: 100, time: Date.UTC(2026, 4, 1, hour + i) }))
+  const points = [...day(50, 8), ...day(51, 8 + 24)]
+
+  it('does not count the jump between days as distance', () => {
+    const joined = cumulativeDistanceKm(points)
+    const split = cumulativeDistanceKm(points, [2])
+    expect(joined[3]).toBeGreaterThan(100)
+    expect(split[3]).toBeLessThan(5)
+  })
+
+  it('adds up the time of each day, not the night in between', () => {
+    const cum = cumulativeDistanceKm(points, [2])
+    expect(computeRangeStats(points, cum, 0, 3, [2]).durationMs).toBe(2 * 3600_000)
+    expect(computeRangeStats(points, cum, 0, 3).durationMs).toBeGreaterThan(24 * 3600_000)
+  })
+})

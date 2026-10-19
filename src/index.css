@@ -1,30 +1,63 @@
+/* "Classical" design system: editorial, light ground, colour applied as stroke rather than fill. */
 :root {
-  color-scheme: dark;
-  --bg: #0a0a0d;
-  --panel-bg: #16171b;
-  --surface: #1c1d22;
-  --surface-2: #24262c;
-  --surface-3: #2d2f37;
-  --border: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.16);
-  --text: #f2f3f5;
-  --text-muted: #9a9ca5;
-  --accent-1: #8b5cf6;
-  --accent-2: #22d3c8;
-  --accent-grad: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-  --accent-soft: rgba(139, 92, 246, 0.16);
-  --focus: #4f9dff;
-  --danger: #f0605a;
-  --danger-soft: rgba(240, 96, 90, 0.1);
-  --radius-lg: 18px;
-  --radius: 11px;
-  --radius-sm: 8px;
+  color-scheme: light;
+
+  --color-bg: #f3f2f2;
+  --color-surface: #eae9e9;
+  --color-text: #201f1d;
+  --color-accent: #b68235;
+  --color-divider: color-mix(in srgb, #201f1d 16%, transparent);
+
+  --color-neutral-100: #f8f4f4;
+  --color-neutral-200: #eae7e7;
+  --color-neutral-300: #d7d3d3;
+  --color-neutral-400: #bab6b6;
+  --color-neutral-500: #9b9797;
+  --color-neutral-600: #7d7979;
+  --color-neutral-700: #605d5d;
+  --color-neutral-800: #444141;
+  --color-neutral-900: #2d2b2b;
+
+  --color-accent-100: #fff3e4;
+  --color-accent-200: #ffe3bf;
+  --color-accent-300: #facb8d;
+  --color-accent-400: #e1ad66;
+  --color-accent-500: #c28d41;
+  --color-accent-600: #a06f24;
+  --color-accent-700: #7d5411;
+  --color-accent-800: #5a3b0a;
+  --color-accent-900: #3a270d;
+
+  --shadow-sm: 0 1px 2px color-mix(in srgb, #2d2b2b 14%, transparent);
+  --shadow-md: 0 3px 10px color-mix(in srgb, #2d2b2b 16%, transparent);
+  --shadow-lg: 0 12px 32px color-mix(in srgb, #2d2b2b 22%, transparent);
+
+  --bg: var(--color-bg);
+  --panel-bg: var(--color-bg);
+  --surface: var(--color-surface);
+  --surface-2: var(--color-neutral-200);
+  --surface-3: var(--color-neutral-300);
+  --border: var(--color-divider);
+  --border-strong: color-mix(in srgb, var(--color-text) 35%, transparent);
+  --text: var(--color-text);
+  --text-muted: color-mix(in srgb, var(--color-text) 62%, transparent);
+  --accent-1: var(--color-accent);
+  --accent-2: var(--color-accent-700);
+  --accent-soft: var(--color-accent-100);
+  --focus: var(--color-accent);
+  --danger: #a33a2c;
+  --danger-soft: color-mix(in srgb, #a33a2c 10%, transparent);
+
+  --radius-lg: 7px;
+  --radius: 4px;
+  --radius-sm: 4px;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;
   --space-5: 20px;
-  --font-ui: 'Inter', system-ui, sans-serif;
+  --font-heading: 'Cormorant Garamond', Georgia, serif;
+  --font-ui: 'Lora', Georgia, serif;
   --text-xs: 11px;
   --text-sm: 12px;
   --text-md: 13px;
@@ -49,7 +82,20 @@ body {
   color: var(--text);
   font-family: var(--font-ui);
   font-size: 14px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -0.015em;
 }
 
 button,
@@ -58,6 +104,10 @@ select,
 textarea {
   font: inherit;
   color: inherit;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-accent) 30%, transparent);
 }
 
 /* Keyboard users get a clear ring; mouse clicks don't. */

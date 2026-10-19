@@ -1,8 +1,17 @@
 import type {
   AspectKey,
-  BgAdjust,
+  CarouselKind,
+  FormatLayout,
+  FormatOverrides,
+  CollageStyle,
+  LayoutKey,
+  Photo,
+  Slide,
+  SlotAssignment,
   GpxTrack,
   Offset,
+  KmInterval,
+  RouteDay,
   RouteRange,
   RouteStyle,
   RouteTransform,
@@ -12,6 +21,8 @@ import type {
   StatsLayout,
   StatsStyle,
   StylePreset,
+  StyleTemplate,
+  TemplateParts,
   TabKey,
   TextNode,
   Waypoint,
@@ -29,7 +40,13 @@ export interface DocumentState {
   statsLayout: StatsLayout
   texts: TextNode[]
   waypoints: Waypoint[]
-  bgAdjust: BgAdjust
+  slides: Slide[]
+  collage: CollageStyle
+  carouselKind: CarouselKind
+  kmInterval: KmInterval
+  // Reference layout in the source format while another format is open.
+  sourceLayout: FormatLayout | null
+  layoutOverrides: Partial<Record<AspectKey, FormatOverrides>>
   dimOpacity: number
 }
 
@@ -46,15 +63,27 @@ export interface UiSlice {
   addingWaypoint: boolean
   routeEditable: boolean
   showSafeZones: boolean
+  // Layout under the pointer in the picker — previewed on the frame before it's applied.
+  previewLayoutKey: LayoutKey | null
+  // Slide that layout picks and new elements go to (clamped on read, since undo can drop slides).
+  activeSlide: number
+  // Slot waiting for a photo: the canvas asks, a file picker answers.
+  photoRequest: { slide: number; index: number } | null
   toast: Toast | null
   // Bumped whenever a web font finishes loading, so text gets re-measured.
   fontsVersion: number
+  // Files are rendered format by format; the canvas is covered meanwhile.
+  exporting: boolean
+  setExporting: (value: boolean) => void
   setActiveTab: (tab: TabKey) => void
   setPreviewBackdrop: (value: string) => void
   select: (selection: Selection | null) => void
   setAddingWaypoint: (value: boolean) => void
   setRouteEditable: (value: boolean) => void
   setShowSafeZones: (value: boolean) => void
+  setPreviewLayout: (key: LayoutKey | null) => void
+  setActiveSlide: (index: number) => void
+  requestPhoto: (target: { slide: number; index: number } | null) => void
   showToast: (message: string, undoable?: boolean) => void
   dismissToast: () => void
   bumpFontsVersion: () => void
@@ -63,14 +92,32 @@ export interface UiSlice {
 export interface MediaSlice {
   track: GpxTrack | null
   gpxError: string
-  background: HTMLCanvasElement | null
-  backgroundError: string
-  loadGpxFile: (file: File) => Promise<void>
-  loadBackgroundFile: (file: File) => Promise<void>
-  removeBackground: () => void
+  photos: Photo[]
+  photoError: string
+  // Empty for a single file; with several, one entry per GPX file joined into `track`.
+  routeDays: RouteDay[]
+  loadGpxFile: (file: File, append?: boolean) => Promise<void>
+  updateDay: (id: number, patch: Partial<Pick<RouteDay, "color" | "dashed" | "visible">>) => void
+  removeDay: (id: number) => void
   setAspectKey: (key: AspectKey) => void
-  updateBgAdjust: (patch: Partial<BgAdjust>) => void
-  resetBgAdjust: () => void
+  resetFormatLayout: () => void
+  // Adds photos to the library; with a target they replace that slot, otherwise they fill empty slots in order.
+  loadPhotoFiles: (files: File[], target?: { slide: number; index: number }) => Promise<void>
+  assignPhoto: (slide: number, index: number, photoId: number) => void
+  // Puts a library photo in the selected slot, else the first empty one.
+  placePhoto: (photoId: number) => void
+  clearSlot: (slide: number, index: number) => void
+  updateSlot: (slide: number, index: number, patch: Partial<Omit<SlotAssignment, 'photoId'>>) => void
+  resetSlotCrop: (slide: number, index: number) => void
+  setLayout: (slide: number, key: LayoutKey) => void
+  setCarousel: (on: boolean) => void
+  setCarouselKind: (kind: CarouselKind) => void
+  setSlideCount: (count: number) => void
+  addSlide: () => void
+  removeSlide: (index: number) => void
+  updateCollage: (patch: Partial<Omit<CollageStyle, 'frame'>>) => void
+  updateFrame: (patch: Partial<CollageStyle['frame']>) => void
+  addCaption: (slide: number, index: number) => void
   setDimOpacity: (value: number) => void
 }
 
@@ -82,6 +129,7 @@ export interface RouteSlice {
   setRange: (range: RouteRange) => void
   setProgress: (value: number) => void
   selectDay: (dayIndex: number) => void
+  setKmInterval: (value: KmInterval) => void
 }
 
 export interface StatsSlice {
@@ -106,6 +154,13 @@ export interface ElementsSlice {
   nudgeSelection: (dx: number, dy: number) => void
 }
 
+export interface TemplatesSlice {
+  customTemplates: StyleTemplate[]
+  applyTemplate: (template: StyleTemplate, parts: TemplateParts) => void
+  saveTemplate: (name: string) => void
+  deleteTemplate: (id: string) => void
+}
+
 export interface HistorySlice {
   past: DocumentState[]
   future: DocumentState[]
@@ -113,7 +168,7 @@ export interface HistorySlice {
   redo: () => void
 }
 
-export type AppState = DocumentState & UiSlice & MediaSlice & RouteSlice & StatsSlice & ElementsSlice & HistorySlice
+export type AppState = DocumentState & UiSlice & MediaSlice & RouteSlice & StatsSlice & ElementsSlice & TemplatesSlice & HistorySlice
 
 export type SetState = (partial: Partial<AppState> | ((state: AppState) => Partial<AppState>)) => void
 export type GetState = () => AppState

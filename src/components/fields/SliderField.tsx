@@ -81,6 +81,7 @@ export default function SliderField({
         step={step}
         value={value}
         disabled={disabled}
+        style={{ '--fill': `${((clamp(value, min, max) - min) / (max - min || 1)) * 100}%` } as React.CSSProperties}
         title={defaultValue != null ? 'Dwuklik przywraca wartość domyślną' : undefined}
         onChange={(e) => onChange(snap(Number(e.target.value)))}
         onDoubleClick={() => defaultValue != null && onChange(defaultValue)}

@@ -1,10 +1,11 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import {
-  DEFAULT_BG_ADJUST,
+  DEFAULT_COLLAGE,
   DEFAULT_ROUTE_STYLE,
   DEFAULT_STATS_CONTENT,
   DEFAULT_STATS_LAYOUT,
+  DEFAULT_SLIDES,
   DEFAULT_STATS_STYLE,
   IDENTITY_TRANSFORM,
 } from './defaults'
@@ -13,6 +14,7 @@ import { createElementsSlice } from './slices/elementsSlice'
 import { createMediaSlice } from './slices/mediaSlice'
 import { createRouteSlice } from './slices/routeSlice'
 import { createStatsSlice } from './slices/statsSlice'
+import { createTemplatesSlice } from './slices/templatesSlice'
 import { createUiSlice } from './slices/uiSlice'
 import type { AppState, DocumentState, SetState } from './types'
 
@@ -27,13 +29,18 @@ const INITIAL_DOCUMENT: DocumentState = {
   statsLayout: DEFAULT_STATS_LAYOUT,
   texts: [],
   waypoints: [],
-  bgAdjust: DEFAULT_BG_ADJUST,
+  slides: DEFAULT_SLIDES,
+  collage: DEFAULT_COLLAGE,
+  carouselKind: 'panorama',
+  kmInterval: 0,
+  sourceLayout: null,
+  layoutOverrides: {},
   dimOpacity: 0,
 }
 
 // Rule: persist the user's look & feel preferences, never the per-route
 // content (track, texts, places, overrides) or transient UI state.
-type PersistedState = Pick<AppState, 'aspectKey' | 'previewBackdrop' | 'showSafeZones' | 'dimOpacity' | 'routeStyle' | 'statsStyle'> & {
+type PersistedState = Pick<AppState, 'aspectKey' | 'previewBackdrop' | 'showSafeZones' | 'dimOpacity' | 'routeStyle' | 'statsStyle' | 'customTemplates'> & {
   statsContent: Omit<AppState['statsContent'], 'overrides'>
 }
 
@@ -82,6 +89,7 @@ export const useAppStore = create<AppState>()(
         ...createRouteSlice(ctx),
         ...createStatsSlice(ctx),
         ...createElementsSlice(ctx),
+        ...createTemplatesSlice(ctx),
         ...history.slice,
       }
     },
@@ -95,6 +103,7 @@ export const useAppStore = create<AppState>()(
         dimOpacity: s.dimOpacity,
         routeStyle: s.routeStyle,
         statsStyle: s.statsStyle,
+        customTemplates: s.customTemplates,
         statsContent: {
           dayLabel: s.statsContent.dayLabel,
           visible: s.statsContent.visible,

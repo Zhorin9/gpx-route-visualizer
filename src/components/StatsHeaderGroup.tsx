@@ -29,6 +29,7 @@ export default function StatsHeaderGroup() {
   const aspectKey = useAppStore((s) => s.aspectKey)
   const setStatsPosition = useAppStore((s) => s.setStatsPosition)
   const setChipOffset = useAppStore((s) => s.setChipOffset)
+  const select = useAppStore((s) => s.select)
   // Re-measure once web fonts arrive; earlier widths came from a fallback font.
   useAppStore((s) => s.fontsVersion)
 
@@ -54,6 +55,8 @@ export default function StatsHeaderGroup() {
       offsetY={rowH / 2}
       rotation={style.rotation}
       draggable
+      onMouseDown={() => select({ kind: 'stats' })}
+      onTouchStart={() => select({ kind: 'stats' })}
       onDragEnd={handleGroupDragEnd}
     >
       <Rect

@@ -43,6 +43,18 @@ export function IconDroplet(props: SVGProps<SVGSVGElement>) {
   )
 }
 
+export function IconPalette(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...common} width="16" height="16" aria-hidden="true" {...props}>
+      <path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z" />
+      <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" />
+      <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" />
+      <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" />
+      <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" />
+    </svg>
+  )
+}
+
 export function IconType(props: SVGProps<SVGSVGElement>) {
   return (
     <svg {...common} width="16" height="16" aria-hidden="true" {...props}>
@@ -186,6 +198,63 @@ export function IconEyedropper(props: SVGProps<SVGSVGElement>) {
     <svg {...common} width="16" height="16" aria-hidden="true" {...props}>
       <path d="M19.4 4.6a2 2 0 0 1 0 2.8l-2 2-2.8-2.8 2-2a2 2 0 0 1 2.8 0Z" />
       <path d="M14.6 6.6 4 17.2V20h2.8L17.4 9.4" />
+    </svg>
+  )
+}
+
+export function IconMinus(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...common} width="15" height="15" aria-hidden="true" {...props}>
+      <line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+  )
+}
+
+export function IconReplace(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...common} width="15" height="15" aria-hidden="true" {...props}>
+      <path d="m16 3 4 4-4 4" />
+      <path d="M20 7H4" />
+      <path d="m8 21-4-4 4-4" />
+      <path d="M4 17h16" />
+    </svg>
+  )
+}
+
+export function IconFit(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...common} width="15" height="15" aria-hidden="true" {...props}>
+      <path d="M8 3H5a2 2 0 0 0-2 2v3" />
+      <path d="M21 8V5a2 2 0 0 0-2-2h-3" />
+      <path d="M3 16v3a2 2 0 0 0 2 2h3" />
+      <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
+    </svg>
+  )
+}
+
+export function IconEye(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...common} width="16" height="16" aria-hidden="true" {...props}>
+      <path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  )
+}
+
+export function IconEyeOff(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...common} width="16" height="16" aria-hidden="true" {...props}>
+      <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+      <path d="M6.61 6.61A13.53 13.53 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
+      <line x1="2" y1="2" x2="22" y2="22" />
+    </svg>
+  )
+}
+
+export function IconMountain(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...common} width="16" height="16" aria-hidden="true" {...props}>
+      <path d="m8 3 4 8 5-5 5 15H2z" />
     </svg>
   )
 }

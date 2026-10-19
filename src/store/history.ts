@@ -15,7 +15,12 @@ export function pickDocument(s: DocumentState): DocumentState {
     statsLayout: s.statsLayout,
     texts: s.texts,
     waypoints: s.waypoints,
-    bgAdjust: s.bgAdjust,
+    slides: s.slides,
+    collage: s.collage,
+    carouselKind: s.carouselKind,
+    kmInterval: s.kmInterval,
+    sourceLayout: s.sourceLayout,
+    layoutOverrides: s.layoutOverrides,
     dimOpacity: s.dimOpacity,
   }
 }
@@ -23,7 +28,8 @@ export function pickDocument(s: DocumentState): DocumentState {
 // Undo/redo restores a snapshot, so a selection may point at something gone.
 function validSelection(s: AppState, doc: DocumentState): Partial<AppState> {
   const sel = s.selection
-  if (!sel) return {}
+  if (!sel || sel.kind === 'stats') return {}
+  if (sel.kind === 'slot') return doc.slides[sel.slide] ? {} : { selection: null }
   const list = sel.kind === 'text' ? doc.texts : doc.waypoints
   return list.some((item) => item.id === sel.id) ? {} : { selection: null }
 }

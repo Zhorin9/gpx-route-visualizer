@@ -46,10 +46,12 @@ function haversineMeters(a: GpxPoint, b: GpxPoint): number {
 }
 
 // Cumulative distance in km from the first point, one entry per point.
-export function cumulativeDistanceKm(points: GpxPoint[]): Float64Array {
+// `breaks` are indices where a new day starts: the jump from the previous day doesn't count.
+export function cumulativeDistanceKm(points: GpxPoint[], breaks: readonly number[] = []): Float64Array {
   const cum = new Float64Array(points.length)
+  const skip = new Set(breaks)
   for (let i = 1; i < points.length; i++) {
-    cum[i] = cum[i - 1] + haversineMeters(points[i - 1], points[i]) / 1000
+    cum[i] = cum[i - 1] + (skip.has(i) ? 0 : haversineMeters(points[i - 1], points[i]) / 1000)
   }
   return cum
 }
@@ -73,13 +75,29 @@ export function elevationGain(points: GpxPoint[], startIdx: number, endIdx: numb
   return gain
 }
 
-export function computeRangeStats(points: GpxPoint[], cumKm: Float64Array, startIdx: number, endIdx: number): RangeStats {
-  const start = points[startIdx]?.time
-  const end = points[endIdx]?.time
+// Time spent inside each day only, so nights between days don't count.
+function durationMs(points: GpxPoint[], startIdx: number, endIdx: number, breaks: readonly number[]): number {
+  const cuts = [startIdx, ...breaks.filter((b) => b > startIdx && b <= endIdx), endIdx + 1]
+  let total = 0
+  for (let i = 0; i + 1 < cuts.length; i++) {
+    const start = points[cuts[i]]?.time
+    const end = points[cuts[i + 1] - 1]?.time
+    if (start != null && end != null) total += Math.max(0, end - start)
+  }
+  return total
+}
+
+export function computeRangeStats(
+  points: GpxPoint[],
+  cumKm: Float64Array,
+  startIdx: number,
+  endIdx: number,
+  breaks: readonly number[] = [],
+): RangeStats {
   return {
     distanceKm: (cumKm[endIdx] ?? 0) - (cumKm[startIdx] ?? 0),
     elevationGainM: elevationGain(points, startIdx, endIdx),
-    durationMs: start != null && end != null ? Math.max(0, end - start) : 0,
+    durationMs: durationMs(points, startIdx, endIdx, breaks),
   }
 }
 

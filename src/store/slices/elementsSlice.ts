@@ -12,7 +12,8 @@ export function createElementsSlice({ get, commit }: SliceContext): ElementsSlic
     addText: () => {
       const s = get()
       const { w, h } = ASPECTS[s.aspectKey]
-      const node = makeText(nextId(s.texts), w, h)
+      const base = makeText(nextId(s.texts), w, h)
+      const node = { ...base, x: base.x + Math.min(s.activeSlide, s.slides.length - 1) * w }
       commit('text:add', {
         texts: [...s.texts, node],
         selection: { kind: 'text', id: node.id },
@@ -39,7 +40,7 @@ export function createElementsSlice({ get, commit }: SliceContext): ElementsSlic
         waypoints: [...s.waypoints, node],
         selection: { kind: 'waypoint', id: node.id },
         addingWaypoint: false,
-        activeTab: 'places',
+        activeTab: 'route',
       })
       return node.id
     },
@@ -68,7 +69,7 @@ export function createElementsSlice({ get, commit }: SliceContext): ElementsSlic
       const sel = get().selection
       if (!sel) return
       if (sel.kind === 'text') slice.deleteText(sel.id)
-      else slice.deleteWaypoint(sel.id)
+      else if (sel.kind === 'waypoint') slice.deleteWaypoint(sel.id)
     },
 
     nudgeSelection: (dx, dy) => {
@@ -79,7 +80,7 @@ export function createElementsSlice({ get, commit }: SliceContext): ElementsSlic
         commit(`nudge:text:${sel.id}`, {
           texts: s.texts.map((t) => (t.id === sel.id ? { ...t, x: t.x + dx, y: t.y + dy } : t)),
         })
-      } else {
+      } else if (sel.kind === 'waypoint') {
         commit(`nudge:waypoint:${sel.id}`, {
           waypoints: s.waypoints.map((w) => (w.id === sel.id ? { ...w, dx: w.dx + dx, dy: w.dy + dy } : w)),
         })

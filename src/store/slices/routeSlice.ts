@@ -8,6 +8,7 @@ export function createRouteSlice({ get, commit }: SliceContext): RouteSlice {
       commit(`routeStyle:${Object.keys(patch).join()}`, (s) => ({ routeStyle: { ...s.routeStyle, ...patch } })),
     applyStylePreset: (preset) =>
       commit(`preset:${preset}`, (s) => ({ routeStyle: { ...s.routeStyle, ...STYLE_PRESETS[preset] } })),
+    setKmInterval: (value) => commit('kmInterval', { kmInterval: value }),
     setRouteTransform: (transform) => commit('route:transform', { routeTransform: transform }),
     resetRouteTransform: () => commit('route:reset', { routeTransform: IDENTITY_TRANSFORM }),
     setRange: (range) => commit('range', { range }),
