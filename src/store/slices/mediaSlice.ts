@@ -19,6 +19,9 @@ function keepInside<T extends { x: number }>(texts: T[], width: number): T[] {
   return texts.map((t) => (t.x > width - 60 ? { ...t, x: Math.max(0, width - 60) } : t))
 }
 
+// Ids are never reused, so undoing a removal can't pick up a photo uploaded later.
+let lastPhotoId = 0
+
 function withSlide(slides: Slide[], index: number, update: (slide: Slide) => Slide): Slide[] {
   return slides.map((slide, i) => (i === index ? update(slide) : slide))
 }
@@ -119,7 +122,7 @@ export function createMediaSlice({ set, get, commit, resetHistory }: SliceContex
       if (!loaded.length) return
 
       commit('photos:add', (s) => {
-        let id = nextId(s.photos)
+        let id = Math.max(nextId(s.photos), lastPhotoId + 1)
         const photos = [...s.photos]
         let slides = s.slides
         const queue: number[] = []
@@ -128,6 +131,7 @@ export function createMediaSlice({ set, get, commit, resetHistory }: SliceContex
           queue.push(id++)
         }
 
+        lastPhotoId = id - 1
         if (target) {
           const photoId = queue.shift()!
           slides = withSlide(slides, target.slide, (slide) => ({
@@ -175,6 +179,17 @@ export function createMediaSlice({ set, get, commit, resetHistory }: SliceContex
       if (!target) return s.showToast('Wszystkie sloty są zajęte — zaznacz slot, aby go podmienić')
       s.assignPhoto(target.slide, target.index, photoId)
     },
+
+    // Not an undo step: the library isn't part of the history, so undo couldn't bring the file back.
+    removePhoto: (photoId) =>
+      set((s) => ({
+        photos: s.photos.filter((p) => p.id !== photoId),
+        slides: s.slides.map((slide) => ({
+          ...slide,
+          slots: Object.fromEntries(Object.entries(slide.slots).filter(([, a]) => a.photoId !== photoId)),
+        })),
+        selection: s.selection?.kind === 'slot' ? null : s.selection,
+      })),
 
     clearSlot: (slide, index) =>
       commit('slot:clear', (s) => ({

@@ -106,6 +106,8 @@ export interface MediaSlice {
   assignPhoto: (slide: number, index: number, photoId: number) => void
   // Puts a library photo in the selected slot, else the first empty one.
   placePhoto: (photoId: number) => void
+  // Drops a photo from the library and empties every slot that showed it.
+  removePhoto: (photoId: number) => void
   clearSlot: (slide: number, index: number) => void
   updateSlot: (slide: number, index: number, patch: Partial<Omit<SlotAssignment, 'photoId'>>) => void
   resetSlotCrop: (slide: number, index: number) => void

@@ -307,3 +307,16 @@ describe('multi-day routes', () => {
     expect(get().track?.points).toHaveLength(3)
   })
 })
+
+describe('photo library', () => {
+  it('removes a photo and empties the slots that used it', () => {
+    useAppStore.setState({ photos: [fakePhoto(1), fakePhoto(2)] })
+    get().setLayout(0, 'g2h')
+    get().assignPhoto(0, 0, 1)
+    get().assignPhoto(0, 1, 2)
+    get().removePhoto(1)
+    expect(get().photos.map((p) => p.id)).toEqual([2])
+    expect(get().slides[0].slots[0]).toBeUndefined()
+    expect(get().slides[0].slots[1]?.photoId).toBe(2)
+  })
+})

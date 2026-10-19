@@ -1554,3 +1554,51 @@
   margin: var(--space-3) 0 0;
   color: var(--color-accent-700);
 }
+
+/* ---------- Collapsible sections ---------- */
+.section-toggle {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.section-toggle .chevron {
+  transition: transform 0.15s;
+}
+
+.section-toggle .chevron.collapsed {
+  transform: rotate(-90deg);
+}
+
+.photo-tape-item {
+  position: relative;
+  flex-shrink: 0;
+  display: block;
+}
+
+.photo-tape-remove {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  display: none;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  cursor: pointer;
+  background: var(--color-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+}
+
+.photo-tape-item:hover .photo-tape-remove,
+.photo-tape-remove:focus-visible {
+  display: grid;
+}
