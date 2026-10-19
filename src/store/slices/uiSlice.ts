@@ -21,13 +21,21 @@ export function createUiSlice({ set }: SliceContext): UiSlice {
     setActiveTab: (tab) => set({ activeTab: tab }),
     setPreviewBackdrop: (value) => set({ previewBackdrop: value }),
     // Picking something on the canvas brings up its settings: photos live in the first tab, the rest in Napisy.
+    // A waypoint has settings in both Trasa and Napisy, so it stays in whichever of the two is open.
     select: (selection) =>
-      set(
+      set((s) =>
         selection
           ? {
               selection,
               addingWaypoint: false,
-              activeTab: selection.kind === 'slot' ? 'media' : selection.kind === 'waypoint' ? 'route' : 'texts',
+              activeTab:
+                selection.kind === 'slot'
+                  ? 'media'
+                  : selection.kind === 'waypoint' && (s.activeTab === 'texts' || s.activeTab === 'route')
+                    ? s.activeTab
+                    : selection.kind === 'waypoint'
+                      ? 'route'
+                      : 'texts',
               ...(selection.kind === 'slot' ? { activeSlide: selection.slide } : null),
             }
           : { selection: null },
