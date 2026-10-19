@@ -1,43 +1,141 @@
+import { useState } from 'react'
 import SliderField from '../fields/SliderField'
 import ColorField from '../fields/ColorField'
-import Button from '../ui/Button'
+import CheckboxField from '../fields/CheckboxField'
 import FileButton from '../ui/FileButton'
 import Section from '../ui/Section'
 import Segmented from '../ui/Segmented'
-import { IconTrash, IconUpload } from '../icons'
+import { IconUpload } from '../icons'
 import useGpxImport from '../../hooks/useGpxImport'
-import { useRangeStats } from '../../store/selectors'
+import { useActiveSlide, useHasPhotos, usePanorama, useRangeStats } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
-import { ASPECTS } from '../../utils/aspects'
+import { DEFAULT_COLLAGE } from '../../store/defaults'
 import { formatKm } from '../../utils/format'
-import type { AspectKey, SelectOption } from '../../types'
-
-const ASPECT_OPTIONS = Object.entries(ASPECTS).map(([value, a]) => ({ value, label: a.label })) as SelectOption<AspectKey>[]
+import { LAYOUTS, computeSlots, layoutDef, type LayoutDef } from '../../utils/layouts'
+import { MAX_SLIDES, MIN_CAROUSEL_SLIDES } from '../../store/defaults'
+import type { CarouselKind, FrameKind, LayoutGroup, LayoutKey, Photo, SelectOption, Slide } from '../../types'
 
 const BACKDROP_OPTIONS: SelectOption<'checkerboard' | 'color'>[] = [
   { value: 'checkerboard', label: 'Szachownica' },
   { value: 'color', label: 'Kolor' },
 ]
 
+const GROUP_OPTIONS: SelectOption<LayoutGroup>[] = [
+  { value: 'grid', label: 'Siatki' },
+  { value: 'creative', label: 'Kreatywne / scrapbook' },
+]
+
+const CAROUSEL_KIND_OPTIONS: SelectOption<CarouselKind>[] = [
+  { value: 'panorama', label: 'Jedno zdjęcie' },
+  { value: 'slides', label: 'Osobne układy' },
+]
+
+const SLIDE_COUNT_OPTIONS: SelectOption<string>[] = Array.from({ length: MAX_SLIDES - MIN_CAROUSEL_SLIDES + 1 }, (_, i) => {
+  const n = String(i + MIN_CAROUSEL_SLIDES)
+  return { value: n, label: n }
+})
+
+const FRAME_OPTIONS: SelectOption<FrameKind>[] = [
+  { value: 'equal', label: 'Równa' },
+  { value: 'polaroid', label: 'Polaroid' },
+]
+
+const FIT_OPTIONS: SelectOption<'cover' | 'contain'>[] = [
+  { value: 'cover', label: 'Przytnij' },
+  { value: 'contain', label: 'Całe + rozmyte tło' },
+]
+
+const THUMB_W = 76
+const THUMB_H = 96
+
+function LayoutThumb({
+  def,
+  active,
+  slide,
+  photos,
+  onApply,
+  onPreview,
+}: {
+  def: LayoutDef
+  active: boolean
+  slide: Slide
+  photos: Map<number, Photo>
+  onApply: () => void
+  onPreview: (on: boolean) => void
+}) {
+  const slots = computeSlots(def, THUMB_W, THUMB_H, 2, 3)
+  return (
+    <button
+      type="button"
+      className={active ? 'layout-thumb active' : 'layout-thumb'}
+      aria-pressed={active}
+      onClick={onApply}
+      onMouseEnter={() => onPreview(true)}
+      onMouseLeave={() => onPreview(false)}
+      onFocus={() => onPreview(true)}
+      onBlur={() => onPreview(false)}
+    >
+      <span className="layout-thumb-box" style={{ width: THUMB_W, height: THUMB_H }}>
+        {slots.map((slot) => {
+          const photo = photos.get(slide.slots[slot.index]?.photoId ?? -1)
+          return (
+            <span
+              key={slot.index}
+              className={slot.kind === 'framed' ? 'layout-thumb-cell framed' : 'layout-thumb-cell'}
+              style={{
+                left: slot.x,
+                top: slot.y,
+                width: slot.w,
+                height: slot.h,
+                transform: slot.rotation ? `rotate(${slot.rotation}deg)` : undefined,
+                backgroundImage: photo ? `url(${photo.thumb})` : undefined,
+              }}
+            />
+          )
+        })}
+      </span>
+      <span className="layout-thumb-label">{def.label}</span>
+    </button>
+  )
+}
+
 export default function MediaTab() {
   const track = useAppStore((s) => s.track)
   const gpxError = useAppStore((s) => s.gpxError)
-  const hasBackground = useAppStore((s) => s.background !== null)
-  const backgroundError = useAppStore((s) => s.backgroundError)
-  const removeBackground = useAppStore((s) => s.removeBackground)
-  const aspectKey = useAppStore((s) => s.aspectKey)
-  const setAspectKey = useAppStore((s) => s.setAspectKey)
+  const photoError = useAppStore((s) => s.photoError)
+  const hasPhotos = useHasPhotos()
+  const slides = useAppStore((s) => s.slides)
+  const photos = useAppStore((s) => s.photos)
+  const collage = useAppStore((s) => s.collage)
+  const setLayout = useAppStore((s) => s.setLayout)
+  const setPreviewLayout = useAppStore((s) => s.setPreviewLayout)
+  const updateCollage = useAppStore((s) => s.updateCollage)
+  const updateFrame = useAppStore((s) => s.updateFrame)
   const dimOpacity = useAppStore((s) => s.dimOpacity)
   const setDimOpacity = useAppStore((s) => s.setDimOpacity)
   const previewBackdrop = useAppStore((s) => s.previewBackdrop)
   const setPreviewBackdrop = useAppStore((s) => s.setPreviewBackdrop)
-  const bgZoom = useAppStore((s) => s.bgAdjust.zoom)
-  const updateBgAdjust = useAppStore((s) => s.updateBgAdjust)
-  const resetBgAdjust = useAppStore((s) => s.resetBgAdjust)
   const stats = useRangeStats()
   const { importFiles } = useGpxImport()
 
+  const carouselKind = useAppStore((s) => s.carouselKind)
+  const setCarouselKind = useAppStore((s) => s.setCarouselKind)
+  const setSlideCount = useAppStore((s) => s.setSlideCount)
+  const panorama = usePanorama()
+  const activeSlide = useActiveSlide()
+  const slide = slides[activeSlide]
+  const currentDef = layoutDef(slide.layoutKey)
+  const [group, setGroup] = useState<LayoutGroup>(currentDef.group)
+  const photoMap = new Map(photos.map((p) => [p.id, p]))
   const backdropIsColor = previewBackdrop !== 'checkerboard'
+  const { frame } = collage
+  const isCreative = currentDef.group === 'creative'
+  const showFrameControls = isCreative || frame.enabled
+
+  function apply(key: LayoutKey) {
+    setPreviewLayout(null)
+    setLayout(activeSlide, key)
+  }
 
   return (
     <>
@@ -50,7 +148,7 @@ export default function MediaTab() {
             </span>
           </p>
         )}
-        <FileButton accept=".gpx,application/gpx+xml" onFiles={importFiles} icon={<IconUpload />} block>
+        <FileButton accept=".gpx,application/gpx+xml" onFiles={(files) => importFiles(files)} icon={<IconUpload />} block>
           {track ? 'Zmień plik GPX' : 'Wgraj plik GPX'}
         </FileButton>
         {gpxError && (
@@ -60,62 +158,135 @@ export default function MediaTab() {
         )}
       </Section>
 
-      <Section title="Format">
-        <Segmented label="Proporcje" value={aspectKey} options={ASPECT_OPTIONS} onChange={setAspectKey} />
-      </Section>
+      {slides.length > 1 && (
+        <Section title="Karuzela">
+          <Segmented label="Sposób podziału" showLabel value={carouselKind} options={CAROUSEL_KIND_OPTIONS} onChange={setCarouselKind} />
+          {panorama ? (
+            <>
+              <Segmented
+                label="Liczba slajdów"
+                showLabel
+                value={String(slides.length)}
+                options={SLIDE_COUNT_OPTIONS}
+                onChange={(n) => setSlideCount(Number(n))}
+              />
+              <p className="hint">
+                Wybierz jedno szerokie zdjęcie — zostanie podzielone równo na slajdy w miejscach linii przerywanych. Przeciągnij, aby przesunąć kadr, kółkiem myszy przybliżysz.
+              </p>
+            </>
+          ) : (
+            <p className="hint">Każdy slajd ma własny układ i zdjęcia. Wybierz slajd w pasku pod kadrem.</p>
+          )}
+        </Section>
+      )}
 
-      <Section title="Tło">
-        {hasBackground ? (
-          <>
-            <div className="button-row">
-              <FileButton accept="image/*" onFiles={importFiles} icon={<IconUpload />}>
-                Zmień zdjęcie
-              </FileButton>
-              <Button variant="danger" icon={<IconTrash />} onClick={removeBackground}>
-                Usuń
-              </Button>
-            </div>
-            <SliderField
-              label="Przyciemnienie"
-              unit="%"
-              value={Math.round(dimOpacity * 100)}
-              defaultValue={0}
-              onChange={(v) => setDimOpacity(v / 100)}
-            />
-            <SliderField
-              label="Powiększenie"
-              unit="%"
-              min={100}
-              max={250}
-              value={Math.round(bgZoom * 100)}
-              defaultValue={100}
-              onChange={(v) => updateBgAdjust({ zoom: v / 100 })}
-            />
-            <p className="hint">Przeciągnij zdjęcie na podglądzie, aby wybrać kadr.</p>
-            <Button onClick={resetBgAdjust}>Wyśrodkuj zdjęcie</Button>
-          </>
+      {!panorama && (
+        <Section title={slides.length > 1 ? `Układ — slajd ${activeSlide + 1}` : 'Układ'}>
+          <Segmented label="Rodzaj układów" value={group} options={GROUP_OPTIONS} onChange={setGroup} />
+          <div className="layout-grid" role="group" aria-label="Układy zdjęć">
+            {LAYOUTS.filter((l) => l.group === group).map((def) => (
+              <LayoutThumb
+                key={def.key}
+                def={def}
+                active={def.key === slide.layoutKey}
+                slide={slide}
+                photos={photoMap}
+                onApply={() => apply(def.key)}
+                onPreview={(on) => setPreviewLayout(on && def.key !== slide.layoutKey ? def.key : null)}
+              />
+            ))}
+          </div>
+          <p className="hint">Najedź na układ, aby zobaczyć go na kadrze. Zmiana układu zachowuje zdjęcia.</p>
+        </Section>
+        )}
+
+      <Section title="Zdjęcia">
+        <FileButton accept="image/*" multiple onFiles={(files) => importFiles(files)} icon={<IconUpload />} block>
+          {hasPhotos ? 'Wgraj kolejne zdjęcia' : 'Wgraj zdjęcia'}
+        </FileButton>
+        {photoError && (
+          <p className="error" role="alert">
+            {photoError}
+          </p>
+        )}
+        {hasPhotos ? (
+          <SliderField
+            label="Przyciemnienie"
+            unit="%"
+            value={Math.round(dimOpacity * 100)}
+            defaultValue={0}
+            onChange={(v) => setDimOpacity(v / 100)}
+          />
         ) : (
           <>
-            <FileButton accept="image/*" onFiles={importFiles} icon={<IconUpload />} block>
-              Dodaj zdjęcie tła
-            </FileButton>
-            <p className="hint">Bez zdjęcia eksport to przezroczysty PNG — gotowy do nałożenia na własne zdjęcie w Instagramie.</p>
+            <p className="hint">Bez zdjęć eksport to przezroczysty PNG — gotowy do nałożenia na własne zdjęcie w Instagramie.</p>
             <Segmented
               label="Tło podglądu"
               showLabel
               value={backdropIsColor ? 'color' : 'checkerboard'}
               options={BACKDROP_OPTIONS}
-              onChange={(v) => setPreviewBackdrop(v === 'color' ? (backdropIsColor ? previewBackdrop : '#1c1d21') : 'checkerboard')}
+              onChange={(v) => setPreviewBackdrop(v === 'color' ? (backdropIsColor ? previewBackdrop : '#cfcccc') : 'checkerboard')}
             />
             {backdropIsColor && <ColorField label="Kolor podglądu" value={previewBackdrop} onChange={setPreviewBackdrop} />}
           </>
         )}
-        {backgroundError && (
-          <p className="error" role="alert">
-            {backgroundError}
-          </p>
-        )}
       </Section>
+
+      {hasPhotos && (
+        <>
+          {!panorama && (
+            <>
+              <Section title="Odstępy i tło">
+                <SliderField
+                  label="Przerwa"
+                  unit="px"
+                  min={0}
+                  max={60}
+                  value={collage.gap}
+                  defaultValue={DEFAULT_COLLAGE.gap}
+                  onChange={(gap) => updateCollage({ gap })}
+                />
+                <SliderField
+                  label="Margines"
+                  unit="px"
+                  min={0}
+                  max={150}
+                  value={collage.margin}
+                  defaultValue={DEFAULT_COLLAGE.margin}
+                  onChange={(margin) => updateCollage({ margin })}
+                />
+                <ColorField label="Kolor tła kadru" value={collage.bgColor} onChange={(bgColor) => updateCollage({ bgColor })} />
+              </Section>
+    
+              <Section title="Ramka zdjęć">
+                {!isCreative && (
+                  <CheckboxField label="Ramka wokół zdjęć" checked={frame.enabled} onChange={(enabled) => updateFrame({ enabled })} />
+                )}
+                {showFrameControls && (
+                  <>
+                    <ColorField label="Kolor ramki" value={frame.color} onChange={(color) => updateFrame({ color })} />
+                    <SliderField
+                      label="Grubość"
+                      unit="px"
+                      min={4}
+                      max={60}
+                      value={frame.thickness}
+                      defaultValue={DEFAULT_COLLAGE.frame.thickness}
+                      onChange={(thickness) => updateFrame({ thickness })}
+                    />
+                    <Segmented label="Styl ramki" value={frame.style} options={FRAME_OPTIONS} onChange={(style) => updateFrame({ style })} />
+                  </>
+                )}
+              </Section>
+            </>
+          )}
+
+          <Section title="Dopasowanie">
+            <Segmented label="Dopasowanie zdjęcia do slotu" value={collage.fit} options={FIT_OPTIONS} onChange={(fit) => updateCollage({ fit })} />
+            {collage.fit === 'contain' && <p className="hint">W tym trybie zdjęcie jest widoczne w całości, więc nie da się go przesuwać ani przybliżać.</p>}
+          </Section>
+        </>
+      )}
     </>
   )
 }

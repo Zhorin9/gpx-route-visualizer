@@ -97,7 +97,7 @@ export default function RangeTab() {
         <p className="hint">
           {isSchematic
             ? 'W trybie schematycznym cała trasa jest rysowana jedną linią — postęp nie ma zastosowania.'
-            : 'Część trasy po tym punkcie jest rysowana jako „pozostała” (styl ustawisz w zakładce Styl trasy).'}
+            : 'Część trasy po tym punkcie jest rysowana jako „pozostała” (jej wygląd ustawisz niżej, w sekcji „Pozostała trasa”).'}
         </p>
       </Section>
     </>

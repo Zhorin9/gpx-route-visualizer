@@ -1,14 +1,11 @@
-import { useState } from 'react'
 import SliderField from '../fields/SliderField'
 import CheckboxField from '../fields/CheckboxField'
 import ColorField from '../fields/ColorField'
-import SelectField from '../fields/SelectField'
 import Button from '../ui/Button'
 import Section from '../ui/Section'
 import Segmented from '../ui/Segmented'
 import { DEFAULT_ROUTE_STYLE, STYLE_PRESETS } from '../../store/defaults'
 import { useAppStore } from '../../store/useAppStore'
-import { FONT_OPTIONS } from '../../utils/fonts'
 import type { RouteShape, RouteStyle, SelectOption, StylePreset } from '../../types'
 
 const SHAPE_OPTIONS: SelectOption<RouteShape>[] = [
@@ -20,19 +17,6 @@ const PRESET_LABELS: Record<StylePreset, string> = { flat: 'Płaska linia', neon
 
 function matchesPreset(style: RouteStyle, preset: StylePreset): boolean {
   return Object.entries(STYLE_PRESETS[preset]).every(([key, value]) => style[key as keyof RouteStyle] === value)
-}
-
-function GlobalFontPicker() {
-  const statsFont = useAppStore((s) => s.statsStyle.fontFamily)
-  const applyGlobalFont = useAppStore((s) => s.applyGlobalFont)
-  const [family, setFamily] = useState(statsFont)
-  return (
-    <Section title="Typografia">
-      <SelectField label="Jedna czcionka dla wszystkiego" value={family} onChange={setFamily} options={FONT_OPTIONS} />
-      <p className="hint">Ustawia ją w nagłówku, wszystkich tekstach i etykietach miejsc naraz.</p>
-      <Button onClick={() => applyGlobalFont(family)}>Zastosuj wszędzie</Button>
-    </Section>
-  )
 }
 
 export default function StyleTab() {
@@ -81,6 +65,7 @@ export default function StyleTab() {
           defaultValue={DEFAULT_ROUTE_STYLE.coreWidth}
           onChange={(coreWidth) => update({ coreWidth })}
         />
+        <CheckboxField label="Linia przerywana" checked={style.dashed} onChange={(dashed) => update({ dashed })} />
       </Section>
 
       <Section title="Poświata">
@@ -142,8 +127,6 @@ export default function StyleTab() {
           )}
         </Section>
       )}
-
-      <GlobalFontPicker />
     </>
   )
 }

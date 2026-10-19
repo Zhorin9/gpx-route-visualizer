@@ -8,11 +8,12 @@ export interface FileButtonProps {
   icon?: ReactNode
   variant?: ButtonVariant
   block?: boolean
+  multiple?: boolean
 }
 
 // Styled replacement for the native file input. Resets the value after each
 // pick so choosing the same file again still fires.
-export default function FileButton({ accept, onFiles, children, icon, variant = 'secondary', block }: FileButtonProps) {
+export default function FileButton({ accept, onFiles, children, icon, variant = 'secondary', block, multiple }: FileButtonProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   return (
     <>
@@ -23,6 +24,7 @@ export default function FileButton({ accept, onFiles, children, icon, variant = 
         ref={inputRef}
         type="file"
         accept={accept}
+        multiple={multiple}
         hidden
         onChange={(e) => {
           onFiles(e.target.files)

@@ -14,6 +14,9 @@ export interface WaypointLabelProps {
   anchor: Point2D
 }
 
+const PEAK_SHAPE = [-9, 7, 0, -9, 9, 7]
+const PASS_SHAPE = [-11, 7, -4, -5, 0, 1, 4, -7, 11, 7]
+
 // Lives outside the route group on purpose: rotating or scaling the route
 // moves the label with it, but the text itself stays upright and legible.
 export default function WaypointLabel({ waypoint, anchor }: WaypointLabelProps) {
@@ -44,7 +47,20 @@ export default function WaypointLabel({ waypoint, anchor }: WaypointLabelProps) 
         shadowOpacity={0.5}
         listening={false}
       />
-      <Circle radius={6} fill={waypoint.color} stroke="#000000" strokeWidth={1.5} strokeScaleEnabled={false} listening={false} />
+      {waypoint.kind === 'point' ? (
+        <Circle radius={6} fill={waypoint.color} stroke="#000000" strokeWidth={1.5} strokeScaleEnabled={false} listening={false} />
+      ) : (
+        <Line
+          points={waypoint.kind === 'peak' ? PEAK_SHAPE : PASS_SHAPE}
+          closed
+          fill={waypoint.color}
+          stroke="#000000"
+          strokeWidth={1.5}
+          lineJoin="round"
+          strokeScaleEnabled={false}
+          listening={false}
+        />
+      )}
       <Text
         ref={textRef}
         text={waypoint.text}

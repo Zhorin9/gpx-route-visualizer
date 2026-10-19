@@ -12,7 +12,7 @@ export interface SelectionOutlineProps {
 
 // Dashed border around the selected node. Copies the target's own
 // x/y/rotation, so it must sit in the same parent as the target.
-export default function SelectionOutline({ targetRef, visible, color = '#4f9dff' }: SelectionOutlineProps) {
+export default function SelectionOutline({ targetRef, visible, color = '#b68235' }: SelectionOutlineProps) {
   const rectRef = useRef<Konva.Rect>(null)
 
   useEffect(() => {
