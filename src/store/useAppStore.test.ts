@@ -320,3 +320,16 @@ describe('photo library', () => {
     expect(get().slides[0].slots[1]?.photoId).toBe(2)
   })
 })
+
+describe('tab switching on selection', () => {
+  it('keeps a waypoint selected from Napisy in Napisy, and opens Trasa from the canvas', () => {
+    get().addWaypoint(0)
+    const id = get().waypoints[0].id
+    get().setActiveTab('texts')
+    get().select({ kind: 'waypoint', id })
+    expect(get().activeTab).toBe('texts')
+    get().setActiveTab('media')
+    get().select({ kind: 'waypoint', id })
+    expect(get().activeTab).toBe('route')
+  })
+})

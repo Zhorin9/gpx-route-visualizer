@@ -40,7 +40,7 @@ export function createElementsSlice({ get, commit }: SliceContext): ElementsSlic
         waypoints: [...s.waypoints, node],
         selection: { kind: 'waypoint', id: node.id },
         addingWaypoint: false,
-        activeTab: 'route',
+        activeTab: s.activeTab === 'texts' ? 'texts' : 'route',
       })
       return node.id
     },
