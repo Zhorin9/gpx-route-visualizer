@@ -22,7 +22,10 @@ function TemplateThumb({ template }: { template: StyleTemplate }) {
   return (
     <span className="template-thumb" style={{ background: preview.bg, color: preview.text }}>
       {preview.frame && <span className="template-thumb-frame" style={{ borderColor: preview.frame }} />}
-      <span className="template-thumb-title" style={{ fontFamily: preview.titleFont }}>
+      <span
+        className="template-thumb-title"
+        style={{ fontFamily: preview.titleFont, color: preview.titleColor ?? preview.text, fontStyle: preview.italic ? 'italic' : 'normal' }}
+      >
         {preview.title}
       </span>
       <svg viewBox="0 0 100 100" preserveAspectRatio="none" fill="none" strokeLinecap="round" strokeLinejoin="round">
@@ -30,7 +33,8 @@ function TemplateThumb({ template }: { template: StyleTemplate }) {
           d={ROUTE_PATH}
           stroke={preview.line}
           strokeWidth={preview.width}
-          strokeDasharray={preview.dash ? '9 6' : undefined}
+          strokeDasharray={preview.dotted ? '0.1 6' : preview.dash ? '9 6' : undefined}
+          style={preview.glow ? { filter: `drop-shadow(0 0 3px ${preview.line})` } : undefined}
           vectorEffect="non-scaling-stroke"
         />
       </svg>

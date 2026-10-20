@@ -7,6 +7,7 @@ import { useAppStore } from '../store/useAppStore'
 import { ASPECTS, STORY_SAFE_ZONE } from '../utils/aspects'
 import { computeSlots, layoutDef, ribbonSlot, slotAt } from '../utils/layouts'
 import { stageHandle } from '../utils/exportImage'
+import BackgroundLayer from './BackgroundLayer'
 import EditableText from './EditableText'
 import NeonRouteGroup from './NeonRouteGroup'
 import PhotoLayer from './PhotoLayer'
@@ -16,7 +17,9 @@ import StatsHeaderGroup from './StatsHeaderGroup'
 
 export default function CanvasStage({ previewScale }: { previewScale: number }) {
   const aspectKey = useAppStore((s) => s.aspectKey)
-  const hasBackground = useHasPhotos()
+  const hasPhotos = useHasPhotos()
+  const gradientOn = useAppStore((s) => s.collage.bgKind === 'gradient')
+  const hasBackground = hasPhotos || gradientOn
   const previewBackdrop = useAppStore((s) => s.previewBackdrop)
   const adding = useAppStore((s) => s.addingWaypoint)
   const showSafeZones = useAppStore((s) => s.showSafeZones)
@@ -102,6 +105,7 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
         onMouseDown={handlePointerDown}
         onTouchStart={handlePointerDown}
       >
+        <BackgroundLayer />
         <PhotoLayer />
         <Layer>{hasRoute && <NeonRouteGroup />}</Layer>
         <Layer>

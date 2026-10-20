@@ -54,6 +54,17 @@ export interface TextNode {
   outlineColor: string
   outlineWidth: number
   shadowEnabled: boolean
+  // 'title': the track name, centred across the frame with the stats header a line below.
+  role?: 'title'
+  uppercase?: boolean
+}
+
+// How a track title is set: templates write it, a newly loaded GPX reads it.
+export interface TitleStyle {
+  fontFamily: string
+  color: string
+  italic: boolean
+  uppercase: boolean
 }
 
 export type WaypointKind = 'point' | 'pass' | 'peak'
@@ -88,6 +99,7 @@ export interface RouteStyle {
   remainingWidth: number
   shape: RouteShape
   dashed: boolean
+  dotted: boolean
   // 0-100, higher = more simplified.
   schematicSimplify: number
 }
@@ -99,14 +111,31 @@ export interface StyleTemplate {
   id: string
   name: string
   desc: string
-  fontFamily: string
+  // One pair per role: titles (texts), figures (stats header) and notes (place labels).
+  fonts: { title: string; data: string; note: string }
+  titleItalic?: boolean
+  titleUppercase?: boolean
   statsStyle: Partial<StatsStyle>
   textColor: string
+  titleColor?: string
   route: Partial<RouteStyle>
   frame: CollageStyle['frame']
-  bgColor: string
+  gradient: GradientStyle
   layoutKey: LayoutKey
-  preview: { bg: string; text: string; line: string; title: string; titleFont: string; dash: boolean; width: number; frame?: string }
+  preview: {
+    bg: string
+    text: string
+    line: string
+    title: string
+    titleFont: string
+    titleColor?: string
+    italic?: boolean
+    dash: boolean
+    dotted?: boolean
+    glow?: boolean
+    width: number
+    frame?: string
+  }
   custom?: boolean
 }
 
@@ -128,7 +157,15 @@ export interface RouteTransform {
 
 export type StatKey = 'day' | 'distance' | 'elevation' | 'time'
 
+// row: values side by side in one line; columns: equal columns across the frame, label above each value.
+export type StatsArrangement = 'row' | 'columns'
+
 export interface StatsStyle {
+  arrangement: StatsArrangement
+  // Columns only: spread over the whole frame, or sized to their content with `spacing` between.
+  stretch: boolean
+  labels: boolean
+  dividers: boolean
   fontFamily: string
   color: string
   fontSize: number
@@ -159,6 +196,9 @@ export interface StatsLayout {
 export interface StatChip {
   key: StatKey
   text: string
+  // Caption and bare value used by the column layout.
+  label: string
+  value: string
 }
 
 export type LayoutKey = 'g1' | 'g2h' | 'g2v' | 'g2v1h' | 'g22' | 'g1b2s' | 'g2s1b' | 'g3h' | 'g3v' | 'g4v' | 'g23' | 'g1b3s' | 'g3s1b' | 'c1' | 'c2' | 'c3' | 'c4'
@@ -198,10 +238,27 @@ export interface FrameStyle {
   style: FrameKind
 }
 
+export interface GradientStyle {
+  from: string
+  to: string
+  // CSS convention: 180 runs top to bottom.
+  angle: number
+  // Film grain strength, 0-100.
+  grain: number
+  // Dithers the blend so the gradient shows no banding.
+  smooth: boolean
+}
+
+export type BackgroundKind = 'color' | 'gradient'
+
 export interface CollageStyle {
   gap: number
   margin: number
   bgColor: string
+  bgKind: BackgroundKind
+  gradient: GradientStyle
+  // Text and route flip between dark and light when the gradient does.
+  autoContrast: boolean
   frame: FrameStyle
   fit: 'cover' | 'contain'
 }
@@ -230,7 +287,7 @@ export interface FormatOverrides {
 
 export type ExportFormat = 'png' | 'jpg'
 
-export type TabKey = 'media' | 'route' | 'texts' | 'style' | 'export'
+export type TabKey = 'background' | 'media' | 'route' | 'texts' | 'style' | 'export'
 
 export interface SelectOption<T extends string = string> {
   value: T

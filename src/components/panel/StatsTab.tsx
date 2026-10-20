@@ -3,12 +3,20 @@ import ColorField from '../fields/ColorField'
 import SliderField from '../fields/SliderField'
 import TextField from '../fields/TextField'
 import Button from '../ui/Button'
+import CheckboxField from '../fields/CheckboxField'
 import Section from '../ui/Section'
+import Segmented from '../ui/Segmented'
 import StatConfigItem from './StatConfigItem'
 import { DEFAULT_STATS_STYLE } from '../../store/defaults'
 import { useAppStore } from '../../store/useAppStore'
 import { FONT_OPTIONS } from '../../utils/fonts'
 import { formatNumber } from '../../utils/format'
+import type { SelectOption, StatsArrangement } from '../../types'
+
+const ARRANGEMENT_OPTIONS: SelectOption<StatsArrangement>[] = [
+  { value: 'columns', label: 'Kolumny' },
+  { value: 'row', label: 'W jednej linii' },
+]
 
 const DISTANCE_PRECISION_OPTIONS = [0, 1, 2].map((digits) => ({
   value: String(digits),
@@ -34,7 +42,7 @@ export default function StatsTab() {
   return (
     <>
       <p className="hint">
-        Przeciągnij nagłówek na podglądzie, aby go przesunąć, albo pojedynczy element, aby wysunąć go z rzędu.
+        Przeciągnij nagłówek na podglądzie, aby go przesunąć. W układzie „W jednej linii” możesz też wysunąć pojedynczy element z rzędu.
       </p>
 
       <Section title="Elementy">
@@ -92,6 +100,20 @@ export default function StatsTab() {
           )
         }
       >
+        <Segmented
+          label="Układ nagłówka"
+          showLabel
+          value={style.arrangement}
+          options={ARRANGEMENT_OPTIONS}
+          onChange={(arrangement) => updateStatsStyle({ arrangement })}
+        />
+        {style.arrangement === 'columns' && (
+          <>
+            <CheckboxField label="Etykiety nad wartościami" checked={style.labels} onChange={(labels) => updateStatsStyle({ labels })} />
+            <CheckboxField label="Linie podziału" checked={style.dividers} onChange={(dividers) => updateStatsStyle({ dividers })} />
+            <CheckboxField label="Rozciągnij na całą szerokość" checked={style.stretch} onChange={(stretch) => updateStatsStyle({ stretch })} />
+          </>
+        )}
         <SelectField label="Czcionka" value={style.fontFamily} onChange={(v) => updateStatsStyle({ fontFamily: v })} options={FONT_OPTIONS} />
         <ColorField label="Kolor" value={style.color} onChange={(v) => updateStatsStyle({ color: v })} />
         <SliderField
@@ -103,15 +125,17 @@ export default function StatsTab() {
           defaultValue={DEFAULT_STATS_STYLE.fontSize}
           onChange={(v) => updateStatsStyle({ fontSize: v })}
         />
-        <SliderField
-          label="Odstęp"
-          unit="px"
-          min={0}
-          max={150}
-          value={style.spacing}
-          defaultValue={DEFAULT_STATS_STYLE.spacing}
-          onChange={(v) => updateStatsStyle({ spacing: v })}
-        />
+        {(style.arrangement === 'row' || !style.stretch) && (
+          <SliderField
+            label="Odstęp"
+            unit="px"
+            min={0}
+            max={150}
+            value={style.spacing}
+            defaultValue={DEFAULT_STATS_STYLE.spacing}
+            onChange={(v) => updateStatsStyle({ spacing: v })}
+          />
+        )}
         <SliderField
           label="Obrót"
           unit="°"

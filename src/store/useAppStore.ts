@@ -7,6 +7,7 @@ import {
   DEFAULT_STATS_LAYOUT,
   DEFAULT_SLIDES,
   DEFAULT_STATS_STYLE,
+  DEFAULT_TITLE_STYLE,
   IDENTITY_TRANSFORM,
 } from './defaults'
 import { createHistory } from './history'
@@ -17,6 +18,7 @@ import { createStatsSlice } from './slices/statsSlice'
 import { createTemplatesSlice } from './slices/templatesSlice'
 import { createUiSlice } from './slices/uiSlice'
 import type { AppState, DocumentState, SetState } from './types'
+import type { StyleTemplate } from '../types'
 
 const INITIAL_DOCUMENT: DocumentState = {
   aspectKey: '9:16',
@@ -25,6 +27,7 @@ const INITIAL_DOCUMENT: DocumentState = {
   range: { start: 0, end: 0 },
   progress: 100,
   statsStyle: DEFAULT_STATS_STYLE,
+  titleStyle: DEFAULT_TITLE_STYLE,
   statsContent: DEFAULT_STATS_CONTENT,
   statsLayout: DEFAULT_STATS_LAYOUT,
   texts: [],
@@ -40,11 +43,11 @@ const INITIAL_DOCUMENT: DocumentState = {
 
 // Rule: persist the user's look & feel preferences, never the per-route
 // content (track, texts, places, overrides) or transient UI state.
-type PersistedState = Pick<AppState, 'aspectKey' | 'previewBackdrop' | 'showSafeZones' | 'dimOpacity' | 'routeStyle' | 'statsStyle' | 'customTemplates'> & {
+type PersistedState = Pick<AppState, 'aspectKey' | 'previewBackdrop' | 'showSafeZones' | 'dimOpacity' | 'routeStyle' | 'statsStyle' | 'titleStyle' | 'customTemplates'> & {
   statsContent: Omit<AppState['statsContent'], 'overrides'>
 }
 
-const STORE_VERSION = 2
+const STORE_VERSION = 3
 
 // v0 kept every style field flat on the root.
 function migrateV0(old: Record<string, unknown>): Partial<PersistedState> {
@@ -76,6 +79,27 @@ function migrateV0(old: Record<string, unknown>): Partial<PersistedState> {
   }
 }
 
+type LegacyTemplate = Omit<StyleTemplate, 'fonts' | 'gradient'> & { fontFamily?: string; bgColor?: string }
+
+// v2 templates had one font and a flat background colour, and the stats header was always one row.
+function migrateV2(old: Partial<PersistedState>): Partial<PersistedState> {
+  const templates = (old.customTemplates ?? []) as (StyleTemplate | LegacyTemplate)[]
+  return {
+    ...old,
+    statsStyle: old.statsStyle && { ...old.statsStyle, arrangement: 'row' },
+    customTemplates: templates.map((t): StyleTemplate => {
+      if ('fonts' in t && t.fonts) return t
+      const { fontFamily = DEFAULT_STATS_STYLE.fontFamily, bgColor = DEFAULT_COLLAGE.bgColor, ...rest } = t as LegacyTemplate
+      return {
+        ...rest,
+        fonts: { title: fontFamily, data: fontFamily, note: fontFamily },
+        statsStyle: { arrangement: 'row', ...rest.statsStyle },
+        gradient: { ...DEFAULT_COLLAGE.gradient, from: bgColor, to: bgColor, grain: 0 },
+      }
+    }),
+  }
+}
+
 export const useAppStore = create<AppState>()(
   persist(
     (rawSet, get) => {
@@ -103,6 +127,7 @@ export const useAppStore = create<AppState>()(
         dimOpacity: s.dimOpacity,
         routeStyle: s.routeStyle,
         statsStyle: s.statsStyle,
+        titleStyle: s.titleStyle,
         customTemplates: s.customTemplates,
         statsContent: {
           dayLabel: s.statsContent.dayLabel,
@@ -111,8 +136,10 @@ export const useAppStore = create<AppState>()(
           elevationRoundTo: s.statsContent.elevationRoundTo,
         },
       }),
-      migrate: (persisted, version) =>
-        version < STORE_VERSION ? migrateV0((persisted ?? {}) as Record<string, unknown>) : (persisted as PersistedState),
+      migrate: (persisted, version) => {
+        const state = version < 2 ? migrateV0((persisted ?? {}) as Record<string, unknown>) : ((persisted ?? {}) as Partial<PersistedState>)
+        return (version < 3 ? migrateV2(state) : state) as PersistedState
+      },
       // Default shallow merge would drop style fields added after the data was saved.
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<PersistedState>
@@ -121,6 +148,7 @@ export const useAppStore = create<AppState>()(
           ...p,
           routeStyle: { ...current.routeStyle, ...p.routeStyle },
           statsStyle: { ...current.statsStyle, ...p.statsStyle },
+          titleStyle: { ...current.titleStyle, ...p.titleStyle },
           statsContent: {
             ...current.statsContent,
             ...p.statsContent,

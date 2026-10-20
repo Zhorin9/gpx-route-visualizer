@@ -1,10 +1,11 @@
-import { ASPECTS } from '../../utils/aspects'
+import { ASPECTS, defaultTitleY } from '../../utils/aspects'
 import { parseGpxText } from '../../utils/gpx'
 import { loadPhoto } from '../../utils/image'
 import { computeSlots, frameInsets, layoutDef } from '../../utils/layouts'
+import { INK, PAPER, mixHex, toneOf, type Tone } from '../../utils/color'
 import { measureTextWidth } from '../../utils/measureText'
 import { reflowTo, resetToAuto } from '../../utils/reflow'
-import { CAROUSEL_SLIDES, DAY_COLORS, DEFAULT_SLOT_CROP, DEFAULT_STATS_CONTENT, IDENTITY_TRANSFORM, MAX_SLIDES, MIN_CAROUSEL_SLIDES, makeText } from '../defaults'
+import { CAROUSEL_SLIDES, DAY_COLORS, DEFAULT_SLOT_CROP, DEFAULT_STATS_CONTENT, IDENTITY_TRANSFORM, MAX_SLIDES, MIN_CAROUSEL_SLIDES, makeText, makeTitle } from '../defaults'
 import type { CarouselKind, LayoutGroup, RouteDay, Slide } from '../../types'
 import type { MediaSlice, SliceContext } from '../types'
 
@@ -66,7 +67,13 @@ export function createMediaSlice({ set, get, commit, resetHistory }: SliceContex
           return
         }
         // Waypoints and history are anchored to the previous track — start clean.
+        // The track name becomes the title, replacing the previous track's one.
+        const name = (parsed.name ?? file.name.replace(/\.gpx$/i, '')).trim()
         set((s) => ({
+          texts: [
+            ...s.texts.filter((t) => t.role !== 'title'),
+            ...(name ? [makeTitle(nextId(s.texts), name, s.titleStyle, defaultTitleY(s.aspectKey))] : []),
+          ],
           track: parsed,
           routeDays: [],
           gpxError: '',
@@ -274,6 +281,25 @@ export function createMediaSlice({ set, get, commit, resetHistory }: SliceContex
     updateCollage: (patch) => commit(`collage:${Object.keys(patch).join()}`, (s) => ({ collage: { ...s.collage, ...patch } })),
     updateFrame: (patch) =>
       commit(`frame:${Object.keys(patch).join()}`, (s) => ({ collage: { ...s.collage, frame: { ...s.collage.frame, ...patch } } })),
+
+    // With auto contrast, text and route flip to dark or light when the gradient does.
+    updateBackground: ({ gradient, ...patch }) =>
+      commit('background', (s) => {
+        const collage = { ...s.collage, ...patch, gradient: { ...s.collage.gradient, ...gradient } }
+        const tone = (c: typeof collage): Tone | null => (c.bgKind === 'gradient' ? toneOf(mixHex(c.gradient.from, c.gradient.to)) : null)
+        const before = tone(s.collage) ?? 'dark'
+        const after = tone(collage)
+        if (!collage.autoContrast || !after || after === before) return { collage }
+        const color = after === 'light' ? INK : PAPER
+        return {
+          collage,
+          statsStyle: { ...s.statsStyle, color },
+          titleStyle: { ...s.titleStyle, color },
+          texts: s.texts.map((t) => ({ ...t, color })),
+          waypoints: s.waypoints.map((w) => ({ ...w, color })),
+          routeStyle: { ...s.routeStyle, color },
+        }
+      }),
 
     addCaption: (slide, index) => {
       const s = get()

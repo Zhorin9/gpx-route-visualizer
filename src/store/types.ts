@@ -4,6 +4,7 @@ import type {
   FormatLayout,
   FormatOverrides,
   CollageStyle,
+  GradientStyle,
   LayoutKey,
   Photo,
   Slide,
@@ -25,6 +26,7 @@ import type {
   TemplateParts,
   TabKey,
   TextNode,
+  TitleStyle,
   Waypoint,
 } from '../types'
 
@@ -36,6 +38,7 @@ export interface DocumentState {
   range: RouteRange
   progress: number
   statsStyle: StatsStyle
+  titleStyle: TitleStyle
   statsContent: StatsContent
   statsLayout: StatsLayout
   texts: TextNode[]
@@ -119,6 +122,7 @@ export interface MediaSlice {
   removeSlide: (index: number) => void
   updateCollage: (patch: Partial<Omit<CollageStyle, 'frame'>>) => void
   updateFrame: (patch: Partial<CollageStyle['frame']>) => void
+  updateBackground: (patch: Partial<Pick<CollageStyle, 'bgKind' | 'bgColor' | 'autoContrast'>> & { gradient?: Partial<GradientStyle> }) => void
   addCaption: (slide: number, index: number) => void
   setDimOpacity: (value: number) => void
 }

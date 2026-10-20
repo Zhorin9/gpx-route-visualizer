@@ -4,7 +4,7 @@ import Button from '../ui/Button'
 import Section from '../ui/Section'
 import Segmented from '../ui/Segmented'
 import { IconDownload } from '../icons'
-import { useHasPhotos, useHasRoute } from '../../store/selectors'
+import { useHasBackground, useHasRoute } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { ASPECTS } from '../../utils/aspects'
 import { exportFileNames } from '../../utils/exportImage'
@@ -85,7 +85,7 @@ function FormatLayoutSection() {
 
 export default function ExportTab() {
   const hasRoute = useHasRoute()
-  const hasBackground = useHasPhotos()
+  const hasBackground = useHasBackground()
   const aspectKey = useAppStore((s) => s.aspectKey)
   const trackName = useAppStore((s) => s.track?.name ?? null)
   const slideCount = useAppStore((s) => s.slides.length)

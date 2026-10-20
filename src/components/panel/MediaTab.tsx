@@ -15,11 +15,6 @@ import { LAYOUTS, computeSlots, layoutDef, type LayoutDef } from '../../utils/la
 import { MAX_SLIDES, MIN_CAROUSEL_SLIDES } from '../../store/defaults'
 import type { CarouselKind, FrameKind, LayoutGroup, LayoutKey, Photo, SelectOption, Slide } from '../../types'
 
-const BACKDROP_OPTIONS: SelectOption<'checkerboard' | 'color'>[] = [
-  { value: 'checkerboard', label: 'Szachownica' },
-  { value: 'color', label: 'Kolor' },
-]
-
 const GROUP_OPTIONS: SelectOption<LayoutGroup>[] = [
   { value: 'grid', label: 'Siatki' },
   { value: 'creative', label: 'Kreatywne / scrapbook' },
@@ -102,7 +97,6 @@ function LayoutThumb({
 export default function MediaTab() {
   const track = useAppStore((s) => s.track)
   const gpxError = useAppStore((s) => s.gpxError)
-  const photoError = useAppStore((s) => s.photoError)
   const hasPhotos = useHasPhotos()
   const slides = useAppStore((s) => s.slides)
   const photos = useAppStore((s) => s.photos)
@@ -113,8 +107,7 @@ export default function MediaTab() {
   const updateFrame = useAppStore((s) => s.updateFrame)
   const dimOpacity = useAppStore((s) => s.dimOpacity)
   const setDimOpacity = useAppStore((s) => s.setDimOpacity)
-  const previewBackdrop = useAppStore((s) => s.previewBackdrop)
-  const setPreviewBackdrop = useAppStore((s) => s.setPreviewBackdrop)
+  const setActiveTab = useAppStore((s) => s.setActiveTab)
   const stats = useRangeStats()
   const { importFiles } = useGpxImport()
 
@@ -127,7 +120,6 @@ export default function MediaTab() {
   const currentDef = layoutDef(slide.layoutKey)
   const [group, setGroup] = useState<LayoutGroup>(currentDef.group)
   const photoMap = new Map(photos.map((p) => [p.id, p]))
-  const backdropIsColor = previewBackdrop !== 'checkerboard'
   const { frame } = collage
   const isCreative = currentDef.group === 'creative'
   const showFrameControls = isCreative || frame.enabled
@@ -200,43 +192,17 @@ export default function MediaTab() {
         </Section>
         )}
 
-      <Section title="Zdjęcia">
-        <FileButton accept="image/*" multiple onFiles={(files) => importFiles(files)} icon={<IconUpload />} block>
-          {hasPhotos ? 'Wgraj kolejne zdjęcia' : 'Wgraj zdjęcia'}
-        </FileButton>
-        {photoError && (
-          <p className="error" role="alert">
-            {photoError}
-          </p>
-        )}
-        {hasPhotos ? (
-          <SliderField
-            label="Przyciemnienie"
-            unit="%"
-            value={Math.round(dimOpacity * 100)}
-            defaultValue={0}
-            onChange={(v) => setDimOpacity(v / 100)}
-          />
-        ) : (
-          <>
-            <p className="hint">Bez zdjęć eksport to przezroczysty PNG — gotowy do nałożenia na własne zdjęcie w Instagramie.</p>
-            <Segmented
-              label="Tło podglądu"
-              showLabel
-              value={backdropIsColor ? 'color' : 'checkerboard'}
-              options={BACKDROP_OPTIONS}
-              onChange={(v) => setPreviewBackdrop(v === 'color' ? (backdropIsColor ? previewBackdrop : '#cfcccc') : 'checkerboard')}
-            />
-            {backdropIsColor && <ColorField label="Kolor podglądu" value={previewBackdrop} onChange={setPreviewBackdrop} />}
-          </>
-        )}
-      </Section>
+      {hasPhotos && (
+        <Section title="Zdjęcia">
+          <SliderField label="Przyciemnienie" unit="%" value={Math.round(dimOpacity * 100)} defaultValue={0} onChange={(v) => setDimOpacity(v / 100)} />
+        </Section>
+      )}
 
       {hasPhotos && (
         <>
           {!panorama && (
             <>
-              <Section title="Odstępy i tło">
+              <Section title="Odstępy">
                 <SliderField
                   label="Przerwa"
                   unit="px"
@@ -255,9 +221,15 @@ export default function MediaTab() {
                   defaultValue={DEFAULT_COLLAGE.margin}
                   onChange={(margin) => updateCollage({ margin })}
                 />
-                <ColorField label="Kolor tła kadru" value={collage.bgColor} onChange={(bgColor) => updateCollage({ bgColor })} />
+                <p className="hint">
+                  Kolor lub gradient pod zdjęciami ustawisz w zakładce{' '}
+                  <button type="button" className="link-btn" onClick={() => setActiveTab('background')}>
+                    Tło
+                  </button>
+                  .
+                </p>
               </Section>
-    
+
               <Section title="Ramka zdjęć">
                 {!isCreative && (
                   <CheckboxField label="Ramka wokół zdjęć" checked={frame.enabled} onChange={(enabled) => updateFrame({ enabled })} />

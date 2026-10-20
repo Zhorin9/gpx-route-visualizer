@@ -1,16 +1,18 @@
 import Tabs, { type TabDef } from '../Tabs'
 import { tabId, tabPanelId } from '../tabIds'
+import BackgroundTab from './BackgroundTab'
 import MediaTab from './MediaTab'
 import RouteTab from './RouteTab'
 import ElementsTab from './ElementsTab'
 import TemplatesTab from './TemplatesTab'
 import ExportTab from './ExportTab'
 import { useAppStore } from '../../store/useAppStore'
-import { IconImage, IconRoute, IconType, IconPalette, IconDownload, IconUndo, IconRedo } from '../icons'
+import { IconDroplet, IconImage, IconRoute, IconType, IconPalette, IconDownload, IconUndo, IconRedo } from '../icons'
 import Button from '../ui/Button'
 import type { TabKey } from '../../types'
 
 const TABS: TabDef<TabKey>[] = [
+  { key: 'background', label: 'Tło', icon: <IconDroplet /> },
   { key: 'media', label: 'Zdjęcia i układ', icon: <IconImage /> },
   { key: 'route', label: 'Trasa', icon: <IconRoute /> },
   { key: 'texts', label: 'Napisy', icon: <IconType /> },
@@ -19,6 +21,7 @@ const TABS: TabDef<TabKey>[] = [
 ]
 
 const PANELS: Record<TabKey, () => React.JSX.Element> = {
+  background: BackgroundTab,
   media: MediaTab,
   route: RouteTab,
   texts: ElementsTab,

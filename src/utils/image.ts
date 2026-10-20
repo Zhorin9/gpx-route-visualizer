@@ -65,3 +65,26 @@ export function containLayout(imgW: number, imgH: number, boxW: number, boxH: nu
   const height = imgH * scale
   return { width, height, x: (boxW - width) / 2, y: (boxH - height) / 2 }
 }
+
+let noise: HTMLCanvasElement | null = null
+
+// Grey static on a transparent tile, laid over a gradient as film grain.
+export function noiseTile(): HTMLCanvasElement {
+  if (noise) return noise
+  const size = 256
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')
+  if (ctx) {
+    const data = ctx.createImageData(size, size)
+    for (let i = 0; i < data.data.length; i += 4) {
+      const v = Math.random() * 255
+      data.data[i] = data.data[i + 1] = data.data[i + 2] = v
+      data.data[i + 3] = 255
+    }
+    ctx.putImageData(data, 0, 0)
+  }
+  noise = canvas
+  return canvas
+}

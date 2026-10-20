@@ -11,6 +11,7 @@ export function pickDocument(s: DocumentState): DocumentState {
     range: s.range,
     progress: s.progress,
     statsStyle: s.statsStyle,
+    titleStyle: s.titleStyle,
     statsContent: s.statsContent,
     statsLayout: s.statsLayout,
     texts: s.texts,

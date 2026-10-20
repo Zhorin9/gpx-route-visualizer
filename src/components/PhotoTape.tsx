@@ -11,6 +11,7 @@ export default function PhotoTape() {
   const slides = useAppStore((s) => s.slides)
   const placePhoto = useAppStore((s) => s.placePhoto)
   const removePhoto = useAppStore((s) => s.removePhoto)
+  const photoError = useAppStore((s) => s.photoError)
   const { importFiles } = useGpxImport()
 
   const used = new Set(slides.flatMap((slide) => Object.values(slide.slots).map((a) => a.photoId)))
@@ -40,6 +41,11 @@ export default function PhotoTape() {
           </span>
         ))}
       </div>
+      {photoError && (
+        <p className="error" role="alert">
+          {photoError}
+        </p>
+      )}
       <FileButton accept="image/*" multiple onFiles={(files) => importFiles(files)} icon={<IconUpload />}>
         Wgraj zdjęcia
       </FileButton>

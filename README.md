@@ -34,8 +34,9 @@ wymaga zwykle kilku programów. Tutaj robisz to w jednym miejscu:
 - Nagłówek ze statystykami: dystans, przewyższenie, czas (liczony osobno dla każdego dnia).
 
 **Napisy i styl**
-- Własne teksty z 38 czcionkami pogrupowanymi tematycznie, jedna czcionka dla całości jednym kliknięciem.
-- Szablony stylu (Domyślny, Retro, Minimal, Plakat) oraz własne, zapisywane w przeglądarce.
+- Własne teksty z ponad 45 czcionkami pogrupowanymi tematycznie (w tym grupa „Do liczb i danych”), jedna czcionka dla całości jednym kliknięciem.
+- Sześć szablonów stylu (Kartograf, Pocztówka, Grań, Linia, Noc, Dziennik): każdy z parą czcionek na tytuł, liczby i opisy, własnym wyglądem trasy, ramką i tłem. Można też zapisać własny.
+- Tło kadru: kolor albo gradient (gotowe zestawy, kąt, ziarno filmowe, wygładzanie przejścia), z automatycznym kontrastem tekstu.
 
 ![Szablony stylu](docs/screenshots/templates.jpg)
 
