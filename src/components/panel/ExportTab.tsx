@@ -170,7 +170,7 @@ function ImageExport() {
       <Button variant="primary" icon={<IconDownload />} block disabled={!canExport} onClick={() => exportProject(formats, fileScale, format, baseName)}>
         {exporting ? 'Przygotowuję pliki…' : fileNames.length > 1 ? `Pobierz ZIP (${filesLabel(fileNames.length)})` : `Pobierz ${format.toUpperCase()}`}
       </Button>
-      {!hasRoute && !hasBackground && <p className="hint">Dodaj zdjęcia lub plik GPX w pierwszej zakładce, aby móc pobrać grafikę.</p>}
+      {!hasRoute && !hasBackground && <p className="hint">Dodaj zdjęcia (zakładka Zdjęcia) lub plik GPX (zakładka Trasa), aby móc pobrać grafikę.</p>}
     </>
   )
 }

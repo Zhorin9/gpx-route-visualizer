@@ -9,6 +9,7 @@ import SubTabs from '../../core/panel/SubTabs'
 import RangeTab from './RangeTab'
 import StyleTab from './StyleTab'
 import WaypointEditor from './PlacesTab'
+import useGpxImport from '../../hooks/useGpxImport'
 import { useHasRoute, useTrackCumKm } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { formatKm } from '../../utils/format'
@@ -28,6 +29,25 @@ const LINE_OPTIONS: SelectOption<'solid' | 'dashed'>[] = [
 
 function KindIcon({ kind }: { kind: WaypointKind }) {
   return kind === 'point' ? <IconMapPin /> : <IconMountain />
+}
+
+// Loads a GPX file in place of the current route (or the first one).
+function GpxFileButton() {
+  const hasTrack = useAppStore((s) => s.track != null)
+  const gpxError = useAppStore((s) => s.gpxError)
+  const { importFiles } = useGpxImport()
+  return (
+    <>
+      <FileButton accept=".gpx,application/gpx+xml" onFiles={(files) => importFiles(files)} icon={<IconUpload />} block variant={hasTrack ? 'secondary' : 'primary'}>
+        {hasTrack ? 'Zmień plik GPX' : 'Wgraj plik GPX'}
+      </FileButton>
+      {gpxError && (
+        <p className="error" role="alert">
+          {gpxError}
+        </p>
+      )}
+    </>
+  )
 }
 
 function RoutesSection() {
@@ -78,6 +98,7 @@ function RoutesSection() {
           </div>
         ))}
       </div>
+      <GpxFileButton />
       <FileButton
         accept=".gpx,application/gpx+xml"
         multiple
@@ -159,6 +180,12 @@ function RouteLinePage() {
   const selection = useAppStore((s) => s.selection)
   return (
     <>
+      {!hasRoute && (
+        <Section title="Trasa">
+          <p className="hint">Wgraj plik .gpx z Garmina, Stravy lub Komoot. Kolejne pliki możesz potem dodać jako następne dni wyprawy.</p>
+          <GpxFileButton />
+        </Section>
+      )}
       {hasRoute && (
         <>
           <RoutesSection />
