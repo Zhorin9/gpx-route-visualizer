@@ -1,6 +1,6 @@
 import { ASPECTS } from '../utils/aspects'
 import { computeSlots, layoutDef, ribbonSlot } from '../utils/layouts'
-import { dayBreaks, projectTrack, rangeStats, routeLines, trackCumKm, trackDays } from './derived'
+import { dayBreaks, projectTrack, rangeStats, trackCumKm, trackDays } from './derived'
 import { useAppStore } from './useAppStore'
 import type { CarouselKind, Slide } from '../types'
 
@@ -24,14 +24,6 @@ export function useTrackCumKm() {
 
 export function useTrackDays() {
   return trackDays(useAppStore((s) => s.track))
-}
-
-export function useRouteLines() {
-  const projected = useProjectedTrack()
-  const cum = useTrackCumKm()
-  const range = useAppStore((s) => s.range)
-  const progress = useAppStore((s) => s.progress)
-  return routeLines(projected, cum, range, progress)
 }
 
 export function useRangeStats() {

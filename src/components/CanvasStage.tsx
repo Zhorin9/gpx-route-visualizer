@@ -10,7 +10,7 @@ import { stageHandle } from '../utils/exportImage'
 import CanvasElements from '../core/canvas/CanvasElements'
 import BackgroundLayer from './BackgroundLayer'
 import EditableText from './EditableText'
-import NeonRouteGroup from './NeonRouteGroup'
+import RouteGroup from './RouteGroup'
 import PhotoLayer from './PhotoLayer'
 import { PHOTO_DRAG_TYPE } from './PhotoTape'
 import SlotToolbar from './SlotToolbar'
@@ -107,7 +107,7 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
       >
         <BackgroundLayer />
         <PhotoLayer />
-        <Layer>{hasRoute && <NeonRouteGroup />}</Layer>
+        <Layer>{hasRoute && <RouteGroup />}</Layer>
         <Layer>
           <CanvasElements />
           {texts.map((node) => (
