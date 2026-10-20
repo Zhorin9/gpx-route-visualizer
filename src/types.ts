@@ -6,6 +6,8 @@ export interface GpxPoint {
   ele: number
   // Epoch ms, parsed once on import.
   time: number | null
+  // Heart rate in bpm, from the Garmin/Strava track point extension; absent when not recorded.
+  hr?: number
 }
 
 export interface GpxTrack {

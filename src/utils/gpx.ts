@@ -20,7 +20,15 @@ export function parseGpxText(xmlText: string): GpxTrack {
     const ele = parseFloat(el.getElementsByTagName('ele')[0]?.textContent ?? '')
     const timeText = el.getElementsByTagName('time')[0]?.textContent
     const time = timeText ? Date.parse(timeText) : NaN
-    points.push({ lat, lon, ele: Number.isFinite(ele) ? ele : 0, time: Number.isFinite(time) ? time : null })
+    // Any namespace prefix: gpxtpx:hr, ns3:hr or a bare <hr>.
+    const hr = parseFloat(el.getElementsByTagNameNS('*', 'hr')[0]?.textContent ?? '')
+    points.push({
+      lat,
+      lon,
+      ele: Number.isFinite(ele) ? ele : 0,
+      time: Number.isFinite(time) ? time : null,
+      ...(Number.isFinite(hr) && hr > 0 ? { hr } : null),
+    })
   }
 
   if (points.length < 2) {

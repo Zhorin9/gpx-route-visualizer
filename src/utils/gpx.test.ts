@@ -17,6 +17,17 @@ describe('parseGpxText', () => {
     expect(track.points[1]).toEqual({ lat: 50.2, lon: 15.2, ele: 350, time: Date.parse('2026-06-01T09:00:00Z') })
   })
 
+  it('reads heart rate from the track point extension, whatever the prefix', () => {
+    const track = parseGpxText(
+      `<?xml version="1.0"?><gpx xmlns="http://www.topografix.com/GPX/1/1" xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1" xmlns:ns3="urn:x"><trk><trkseg>
+        <trkpt lat="50" lon="15"><extensions><gpxtpx:TrackPointExtension><gpxtpx:hr>142</gpxtpx:hr></gpxtpx:TrackPointExtension></extensions></trkpt>
+        <trkpt lat="50.1" lon="15"><extensions><ns3:TrackPointExtension><ns3:hr>150</ns3:hr></ns3:TrackPointExtension></extensions></trkpt>
+        <trkpt lat="50.2" lon="15"></trkpt>
+      </trkseg></trk></gpx>`,
+    )
+    expect(track.points.map((p) => p.hr)).toEqual([142, 150, undefined])
+  })
+
   it('falls back to route points and skips points without coordinates', () => {
     const track = parseGpxText(
       gpx(`<rte><rtept lat="50" lon="15"/><rtept lon="15.5"/><rtept lat="51" lon="16"/></rte>`),
