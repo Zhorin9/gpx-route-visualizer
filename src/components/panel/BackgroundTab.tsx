@@ -3,7 +3,8 @@ import ColorField from '../fields/ColorField'
 import CheckboxField from '../fields/CheckboxField'
 import Section from '../ui/Section'
 import Segmented from '../ui/Segmented'
-import { useHasPhotos } from '../../store/selectors'
+import Button from '../ui/Button'
+import { useHasPhotos, usePhotoBackground } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { DEFAULT_COLLAGE } from '../../store/defaults'
 import { GRADIENT_PRESETS } from '../../utils/gradients'
@@ -27,8 +28,22 @@ export default function BackgroundTab() {
   const hasPhotos = useHasPhotos()
   const previewBackdrop = useAppStore((s) => s.previewBackdrop)
   const setPreviewBackdrop = useAppStore((s) => s.setPreviewBackdrop)
+  const photoBackground = usePhotoBackground()
+  const setActiveTab = useAppStore((s) => s.setActiveTab)
   const { gradient, bgKind } = collage
   const backdropIsColor = previewBackdrop !== 'checkerboard'
+
+  // A photo covers the whole frame: a colour or gradient underneath could never be seen.
+  if (photoBackground) {
+    return (
+      <Section title="Tło">
+        <p className="hint">Tłem jest zdjęcie wypełniające cały kadr, więc kolor ani gradient pod nim nie byłyby widoczne. Jasność zdjęcia zmienisz suwakiem „Przyciemnienie”.</p>
+        <Button block onClick={() => setActiveTab('media')}>
+          Przejdź do zdjęć
+        </Button>
+      </Section>
+    )
+  }
 
   return (
     <>

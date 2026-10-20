@@ -1,7 +1,7 @@
 import { useRef, useState, type DragEvent } from 'react'
 import useElementSize from '../hooks/useElementSize'
 import useGpxImport from '../hooks/useGpxImport'
-import { useHasPhotos, useHasRoute } from '../store/selectors'
+import { useHasPhotos, useHasRoute, usePhotoBackground } from '../store/selectors'
 import { useAppStore } from '../store/useAppStore'
 import { ASPECTS } from '../utils/aspects'
 import { gradientPresetName } from '../utils/gradients'
@@ -111,10 +111,12 @@ function FrameStatus() {
   const collage = useAppStore((s) => s.collage)
   const { w, h } = ASPECTS[aspectKey]
 
+  const photoBackground = usePhotoBackground()
   const mode = slideCount > 1 ? `Karuzela ${slideCount} × ${aspectKey}` : `Kadr ${aspectKey}`
   const preset = gradientPresetName(collage.gradient)
-  const background =
-    collage.bgKind === 'gradient'
+  const background = photoBackground
+    ? 'zdjęcie'
+    : collage.bgKind === 'gradient'
       ? preset
         ? `gradient „${preset}”`
         : 'gradient własny'

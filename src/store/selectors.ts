@@ -1,8 +1,7 @@
 import { ASPECTS } from '../utils/aspects'
-import { computeSlots, layoutDef, ribbonSlot } from '../utils/layouts'
+import { computeSlots, hasVisiblePhotos, isPanorama, layoutDef, photoCoversFrame, ribbonSlot } from '../utils/layouts'
 import { dayBreaks, projectTrack, rangeStats, trackCumKm, trackDays } from './derived'
 import { useAppStore } from './useAppStore'
-import type { CarouselKind, Slide } from '../types'
 
 export function useProjectedTrack() {
   const track = useAppStore((s) => s.track)
@@ -32,14 +31,14 @@ export function useRangeStats() {
   return rangeStats(track, range, useDayBreaks())
 }
 
-export function isPanorama(slides: Slide[], kind: CarouselKind) {
-  return kind === 'panorama' && slides.length > 1
-}
+export { hasVisiblePhotos, isPanorama }
 
-// Only the photos that are actually on the canvas: a panorama hides the other slides' slots.
-export function hasVisiblePhotos(slides: Slide[], kind: CarouselKind) {
-  if (isPanorama(slides, kind)) return Boolean(slides[0].slots[0])
-  return slides.some((slide) => Object.keys(slide.slots).length > 0)
+// A photo fills the whole frame, so the background colour or gradient is hidden.
+export function usePhotoBackground() {
+  return useAppStore((s) => {
+    const { w, h } = ASPECTS[s.aspectKey]
+    return photoCoversFrame(s.slides, s.carouselKind, w, h, s.collage.gap, s.collage.margin)
+  })
 }
 
 // Anything opaque under the route: photos or a gradient. Otherwise the export is transparent.

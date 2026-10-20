@@ -388,6 +388,15 @@ describe('gradient background', () => {
     expect(get().statsStyle.color).toBe('#f3f2f2')
   })
 
+  it('leaves text and route colours alone when photos cover the background', () => {
+    useAppStore.setState({ photos: [fakePhoto(1)] })
+    get().assignPhoto(0, 0, 1)
+    const route = get().routeStyle.color
+    get().updateBackground({ bgKind: 'gradient', gradient: { from: '#f8f4f4', to: '#d7d3d3' } })
+    get().updateBackground({ bgKind: 'color', bgColor: '#111111' })
+    expect(get().routeStyle.color).toBe(route)
+  })
+
   it('leaves colours alone with auto contrast off', () => {
     get().updateBackground({ autoContrast: false })
     get().updateBackground({ bgKind: 'gradient', gradient: { from: '#f8f4f4', to: '#d7d3d3' } })
