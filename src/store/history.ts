@@ -14,6 +14,7 @@ export function pickDocument(s: DocumentState): DocumentState {
     titleStyle: s.titleStyle,
     statsContent: s.statsContent,
     statsLayout: s.statsLayout,
+    placements: s.placements,
     texts: s.texts,
     waypoints: s.waypoints,
     slides: s.slides,
@@ -29,7 +30,7 @@ export function pickDocument(s: DocumentState): DocumentState {
 // Undo/redo restores a snapshot, so a selection may point at something gone.
 function validSelection(s: AppState, doc: DocumentState): Partial<AppState> {
   const sel = s.selection
-  if (!sel || sel.kind === 'stats') return {}
+  if (!sel || sel.kind === 'element') return {}
   if (sel.kind === 'slot') return doc.slides[sel.slide] ? {} : { selection: null }
   const list = sel.kind === 'text' ? doc.texts : doc.waypoints
   return list.some((item) => item.id === sel.id) ? {} : { selection: null }

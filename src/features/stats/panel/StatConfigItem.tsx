@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import CheckboxField from '../fields/CheckboxField'
+import CheckboxField from '../../../components/fields/CheckboxField'
 
 export interface StatConfigItemProps {
   label: string

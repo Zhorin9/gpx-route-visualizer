@@ -7,13 +7,13 @@ import { useAppStore } from '../store/useAppStore'
 import { ASPECTS, STORY_SAFE_ZONE } from '../utils/aspects'
 import { computeSlots, layoutDef, ribbonSlot, slotAt } from '../utils/layouts'
 import { stageHandle } from '../utils/exportImage'
+import CanvasElements from '../core/canvas/CanvasElements'
 import BackgroundLayer from './BackgroundLayer'
 import EditableText from './EditableText'
 import NeonRouteGroup from './NeonRouteGroup'
 import PhotoLayer from './PhotoLayer'
 import { PHOTO_DRAG_TYPE } from './PhotoTape'
 import SlotToolbar from './SlotToolbar'
-import StatsHeaderGroup from './StatsHeaderGroup'
 
 export default function CanvasStage({ previewScale }: { previewScale: number }) {
   const aspectKey = useAppStore((s) => s.aspectKey)
@@ -109,7 +109,7 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
         <PhotoLayer />
         <Layer>{hasRoute && <NeonRouteGroup />}</Layer>
         <Layer>
-          <StatsHeaderGroup />
+          <CanvasElements />
           {texts.map((node) => (
             <EditableText key={node.id} node={node} />
           ))}

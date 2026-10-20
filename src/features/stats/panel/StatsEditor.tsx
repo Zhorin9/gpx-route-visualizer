@@ -1,17 +1,17 @@
-import SelectField from '../fields/SelectField'
-import ColorField from '../fields/ColorField'
-import SliderField from '../fields/SliderField'
-import TextField from '../fields/TextField'
-import Button from '../ui/Button'
-import CheckboxField from '../fields/CheckboxField'
-import Section from '../ui/Section'
-import Segmented from '../ui/Segmented'
+import SelectField from '../../../components/fields/SelectField'
+import ColorField from '../../../components/fields/ColorField'
+import SliderField from '../../../components/fields/SliderField'
+import TextField from '../../../components/fields/TextField'
+import Button from '../../../components/ui/Button'
+import CheckboxField from '../../../components/fields/CheckboxField'
+import Section from '../../../components/ui/Section'
+import Segmented from '../../../components/ui/Segmented'
 import StatConfigItem from './StatConfigItem'
-import { DEFAULT_STATS_STYLE } from '../../store/defaults'
-import { useAppStore } from '../../store/useAppStore'
-import { FONT_OPTIONS } from '../../utils/fonts'
-import { formatNumber } from '../../utils/format'
-import type { SelectOption, StatsArrangement } from '../../types'
+import { DEFAULT_STATS_STYLE } from '../../../store/defaults'
+import { useAppStore } from '../../../store/useAppStore'
+import { FONT_OPTIONS } from '../../../utils/fonts'
+import { formatNumber } from '../../../utils/format'
+import type { SelectOption, StatsArrangement } from '../../../types'
 
 const ARRANGEMENT_OPTIONS: SelectOption<StatsArrangement>[] = [
   { value: 'columns', label: 'Kolumny' },
@@ -27,17 +27,18 @@ const ELEVATION_ROUND_OPTIONS = ['1', '5', '10', '50'].map((v) => ({ value: v, l
 
 const OVERRIDE_PLACEHOLDER = 'puste = wyliczone z GPX'
 
-export default function StatsTab() {
+export default function StatsEditor() {
   const style = useAppStore((s) => s.statsStyle)
   const content = useAppStore((s) => s.statsContent)
   const layout = useAppStore((s) => s.statsLayout)
+  const placement = useAppStore((s) => s.placements.stats)
   const updateStatsStyle = useAppStore((s) => s.updateStatsStyle)
   const updateStatsContent = useAppStore((s) => s.updateStatsContent)
   const setStatVisible = useAppStore((s) => s.setStatVisible)
   const setStatOverride = useAppStore((s) => s.setStatOverride)
   const resetStatsLayout = useAppStore((s) => s.resetStatsLayout)
 
-  const isLayoutCustom = layout.x != null || layout.y != null || Object.keys(layout.chipOffsets).length > 0
+  const isLayoutCustom = placement?.x != null || placement?.y != null || Object.keys(layout.chipOffsets).length > 0
 
   return (
     <>

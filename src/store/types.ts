@@ -4,6 +4,8 @@ import type {
   FormatLayout,
   FormatOverrides,
   CollageStyle,
+  ElementKind,
+  ElementPlacement,
   GradientStyle,
   LayoutKey,
   Photo,
@@ -41,6 +43,8 @@ export interface DocumentState {
   titleStyle: TitleStyle
   statsContent: StatsContent
   statsLayout: StatsLayout
+  // Where each registered canvas element (stats header, elevation profile, ...) sits in this format.
+  placements: Record<ElementKind, ElementPlacement>
   texts: TextNode[]
   waypoints: Waypoint[]
   slides: Slide[]
@@ -143,7 +147,6 @@ export interface StatsSlice {
   updateStatsContent: (patch: Partial<Omit<StatsContent, 'visible' | 'overrides'>>) => void
   setStatVisible: (key: StatKey, visible: boolean) => void
   setStatOverride: (key: keyof StatsContent['overrides'], value: string) => void
-  setStatsPosition: (x: number, y: number) => void
   setChipOffset: (key: StatKey, offset: Offset) => void
   resetStatsLayout: () => void
 }
@@ -156,6 +159,7 @@ export interface ElementsSlice {
   updateWaypoint: (id: number, patch: Partial<Waypoint>) => void
   deleteWaypoint: (id: number) => void
   applyGlobalFont: (family: string) => void
+  setPlacement: (kind: ElementKind, placement: ElementPlacement) => void
   deleteSelection: () => void
   nudgeSelection: (dx: number, dy: number) => void
 }

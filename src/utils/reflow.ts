@@ -1,6 +1,6 @@
 import { DEFAULT_SLOT_CROP } from '../store/defaults'
 import type { DocumentState } from '../store/types'
-import type { AspectKey, FormatLayout, FormatOverrides } from '../types'
+import type { AspectKey, ElementPlacement, FormatLayout, FormatOverrides } from '../types'
 import { ASPECTS, STORY_SAFE_ZONE } from './aspects'
 
 // The layout authored in this format is the reference; the others are derived from it.
@@ -11,14 +11,14 @@ const TOLERANCE = 1
 // Room kept under a text's top edge so it doesn't run into the story's reply box.
 const TEXT_BOTTOM_ROOM = 60
 
-type LayoutState = Pick<DocumentState, 'texts' | 'statsLayout' | 'routeTransform'>
+type LayoutState = Pick<DocumentState, 'texts' | 'placements' | 'routeTransform'>
 type BaseState = LayoutState & Pick<DocumentState, 'aspectKey' | 'sourceLayout'>
 type ReflowState = BaseState & Pick<DocumentState, 'layoutOverrides' | 'slides'>
 
 export function readLayout(s: LayoutState): FormatLayout {
   return {
     texts: Object.fromEntries(s.texts.map((t) => [t.id, { x: t.x, y: t.y }])),
-    stats: { x: s.statsLayout.x, y: s.statsLayout.y },
+    elements: { ...s.placements },
     route: s.routeTransform,
   }
 }
@@ -28,12 +28,15 @@ function clampToSafe(y: number, aspect: AspectKey): number {
   return Math.max(STORY_SAFE_ZONE.top, Math.min(ASPECTS[aspect].h - STORY_SAFE_ZONE.bottom - TEXT_BOTTOM_ROOM, y))
 }
 
+const mapElements = (elements: FormatLayout['elements'], fn: (p: ElementPlacement) => ElementPlacement) =>
+  Object.fromEntries(Object.entries(elements).map(([kind, p]) => [kind, fn(p)]))
+
 // Same width in every format, so only vertical positions change.
 export function autoLayout(base: FormatLayout, to: AspectKey): FormatLayout {
   const ratio = ASPECTS[to].h / ASPECTS[SOURCE_ASPECT].h
   return {
     texts: Object.fromEntries(Object.entries(base.texts).map(([id, p]) => [id, { x: p.x, y: clampToSafe(p.y * ratio, to) }])),
-    stats: { x: base.stats.x, y: base.stats.y == null ? null : clampToSafe(base.stats.y * ratio, to) },
+    elements: mapElements(base.elements, (p) => ({ x: p.x, y: p.y == null ? null : clampToSafe(p.y * ratio, to) })),
     route: { ...base.route, y: base.route.y * ratio },
   }
 }
@@ -42,7 +45,7 @@ function toSource(layout: FormatLayout, from: AspectKey): FormatLayout {
   const ratio = ASPECTS[SOURCE_ASPECT].h / ASPECTS[from].h
   return {
     texts: Object.fromEntries(Object.entries(layout.texts).map(([id, p]) => [id, { x: p.x, y: p.y * ratio }])),
-    stats: { x: layout.stats.x, y: layout.stats.y == null ? null : layout.stats.y * ratio },
+    elements: mapElements(layout.elements, (p) => ({ x: p.x, y: p.y == null ? null : p.y * ratio })),
     route: { ...layout.route, y: layout.route.y * ratio },
   }
 }
@@ -61,7 +64,7 @@ function baseFor(s: BaseState): FormatLayout {
   const known = s.sourceLayout
   return {
     texts: Object.fromEntries(Object.keys(live.texts).map((id) => [id, known?.texts[Number(id)] ?? inferred.texts[Number(id)]])),
-    stats: known?.stats ?? inferred.stats,
+    elements: Object.fromEntries(Object.keys(live.elements).map((kind) => [kind, known?.elements[kind] ?? inferred.elements[kind]])),
     route: known?.route ?? inferred.route,
   }
 }
@@ -72,33 +75,38 @@ function manualOverrides(live: FormatLayout, auto: FormatLayout): FormatOverride
     const a = auto.texts[Number(id)]
     if (!a || !near(p.x, a.x) || !near(p.y, a.y)) texts[Number(id)] = p
   }
-  const overrides: FormatOverrides = { texts }
-  if (!near(live.stats.x, auto.stats.x) || !near(live.stats.y, auto.stats.y)) overrides.stats = live.stats
+  const elements: FormatOverrides['elements'] = {}
+  for (const [kind, p] of Object.entries(live.elements)) {
+    const a = auto.elements[kind]
+    if (!a || !near(p.x, a.x) || !near(p.y, a.y)) elements[kind] = p
+  }
+  const overrides: FormatOverrides = { texts, elements }
   if (routeDiffers(live.route, auto.route)) overrides.route = live.route
   return overrides
 }
 
 export interface ManualFlags {
-  stats: boolean
+  elements: Record<string, boolean>
   route: boolean
   texts: Record<number, boolean>
 }
 
 // Which elements were moved by hand in the current format (never in the source format).
 export function manualFlags(s: BaseState): ManualFlags {
-  if (s.aspectKey === SOURCE_ASPECT) return { stats: false, route: false, texts: {} }
+  if (s.aspectKey === SOURCE_ASPECT) return { elements: {}, route: false, texts: {} }
   const ov = manualOverrides(readLayout(s), autoLayout(baseFor(s), s.aspectKey))
-  return { stats: Boolean(ov.stats), route: Boolean(ov.route), texts: Object.fromEntries(Object.keys(ov.texts).map((id) => [id, true])) }
+  const flagged = (record: object) => Object.fromEntries(Object.keys(record).map((key) => [key, true]))
+  return { elements: flagged(ov.elements), route: Boolean(ov.route), texts: flagged(ov.texts) }
 }
 
 export function hasManualLayout(flags: ManualFlags) {
-  return flags.stats || flags.route || Object.keys(flags.texts).length > 0
+  return flags.route || Object.keys(flags.elements).length > 0 || Object.keys(flags.texts).length > 0
 }
 
-function applyLayout(s: Pick<DocumentState, 'texts' | 'statsLayout'>, layout: FormatLayout) {
+function applyLayout(s: Pick<DocumentState, 'texts' | 'placements'>, layout: FormatLayout) {
   return {
     texts: s.texts.map((t) => (layout.texts[t.id] ? { ...t, ...layout.texts[t.id] } : t)),
-    statsLayout: { ...s.statsLayout, x: layout.stats.x, y: layout.stats.y },
+    placements: { ...s.placements, ...layout.elements },
     routeTransform: layout.route,
   }
 }
@@ -116,7 +124,7 @@ export function reflowTo(s: ReflowState, key: AspectKey): Partial<DocumentState>
   if (key !== SOURCE_ASPECT && ov) {
     next = {
       texts: { ...next.texts, ...Object.fromEntries(Object.entries(ov.texts).filter(([id]) => next.texts[Number(id)])) },
-      stats: ov.stats ?? next.stats,
+      elements: { ...next.elements, ...ov.elements },
       route: ov.route ?? next.route,
     }
   }

@@ -9,6 +9,7 @@ import { useAppStore } from '../../store/useAppStore'
 import { ASPECTS } from '../../utils/aspects'
 import { exportFileNames } from '../../utils/exportImage'
 import { exportProject } from '../../utils/exportProject'
+import { canvasElements, type CanvasElementDefinition } from '../../core/canvas/registry'
 import { FORMAT_ORDER, SOURCE_ASPECT, hasManualLayout, manualFlags } from '../../utils/reflow'
 import type { AspectKey, ExportFormat, SelectOption } from '../../types'
 
@@ -42,6 +43,16 @@ function FormatCard({ aspect, checked, onToggle }: { aspect: AspectKey; checked:
   )
 }
 
+function ElementStateRow({ def, manual }: { def: CanvasElementDefinition; manual: boolean }) {
+  if (!def.useIsAvailable()) return null
+  return (
+    <li className={manual ? 'manual' : undefined}>
+      <span>{def.label}</span>
+      <span className="element-state-tag">{manual ? 'Ręcznie' : 'Auto'}</span>
+    </li>
+  )
+}
+
 // Hand-placed elements of the open format, and the way back to the automatic layout.
 function FormatLayoutSection() {
   const aspectKey = useAppStore((s) => s.aspectKey)
@@ -49,16 +60,15 @@ function FormatLayoutSection() {
   const showSafeZones = useAppStore((s) => s.showSafeZones)
   const setShowSafeZones = useAppStore((s) => s.setShowSafeZones)
   const resetFormatLayout = useAppStore((s) => s.resetFormatLayout)
-  const statsLayout = useAppStore((s) => s.statsLayout)
+  const placements = useAppStore((s) => s.placements)
   const routeTransform = useAppStore((s) => s.routeTransform)
   const sourceLayout = useAppStore((s) => s.sourceLayout)
-  const flags = manualFlags({ aspectKey, texts, statsLayout, routeTransform, sourceLayout })
+  const flags = manualFlags({ aspectKey, texts, placements, routeTransform, sourceLayout })
   const manual = hasManualLayout(flags)
 
   if (aspectKey === SOURCE_ASPECT) return null
 
   const rows = [
-    { key: 'stats', name: 'Nagłówek ze statystykami', manual: flags.stats },
     ...texts.map((t) => ({ key: `t${t.id}`, name: `Napis „${t.text.replace(/\s+/g, ' ').slice(0, 24)}”`, manual: Boolean(flags.texts[t.id]) })),
     { key: 'route', name: 'Trasa', manual: flags.route },
   ]
@@ -68,6 +78,9 @@ function FormatLayoutSection() {
       <CheckboxField label="Synchronizuj z 4:5" checked={!manual} onChange={(on) => on && resetFormatLayout()} disabled={!manual} />
       {aspectKey === '9:16' && <CheckboxField label="Strefy bezpieczne story" checked={showSafeZones} onChange={setShowSafeZones} />}
       <ul className="element-states">
+        {canvasElements().map((def) => (
+          <ElementStateRow key={def.kind} def={def} manual={Boolean(flags.elements[def.kind])} />
+        ))}
         {rows.map((row) => (
           <li key={row.key} className={row.manual ? 'manual' : undefined}>
             <span>{row.name}</span>

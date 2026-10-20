@@ -1,9 +1,8 @@
 import { ASPECTS } from '../utils/aspects'
-import { formatDuration, formatElevation, formatKm } from '../utils/format'
 import { computeSlots, layoutDef, ribbonSlot } from '../utils/layouts'
 import { dayBreaks, projectTrack, rangeStats, routeLines, trackCumKm, trackDays } from './derived'
 import { useAppStore } from './useAppStore'
-import type { CarouselKind, Slide, StatChip } from '../types'
+import type { CarouselKind, Slide } from '../types'
 
 export function useProjectedTrack() {
   const track = useAppStore((s) => s.track)
@@ -39,28 +38,6 @@ export function useRangeStats() {
   const track = useAppStore((s) => s.track)
   const range = useAppStore((s) => s.range)
   return rangeStats(track, range, useDayBreaks())
-}
-
-const chip = (key: StatChip['key'], label: string, text: string): StatChip => ({ key, text, label, value: text })
-
-export function useStatsChips(): StatChip[] {
-  const stats = useRangeStats()
-  const content = useAppStore((s) => s.statsContent)
-  if (!stats) return []
-  const { visible, overrides } = content
-  const chips: (StatChip | null)[] = [
-    visible.day && content.dayLabel
-      ? { key: 'day', text: content.dayLabel, label: 'Dzień', value: content.dayLabel.replace(/^\s*dzie[ńn]\s*/i, '') || content.dayLabel }
-      : null,
-    visible.distance ? chip('distance', 'Dystans', overrides.distance || formatKm(stats.distanceKm, content.distancePrecision)) : null,
-    visible.elevation
-      ? chip('elevation', 'Wznios', overrides.elevation || formatElevation(stats.elevationGainM, content.elevationRoundTo))
-      : null,
-    visible.time && (overrides.time || stats.durationMs > 0)
-      ? chip('time', 'Czas', overrides.time || formatDuration(stats.durationMs))
-      : null,
-  ]
-  return chips.filter((c): c is StatChip => c !== null)
 }
 
 export function isPanorama(slides: Slide[], kind: CarouselKind) {

@@ -7,6 +7,9 @@ import '@fontsource/lora/400-italic.css'
 import '@fontsource/lora/600.css'
 import './index.css'
 import App from './App.tsx'
+import { registerFeatures } from './features/register'
+
+registerFeatures()
 
 createRoot(document.getElementById('root') as HTMLElement).render(
   <StrictMode>

@@ -30,6 +30,7 @@ const INITIAL_DOCUMENT: DocumentState = {
   titleStyle: DEFAULT_TITLE_STYLE,
   statsContent: DEFAULT_STATS_CONTENT,
   statsLayout: DEFAULT_STATS_LAYOUT,
+  placements: {},
   texts: [],
   waypoints: [],
   slides: DEFAULT_SLIDES,

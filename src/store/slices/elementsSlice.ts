@@ -66,6 +66,8 @@ export function createElementsSlice({ get, commit }: SliceContext): ElementsSlic
       get().showToast('Zmieniono czcionkę wszędzie', true)
     },
 
+    setPlacement: (kind, placement) => commit(`element:move:${kind}`, (s) => ({ placements: { ...s.placements, [kind]: placement } })),
+
     deleteSelection: () => {
       const sel = get().selection
       if (!sel) return

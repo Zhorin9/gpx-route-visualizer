@@ -43,9 +43,9 @@ function CanvasToolbar() {
   const setCarousel = useAppStore((s) => s.setCarousel)
   const setAspectKey = useAppStore((s) => s.setAspectKey)
   const texts = useAppStore((s) => s.texts)
-  const statsLayout = useAppStore((s) => s.statsLayout)
+  const placements = useAppStore((s) => s.placements)
   const sourceLayout = useAppStore((s) => s.sourceLayout)
-  const customLayout = hasManualLayout(manualFlags({ aspectKey, texts, statsLayout, routeTransform: transform, sourceLayout }))
+  const customLayout = hasManualLayout(manualFlags({ aspectKey, texts, placements, routeTransform: transform, sourceLayout }))
   const setAddingWaypoint = useAppStore((s) => s.setAddingWaypoint)
 
   const isTransformed =

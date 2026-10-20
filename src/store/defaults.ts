@@ -61,7 +61,7 @@ export const DEFAULT_STATS_CONTENT: StatsContent = {
   elevationRoundTo: 1,
 }
 
-export const DEFAULT_STATS_LAYOUT: StatsLayout = { x: null, y: null, chipOffsets: {} }
+export const DEFAULT_STATS_LAYOUT: StatsLayout = { chipOffsets: {} }
 
 export const DEFAULT_SLOT_CROP: Pick<SlotAssignment, 'zoom' | 'offsetX' | 'offsetY'> = { zoom: 1, offsetX: 0, offsetY: 0 }
 

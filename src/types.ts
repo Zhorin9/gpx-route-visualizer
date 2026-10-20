@@ -187,11 +187,17 @@ export interface Offset {
 }
 
 export interface StatsLayout {
-  // null = default placement for the current aspect ratio.
-  x: number | null
-  y: number | null
   chipOffsets: Partial<Record<StatKey, Offset>>
 }
+
+// Top-left corner of a canvas element; null = default placement for the current aspect ratio.
+export interface ElementPlacement {
+  x: number | null
+  y: number | null
+}
+
+// Key of an element in the canvas element registry ('stats', 'elevationProfile', ...).
+export type ElementKind = string
 
 export interface StatChip {
   key: StatKey
@@ -274,14 +280,14 @@ export type AspectKey = '9:16' | '4:5' | '1:1'
 // Positions of the elements whose placement differs between formats.
 export interface FormatLayout {
   texts: Record<number, { x: number; y: number }>
-  stats: { x: number | null; y: number | null }
+  elements: Record<ElementKind, ElementPlacement>
   route: RouteTransform
 }
 
 // What the user placed by hand in one format; everything else follows the source format.
 export interface FormatOverrides {
   texts: Record<number, { x: number; y: number }>
-  stats?: FormatLayout['stats']
+  elements: Record<ElementKind, ElementPlacement>
   route?: RouteTransform
 }
 
@@ -297,7 +303,7 @@ export interface SelectOption<T extends string = string> {
 
 export type Selection =
   | { kind: 'text' | 'waypoint'; id: number }
-  | { kind: 'stats' }
+  | { kind: 'element'; element: ElementKind }
   | { kind: 'slot'; slide: number; index: number }
 
 export interface RouteRange {

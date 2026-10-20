@@ -15,11 +15,11 @@ export function createStatsSlice({ commit }: SliceContext): StatsSlice {
       commit(`statOverride:${key}`, (s) => ({
         statsContent: { ...s.statsContent, overrides: { ...s.statsContent.overrides, [key]: value } },
       })),
-    setStatsPosition: (x, y) => commit('stats:move', (s) => ({ statsLayout: { ...s.statsLayout, x, y } })),
     setChipOffset: (key, offset) =>
       commit(`stats:chip:${key}`, (s) => ({
         statsLayout: { ...s.statsLayout, chipOffsets: { ...s.statsLayout.chipOffsets, [key]: offset } },
       })),
-    resetStatsLayout: () => commit('stats:reset', { statsLayout: DEFAULT_STATS_LAYOUT }),
+    resetStatsLayout: () =>
+      commit('stats:reset', (s) => ({ statsLayout: DEFAULT_STATS_LAYOUT, placements: { ...s.placements, stats: { x: null, y: null } } })),
   }
 }
