@@ -1,3 +1,4 @@
+import { registerAnimation } from './animation'
 import { registerDataColor } from './data-color'
 import { registerElevationProfile } from './elevation-profile'
 import { registerStats } from './stats'
@@ -7,4 +8,5 @@ export function registerFeatures() {
   registerStats()
   registerElevationProfile()
   registerDataColor()
+  registerAnimation()
 }

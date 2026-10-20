@@ -266,3 +266,12 @@ export function IconChevron(props: SVGProps<SVGSVGElement>) {
     </svg>
   )
 }
+
+export function IconFilm(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...common} width="16" height="16" aria-hidden="true" {...props}>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <polygon points="10 9 15 12 10 15 10 9" />
+    </svg>
+  )
+}

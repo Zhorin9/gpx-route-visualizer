@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { Group, Rect, Transformer } from 'react-konva'
 import type Konva from 'konva'
+import { useForcedGhost } from '../core/animation/layers'
 import { styleColoring } from '../core/route/coloring'
 import { routeDecorations, useProvidedColoring } from '../core/route/providers'
 import RoutePainter from '../core/route/RoutePainter'
@@ -23,7 +24,9 @@ function readTransform(node: Konva.Node): RouteTransform {
 // The route on the frame: moving, scaling and rotating it, adding places by clicking it.
 // What is drawn comes from the geometry, how it looks from the painter.
 export default function RouteGroup() {
-  const style = useAppStore((s) => s.routeStyle)
+  const savedStyle = useAppStore((s) => s.routeStyle)
+  const forcedGhost = useForcedGhost()
+  const style = useMemo(() => (forcedGhost && !savedStyle.remainingVisible ? { ...savedStyle, remainingVisible: true } : savedStyle), [forcedGhost, savedStyle])
   const transform = useAppStore((s) => s.routeTransform)
   const editable = useAppStore((s) => s.routeEditable)
   const adding = useAppStore((s) => s.addingWaypoint)

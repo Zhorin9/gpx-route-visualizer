@@ -26,6 +26,7 @@ export function pickDocument(s: DocumentState): DocumentState {
     dimOpacity: s.dimOpacity,
     profile: s.profile,
     dataColor: s.dataColor,
+    animation: s.animation,
   }
 }
 

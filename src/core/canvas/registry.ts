@@ -1,4 +1,5 @@
 import type { ComponentType, ReactNode } from 'react'
+import type { AnimationTrackId } from '../animation/layers'
 import type { ElementKind } from '../../types'
 
 // Anything that sits on the frame as one selectable, draggable block: the stats header,
@@ -18,6 +19,8 @@ export interface CanvasElementDefinition {
   Node: ComponentType
   // Settings shown in the side panel while the element is selected.
   Editor: ComponentType
+  // Timeline track the element appears with; 'stats' when not set.
+  animationTrack?: AnimationTrackId
 }
 
 const definitions = new Map<ElementKind, CanvasElementDefinition>()

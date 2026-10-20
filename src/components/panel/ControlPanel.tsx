@@ -7,7 +7,8 @@ import ElementsTab from './ElementsTab'
 import TemplatesTab from './TemplatesTab'
 import ExportTab from './ExportTab'
 import { useAppStore } from '../../store/useAppStore'
-import { IconDroplet, IconImage, IconRoute, IconType, IconPalette, IconDownload, IconUndo, IconRedo } from '../icons'
+import { IconDroplet, IconFilm, IconImage, IconRoute, IconType, IconPalette, IconDownload, IconUndo, IconRedo } from '../icons'
+import PanelSections from '../../core/panel/PanelSections'
 import Button from '../ui/Button'
 import type { TabKey } from '../../types'
 
@@ -17,8 +18,14 @@ const TABS: TabDef<TabKey>[] = [
   { key: 'route', label: 'Trasa', icon: <IconRoute /> },
   { key: 'texts', label: 'Napisy', icon: <IconType /> },
   { key: 'style', label: 'Styl', icon: <IconPalette /> },
+  { key: 'animation', label: 'Animacja', icon: <IconFilm /> },
   { key: 'export', label: 'Eksport', icon: <IconDownload /> },
 ]
+
+// Features fill this tab with their own sections.
+function AnimationTab() {
+  return <PanelSections tab="animation" />
+}
 
 const PANELS: Record<TabKey, () => React.JSX.Element> = {
   background: BackgroundTab,
@@ -26,6 +33,7 @@ const PANELS: Record<TabKey, () => React.JSX.Element> = {
   route: RouteTab,
   texts: ElementsTab,
   style: TemplatesTab,
+  animation: AnimationTab,
   export: ExportTab,
 }
 

@@ -3,6 +3,8 @@ import { Group, Rect } from 'react-konva'
 import type Konva from 'konva'
 import { useAppStore } from '../../store/useAppStore'
 import { UI_ONLY } from '../../utils/exportImage'
+import { useLayerAnimation } from '../animation/layers'
+import { canvasElement } from './registry'
 import type { ElementKind } from '../../types'
 
 const HIT_PADDING = 24
@@ -27,6 +29,7 @@ export default function DraggableElement({ kind, width, height, defaultX, defaul
   const selected = useAppStore((s) => s.selection?.kind === 'element' && s.selection.element === kind)
   const select = useAppStore((s) => s.select)
   const setPlacement = useAppStore((s) => s.setPlacement)
+  const animation = useLayerAnimation(canvasElement(kind)?.animationTrack ?? 'stats')
 
   const x = placement?.x ?? defaultX
   const y = placement?.y ?? defaultY
@@ -35,13 +38,14 @@ export default function DraggableElement({ kind, width, height, defaultX, defaul
   function handleDragEnd(e: Konva.KonvaEventObject<DragEvent>) {
     // Drags of inner parts (a stats chip) bubble up here too; those are handled where they start.
     if (e.target !== e.currentTarget) return
-    setPlacement(kind, { x: e.target.x() - width / 2, y: e.target.y() - height / 2 })
+    setPlacement(kind, { x: e.target.x() - width / 2, y: e.target.y() - height / 2 - animation.offsetY })
   }
 
   return (
     <Group
       x={x + width / 2}
-      y={y + height / 2}
+      y={y + height / 2 + animation.offsetY}
+      opacity={animation.opacity}
       offsetX={width / 2}
       offsetY={height / 2}
       rotation={rotation}

@@ -8,6 +8,7 @@ import { gradientPresetName } from '../utils/gradients'
 import { layoutDef } from '../utils/layouts'
 import { FORMAT_ORDER, hasManualLayout, manualFlags } from '../utils/reflow'
 import type { AspectKey, SelectOption } from '../types'
+import { canvasControls } from '../core/canvas/chrome'
 import CanvasStage from './CanvasStage'
 import PhotoPicker from './PhotoPicker'
 import PhotoTape from './PhotoTape'
@@ -218,6 +219,9 @@ export default function CanvasArea() {
           </div>
         )}
       </div>
+      {canvasControls().map((Controls, i) => (
+        <Controls key={i} />
+      ))}
       {slideCount > 1 && carouselKind === 'slides' && <SlideStrip />}
       <PhotoTape />
       <PhotoPicker />

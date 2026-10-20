@@ -11,6 +11,8 @@ import {
   STAT_ORDER,
   IDENTITY_TRANSFORM,
 } from './defaults'
+import { createAnimationSlice } from '../features/animation/store'
+import { DEFAULT_ANIMATION } from '../features/animation/types'
 import { createDataColorSlice } from '../features/data-color/store'
 import { DEFAULT_DATA_COLOR } from '../features/data-color/types'
 import { createProfileSlice } from '../features/elevation-profile/store'
@@ -47,6 +49,7 @@ const INITIAL_DOCUMENT: DocumentState = {
   dimOpacity: 0,
   profile: DEFAULT_PROFILE,
   dataColor: DEFAULT_DATA_COLOR,
+  animation: DEFAULT_ANIMATION,
 }
 
 // Rule: persist the user's look & feel preferences, never the per-route
@@ -130,6 +133,7 @@ export const useAppStore = create<AppState>()(
         ...createTemplatesSlice(ctx),
         ...createProfileSlice(ctx),
         ...createDataColorSlice(ctx),
+        ...createAnimationSlice(ctx),
         ...history.slice,
       }
     },

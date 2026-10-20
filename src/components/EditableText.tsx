@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { Text } from 'react-konva'
 import type Konva from 'konva'
+import { useLayerAnimation } from '../core/animation/layers'
 import useInlineTextEditor from '../hooks/useInlineTextEditor'
 import { useAppStore } from '../store/useAppStore'
 import { ASPECTS } from '../utils/aspects'
@@ -19,6 +20,7 @@ export default function EditableText({ node }: { node: TextNode }) {
   const frameW = useAppStore((s) => ASPECTS[s.aspectKey].w)
   const isTitle = node.role === 'title'
   const fontsVersion = useAppStore((s) => s.fontsVersion)
+  const animation = useLayerAnimation('header')
 
   // Konva lays text out once; widths measured with a fallback font would stay wrong after the real one loads.
   useEffect(() => {
@@ -37,13 +39,13 @@ export default function EditableText({ node }: { node: TextNode }) {
     // A title spans the frame and centres itself, whatever its font or length.
     ...(isTitle ? { width: frameW, align: 'center', wrap: 'none' } : null),
     x: node.x,
-    y: node.y,
+    y: node.y + animation.offsetY,
     rotation: node.rotation,
     fontSize: isTitle ? fittedTitleSize(node, frameW) : node.fontSize,
     fontFamily: node.fontFamily,
     fontStyle: konvaFontStyle(node.fontFamily, { bold: node.bold, italic: node.italic }),
     letterSpacing: node.letterSpacing,
-    opacity: node.opacity,
+    opacity: node.opacity * animation.opacity,
     perfectDrawEnabled: false,
   }
 
@@ -72,7 +74,7 @@ export default function EditableText({ node }: { node: TextNode }) {
         onTouchStart={() => select({ kind: 'text', id: node.id })}
         onDblClick={startEditing}
         onDblTap={startEditing}
-        onDragEnd={(e) => updateText(node.id, { x: e.target.x(), y: e.target.y() })}
+        onDragEnd={(e) => updateText(node.id, { x: e.target.x(), y: e.target.y() - animation.offsetY })}
         shadowColor="#000000"
         shadowBlur={node.shadowEnabled ? 10 : 0}
         shadowOpacity={node.shadowEnabled ? 0.6 : 0}

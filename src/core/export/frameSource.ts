@@ -20,6 +20,8 @@ export interface FrameSource {
 }
 
 export interface FrameClock {
+  // Rendering starts: remember the editor's moment and show the static design.
+  hold: () => void
   seek: (t: number) => void
   // Called once rendering is over, so the clock can return to the live view.
   release: () => void
@@ -46,6 +48,8 @@ export function beginStageFrames(): FrameSource {
   const { selection, routeEditable } = before
   store.getState().setExporting(true)
   store.setState({ selection: null, routeEditable: false })
+  // A still image is the static design, even if the animation preview was paused half way.
+  clock?.hold()
 
   return {
     useFormat: async (key) => {
