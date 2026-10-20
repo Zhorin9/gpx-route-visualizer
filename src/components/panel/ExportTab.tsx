@@ -10,6 +10,7 @@ import { ASPECTS } from '../../utils/aspects'
 import { exportFileNames } from '../../utils/exportImage'
 import { exportProject } from '../../utils/exportProject'
 import { canvasElements, type CanvasElementDefinition } from '../../core/canvas/registry'
+import { panelSections } from '../../core/panel/registry'
 import { FORMAT_ORDER, SOURCE_ASPECT, hasManualLayout, manualFlags } from '../../utils/reflow'
 import type { AspectKey, ExportFormat, SelectOption } from '../../types'
 
@@ -96,7 +97,21 @@ function FormatLayoutSection() {
   )
 }
 
+// Other kinds of export (video) are added by features; images are the tab's own.
 export default function ExportTab() {
+  const modes = panelSections('export')
+  const [mode, setMode] = useState('image')
+  const options: SelectOption<string>[] = [{ value: 'image', label: 'Obraz' }, ...modes.map((m) => ({ value: m.id, label: m.label ?? m.id }))]
+  const Mode = modes.find((m) => m.id === mode)?.Component
+  return (
+    <>
+      {modes.length > 0 && <Segmented label="Rodzaj eksportu" value={mode} options={options} onChange={setMode} />}
+      {Mode ? <Mode /> : <ImageExport />}
+    </>
+  )
+}
+
+function ImageExport() {
   const hasRoute = useHasRoute()
   const hasBackground = useHasBackground()
   const aspectKey = useAppStore((s) => s.aspectKey)

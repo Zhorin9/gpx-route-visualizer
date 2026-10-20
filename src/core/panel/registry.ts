@@ -4,6 +4,8 @@ import type { TabKey } from '../../types'
 // Extra sections a feature adds to a tab of the side panel, after the tab's own content.
 export interface PanelSection {
   id: string
+  // Name of the section where a tab lets the user switch between them (Eksport: Obraz / Wideo).
+  label?: string
   tab: TabKey
   order: number
   Component: ComponentType

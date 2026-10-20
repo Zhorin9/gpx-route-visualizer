@@ -11,8 +11,8 @@ import type { AspectKey } from '../../types'
 export interface FrameSource {
   // Switches the document to a format and waits until it is drawn.
   useFormat: (key: AspectKey) => Promise<void>
-  // Moves time-based content (the animation) to `t` seconds; a no-op for still content.
-  seek: (t: number) => void
+  // Moves time-based content (the animation) to `t` seconds and waits until the frame shows it.
+  seek: (t: number) => Promise<void>
   // The whole ribbon (all slides side by side) at output resolution.
   render: (scale: number) => HTMLCanvasElement
   // Restores the document and the editor exactly as they were.
@@ -21,8 +21,8 @@ export interface FrameSource {
 
 export interface FrameClock {
   // Rendering starts: remember the editor's moment and show the static design.
-  hold: () => void
-  seek: (t: number) => void
+  hold: () => Promise<void>
+  seek: (t: number) => Promise<void>
   // Called once rendering is over, so the clock can return to the live view.
   release: () => void
 }
@@ -41,7 +41,7 @@ export const nextPaint = () =>
     new Promise<void>((resolve) => setTimeout(resolve, 400)),
   ])
 
-export function beginStageFrames(): FrameSource {
+export async function beginStageFrames(): Promise<FrameSource> {
   const store = useAppStore
   const before = store.getState()
   const snapshot = pickDocument(before)
@@ -49,14 +49,16 @@ export function beginStageFrames(): FrameSource {
   store.getState().setExporting(true)
   store.setState({ selection: null, routeEditable: false })
   // A still image is the static design, even if the animation preview was paused half way.
-  clock?.hold()
+  await clock?.hold()
 
   return {
     useFormat: async (key) => {
       store.setState(reflowTo(store.getState(), key))
       await nextPaint()
     },
-    seek: (t) => clock?.seek(t),
+    seek: async (t) => {
+      await clock?.seek(t)
+    },
     render: (scale) => {
       const stage = stageHandle.current
       if (!stage) throw new Error('Brak podglądu do wyrenderowania')

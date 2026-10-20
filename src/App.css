@@ -1890,3 +1890,68 @@
   pointer-events: none;
   background: #d9412b;
 }
+
+/* ---------- Video export ---------- */
+.video-thumbs {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+}
+
+.video-thumb {
+  margin: 0;
+}
+
+.video-thumb img {
+  display: block;
+  width: 100%;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+}
+
+.video-thumb figcaption {
+  font-size: 10px;
+  text-align: center;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.video-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.video-summary dt {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.video-summary dd {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.render-progress,
+.render-done {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.render-bar {
+  height: 8px;
+  overflow: hidden;
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.render-bar span {
+  display: block;
+  height: 100%;
+  background: var(--color-accent-500);
+  transition: width 0.15s linear;
+}

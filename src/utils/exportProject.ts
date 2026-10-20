@@ -6,7 +6,7 @@ import type { AspectKey, ExportFormat } from '../types'
 // Renders each chosen format with its own layout, then restores the document exactly as it was.
 export async function exportProject(formats: AspectKey[], scale: 1 | 2, format: ExportFormat, trackName: string | null): Promise<void> {
   const slideCount = useAppStore.getState().slides.length
-  const frames = beginStageFrames()
+  const frames = await beginStageFrames()
   try {
     const files: ExportFile[] = []
     for (const key of formats) {

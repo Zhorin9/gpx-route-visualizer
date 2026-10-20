@@ -281,7 +281,7 @@ export interface FrameSource {
 
 ### Serwis kodowania wideo i GIF: warstwa abstrakcji nad paczkami
 
-Kodowanie wideo i GIF-a to **osobny, wymienny serwis**. Reszta aplikacji nie importuje żadnej paczki do kodowania (`mp4-muxer`, `webm-muxer`, `gifenc` ani API WebCodecs) i nie zna ich typów. Zmiana paczki dotyczy jednego katalogu i nie wymaga zmian w UI, pętli eksportu ani testach funkcji.
+Kodowanie wideo i GIF-a to **osobny, wymienny serwis**. Reszta aplikacji nie importuje żadnej paczki do kodowania (`mediabunny`, `gifenc` ani API WebCodecs) i nie zna ich typów. Zmiana paczki dotyczy jednego katalogu i nie wymaga zmian w UI, pętli eksportu ani testach funkcji.
 
 Abstrakcja ma dwa poziomy, bo paczki zmienia się na dwa sposoby:
 
@@ -290,7 +290,7 @@ UI (VideoExportPanel)
  └─ VideoEncodingService            ← poziom 1: cały serwis (np. zamiana na ffmpeg.wasm)
      └─ adapter formatu (mp4 / webm / gif)
           ├─ FrameEncoder            ← poziom 2: kodek (WebCodecs, gifenc, …)
-          └─ ContainerMuxer          ← poziom 2: kontener (mp4-muxer, webm-muxer, …)
+          └─ ContainerMuxer          ← poziom 2: kontener (Mediabunny, …)
 ```
 
 **Poziom 1: serwis.** Jedyny punkt wejścia dla aplikacji.
@@ -322,7 +322,9 @@ export interface EncodeOptions {
 }
 ```
 
-**Poziom 2: kodek i kontener.** Wewnątrz serwisu każdy format składa się z dwóch wymiennych części. Dzięki temu np. zamiana `mp4-muxer` na inną bibliotekę MP4 dotyczy jednego pliku.
+**Poziom 2: kodek i kontener.** Wewnątrz serwisu każdy format składa się z dwóch wymiennych części. Dzięki temu np. zamiana Mediabunny na inną bibliotekę MP4/WebM dotyczy jednego pliku.
+
+> **Zmiana względem pierwszej wersji planu:** paczki `mp4-muxer` i `webm-muxer` są oznaczone jako przestarzałe i zastąpione przez Mediabunny (tak podają ich strony w npm). Kontener MP4 i WebM obsługuje więc jeden adapter `MediabunnyMuxer`. Wersja jest przypięta dokładnie (`1.61.3`).
 
 ```ts
 // services/video-encoding/ports.ts
@@ -348,19 +350,25 @@ GIF nie ma podziału na kodek i kontener, więc jego adapter implementuje bezpo�
 src/services/video-encoding/
   VideoEncodingService.ts    interfejsy publiczne + typy własne
   ports.ts                   FrameEncoder, ContainerMuxer
-  index.ts                   createVideoEncodingService(): jedyne miejsce wyboru implementacji
+  createService.ts           createVideoEncodingService(): jedyne miejsce wyboru implementacji
+  context.ts                 useVideoEncoding() (domyślnie: createVideoEncodingService())
+  VideoEncodingProvider.tsx  podstawienie innej implementacji (testy, inna wersja)
+  index.ts                   publiczny eksport serwisu
   default/                   implementacja domyślna
-    WebCodecsFrameEncoder.ts       ← jedyny plik z WebCodecs
-    Mp4MuxerAdapter.ts             ← jedyny plik z `mp4-muxer`
-    WebmMuxerAdapter.ts            ← jedyny plik z `webm-muxer`
-    GifencSession.ts               ← jedyny plik z `gifenc`
+    DefaultVideoEncodingService.ts  składa kodek + kontener, GIF osobno
+    CodecContainerSession.ts        dowolna para kodek + kontener
+    WebCodecsFrameEncoder.ts        ← jedyny plik z WebCodecs
+    MediabunnyMuxer.ts              ← jedyny plik z `mediabunny` (MP4 i WebM)
+    GifencSession.ts                ← jedyny plik z `gifenc`
+    gifenc.d.ts                     typy paczki (paczka ich nie ma)
   testing/
     FakeVideoEncodingService.ts    do testów UI i pętli eksportu
-    contract.test.ts               wspólne testy dla każdej implementacji
+    contract.ts                    wspólne testy dla każdej implementacji
+    contract.test.ts               kontrakt w vitest (podróbka); domyślna implementacja przechodzi go w przeglądarce
 ```
 
-- **Paczka tylko w swoim adapterze.** Reguła lintera (`no-restricted-imports` w `.oxlintrc.json`) blokuje import `mp4-muxer`, `webm-muxer` i `gifenc` poza `services/video-encoding/default/`.
-- **Wybór implementacji w jednym miejscu.** `createVideoEncodingService()` w `index.ts` składa adaptery. Aplikacja dostaje serwis przez kontekst Reacta (`VideoEncodingProvider`), a nie przez bezpośredni import, więc w testach i przy zmianie paczki wystarczy podstawić inną implementację.
+- **Paczka tylko w swoim adapterze.** Reguła lintera (`no-restricted-imports` w `.oxlintrc.json`) blokuje import `mediabunny` i `gifenc` poza `services/video-encoding/default/`.
+- **Wybór implementacji w jednym miejscu.** `createVideoEncodingService()` w `createService.ts` wybiera implementację, a `DefaultVideoEncodingService` składa adaptery. Aplikacja dostaje serwis przez kontekst Reacta (`VideoEncodingProvider`), a nie przez bezpośredni import, więc w testach i przy zmianie paczki wystarczy podstawić inną implementację.
 - **Dynamiczne ładowanie.** Adaptery ładują paczki przez `import()` dopiero przy pierwszym eksporcie wideo, więc nie zwiększają startowego rozmiaru aplikacji.
 - **Testy kontraktowe.** `contract.test.ts` uruchamia ten sam zestaw dla każdej implementacji: sesja przyjmuje klatki, zwraca niepusty `Blob` właściwego typu MIME, `abort()` nie rzuca wyjątku, `capabilities()` nie obiecuje formatu, którego `createSession` nie obsłuży. Nowa paczka jest gotowa, gdy przechodzi ten zestaw.
 - **Błędy przetłumaczone na własne typy** (`EncodingUnsupportedError`, `EncodingFailedError`). UI nie zależy od komunikatów konkretnej biblioteki.
@@ -369,9 +377,9 @@ src/services/video-encoding/
 
 | Zmiana | Co się zmienia |
 |---|---|
-| Inna biblioteka MP4 zamiast `mp4-muxer` | Nowy `ContainerMuxer` w `default/`, jedna linia w `index.ts`. |
-| Inny koder GIF zamiast `gifenc` | Nowa `EncodingSession` dla GIF, jedna linia w `index.ts`. |
-| Cały serwis na `ffmpeg.wasm` albo kodowanie na serwerze | Nowa implementacja `VideoEncodingService` obok `default/`, przełączenie w `index.ts`. UI, pętla i `FrameSource` bez zmian. |
+| Inna biblioteka MP4/WebM zamiast Mediabunny | Nowy `ContainerMuxer` w `default/`, jedna linia w `DefaultVideoEncodingService.ts`. |
+| Inny koder GIF zamiast `gifenc` | Nowa `EncodingSession` dla GIF, jedna linia w `DefaultVideoEncodingService.ts`. |
+| Cały serwis na `ffmpeg.wasm` albo kodowanie na serwerze | Nowa implementacja `VideoEncodingService` obok `default/`, przełączenie w `createService.ts`. UI, pętla i `FrameSource` bez zmian. |
 
 **Zasady:** DIP (aplikacja zależy od `VideoEncodingService`, nie od paczek), OCP i LSP (implementacje wymienne, pilnowane testami kontraktowymi), ISP (osobne porty dla kodeka i kontenera), SRP (każdy adapter opakowuje dokładnie jedną paczkę).
 
@@ -500,7 +508,7 @@ Granica, której pilnujemy: **nie budujemy abstrakcji na zapas.** Interfejs pows
 #### Moduły
 
 - `core/export/frameSource.ts`: `StageFrameSource` (reflow, ukrycie `UI_ONLY`, ustawienie `t` w `playbackStore`, render do ponownie używanego canvasa).
-- `services/video-encoding/`: serwis kodowania za warstwą abstrakcji (zob. [Serwis kodowania wideo i GIF](#serwis-kodowania-wideo-i-gif-warstwa-abstrakcji-nad-paczkami)). Paczki (`mp4-muxer`, `webm-muxer`, `gifenc`, łącznie kilkadziesiąt kB) są używane wyłącznie w jego adapterach i ładowane dynamicznie.
+- `services/video-encoding/`: serwis kodowania za warstwą abstrakcji (zob. [Serwis kodowania wideo i GIF](#serwis-kodowania-wideo-i-gif-warstwa-abstrakcji-nad-paczkami)). Paczki (`mediabunny`, `gifenc`) są używane wyłącznie w jego adapterach i ładowane dynamicznie.
 - `features/video-export/exportVideo.ts`: pętla `FrameSource` → `EncodingSession` z postępem i `AbortSignal`. Nie zna formatów ani paczek.
 - `features/video-export/panel/VideoExportPanel.tsx`: przełącznik Obraz / Wideo w zakładce Eksport. Dostępne opcje bierze z `capabilities()`.
 - Testy pętli i planszy na `FakeVideoEncodingService`, testy kontraktowe dla implementacji domyślnej.
@@ -626,7 +634,7 @@ Jak architektura przyjmie funkcje spoza tego planu:
 | 6c Prywatność | Filtr listy `RouteSegment[]` w geometrii trasy + `DataSource`/statystyki liczone z tej samej maski. Malarz, animacja i eksport działają bez zmian. |
 | Nowe dane (kadencja, moc, temperatura) | Nowe `DataSource`, od razu dostępne w kolorze wg danych i jako blok statystyk. |
 | Nowe elementy kadru (mini-mapa, kompas, logo) | Nowa rejestracja `CanvasElementDefinition`, z gotowym przeciąganiem, zaznaczaniem i animacją wejścia. |
-| Nowe formaty wideo, inna paczka, `ffmpeg.wasm` lub kodowanie na serwerze | Nowy adapter albo nowa implementacja `VideoEncodingService`, przełączenie w `services/video-encoding/index.ts`. |
+| Nowe formaty wideo, inna paczka, `ffmpeg.wasm` lub kodowanie na serwerze | Nowy adapter albo nowa implementacja `VideoEncodingService`, przełączenie w `services/video-encoding/createService.ts`. |
 
 ---
 
