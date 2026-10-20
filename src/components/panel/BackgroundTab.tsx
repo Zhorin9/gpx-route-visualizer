@@ -10,6 +10,7 @@ import { GRADIENT_PRESETS } from '../../utils/gradients'
 import type { BackgroundKind, SelectOption } from '../../types'
 
 const BACKGROUND_OPTIONS: SelectOption<BackgroundKind>[] = [
+  { value: 'transparent', label: 'Przezroczyste' },
   { value: 'color', label: 'Kolor' },
   { value: 'gradient', label: 'Gradient' },
 ]
@@ -38,12 +39,16 @@ export default function BackgroundTab() {
         {bgKind === 'color' && (
           <>
             <ColorField label="Kolor tła" value={collage.bgColor} onChange={(bgColor) => updateBackground({ bgColor })} />
-            <p className="hint">
-              {hasPhotos
-                ? 'Kolor widać w marginesach i przerwach kolażu.'
-                : 'Bez zdjęć eksport to przezroczysty PNG — gotowy do nałożenia na własne zdjęcie w Instagramie. Wybierz gradient, aby wypełnić całe tło.'}
-            </p>
+            <CheckboxField label="Automatyczny kontrast tekstu" checked={collage.autoContrast} onChange={(autoContrast) => updateBackground({ autoContrast })} />
+            <p className="hint">Kolor wypełnia cały kadr{hasPhotos ? ', a między zdjęciami widać go w przerwach i marginesach' : ''}. Grafikę zapiszesz jako PNG albo JPG.</p>
           </>
+        )}
+        {bgKind === 'transparent' && (
+          <p className="hint">
+            {hasPhotos
+              ? 'Przerwy i marginesy kolażu zostają przezroczyste.'
+              : 'Eksport to przezroczysty PNG — gotowy do nałożenia na własne zdjęcie w Instagramie.'}
+          </p>
         )}
       </Section>
 
@@ -81,7 +86,7 @@ export default function BackgroundTab() {
         </>
       )}
 
-      {bgKind === 'color' && !hasPhotos && (
+      {bgKind === 'transparent' && !hasPhotos && (
         <Section title="Podgląd">
           <Segmented
             label="Tło podglądu"

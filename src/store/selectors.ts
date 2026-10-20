@@ -44,7 +44,7 @@ export function hasVisiblePhotos(slides: Slide[], kind: CarouselKind) {
 
 // Anything opaque under the route: photos or a gradient. Otherwise the export is transparent.
 export function useHasBackground() {
-  return useAppStore((s) => s.collage.bgKind === 'gradient' || hasVisiblePhotos(s.slides, s.carouselKind))
+  return useAppStore((s) => s.collage.bgKind !== 'transparent' || hasVisiblePhotos(s.slides, s.carouselKind))
 }
 
 export function usePanorama() {

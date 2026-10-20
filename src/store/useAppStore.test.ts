@@ -202,7 +202,7 @@ describe('style templates', () => {
     expect(get().texts[0].fontFamily).toBe('DM Serif Display')
     expect(get().texts[0].text).toBe(before)
     expect(get().collage.frame.enabled).toBe(true)
-    expect(get().collage.bgKind).toBe('color')
+    expect(get().collage.bgKind).toBe(initial.collage.bgKind)
     expect(get().slides[0].slots[0].photoId).toBe(1)
     expect(get().slides[0].layoutKey).toBe('g1')
   })
@@ -449,7 +449,7 @@ describe('stats saved before the new stats existed', () => {
 
 describe('saving a template with a colour background', () => {
   it('stores the colour as a flat gradient', () => {
-    get().updateBackground({ bgColor: '#336699' })
+    get().updateBackground({ bgKind: 'color', bgColor: '#336699' })
     get().saveTemplate('Płaski')
     expect(get().customTemplates[0].gradient).toMatchObject({ from: '#336699', to: '#336699', grain: 0 })
   })

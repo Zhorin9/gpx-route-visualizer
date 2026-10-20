@@ -109,7 +109,6 @@ function FrameStatus() {
   const aspectKey = useAppStore((s) => s.aspectKey)
   const slideCount = useAppStore((s) => s.slides.length)
   const collage = useAppStore((s) => s.collage)
-  const hasPhotos = useHasPhotos()
   const { w, h } = ASPECTS[aspectKey]
 
   const mode = slideCount > 1 ? `Karuzela ${slideCount} × ${aspectKey}` : `Kadr ${aspectKey}`
@@ -119,7 +118,7 @@ function FrameStatus() {
       ? preset
         ? `gradient „${preset}”`
         : 'gradient własny'
-      : hasPhotos
+      : collage.bgKind === 'color'
         ? `kolor ${collage.bgColor.toUpperCase()}`
         : 'przezroczyste'
 

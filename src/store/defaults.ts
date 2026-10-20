@@ -76,7 +76,7 @@ export const DEFAULT_COLLAGE: CollageStyle = {
   gap: 8,
   margin: 0,
   bgColor: '#f3f2f2',
-  bgKind: 'color',
+  bgKind: 'transparent',
   gradient: { from: '#a06f24', to: '#444141', angle: 172, grain: 6, smooth: true },
   autoContrast: true,
   frame: { enabled: false, color: '#ffffff', thickness: 18, style: 'equal' },

@@ -286,7 +286,8 @@ export function createMediaSlice({ set, get, commit, resetHistory }: SliceContex
     updateBackground: ({ gradient, ...patch }) =>
       commit('background', (s) => {
         const collage = { ...s.collage, ...patch, gradient: { ...s.collage.gradient, ...gradient } }
-        const tone = (c: typeof collage): Tone | null => (c.bgKind === 'gradient' ? toneOf(mixHex(c.gradient.from, c.gradient.to)) : null)
+        const tone = (c: typeof collage): Tone | null =>
+          c.bgKind === 'gradient' ? toneOf(mixHex(c.gradient.from, c.gradient.to)) : c.bgKind === 'color' ? toneOf(c.bgColor) : null
         const before = tone(s.collage) ?? 'dark'
         const after = tone(collage)
         if (!collage.autoContrast || !after || after === before) return { collage }

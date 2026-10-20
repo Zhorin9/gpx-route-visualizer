@@ -271,7 +271,9 @@ export interface GradientStyle {
   smooth: boolean
 }
 
-export type BackgroundKind = 'color' | 'gradient'
+// transparent: nothing behind the photos (a PNG to lay over a photo in Instagram);
+// color / gradient: the whole frame is filled, so the file can also be a JPG.
+export type BackgroundKind = 'transparent' | 'color' | 'gradient'
 
 export interface CollageStyle {
   gap: number

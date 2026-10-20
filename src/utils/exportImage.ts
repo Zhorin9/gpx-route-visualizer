@@ -44,6 +44,20 @@ export function cropSlide(ribbon: HTMLCanvasElement, index: number, aspectKey: A
   return out
 }
 
+// JPG has no transparency: see-through parts (gaps of a collage on a transparent
+// background) would turn black, so they are laid on white instead.
+function onWhite(canvas: HTMLCanvasElement): HTMLCanvasElement {
+  const out = document.createElement('canvas')
+  out.width = canvas.width
+  out.height = canvas.height
+  const ctx = out.getContext('2d')
+  if (!ctx) return canvas
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(0, 0, out.width, out.height)
+  ctx.drawImage(canvas, 0, 0)
+  return out
+}
+
 // Cuts the ribbon of the current format into one image file per slide.
 export async function ribbonToFiles(
   ribbon: HTMLCanvasElement,
@@ -57,7 +71,8 @@ export async function ribbonToFiles(
   const names = exportFileNames(format, scale, aspectKey, trackName, slideCount)
   const files: ExportFile[] = []
   for (let i = 0; i < slideCount; i++) {
-    files.push({ name: names[i], blob: await canvasToBlob(cropSlide(ribbon, i, aspectKey, scale), mime) })
+    const slide = cropSlide(ribbon, i, aspectKey, scale)
+    files.push({ name: names[i], blob: await canvasToBlob(format === 'jpg' ? onWhite(slide) : slide, mime) })
   }
   return files
 }

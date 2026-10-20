@@ -18,8 +18,8 @@ import SlotToolbar from './SlotToolbar'
 export default function CanvasStage({ previewScale }: { previewScale: number }) {
   const aspectKey = useAppStore((s) => s.aspectKey)
   const hasPhotos = useHasPhotos()
-  const gradientOn = useAppStore((s) => s.collage.bgKind === 'gradient')
-  const hasBackground = hasPhotos || gradientOn
+  const filled = useAppStore((s) => s.collage.bgKind !== 'transparent')
+  const hasBackground = hasPhotos || filled
   const previewBackdrop = useAppStore((s) => s.previewBackdrop)
   const adding = useAppStore((s) => s.addingWaypoint)
   const showSafeZones = useAppStore((s) => s.showSafeZones)
