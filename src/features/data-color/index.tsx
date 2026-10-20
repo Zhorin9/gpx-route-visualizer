@@ -5,7 +5,7 @@ import { IconPalette } from '../../components/icons'
 import { useHasRoute } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import ColorLegendNode from './canvas/ColorLegendNode'
-import ColorLegendEditor, { DataColorSection } from './panel/DataColorEditor'
+import ColorLegendEditor, { ColorPage } from './panel/DataColorEditor'
 import { LEGEND_KIND } from './types'
 import { useActiveDataColor, useDataColoring } from './useDataColoring'
 
@@ -26,7 +26,8 @@ export function registerDataColor() {
     useIsAvailable: useLegendAvailable,
     Node: ColorLegendNode,
     Editor: ColorLegendEditor,
-    tab: 'data',
+    tab: 'route',
+    subTab: 'color',
   })
-  registerPanelSection({ id: 'data-color', tab: 'data', order: 30, Component: DataColorSection })
+  registerPanelSection({ id: 'color', label: 'Kolor', tab: 'route', order: 10, Component: ColorPage })
 }

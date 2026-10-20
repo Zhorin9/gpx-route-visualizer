@@ -15,7 +15,8 @@ export function registerStats() {
     useIsAvailable: useHasRoute,
     Node: StatsHeaderNode,
     Editor: StatsEditor,
-    tab: 'data',
+    tab: 'route',
+    subTab: 'stats',
   })
-  registerPanelSection({ id: 'stats', tab: 'data', order: 10, Component: StatsSection })
+  registerPanelSection({ id: 'stats', label: 'Statystyki', tab: 'route', order: 30, Component: StatsSection })
 }

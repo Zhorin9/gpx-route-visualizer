@@ -75,6 +75,8 @@ export interface Toast {
 
 export interface UiSlice {
   activeTab: TabKey
+  // Open page inside a tab that has sub-tabs (Trasa → Profil); the first page when unset.
+  subTabs: Partial<Record<TabKey, string>>
   previewBackdrop: string
   selection: Selection | null
   addingWaypoint: boolean
@@ -93,6 +95,7 @@ export interface UiSlice {
   exporting: boolean
   setExporting: (value: boolean) => void
   setActiveTab: (tab: TabKey) => void
+  setSubTab: (tab: TabKey, page: string) => void
   setPreviewBackdrop: (value: string) => void
   select: (selection: Selection | null) => void
   setAddingWaypoint: (value: boolean) => void

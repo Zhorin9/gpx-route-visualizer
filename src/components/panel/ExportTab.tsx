@@ -10,7 +10,7 @@ import { ASPECTS } from '../../utils/aspects'
 import { exportFileNames } from '../../utils/exportImage'
 import { exportProject } from '../../utils/exportProject'
 import { canvasElements, type CanvasElementDefinition } from '../../core/canvas/registry'
-import { panelSections } from '../../core/panel/registry'
+import SubTabs from '../../core/panel/SubTabs'
 import { FORMAT_ORDER, SOURCE_ASPECT, hasManualLayout, manualFlags } from '../../utils/reflow'
 import type { AspectKey, ExportFormat, SelectOption } from '../../types'
 
@@ -97,18 +97,9 @@ function FormatLayoutSection() {
   )
 }
 
-// Other kinds of export (video) are added by features; images are the tab's own.
+// Obraz is the tab's own page; Animacja and Wideo are added by their features.
 export default function ExportTab() {
-  const modes = panelSections('export')
-  const [mode, setMode] = useState('image')
-  const options: SelectOption<string>[] = [{ value: 'image', label: 'Obraz' }, ...modes.map((m) => ({ value: m.id, label: m.label ?? m.id }))]
-  const Mode = modes.find((m) => m.id === mode)?.Component
-  return (
-    <>
-      {modes.length > 0 && <Segmented label="Rodzaj eksportu" value={mode} options={options} onChange={setMode} />}
-      {Mode ? <Mode /> : <ImageExport />}
-    </>
-  )
+  return <SubTabs tab="export" own={[{ id: 'image', label: 'Obraz', Component: ImageExport }]} />
 }
 
 function ImageExport() {

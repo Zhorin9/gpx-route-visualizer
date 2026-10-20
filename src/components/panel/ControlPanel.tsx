@@ -7,8 +7,7 @@ import ElementsTab from './ElementsTab'
 import TemplatesTab from './TemplatesTab'
 import ExportTab from './ExportTab'
 import { useAppStore } from '../../store/useAppStore'
-import { IconBarChart, IconDroplet, IconFilm, IconImage, IconRoute, IconType, IconPalette, IconDownload, IconUndo, IconRedo } from '../icons'
-import PanelSections from '../../core/panel/PanelSections'
+import { IconDroplet, IconImage, IconRoute, IconType, IconPalette, IconDownload, IconUndo, IconRedo } from '../icons'
 import Button from '../ui/Button'
 import type { TabKey } from '../../types'
 
@@ -16,30 +15,17 @@ const TABS: TabDef<TabKey>[] = [
   { key: 'background', label: 'Tło', icon: <IconDroplet /> },
   { key: 'media', label: 'Zdjęcia i układ', shortLabel: 'Zdjęcia', icon: <IconImage /> },
   { key: 'route', label: 'Trasa', icon: <IconRoute /> },
-  { key: 'data', label: 'Dane', icon: <IconBarChart /> },
   { key: 'texts', label: 'Napisy', icon: <IconType /> },
   { key: 'style', label: 'Styl', icon: <IconPalette /> },
-  { key: 'animation', label: 'Ruch', icon: <IconFilm /> },
   { key: 'export', label: 'Eksport', icon: <IconDownload /> },
 ]
-
-// Features fill these tabs with their own sections.
-function DataTab() {
-  return <PanelSections tab="data" />
-}
-
-function AnimationTab() {
-  return <PanelSections tab="animation" />
-}
 
 const PANELS: Record<TabKey, () => React.JSX.Element> = {
   background: BackgroundTab,
   media: MediaTab,
   route: RouteTab,
-  data: DataTab,
   texts: ElementsTab,
   style: TemplatesTab,
-  animation: AnimationTab,
   export: ExportTab,
 }
 

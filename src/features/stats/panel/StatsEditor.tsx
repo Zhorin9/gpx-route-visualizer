@@ -146,7 +146,7 @@ function StatsList() {
 // The Dane tab: the stats header's settings, once there is a route to count.
 export function StatsSection() {
   const hasRoute = useHasRoute()
-  if (!hasRoute) return <p className="hint">Wgraj plik GPX, aby ustawić statystyki, profil wysokości i kolor według danych.</p>
+  if (!hasRoute) return <p className="hint">Wgraj plik GPX, aby ustawić statystyki.</p>
   return <StatsEditor />
 }
 

@@ -84,12 +84,12 @@ function Thumbnails({ job }: { job: VideoJob }) {
 }
 
 function AnimationOff() {
-  const setActiveTab = useAppStore((s) => s.setActiveTab)
+  const setSubTab = useAppStore((s) => s.setSubTab)
   return (
     <Section title="Wideo">
-      <p className="hint">Film zapisuje animację trasy, a ta jest wyłączona. Włącz ją w zakładce Ruch.</p>
-      <Button block onClick={() => setActiveTab('animation')}>
-        Przejdź do zakładki Ruch
+      <p className="hint">Film zapisuje animację trasy, a ta jest wyłączona. Włącz ją w podzakładce „Animacja”.</p>
+      <Button block onClick={() => setSubTab('export', 'animation')}>
+        Przejdź do animacji
       </Button>
     </Section>
   )

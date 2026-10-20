@@ -19,8 +19,9 @@ export interface CanvasElementDefinition {
   Node: ComponentType
   // Settings shown in the side panel while the element is selected.
   Editor: ComponentType
-  // Tab that opens when the element is picked on the frame; Napisy when not set.
+  // Tab (and page inside it) that opens when the element is picked on the frame; Napisy when not set.
   tab?: TabKey
+  subTab?: string
   // Timeline track the element appears with; 'stats' when not set.
   animationTrack?: AnimationTrackId
 }

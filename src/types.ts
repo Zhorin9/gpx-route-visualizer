@@ -309,7 +309,7 @@ export interface FormatOverrides {
 
 export type ExportFormat = 'png' | 'jpg'
 
-export type TabKey = 'background' | 'media' | 'route' | 'data' | 'texts' | 'style' | 'animation' | 'export'
+export type TabKey = 'background' | 'media' | 'route' | 'texts' | 'style' | 'export'
 
 export interface SelectOption<T extends string = string> {
   value: T

@@ -5,7 +5,7 @@ import FileButton from '../ui/FileButton'
 import Section from '../ui/Section'
 import Segmented from '../ui/Segmented'
 import { IconClose, IconEye, IconEyeOff, IconMapPin, IconMountain, IconPlus, IconUpload } from '../icons'
-import PanelSections from '../../core/panel/PanelSections'
+import SubTabs from '../../core/panel/SubTabs'
 import RangeTab from './RangeTab'
 import StyleTab from './StyleTab'
 import WaypointEditor from './PlacesTab'
@@ -34,7 +34,6 @@ function RoutesSection() {
   const track = useAppStore((s) => s.track)
   const days = useAppStore((s) => s.routeDays)
   const routeStyle = useAppStore((s) => s.routeStyle)
-  const updateRouteStyle = useAppStore((s) => s.updateRouteStyle)
   const updateDay = useAppStore((s) => s.updateDay)
   const removeDay = useAppStore((s) => s.removeDay)
   const loadGpxFile = useAppStore((s) => s.loadGpxFile)
@@ -103,9 +102,7 @@ function RoutesSection() {
           />
         </>
       )}
-      {!multi && (
-        <ColorField label="Kolor linii" value={routeStyle.color} onChange={(color) => updateRouteStyle({ color })} />
-      )}
+      {!multi && <p className="hint">Kolor linii ustawisz w podzakładce „Kolor”.</p>}
     </Section>
   )
 }
@@ -156,7 +153,8 @@ function PoiSection() {
   )
 }
 
-export default function RouteTab() {
+// Trasa → Linia: the route itself — files and days, markers, places, range and line style.
+function RouteLinePage() {
   const hasRoute = useHasRoute()
   const selection = useAppStore((s) => s.selection)
   return (
@@ -171,7 +169,11 @@ export default function RouteTab() {
       )}
       <RangeTab />
       <StyleTab />
-      <PanelSections tab="route" />
     </>
   )
+}
+
+// Kolor, Profil and Statystyki are added by their features.
+export default function RouteTab() {
+  return <SubTabs tab="route" own={[{ id: 'line', label: 'Linia', Component: RouteLinePage }]} />
 }

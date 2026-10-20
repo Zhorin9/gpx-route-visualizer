@@ -4,11 +4,12 @@ import SliderField from '../../../components/fields/SliderField'
 import Section from '../../../components/ui/Section'
 import Segmented from '../../../components/ui/Segmented'
 import { PALETTES, paletteCss } from '../../../core/data/palettes'
-import { DATA_SOURCES, dataSource } from '../../../core/data/sources'
+import { DATA_SOURCES, dataSource, type DataSourceId } from '../../../core/data/sources'
+import ColorField from '../../../components/fields/ColorField'
 import { useHasRoute } from '../../../store/selectors'
 import { useAppStore } from '../../../store/useAppStore'
-import type { SelectOption } from '../../../types'
-import type { ColorSource, DataColorSettings } from '../types'
+import type { GpxTrack, SelectOption } from '../../../types'
+import type { DataColorSettings } from '../types'
 import { useActiveDataColor } from '../useDataColoring'
 
 const GLOW_OPTIONS: SelectOption<DataColorSettings['glow']>[] = [
@@ -80,13 +81,10 @@ export function DataColorSettingsFields() {
   const updateDataColor = useAppStore((s) => s.updateDataColor)
   const active = useActiveDataColor()
 
-  const options: SelectOption<ColorSource>[] = [
-    { value: 'none', label: 'Jeden kolor' },
-    ...DATA_SOURCES.map((src) => {
-      const why = track ? src.unavailable(track) : null
-      return { value: src.id, label: why ? `${src.label} (${why})` : src.label }
-    }),
-  ]
+  const options: SelectOption<DataSourceId>[] = DATA_SOURCES.map((src) => {
+    const why = track ? src.unavailable(track) : null
+    return { value: src.id, label: why ? `${src.label} (${why})` : src.label }
+  })
   const unavailable = settings.source !== 'none' && track ? dataSource(settings.source).unavailable(track) : null
 
   function chooseRange(rangeMode: DataColorSettings['rangeMode']) {
@@ -97,7 +95,9 @@ export function DataColorSettingsFields() {
 
   return (
     <>
-      <SelectField label="Koloruj według" value={settings.source} options={options} onChange={(source) => updateDataColor({ source })} />
+      {settings.source !== 'none' && (
+        <SelectField label="Dane" value={settings.source} options={options} onChange={(source) => updateDataColor({ source })} />
+      )}
       {unavailable && <p className="hint">Ten plik GPX nie ma tych danych ({unavailable}) — trasa zostaje w jednym kolorze.</p>}
       {settings.source !== 'none' && !unavailable && (
         <>
@@ -113,12 +113,41 @@ export function DataColorSettingsFields() {
   )
 }
 
-export function DataColorSection() {
+const MODE_OPTIONS: SelectOption<'single' | 'data'>[] = [
+  { value: 'single', label: 'Jeden kolor' },
+  { value: 'data', label: 'Wg danych' },
+]
+
+// The first source this file has data for: speed and heart rate tell the most about a ride.
+function firstAvailable(track: GpxTrack | null): DataSourceId {
+  return DATA_SOURCES.find((s) => !track || !s.unavailable(track))?.id ?? 'elevation'
+}
+
+function LineColor() {
+  const color = useAppStore((s) => s.routeStyle.color)
+  const multiDay = useAppStore((s) => s.routeDays.length > 1)
+  const updateRouteStyle = useAppStore((s) => s.updateRouteStyle)
+  if (multiDay) return <p className="hint">Trasa ma kilka dni: każdy dzień ma własny kolor, ustawiany w podzakładce „Linia”.</p>
+  return <ColorField label="Kolor" value={color} onChange={(c) => updateRouteStyle({ color: c })} />
+}
+
+// Trasa → Kolor: one colour for the line, or colours from the recorded data.
+export function ColorPage() {
   const hasRoute = useHasRoute()
-  if (!hasRoute) return null
+  const source = useAppStore((s) => s.dataColor.source)
+  const track = useAppStore((s) => s.track)
+  const updateDataColor = useAppStore((s) => s.updateDataColor)
+  if (!hasRoute) return <p className="hint">Wgraj plik GPX, aby ustawić kolor trasy.</p>
+  const mode = source === 'none' ? 'single' : 'data'
   return (
-    <Section title="Kolor według danych" collapseId="data-color">
-      <DataColorSettingsFields />
+    <Section title="Kolor linii">
+      <Segmented
+        label="Kolor linii"
+        value={mode}
+        options={MODE_OPTIONS}
+        onChange={(m) => updateDataColor({ source: m === 'single' ? 'none' : firstAvailable(track) })}
+      />
+      {mode === 'single' ? <LineColor /> : <DataColorSettingsFields />}
     </Section>
   )
 }

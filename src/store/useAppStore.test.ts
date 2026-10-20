@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { registerCanvasElement } from '../core/canvas/registry'
 import { BUILT_IN_TEMPLATES } from '../utils/templates'
 import { useAppStore } from './useAppStore'
 
@@ -332,6 +333,36 @@ describe('photo library', () => {
     expect(get().photos.map((p) => p.id)).toEqual([2])
     expect(get().slides[0].slots[0]).toBeUndefined()
     expect(get().slides[0].slots[1]?.photoId).toBe(2)
+  })
+})
+
+describe('sub-tabs', () => {
+  it('opens the page a registered element names, and the Linia page for a waypoint', () => {
+    registerCanvasElement({
+      kind: 'probe',
+      label: 'Probe',
+      meta: '',
+      icon: null,
+      order: 99,
+      useIsAvailable: () => true,
+      Node: () => null,
+      Editor: () => null,
+      tab: 'route',
+      subTab: 'stats',
+    })
+    get().select({ kind: 'element', element: 'probe' })
+    expect(get().activeTab).toBe('route')
+    expect(get().subTabs.route).toBe('stats')
+    get().addWaypoint(0)
+    get().setActiveTab('media')
+    get().select({ kind: 'waypoint', id: get().waypoints[0].id })
+    expect(get().subTabs.route).toBe('line')
+  })
+
+  it('remembers the open page per tab', () => {
+    get().setSubTab('export', 'video')
+    get().setActiveTab('route')
+    expect(get().subTabs.export).toBe('video')
   })
 })
 
