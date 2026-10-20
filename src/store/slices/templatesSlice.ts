@@ -75,6 +75,8 @@ export function createTemplatesSlice({ get, commit }: SliceContext): TemplatesSl
           dividers: s.statsStyle.dividers,
           fontSize: s.statsStyle.fontSize,
           spacing: s.statsStyle.spacing,
+          heroKey: s.statsStyle.heroKey,
+          heroSecondary: s.statsStyle.heroSecondary,
         },
         textColor: s.statsStyle.color,
         route,

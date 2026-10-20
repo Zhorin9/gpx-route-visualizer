@@ -1,7 +1,7 @@
 import { ASPECTS, defaultTitleY } from '../../utils/aspects'
 import { parseGpxText } from '../../utils/gpx'
 import { loadPhoto } from '../../utils/image'
-import { computeSlots, frameInsets, layoutDef } from '../../utils/layouts'
+import { computeSlots, frameInsets, hasVisiblePhotos, layoutDef } from '../../utils/layouts'
 import { INK, PAPER, mixHex, toneOf, type Tone } from '../../utils/color'
 import { measureTextWidth } from '../../utils/measureText'
 import { reflowTo, resetToAuto } from '../../utils/reflow'
@@ -286,10 +286,12 @@ export function createMediaSlice({ set, get, commit, resetHistory }: SliceContex
     updateBackground: ({ gradient, ...patch }) =>
       commit('background', (s) => {
         const collage = { ...s.collage, ...patch, gradient: { ...s.collage.gradient, ...gradient } }
-        const tone = (c: typeof collage): Tone | null => (c.bgKind === 'gradient' ? toneOf(mixHex(c.gradient.from, c.gradient.to)) : null)
+        const tone = (c: typeof collage): Tone | null =>
+          c.bgKind === 'gradient' ? toneOf(mixHex(c.gradient.from, c.gradient.to)) : c.bgKind === 'color' ? toneOf(c.bgColor) : null
         const before = tone(s.collage) ?? 'dark'
         const after = tone(collage)
-        if (!collage.autoContrast || !after || after === before) return { collage }
+        // Over photos the background isn't what the text sits on: leave the colours alone.
+        if (!collage.autoContrast || !after || after === before || hasVisiblePhotos(s.slides, s.carouselKind)) return { collage }
         const color = after === 'light' ? INK : PAPER
         return {
           collage,

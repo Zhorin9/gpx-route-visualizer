@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { registerCanvasElement } from '../core/canvas/registry'
 import { BUILT_IN_TEMPLATES } from '../utils/templates'
 import { useAppStore } from './useAppStore'
 
@@ -201,7 +202,7 @@ describe('style templates', () => {
     expect(get().texts[0].fontFamily).toBe('DM Serif Display')
     expect(get().texts[0].text).toBe(before)
     expect(get().collage.frame.enabled).toBe(true)
-    expect(get().collage.bgKind).toBe('color')
+    expect(get().collage.bgKind).toBe(initial.collage.bgKind)
     expect(get().slides[0].slots[0].photoId).toBe(1)
     expect(get().slides[0].layoutKey).toBe('g1')
   })
@@ -335,6 +336,36 @@ describe('photo library', () => {
   })
 })
 
+describe('sub-tabs', () => {
+  it('opens the page a registered element names, and the Linia page for a waypoint', () => {
+    registerCanvasElement({
+      kind: 'probe',
+      label: 'Probe',
+      meta: '',
+      icon: null,
+      order: 99,
+      useIsAvailable: () => true,
+      Node: () => null,
+      Editor: () => null,
+      tab: 'route',
+      subTab: 'stats',
+    })
+    get().select({ kind: 'element', element: 'probe' })
+    expect(get().activeTab).toBe('route')
+    expect(get().subTabs.route).toBe('stats')
+    get().addWaypoint(0)
+    get().setActiveTab('media')
+    get().select({ kind: 'waypoint', id: get().waypoints[0].id })
+    expect(get().subTabs.route).toBe('line')
+  })
+
+  it('remembers the open page per tab', () => {
+    get().setSubTab('export', 'video')
+    get().setActiveTab('route')
+    expect(get().subTabs.export).toBe('video')
+  })
+})
+
 describe('tab switching on selection', () => {
   it('keeps a waypoint selected from Napisy in Napisy, and opens Trasa from the canvas', () => {
     get().addWaypoint(0)
@@ -355,6 +386,15 @@ describe('gradient background', () => {
     expect(get().routeStyle.color).toBe('#2d2b2b')
     get().updateBackground({ gradient: { from: '#2f5a47', to: '#17302a' } })
     expect(get().statsStyle.color).toBe('#f3f2f2')
+  })
+
+  it('leaves text and route colours alone when photos cover the background', () => {
+    useAppStore.setState({ photos: [fakePhoto(1)] })
+    get().assignPhoto(0, 0, 1)
+    const route = get().routeStyle.color
+    get().updateBackground({ bgKind: 'gradient', gradient: { from: '#f8f4f4', to: '#d7d3d3' } })
+    get().updateBackground({ bgKind: 'color', bgColor: '#111111' })
+    expect(get().routeStyle.color).toBe(route)
   })
 
   it('leaves colours alone with auto contrast off', () => {
@@ -385,9 +425,40 @@ describe('persisted state migration', () => {
   })
 })
 
+describe('stats header rotation', () => {
+  it('is not remembered, and a rotation saved by an older version is dropped', async () => {
+    get().updateStatsStyle({ rotation: 90 })
+    const saved = useAppStore.persist.getOptions().partialize!(get()) as { statsStyle: Record<string, unknown> }
+    expect(saved.statsStyle).not.toHaveProperty('rotation')
+    const migrate = useAppStore.persist.getOptions().migrate!
+    const old = (await migrate({ statsStyle: { ...initial.statsStyle, rotation: 90 } }, 3)) as { statsStyle: Record<string, unknown> }
+    expect(old.statsStyle).not.toHaveProperty('rotation')
+    const merged = useAppStore.persist.getOptions().merge!(old, initial) as typeof initial
+    expect(merged.statsStyle.rotation).toBe(0)
+  })
+})
+
+describe('stats saved before the new stats existed', () => {
+  it('keeps the saved order and visibility and adds the new stats hidden at the end', () => {
+    const merge = useAppStore.persist.getOptions().merge!
+    const saved = { statsContent: { dayLabel: 'D', visible: { day: false, distance: true, elevation: true, time: true }, order: ['time', 'distance'] } }
+    const out = merge(saved, get()) as typeof initial
+    expect(out.statsContent.order).toEqual(['time', 'distance', 'day', 'elevation', 'movingTime', 'avgSpeed', 'maxElevation'])
+    expect(out.statsContent.visible).toMatchObject({ day: false, movingTime: false, avgSpeed: false })
+    expect(out.statsContent.units).toBe('metric')
+  })
+
+  it('moves a stat in the display order and can undo it', () => {
+    get().moveStat('time', 0)
+    expect(get().statsContent.order.slice(0, 2)).toEqual(['time', 'day'])
+    get().undo()
+    expect(get().statsContent.order[0]).toBe('day')
+  })
+})
+
 describe('saving a template with a colour background', () => {
   it('stores the colour as a flat gradient', () => {
-    get().updateBackground({ bgColor: '#336699' })
+    get().updateBackground({ bgKind: 'color', bgColor: '#336699' })
     get().saveTemplate('Płaski')
     expect(get().customTemplates[0].gradient).toMatchObject({ from: '#336699', to: '#336699', grain: 0 })
   })

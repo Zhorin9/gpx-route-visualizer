@@ -3,13 +3,15 @@ import ColorField from '../fields/ColorField'
 import CheckboxField from '../fields/CheckboxField'
 import Section from '../ui/Section'
 import Segmented from '../ui/Segmented'
-import { useHasPhotos } from '../../store/selectors'
+import Button from '../ui/Button'
+import { useHasPhotos, usePhotoBackground } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { DEFAULT_COLLAGE } from '../../store/defaults'
 import { GRADIENT_PRESETS } from '../../utils/gradients'
 import type { BackgroundKind, SelectOption } from '../../types'
 
 const BACKGROUND_OPTIONS: SelectOption<BackgroundKind>[] = [
+  { value: 'transparent', label: 'Przezroczyste' },
   { value: 'color', label: 'Kolor' },
   { value: 'gradient', label: 'Gradient' },
 ]
@@ -26,8 +28,22 @@ export default function BackgroundTab() {
   const hasPhotos = useHasPhotos()
   const previewBackdrop = useAppStore((s) => s.previewBackdrop)
   const setPreviewBackdrop = useAppStore((s) => s.setPreviewBackdrop)
+  const photoBackground = usePhotoBackground()
+  const setActiveTab = useAppStore((s) => s.setActiveTab)
   const { gradient, bgKind } = collage
   const backdropIsColor = previewBackdrop !== 'checkerboard'
+
+  // A photo covers the whole frame: a colour or gradient underneath could never be seen.
+  if (photoBackground) {
+    return (
+      <Section title="Tło">
+        <p className="hint">Tłem jest zdjęcie wypełniające cały kadr, więc kolor ani gradient pod nim nie byłyby widoczne. Jasność zdjęcia zmienisz suwakiem „Przyciemnienie”.</p>
+        <Button block onClick={() => setActiveTab('media')}>
+          Przejdź do zdjęć
+        </Button>
+      </Section>
+    )
+  }
 
   return (
     <>
@@ -38,12 +54,16 @@ export default function BackgroundTab() {
         {bgKind === 'color' && (
           <>
             <ColorField label="Kolor tła" value={collage.bgColor} onChange={(bgColor) => updateBackground({ bgColor })} />
-            <p className="hint">
-              {hasPhotos
-                ? 'Kolor widać w marginesach i przerwach kolażu.'
-                : 'Bez zdjęć eksport to przezroczysty PNG — gotowy do nałożenia na własne zdjęcie w Instagramie. Wybierz gradient, aby wypełnić całe tło.'}
-            </p>
+            <CheckboxField label="Automatyczny kontrast tekstu" checked={collage.autoContrast} onChange={(autoContrast) => updateBackground({ autoContrast })} />
+            <p className="hint">Kolor wypełnia cały kadr{hasPhotos ? ', a między zdjęciami widać go w przerwach i marginesach' : ''}. Grafikę zapiszesz jako PNG albo JPG.</p>
           </>
+        )}
+        {bgKind === 'transparent' && (
+          <p className="hint">
+            {hasPhotos
+              ? 'Przerwy i marginesy kolażu zostają przezroczyste.'
+              : 'Eksport to przezroczysty PNG — gotowy do nałożenia na własne zdjęcie w Instagramie.'}
+          </p>
         )}
       </Section>
 
@@ -81,7 +101,7 @@ export default function BackgroundTab() {
         </>
       )}
 
-      {bgKind === 'color' && !hasPhotos && (
+      {bgKind === 'transparent' && !hasPhotos && (
         <Section title="Podgląd">
           <Segmented
             label="Tło podglądu"

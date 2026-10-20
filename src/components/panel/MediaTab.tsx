@@ -2,15 +2,11 @@ import { useState } from 'react'
 import SliderField from '../fields/SliderField'
 import ColorField from '../fields/ColorField'
 import CheckboxField from '../fields/CheckboxField'
-import FileButton from '../ui/FileButton'
 import Section from '../ui/Section'
 import Segmented from '../ui/Segmented'
-import { IconUpload } from '../icons'
-import useGpxImport from '../../hooks/useGpxImport'
-import { useActiveSlide, useHasPhotos, usePanorama, useRangeStats } from '../../store/selectors'
+import { useActiveSlide, useHasPhotos, usePanorama } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { DEFAULT_COLLAGE } from '../../store/defaults'
-import { formatKm } from '../../utils/format'
 import { LAYOUTS, computeSlots, layoutDef, type LayoutDef } from '../../utils/layouts'
 import { MAX_SLIDES, MIN_CAROUSEL_SLIDES } from '../../store/defaults'
 import type { CarouselKind, FrameKind, LayoutGroup, LayoutKey, Photo, SelectOption, Slide } from '../../types'
@@ -95,8 +91,6 @@ function LayoutThumb({
 }
 
 export default function MediaTab() {
-  const track = useAppStore((s) => s.track)
-  const gpxError = useAppStore((s) => s.gpxError)
   const hasPhotos = useHasPhotos()
   const slides = useAppStore((s) => s.slides)
   const photos = useAppStore((s) => s.photos)
@@ -108,8 +102,6 @@ export default function MediaTab() {
   const dimOpacity = useAppStore((s) => s.dimOpacity)
   const setDimOpacity = useAppStore((s) => s.setDimOpacity)
   const setActiveTab = useAppStore((s) => s.setActiveTab)
-  const stats = useRangeStats()
-  const { importFiles } = useGpxImport()
 
   const carouselKind = useAppStore((s) => s.carouselKind)
   const setCarouselKind = useAppStore((s) => s.setCarouselKind)
@@ -131,25 +123,6 @@ export default function MediaTab() {
 
   return (
     <>
-      <Section title="Trasa">
-        {track && stats && (
-          <p className="file-summary">
-            <strong>{track.name ?? 'Trasa bez nazwy'}</strong>
-            <span>
-              {formatKm(stats.distanceKm, 1)} · {track.points.length.toLocaleString('pl-PL')} punktów
-            </span>
-          </p>
-        )}
-        <FileButton accept=".gpx,application/gpx+xml" onFiles={(files) => importFiles(files)} icon={<IconUpload />} block>
-          {track ? 'Zmień plik GPX' : 'Wgraj plik GPX'}
-        </FileButton>
-        {gpxError && (
-          <p className="error" role="alert">
-            {gpxError}
-          </p>
-        )}
-      </Section>
-
       {slides.length > 1 && (
         <Section title="Karuzela">
           <Segmented label="Sposób podziału" showLabel value={carouselKind} options={CAROUSEL_KIND_OPTIONS} onChange={setCarouselKind} />

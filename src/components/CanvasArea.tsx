@@ -1,13 +1,14 @@
 import { useRef, useState, type DragEvent } from 'react'
 import useElementSize from '../hooks/useElementSize'
 import useGpxImport from '../hooks/useGpxImport'
-import { useHasPhotos, useHasRoute } from '../store/selectors'
+import { useHasPhotos, useHasRoute, usePhotoBackground } from '../store/selectors'
 import { useAppStore } from '../store/useAppStore'
 import { ASPECTS } from '../utils/aspects'
 import { gradientPresetName } from '../utils/gradients'
 import { layoutDef } from '../utils/layouts'
 import { FORMAT_ORDER, hasManualLayout, manualFlags } from '../utils/reflow'
 import type { AspectKey, SelectOption } from '../types'
+import { canvasControls } from '../core/canvas/chrome'
 import CanvasStage from './CanvasStage'
 import PhotoPicker from './PhotoPicker'
 import PhotoTape from './PhotoTape'
@@ -43,9 +44,9 @@ function CanvasToolbar() {
   const setCarousel = useAppStore((s) => s.setCarousel)
   const setAspectKey = useAppStore((s) => s.setAspectKey)
   const texts = useAppStore((s) => s.texts)
-  const statsLayout = useAppStore((s) => s.statsLayout)
+  const placements = useAppStore((s) => s.placements)
   const sourceLayout = useAppStore((s) => s.sourceLayout)
-  const customLayout = hasManualLayout(manualFlags({ aspectKey, texts, statsLayout, routeTransform: transform, sourceLayout }))
+  const customLayout = hasManualLayout(manualFlags({ aspectKey, texts, placements, routeTransform: transform, sourceLayout }))
   const setAddingWaypoint = useAppStore((s) => s.setAddingWaypoint)
 
   const isTransformed =
@@ -108,17 +109,18 @@ function FrameStatus() {
   const aspectKey = useAppStore((s) => s.aspectKey)
   const slideCount = useAppStore((s) => s.slides.length)
   const collage = useAppStore((s) => s.collage)
-  const hasPhotos = useHasPhotos()
   const { w, h } = ASPECTS[aspectKey]
 
+  const photoBackground = usePhotoBackground()
   const mode = slideCount > 1 ? `Karuzela ${slideCount} × ${aspectKey}` : `Kadr ${aspectKey}`
   const preset = gradientPresetName(collage.gradient)
-  const background =
-    collage.bgKind === 'gradient'
+  const background = photoBackground
+    ? 'zdjęcie'
+    : collage.bgKind === 'gradient'
       ? preset
         ? `gradient „${preset}”`
         : 'gradient własny'
-      : hasPhotos
+      : collage.bgKind === 'color'
         ? `kolor ${collage.bgColor.toUpperCase()}`
         : 'przezroczyste'
 
@@ -218,6 +220,9 @@ export default function CanvasArea() {
           </div>
         )}
       </div>
+      {canvasControls().map((Controls, i) => (
+        <Controls key={i} />
+      ))}
       {slideCount > 1 && carouselKind === 'slides' && <SlideStrip />}
       <PhotoTape />
       <PhotoPicker />

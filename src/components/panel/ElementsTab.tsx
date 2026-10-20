@@ -2,10 +2,10 @@ import { useState } from 'react'
 import SelectField from '../fields/SelectField'
 import Button from '../ui/Button'
 import Section from '../ui/Section'
-import { IconMapPin, IconPlus, IconBarChart, IconType } from '../icons'
-import StatsEditor from './StatsTab'
+import { IconMapPin, IconPlus, IconType } from '../icons'
 import TextEditor from './TextsTab'
 import WaypointEditor from './PlacesTab'
+import { canvasElement, canvasElements, type CanvasElementDefinition } from '../../core/canvas/registry'
 import { useHasRoute } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { FONT_OPTIONS } from '../../utils/fonts'
@@ -36,6 +36,19 @@ function ElementRow({
       <span className="element-row-meta">{meta}</span>
     </button>
   )
+}
+
+function RegisteredElementRow({ def }: { def: CanvasElementDefinition }) {
+  const available = def.useIsAvailable()
+  const active = useAppStore((s) => s.selection?.kind === 'element' && s.selection.element === def.kind)
+  const select = useAppStore((s) => s.select)
+  if (!available) return null
+  return <ElementRow icon={def.icon} label={def.label} meta={def.meta} active={active} onClick={() => select({ kind: 'element', element: def.kind })} />
+}
+
+function SelectedElementEditor({ kind }: { kind: string }) {
+  const def = canvasElement(kind)
+  return def ? <def.Editor /> : null
 }
 
 function GlobalFontPicker() {
@@ -76,15 +89,9 @@ export default function ElementsTab() {
 
       <Section title="Elementy na grafice">
         <div className="item-list" role="listbox" aria-label="Elementy na grafice">
-          {hasRoute && (
-            <ElementRow
-              icon={<IconBarChart />}
-              label="Nagłówek ze statystykami"
-              meta="liczby"
-              active={selection?.kind === 'stats'}
-              onClick={() => select({ kind: 'stats' })}
-            />
-          )}
+          {canvasElements().map((def) => (
+            <RegisteredElementRow key={def.kind} def={def} />
+          ))}
           {texts.map((t) => (
             <ElementRow
               key={`t${t.id}`}
@@ -111,7 +118,7 @@ export default function ElementsTab() {
         )}
       </Section>
 
-      {selection?.kind === 'stats' && <StatsEditor />}
+      {selection?.kind === 'element' && <SelectedElementEditor kind={selection.element} />}
       {selection?.kind === 'text' && <TextEditor id={selection.id} />}
       {selection?.kind === 'waypoint' && <WaypointEditor id={selection.id} />}
 

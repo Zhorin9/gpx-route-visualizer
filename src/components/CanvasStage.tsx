@@ -7,19 +7,19 @@ import { useAppStore } from '../store/useAppStore'
 import { ASPECTS, STORY_SAFE_ZONE } from '../utils/aspects'
 import { computeSlots, layoutDef, ribbonSlot, slotAt } from '../utils/layouts'
 import { stageHandle } from '../utils/exportImage'
+import CanvasElements from '../core/canvas/CanvasElements'
 import BackgroundLayer from './BackgroundLayer'
 import EditableText from './EditableText'
-import NeonRouteGroup from './NeonRouteGroup'
+import RouteGroup from './RouteGroup'
 import PhotoLayer from './PhotoLayer'
 import { PHOTO_DRAG_TYPE } from './PhotoTape'
 import SlotToolbar from './SlotToolbar'
-import StatsHeaderGroup from './StatsHeaderGroup'
 
 export default function CanvasStage({ previewScale }: { previewScale: number }) {
   const aspectKey = useAppStore((s) => s.aspectKey)
   const hasPhotos = useHasPhotos()
-  const gradientOn = useAppStore((s) => s.collage.bgKind === 'gradient')
-  const hasBackground = hasPhotos || gradientOn
+  const filled = useAppStore((s) => s.collage.bgKind !== 'transparent')
+  const hasBackground = hasPhotos || filled
   const previewBackdrop = useAppStore((s) => s.previewBackdrop)
   const adding = useAppStore((s) => s.addingWaypoint)
   const showSafeZones = useAppStore((s) => s.showSafeZones)
@@ -107,9 +107,9 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
       >
         <BackgroundLayer />
         <PhotoLayer />
-        <Layer>{hasRoute && <NeonRouteGroup />}</Layer>
+        <Layer>{hasRoute && <RouteGroup />}</Layer>
         <Layer>
-          <StatsHeaderGroup />
+          <CanvasElements />
           {texts.map((node) => (
             <EditableText key={node.id} node={node} />
           ))}

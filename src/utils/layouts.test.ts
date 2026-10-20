@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { LAYOUTS, computeSlots, frameInsets, layoutDef, slotAt } from './layouts'
+import { LAYOUTS, computeSlots, frameInsets, layoutDef, photoCoversFrame, slotAt } from './layouts'
+import type { LayoutKey, Slide } from '../types'
 import { gradientLine } from './color'
 
 const W = 1080
@@ -95,5 +96,29 @@ describe('gradientLine', () => {
     const right = gradientLine(90, 100, 200)
     expect(right.start.x).toBeCloseTo(0)
     expect(right.end.x).toBeCloseTo(100)
+  })
+})
+
+describe('photoCoversFrame', () => {
+  const slide = (layoutKey: LayoutKey, slots: number[]): Slide => ({
+    layoutKey,
+    slots: Object.fromEntries(slots.map((i) => [i, { photoId: 1, zoom: 1, offsetX: 0, offsetY: 0 }])),
+  })
+
+  it('is true for one photo over the whole frame or a backdrop photo', () => {
+    expect(photoCoversFrame([slide('g1', [0])], 'slides', W, H, 0, 0)).toBe(true)
+    expect(photoCoversFrame([slide('c1', [0])], 'slides', W, H, 20, 30)).toBe(true)
+  })
+
+  it('is false when gaps, margins or empty slots let the background show', () => {
+    expect(photoCoversFrame([slide('g1', [0])], 'slides', W, H, 0, 40)).toBe(false)
+    expect(photoCoversFrame([slide('g2h', [0, 1])], 'slides', W, H, 8, 0)).toBe(false)
+    expect(photoCoversFrame([slide('c1', [1])], 'slides', W, H, 0, 0)).toBe(false)
+    expect(photoCoversFrame([slide('g1', [])], 'slides', W, H, 0, 0)).toBe(false)
+  })
+
+  it('needs every slide covered, or the panorama photo', () => {
+    expect(photoCoversFrame([slide('g1', [0]), slide('g1', [])], 'slides', W, H, 0, 0)).toBe(false)
+    expect(photoCoversFrame([slide('g1', [0]), slide('g1', [])], 'panorama', W, H, 0, 0)).toBe(true)
   })
 })

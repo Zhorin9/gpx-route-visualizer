@@ -3,6 +3,21 @@
   "plugins": ["react", "oxc"],
   "rules": {
     "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
+    "react/only-export-components": ["warn", { "allowConstantExport": true }],
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": [
+          { "name": "mediabunny", "message": "Encoding packages are used only inside src/services/video-encoding/default; go through VideoEncodingService." },
+          { "name": "gifenc", "message": "Encoding packages are used only inside src/services/video-encoding/default; go through VideoEncodingService." }
+        ]
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["src/services/video-encoding/default/**"],
+      "rules": { "no-restricted-imports": "off" }
+    }
+  ]
 }

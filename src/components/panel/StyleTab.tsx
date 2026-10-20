@@ -54,7 +54,6 @@ export default function StyleTab() {
       </Section>
 
       <Section title="Linia">
-        <ColorField label="Kolor" value={style.color} onChange={(color) => update({ color })} />
         <SliderField
           label="Grubość"
           unit="px"

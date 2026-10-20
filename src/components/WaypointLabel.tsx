@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { Circle, Group, Line, Text } from 'react-konva'
 import type Konva from 'konva'
+import { usePointAnimation } from '../core/animation/layers'
 import useInlineTextEditor from '../hooks/useInlineTextEditor'
 import { useAppStore } from '../store/useAppStore'
 import { konvaFontStyle } from '../utils/fonts'
@@ -27,6 +28,7 @@ export default function WaypointLabel({ waypoint, anchor }: WaypointLabelProps) 
   const textRef = useRef<Konva.Text>(null)
   const leaderRef = useRef<Konva.Line>(null)
   const { dx, dy } = waypoint
+  const animation = usePointAnimation(waypoint.trackPos)
 
   function startEditing(e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) {
     edit(e.target as Konva.Text, { value: waypoint.text, onCommit: (text) => updateWaypoint(waypoint.id, { text }) })
@@ -35,7 +37,7 @@ export default function WaypointLabel({ waypoint, anchor }: WaypointLabelProps) 
   const onSelect = () => select({ kind: 'waypoint', id: waypoint.id })
 
   return (
-    <Group x={anchor.x} y={anchor.y}>
+    <Group x={anchor.x} y={anchor.y + animation.offsetY} opacity={animation.opacity}>
       <Line
         ref={leaderRef}
         points={[0, 0, dx, dy + waypoint.fontSize / 2]}

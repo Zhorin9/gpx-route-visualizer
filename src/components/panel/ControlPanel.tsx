@@ -13,7 +13,7 @@ import type { TabKey } from '../../types'
 
 const TABS: TabDef<TabKey>[] = [
   { key: 'background', label: 'Tło', icon: <IconDroplet /> },
-  { key: 'media', label: 'Zdjęcia i układ', icon: <IconImage /> },
+  { key: 'media', label: 'Zdjęcia i układ', shortLabel: 'Zdjęcia', icon: <IconImage /> },
   { key: 'route', label: 'Trasa', icon: <IconRoute /> },
   { key: 'texts', label: 'Napisy', icon: <IconType /> },
   { key: 'style', label: 'Styl', icon: <IconPalette /> },

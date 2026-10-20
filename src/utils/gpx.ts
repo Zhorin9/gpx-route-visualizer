@@ -20,7 +20,15 @@ export function parseGpxText(xmlText: string): GpxTrack {
     const ele = parseFloat(el.getElementsByTagName('ele')[0]?.textContent ?? '')
     const timeText = el.getElementsByTagName('time')[0]?.textContent
     const time = timeText ? Date.parse(timeText) : NaN
-    points.push({ lat, lon, ele: Number.isFinite(ele) ? ele : 0, time: Number.isFinite(time) ? time : null })
+    // Any namespace prefix: gpxtpx:hr, ns3:hr or a bare <hr>.
+    const hr = parseFloat(el.getElementsByTagNameNS('*', 'hr')[0]?.textContent ?? '')
+    points.push({
+      lat,
+      lon,
+      ele: Number.isFinite(ele) ? ele : 0,
+      time: Number.isFinite(time) ? time : null,
+      ...(Number.isFinite(hr) && hr > 0 ? { hr } : null),
+    })
   }
 
   if (points.length < 2) {
@@ -87,6 +95,38 @@ function durationMs(points: GpxPoint[], startIdx: number, endIdx: number, breaks
   return total
 }
 
+// A stretch between two points counts as moving when it was covered at walking pace or faster.
+// Stops (a lunch break, a paused recorder) cover little ground in a long time, so they drop out,
+// while sparse recordings (a point every few minutes) still count.
+export const MOVING_MIN_KMH = 1.5
+
+export function movingDurationMs(points: GpxPoint[], cumKm: Float64Array, startIdx: number, endIdx: number, breaks: readonly number[] = []): number {
+  const skip = new Set(breaks)
+  let total = 0
+  for (let i = startIdx + 1; i <= endIdx; i++) {
+    if (skip.has(i)) continue
+    const a = points[i - 1].time
+    const b = points[i].time
+    if (a == null || b == null) continue
+    const dt = b - a
+    if (dt <= 0) continue
+    const kmh = (cumKm[i] - cumKm[i - 1]) / (dt / 3_600_000)
+    if (kmh >= MOVING_MIN_KMH) total += dt
+  }
+  return total
+}
+
+function maxElevation(points: GpxPoint[], startIdx: number, endIdx: number): number | null {
+  let max = -Infinity
+  let any = false
+  for (let i = startIdx; i <= endIdx; i++) {
+    const ele = points[i].ele
+    if (ele !== 0) any = true
+    if (ele > max) max = ele
+  }
+  return any ? max : null
+}
+
 export function computeRangeStats(
   points: GpxPoint[],
   cumKm: Float64Array,
@@ -98,6 +138,8 @@ export function computeRangeStats(
     distanceKm: (cumKm[endIdx] ?? 0) - (cumKm[startIdx] ?? 0),
     elevationGainM: elevationGain(points, startIdx, endIdx),
     durationMs: durationMs(points, startIdx, endIdx, breaks),
+    movingMs: movingDurationMs(points, cumKm, startIdx, endIdx, breaks),
+    maxElevationM: maxElevation(points, startIdx, endIdx),
   }
 }
 

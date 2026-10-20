@@ -1,9 +1,13 @@
+import type { Units } from './core/units'
+
 export interface GpxPoint {
   lat: number
   lon: number
   ele: number
   // Epoch ms, parsed once on import.
   time: number | null
+  // Heart rate in bpm, from the Garmin/Strava track point extension; absent when not recorded.
+  hr?: number
 }
 
 export interface GpxTrack {
@@ -28,7 +32,12 @@ export type KmInterval = 0 | 10 | 25 | 50
 export interface RangeStats {
   distanceKm: number
   elevationGainM: number
+  // Elapsed time inside each day (nights between days don't count).
   durationMs: number
+  // Elapsed time minus stops.
+  movingMs: number
+  // Highest point of the range; null when the file has no elevation.
+  maxElevationM: number | null
 }
 
 export interface TrackDay {
@@ -155,10 +164,11 @@ export interface RouteTransform {
   rotation: number
 }
 
-export type StatKey = 'day' | 'distance' | 'elevation' | 'time'
+export type StatKey = 'day' | 'distance' | 'elevation' | 'time' | 'movingTime' | 'avgSpeed' | 'maxElevation'
 
-// row: values side by side in one line; columns: equal columns across the frame, label above each value.
-export type StatsArrangement = 'row' | 'columns'
+// row: values side by side in one line; columns: equal columns across the frame, label above each value;
+// grid: two columns that wrap; hero: one figure large, the others small under it.
+export type StatsArrangement = 'row' | 'columns' | 'grid' | 'hero'
 
 export interface StatsStyle {
   arrangement: StatsArrangement
@@ -171,11 +181,17 @@ export interface StatsStyle {
   fontSize: number
   spacing: number
   rotation: number
+  // Hero arrangement: the figure shown large, and whether the others stay under it.
+  heroKey: StatKey
+  heroSecondary: boolean
 }
 
 export interface StatsContent {
   dayLabel: string
   visible: Record<StatKey, boolean>
+  // Display order of the stats; every key appears once.
+  order: StatKey[]
+  units: Units
   overrides: Record<Exclude<StatKey, 'day'>, string>
   distancePrecision: number
   elevationRoundTo: number
@@ -187,11 +203,17 @@ export interface Offset {
 }
 
 export interface StatsLayout {
-  // null = default placement for the current aspect ratio.
-  x: number | null
-  y: number | null
   chipOffsets: Partial<Record<StatKey, Offset>>
 }
+
+// Top-left corner of a canvas element; null = default placement for the current aspect ratio.
+export interface ElementPlacement {
+  x: number | null
+  y: number | null
+}
+
+// Key of an element in the canvas element registry ('stats', 'elevationProfile', ...).
+export type ElementKind = string
 
 export interface StatChip {
   key: StatKey
@@ -249,7 +271,9 @@ export interface GradientStyle {
   smooth: boolean
 }
 
-export type BackgroundKind = 'color' | 'gradient'
+// transparent: nothing behind the photos (a PNG to lay over a photo in Instagram);
+// color / gradient: the whole frame is filled, so the file can also be a JPG.
+export type BackgroundKind = 'transparent' | 'color' | 'gradient'
 
 export interface CollageStyle {
   gap: number
@@ -274,14 +298,14 @@ export type AspectKey = '9:16' | '4:5' | '1:1'
 // Positions of the elements whose placement differs between formats.
 export interface FormatLayout {
   texts: Record<number, { x: number; y: number }>
-  stats: { x: number | null; y: number | null }
+  elements: Record<ElementKind, ElementPlacement>
   route: RouteTransform
 }
 
 // What the user placed by hand in one format; everything else follows the source format.
 export interface FormatOverrides {
   texts: Record<number, { x: number; y: number }>
-  stats?: FormatLayout['stats']
+  elements: Record<ElementKind, ElementPlacement>
   route?: RouteTransform
 }
 
@@ -297,7 +321,7 @@ export interface SelectOption<T extends string = string> {
 
 export type Selection =
   | { kind: 'text' | 'waypoint'; id: number }
-  | { kind: 'stats' }
+  | { kind: 'element'; element: ElementKind }
   | { kind: 'slot'; slide: number; index: number }
 
 export interface RouteRange {

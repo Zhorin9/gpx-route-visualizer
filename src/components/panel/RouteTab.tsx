@@ -5,9 +5,11 @@ import FileButton from '../ui/FileButton'
 import Section from '../ui/Section'
 import Segmented from '../ui/Segmented'
 import { IconClose, IconEye, IconEyeOff, IconMapPin, IconMountain, IconPlus, IconUpload } from '../icons'
+import SubTabs from '../../core/panel/SubTabs'
 import RangeTab from './RangeTab'
 import StyleTab from './StyleTab'
 import WaypointEditor from './PlacesTab'
+import useGpxImport from '../../hooks/useGpxImport'
 import { useHasRoute, useTrackCumKm } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { formatKm } from '../../utils/format'
@@ -29,11 +31,29 @@ function KindIcon({ kind }: { kind: WaypointKind }) {
   return kind === 'point' ? <IconMapPin /> : <IconMountain />
 }
 
+// Loads a GPX file in place of the current route (or the first one).
+function GpxFileButton() {
+  const hasTrack = useAppStore((s) => s.track != null)
+  const gpxError = useAppStore((s) => s.gpxError)
+  const { importFiles } = useGpxImport()
+  return (
+    <>
+      <FileButton accept=".gpx,application/gpx+xml" onFiles={(files) => importFiles(files)} icon={<IconUpload />} block variant={hasTrack ? 'secondary' : 'primary'}>
+        {hasTrack ? 'Zmień plik GPX' : 'Wgraj plik GPX'}
+      </FileButton>
+      {gpxError && (
+        <p className="error" role="alert">
+          {gpxError}
+        </p>
+      )}
+    </>
+  )
+}
+
 function RoutesSection() {
   const track = useAppStore((s) => s.track)
   const days = useAppStore((s) => s.routeDays)
   const routeStyle = useAppStore((s) => s.routeStyle)
-  const updateRouteStyle = useAppStore((s) => s.updateRouteStyle)
   const updateDay = useAppStore((s) => s.updateDay)
   const removeDay = useAppStore((s) => s.removeDay)
   const loadGpxFile = useAppStore((s) => s.loadGpxFile)
@@ -78,6 +98,7 @@ function RoutesSection() {
           </div>
         ))}
       </div>
+      <GpxFileButton />
       <FileButton
         accept=".gpx,application/gpx+xml"
         multiple
@@ -102,9 +123,7 @@ function RoutesSection() {
           />
         </>
       )}
-      {!multi && (
-        <ColorField label="Kolor linii" value={routeStyle.color} onChange={(color) => updateRouteStyle({ color })} />
-      )}
+      {!multi && <p className="hint">Kolor linii ustawisz w podzakładce „Kolor”.</p>}
     </Section>
   )
 }
@@ -155,11 +174,18 @@ function PoiSection() {
   )
 }
 
-export default function RouteTab() {
+// Trasa → Linia: the route itself — files and days, markers, places, range and line style.
+function RouteLinePage() {
   const hasRoute = useHasRoute()
   const selection = useAppStore((s) => s.selection)
   return (
     <>
+      {!hasRoute && (
+        <Section title="Trasa">
+          <p className="hint">Wgraj plik .gpx z Garmina, Stravy lub Komoot. Kolejne pliki możesz potem dodać jako następne dni wyprawy.</p>
+          <GpxFileButton />
+        </Section>
+      )}
       {hasRoute && (
         <>
           <RoutesSection />
@@ -172,4 +198,9 @@ export default function RouteTab() {
       <StyleTab />
     </>
   )
+}
+
+// Kolor, Profil and Statystyki are added by their features.
+export default function RouteTab() {
+  return <SubTabs tab="route" own={[{ id: 'line', label: 'Linia', Component: RouteLinePage }]} />
 }

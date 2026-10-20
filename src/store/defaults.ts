@@ -6,6 +6,7 @@ import type {
   RouteTransform,
   Slide,
   SlotAssignment,
+  StatKey,
   StatsContent,
   StatsLayout,
   StatsStyle,
@@ -51,17 +52,23 @@ export const DEFAULT_STATS_STYLE: StatsStyle = {
   fontSize: 38,
   spacing: 40,
   rotation: 0,
+  heroKey: 'distance',
+  heroSecondary: true,
 }
+
+export const STAT_ORDER: StatKey[] = ['day', 'distance', 'elevation', 'time', 'movingTime', 'avgSpeed', 'maxElevation']
 
 export const DEFAULT_STATS_CONTENT: StatsContent = {
   dayLabel: 'DZIEŃ 1',
-  visible: { day: true, distance: true, elevation: true, time: true },
-  overrides: { distance: '', elevation: '', time: '' },
+  visible: { day: true, distance: true, elevation: true, time: true, movingTime: false, avgSpeed: false, maxElevation: false },
+  order: STAT_ORDER,
+  units: 'metric',
+  overrides: { distance: '', elevation: '', time: '', movingTime: '', avgSpeed: '', maxElevation: '' },
   distancePrecision: 1,
   elevationRoundTo: 1,
 }
 
-export const DEFAULT_STATS_LAYOUT: StatsLayout = { x: null, y: null, chipOffsets: {} }
+export const DEFAULT_STATS_LAYOUT: StatsLayout = { chipOffsets: {} }
 
 export const DEFAULT_SLOT_CROP: Pick<SlotAssignment, 'zoom' | 'offsetX' | 'offsetY'> = { zoom: 1, offsetX: 0, offsetY: 0 }
 
@@ -69,7 +76,7 @@ export const DEFAULT_COLLAGE: CollageStyle = {
   gap: 8,
   margin: 0,
   bgColor: '#f3f2f2',
-  bgKind: 'color',
+  bgKind: 'transparent',
   gradient: { from: '#a06f24', to: '#444141', angle: 172, grain: 6, smooth: true },
   autoContrast: true,
   frame: { enabled: false, color: '#ffffff', thickness: 18, style: 'equal' },

@@ -1,4 +1,4 @@
-import type { LayoutGroup, LayoutKey } from '../types'
+import type { CarouselKind, LayoutGroup, LayoutKey, Slide } from '../types'
 
 export type SlotKind = 'cell' | 'backdrop' | 'framed'
 
@@ -248,4 +248,25 @@ export function slotAt(slots: SlotRect[], px: number, py: number): SlotRect | nu
     if (Math.abs(lx) <= s.w / 2 && Math.abs(ly) <= s.h / 2) return s
   }
   return null
+}
+
+export function isPanorama(slides: Slide[], kind: CarouselKind) {
+  return kind === 'panorama' && slides.length > 1
+}
+
+// Only the photos that are actually on the canvas: a panorama hides the other slides' slots.
+export function hasVisiblePhotos(slides: Slide[], kind: CarouselKind) {
+  if (isPanorama(slides, kind)) return Boolean(slides[0].slots[0])
+  return slides.some((slide) => Object.keys(slide.slots).length > 0)
+}
+
+// Every slide is fully covered by a photo (one photo over the whole frame, a backdrop
+// behind framed photos, a panorama): the background colour or gradient can't be seen.
+export function photoCoversFrame(slides: Slide[], kind: CarouselKind, W: number, H: number, gap: number, margin: number): boolean {
+  if (isPanorama(slides, kind)) return Boolean(slides[0].slots[0])
+  return slides.every((slide) =>
+    computeSlots(layoutDef(slide.layoutKey), W, H, gap, margin).some(
+      (slot) => slide.slots[slot.index] && (slot.kind === 'backdrop' || (slot.rotation === 0 && slot.x <= 0.5 && slot.y <= 0.5 && slot.w >= W - 1 && slot.h >= H - 1)),
+    ),
+  )
 }

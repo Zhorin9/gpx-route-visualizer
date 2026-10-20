@@ -53,26 +53,42 @@ export function pointAt(flat: ArrayLike<number>, pos: number): Point2D {
   }
 }
 
+export interface IndexedLine {
+  points: number[]
+  // Track index of each kept vertex, so per-point data (speed, grade) can follow the line.
+  positions: number[]
+}
+
 // Drops points closer than minDist to the previously kept one. Keeps the
 // shape at display resolution while cutting 100k-point tracks down to size.
-export function decimate(flat: ArrayLike<number>, fromIdx: number, toIdx: number, minDist = 1.5): number[] {
-  const out: number[] = []
-  if (toIdx < fromIdx) return out
+export function decimateIndexed(flat: ArrayLike<number>, fromIdx: number, toIdx: number, minDist = 1.5): IndexedLine {
+  const points: number[] = []
+  const positions: number[] = []
+  if (toIdx < fromIdx) return { points, positions }
   const minDistSq = minDist * minDist
   let lastX = flat[fromIdx * 2]
   let lastY = flat[fromIdx * 2 + 1]
-  out.push(lastX, lastY)
+  points.push(lastX, lastY)
+  positions.push(fromIdx)
   for (let i = fromIdx + 1; i < toIdx; i++) {
     const x = flat[i * 2]
     const y = flat[i * 2 + 1]
     if ((x - lastX) ** 2 + (y - lastY) ** 2 >= minDistSq) {
-      out.push(x, y)
+      points.push(x, y)
+      positions.push(i)
       lastX = x
       lastY = y
     }
   }
-  if (toIdx > fromIdx) out.push(flat[toIdx * 2], flat[toIdx * 2 + 1])
-  return out
+  if (toIdx > fromIdx) {
+    points.push(flat[toIdx * 2], flat[toIdx * 2 + 1])
+    positions.push(toIdx)
+  }
+  return { points, positions }
+}
+
+export function decimate(flat: ArrayLike<number>, fromIdx: number, toIdx: number, minDist = 1.5): number[] {
+  return decimateIndexed(flat, fromIdx, toIdx, minDist).points
 }
 
 // Fractional index where the cumulative distance reaches `target`.

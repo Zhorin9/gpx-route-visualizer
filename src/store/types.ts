@@ -4,6 +4,8 @@ import type {
   FormatLayout,
   FormatOverrides,
   CollageStyle,
+  ElementKind,
+  ElementPlacement,
   GradientStyle,
   LayoutKey,
   Photo,
@@ -30,6 +32,13 @@ import type {
   Waypoint,
 } from '../types'
 
+import type { AnimationSlice } from '../features/animation/store'
+import type { AnimationSettings } from '../features/animation/types'
+import type { DataColorSlice } from '../features/data-color/store'
+import type { DataColorSettings } from '../features/data-color/types'
+import type { ProfileSlice } from '../features/elevation-profile/store'
+import type { ProfileSettings } from '../features/elevation-profile/types'
+
 // Everything undo/redo covers — the user's composition, not UI chrome.
 export interface DocumentState {
   aspectKey: AspectKey
@@ -41,6 +50,8 @@ export interface DocumentState {
   titleStyle: TitleStyle
   statsContent: StatsContent
   statsLayout: StatsLayout
+  // Where each registered canvas element (stats header, elevation profile, ...) sits in this format.
+  placements: Record<ElementKind, ElementPlacement>
   texts: TextNode[]
   waypoints: Waypoint[]
   slides: Slide[]
@@ -51,6 +62,9 @@ export interface DocumentState {
   sourceLayout: FormatLayout | null
   layoutOverrides: Partial<Record<AspectKey, FormatOverrides>>
   dimOpacity: number
+  profile: ProfileSettings
+  dataColor: DataColorSettings
+  animation: AnimationSettings
 }
 
 export interface Toast {
@@ -61,6 +75,8 @@ export interface Toast {
 
 export interface UiSlice {
   activeTab: TabKey
+  // Open page inside a tab that has sub-tabs (Trasa → Profil); the first page when unset.
+  subTabs: Partial<Record<TabKey, string>>
   previewBackdrop: string
   selection: Selection | null
   addingWaypoint: boolean
@@ -79,6 +95,7 @@ export interface UiSlice {
   exporting: boolean
   setExporting: (value: boolean) => void
   setActiveTab: (tab: TabKey) => void
+  setSubTab: (tab: TabKey, page: string) => void
   setPreviewBackdrop: (value: string) => void
   select: (selection: Selection | null) => void
   setAddingWaypoint: (value: boolean) => void
@@ -142,8 +159,9 @@ export interface StatsSlice {
   updateStatsStyle: (patch: Partial<StatsStyle>) => void
   updateStatsContent: (patch: Partial<Omit<StatsContent, 'visible' | 'overrides'>>) => void
   setStatVisible: (key: StatKey, visible: boolean) => void
+  // Moves a stat to another place in the display order.
+  moveStat: (key: StatKey, toIndex: number) => void
   setStatOverride: (key: keyof StatsContent['overrides'], value: string) => void
-  setStatsPosition: (x: number, y: number) => void
   setChipOffset: (key: StatKey, offset: Offset) => void
   resetStatsLayout: () => void
 }
@@ -156,6 +174,7 @@ export interface ElementsSlice {
   updateWaypoint: (id: number, patch: Partial<Waypoint>) => void
   deleteWaypoint: (id: number) => void
   applyGlobalFont: (family: string) => void
+  setPlacement: (kind: ElementKind, placement: ElementPlacement) => void
   deleteSelection: () => void
   nudgeSelection: (dx: number, dy: number) => void
 }
@@ -174,7 +193,17 @@ export interface HistorySlice {
   redo: () => void
 }
 
-export type AppState = DocumentState & UiSlice & MediaSlice & RouteSlice & StatsSlice & ElementsSlice & TemplatesSlice & HistorySlice
+export type AppState = DocumentState &
+  UiSlice &
+  MediaSlice &
+  RouteSlice &
+  StatsSlice &
+  ElementsSlice &
+  TemplatesSlice &
+  HistorySlice &
+  ProfileSlice &
+  DataColorSlice &
+  AnimationSlice
 
 export type SetState = (partial: Partial<AppState> | ((state: AppState) => Partial<AppState>)) => void
 export type GetState = () => AppState
