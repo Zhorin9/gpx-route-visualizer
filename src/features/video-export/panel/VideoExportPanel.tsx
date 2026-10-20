@@ -87,9 +87,9 @@ function AnimationOff() {
   const setActiveTab = useAppStore((s) => s.setActiveTab)
   return (
     <Section title="Wideo">
-      <p className="hint">Film zapisuje animację trasy, a ta jest wyłączona. Włącz ją w zakładce Animacja.</p>
+      <p className="hint">Film zapisuje animację trasy, a ta jest wyłączona. Włącz ją w zakładce Ruch.</p>
       <Button block onClick={() => setActiveTab('animation')}>
-        Przejdź do zakładki Animacja
+        Przejdź do zakładki Ruch
       </Button>
     </Section>
   )

@@ -26,6 +26,7 @@ export function registerDataColor() {
     useIsAvailable: useLegendAvailable,
     Node: ColorLegendNode,
     Editor: ColorLegendEditor,
+    tab: 'data',
   })
-  registerPanelSection({ id: 'data-color', tab: 'route', order: 15, Component: DataColorSection })
+  registerPanelSection({ id: 'data-color', tab: 'data', order: 30, Component: DataColorSection })
 }

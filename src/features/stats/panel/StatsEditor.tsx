@@ -9,7 +9,7 @@ import Section from '../../../components/ui/Section'
 import Segmented from '../../../components/ui/Segmented'
 import StatConfigItem from './StatConfigItem'
 import { DEFAULT_STATS_STYLE } from '../../../store/defaults'
-import { useRangeStats } from '../../../store/selectors'
+import { useHasRoute, useRangeStats } from '../../../store/selectors'
 import { useAppStore } from '../../../store/useAppStore'
 import { FONT_OPTIONS } from '../../../utils/fonts'
 import { formatNumber } from '../../../utils/format'
@@ -143,6 +143,13 @@ function StatsList() {
   )
 }
 
+// The Dane tab: the stats header's settings, once there is a route to count.
+export function StatsSection() {
+  const hasRoute = useHasRoute()
+  if (!hasRoute) return <p className="hint">Wgraj plik GPX, aby ustawić statystyki, profil wysokości i kolor według danych.</p>
+  return <StatsEditor />
+}
+
 export default function StatsEditor() {
   const style = useAppStore((s) => s.statsStyle)
   const content = useAppStore((s) => s.statsContent)
@@ -165,14 +172,14 @@ export default function StatsEditor() {
         Przeciągnij nagłówek na podglądzie, aby go przesunąć. W układzie „W jednej linii” możesz też wysunąć pojedynczy element z rzędu.
       </p>
 
-      <Section title="Elementy">
+      <Section title="Statystyki">
         <Segmented label="Jednostki" showLabel value={content.units} options={UNIT_OPTIONS} onChange={(units) => updateStatsContent({ units })} />
         <StatsList />
         <p className="hint">Kolejność zmienisz, przeciągając wiersz lub strzałkami. Czas w ruchu pomija postoje.</p>
       </Section>
 
       <Section
-        title="Wygląd"
+        title="Wygląd statystyk"
         actions={
           isLayoutCustom && (
             <Button size="sm" variant="ghost" onClick={resetStatsLayout}>

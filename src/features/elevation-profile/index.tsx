@@ -24,7 +24,8 @@ export function registerElevationProfile() {
     useIsAvailable,
     Node: ElevationProfileNode,
     Editor: ElevationProfileEditor,
+    tab: 'data',
   })
-  registerPanelSection({ id: 'profile', tab: 'route', order: 20, Component: ElevationProfileSection })
+  registerPanelSection({ id: 'profile', tab: 'data', order: 20, Component: ElevationProfileSection })
   addRouteDecoration(ProfileRouteMarker)
 }

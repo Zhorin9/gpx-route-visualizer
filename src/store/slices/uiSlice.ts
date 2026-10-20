@@ -1,3 +1,4 @@
+import { canvasElement } from '../../core/canvas/registry'
 import type { SliceContext, UiSlice } from '../types'
 
 let nextToastId = 1
@@ -35,7 +36,9 @@ export function createUiSlice({ set }: SliceContext): UiSlice {
                     ? s.activeTab
                     : selection.kind === 'waypoint'
                       ? 'route'
-                      : 'texts',
+                      : selection.kind === 'element'
+                        ? (canvasElement(selection.element)?.tab ?? 'texts')
+                        : 'texts',
               ...(selection.kind === 'slot' ? { activeSlide: selection.slide } : null),
             }
           : { selection: null },

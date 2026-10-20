@@ -31,7 +31,7 @@ export function AnimationTimingSection() {
   return (
     <>
       <Section title="Animacja trasy">
-        <CheckboxField label="Włącz animację" checked={settings.enabled} onChange={(enabled) => updateAnimation({ enabled })} />
+        <CheckboxField label="Włącz animację trasy" checked={settings.enabled} onChange={(enabled) => updateAnimation({ enabled })} />
         <p className="hint">
           {settings.enabled
             ? 'Pod kadrem jest pasek odtwarzania, a w zakładce Eksport możesz zapisać film.'
