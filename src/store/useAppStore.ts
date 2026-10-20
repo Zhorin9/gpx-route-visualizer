@@ -11,6 +11,8 @@ import {
   STAT_ORDER,
   IDENTITY_TRANSFORM,
 } from './defaults'
+import { createDataColorSlice } from '../features/data-color/store'
+import { DEFAULT_DATA_COLOR } from '../features/data-color/types'
 import { createProfileSlice } from '../features/elevation-profile/store'
 import { DEFAULT_PROFILE } from '../features/elevation-profile/types'
 import { createHistory } from './history'
@@ -44,6 +46,7 @@ const INITIAL_DOCUMENT: DocumentState = {
   layoutOverrides: {},
   dimOpacity: 0,
   profile: DEFAULT_PROFILE,
+  dataColor: DEFAULT_DATA_COLOR,
 }
 
 // Rule: persist the user's look & feel preferences, never the per-route
@@ -126,6 +129,7 @@ export const useAppStore = create<AppState>()(
         ...createElementsSlice(ctx),
         ...createTemplatesSlice(ctx),
         ...createProfileSlice(ctx),
+        ...createDataColorSlice(ctx),
         ...history.slice,
       }
     },

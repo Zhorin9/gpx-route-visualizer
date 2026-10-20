@@ -1,6 +1,5 @@
 import { Circle } from 'react-konva'
 import { useRouteHead } from '../../../core/route/providers'
-import type { RouteGeometry } from '../../../core/route/geometry'
 import { useProjectedTrack } from '../../../store/selectors'
 import { useAppStore } from '../../../store/useAppStore'
 import { pointAt } from '../../../utils/geometry'
@@ -8,7 +7,7 @@ import { useProfileMarkerPos } from '../useProfile'
 
 // The point on the route that matches the line on the elevation chart. While the animation
 // plays, its own glowing head marks the place instead.
-export default function ProfileRouteMarker(_: { geometry: RouteGeometry }) {
+export default function ProfileRouteMarker() {
   const enabled = useAppStore((s) => s.profile.enabled && s.profile.marker)
   const color = useAppStore((s) => s.routeStyle.color)
   const ring = useAppStore((s) => s.statsStyle.color)

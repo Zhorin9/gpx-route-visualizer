@@ -39,6 +39,19 @@ function ClimbSummary() {
   )
 }
 
+// A shortcut to colour by data with the grade as source (full settings in "Kolor według danych").
+function GradeColoringToggle() {
+  const source = useAppStore((s) => s.dataColor.source)
+  const updateDataColor = useAppStore((s) => s.updateDataColor)
+  return (
+    <CheckboxField
+      label="Koloruj trasę według nachylenia"
+      checked={source === 'grade'}
+      onChange={(on) => updateDataColor({ source: on ? 'grade' : 'none' })}
+    />
+  )
+}
+
 // Everything about the chart; shown in Trasa and, while the chart is selected, in Napisy.
 export function ElevationProfileSettings() {
   const settings = useAppStore((s) => s.profile)
@@ -69,6 +82,7 @@ export function ElevationProfileSettings() {
         <CheckboxField label="Wznios nad podjazdami" checked={settings.climbLabels} onChange={(climbLabels) => updateProfile({ climbLabels })} />
       )}
       <ClimbSummary />
+      <GradeColoringToggle />
 
       <h6 className="subhead">Opisy</h6>
       <CheckboxField label="Suma przewyższeń" checked={settings.showTotal} onChange={(showTotal) => updateProfile({ showTotal })} />

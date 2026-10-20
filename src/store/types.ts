@@ -32,6 +32,8 @@ import type {
   Waypoint,
 } from '../types'
 
+import type { DataColorSlice } from '../features/data-color/store'
+import type { DataColorSettings } from '../features/data-color/types'
 import type { ProfileSlice } from '../features/elevation-profile/store'
 import type { ProfileSettings } from '../features/elevation-profile/types'
 
@@ -59,6 +61,7 @@ export interface DocumentState {
   layoutOverrides: Partial<Record<AspectKey, FormatOverrides>>
   dimOpacity: number
   profile: ProfileSettings
+  dataColor: DataColorSettings
 }
 
 export interface Toast {
@@ -192,7 +195,8 @@ export type AppState = DocumentState &
   ElementsSlice &
   TemplatesSlice &
   HistorySlice &
-  ProfileSlice
+  ProfileSlice &
+  DataColorSlice
 
 export type SetState = (partial: Partial<AppState> | ((state: AppState) => Partial<AppState>)) => void
 export type GetState = () => AppState
