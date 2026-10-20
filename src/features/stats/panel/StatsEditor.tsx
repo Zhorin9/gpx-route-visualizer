@@ -1,3 +1,4 @@
+import { useState, type ComponentType } from 'react'
 import SelectField from '../../../components/fields/SelectField'
 import ColorField from '../../../components/fields/ColorField'
 import SliderField from '../../../components/fields/SliderField'
@@ -8,24 +9,139 @@ import Section from '../../../components/ui/Section'
 import Segmented from '../../../components/ui/Segmented'
 import StatConfigItem from './StatConfigItem'
 import { DEFAULT_STATS_STYLE } from '../../../store/defaults'
+import { useRangeStats } from '../../../store/selectors'
 import { useAppStore } from '../../../store/useAppStore'
 import { FONT_OPTIONS } from '../../../utils/fonts'
 import { formatNumber } from '../../../utils/format'
-import type { SelectOption, StatsArrangement } from '../../../types'
+import { distanceUnit, heightUnit, type Units } from '../../../core/units'
+import { STAT_DEFINITIONS, statDefinition, type StatDefinition } from '../model/definitions'
+import { STATS_ARRANGEMENTS } from '../model/registry'
+import type { RangeStats, SelectOption, StatKey, StatsArrangement, StatsContent } from '../../../types'
 
-const ARRANGEMENT_OPTIONS: SelectOption<StatsArrangement>[] = [
-  { value: 'columns', label: 'Kolumny' },
-  { value: 'row', label: 'W jednej linii' },
+const ARRANGEMENT_OPTIONS: SelectOption<StatsArrangement>[] = STATS_ARRANGEMENTS.map((a) => ({ value: a.id, label: a.label }))
+
+const UNIT_OPTIONS: SelectOption<Units>[] = [
+  { value: 'metric', label: 'km, m' },
+  { value: 'imperial', label: 'mi, ft' },
 ]
 
-const DISTANCE_PRECISION_OPTIONS = [0, 1, 2].map((digits) => ({
-  value: String(digits),
-  label: `${formatNumber(15.678, digits)} km`,
-}))
-
-const ELEVATION_ROUND_OPTIONS = ['1', '5', '10', '50'].map((v) => ({ value: v, label: `Co ${v} m` }))
-
 const OVERRIDE_PLACEHOLDER = 'puste = wyliczone z GPX'
+
+type OverridableKey = keyof StatsContent['overrides']
+
+function OverrideField({ statKey }: { statKey: OverridableKey }) {
+  const value = useAppStore((s) => s.statsContent.overrides[statKey])
+  const setStatOverride = useAppStore((s) => s.setStatOverride)
+  return <TextField label="Własna wartość" placeholder={OVERRIDE_PLACEHOLDER} value={value} onChange={(v) => setStatOverride(statKey, v)} />
+}
+
+function DaySettings() {
+  const dayLabel = useAppStore((s) => s.statsContent.dayLabel)
+  const updateStatsContent = useAppStore((s) => s.updateStatsContent)
+  return <TextField label="Treść" value={dayLabel} onChange={(v) => updateStatsContent({ dayLabel: v })} />
+}
+
+function DistanceSettings() {
+  const precision = useAppStore((s) => s.statsContent.distancePrecision)
+  const units = useAppStore((s) => s.statsContent.units)
+  const updateStatsContent = useAppStore((s) => s.updateStatsContent)
+  const options = [0, 1, 2].map((digits) => ({ value: String(digits), label: `${formatNumber(15.678, digits)} ${distanceUnit(units)}` }))
+  return (
+    <>
+      <SelectField label="Dokładność" value={String(precision)} options={options} onChange={(v) => updateStatsContent({ distancePrecision: Number(v) })} />
+      <OverrideField statKey="distance" />
+    </>
+  )
+}
+
+function ElevationSettings({ statKey }: { statKey: OverridableKey }) {
+  const roundTo = useAppStore((s) => s.statsContent.elevationRoundTo)
+  const units = useAppStore((s) => s.statsContent.units)
+  const updateStatsContent = useAppStore((s) => s.updateStatsContent)
+  const options = ['1', '5', '10', '50'].map((v) => ({ value: v, label: `Co ${v} ${heightUnit(units)}` }))
+  return (
+    <>
+      <SelectField label="Zaokrąglenie" value={String(roundTo)} options={options} onChange={(v) => updateStatsContent({ elevationRoundTo: Number(v) })} />
+      <OverrideField statKey={statKey} />
+    </>
+  )
+}
+
+// Extra settings shown under a ticked stat; every figure can be typed by hand.
+const STAT_SETTINGS: Record<StatKey, ComponentType> = {
+  day: DaySettings,
+  distance: DistanceSettings,
+  elevation: () => <ElevationSettings statKey="elevation" />,
+  maxElevation: () => <ElevationSettings statKey="maxElevation" />,
+  time: () => <OverrideField statKey="time" />,
+  movingTime: () => <OverrideField statKey="movingTime" />,
+  avgSpeed: () => <OverrideField statKey="avgSpeed" />,
+}
+
+function unavailableReason(def: StatDefinition, stats: RangeStats | null): string | undefined {
+  if (!stats) return undefined
+  if (def.requires === 'time' && stats.durationMs <= 0) return 'brak czasu w pliku'
+  if (def.requires === 'elevation' && stats.maxElevationM == null) return 'brak wysokości w pliku'
+  return undefined
+}
+
+function StatsList() {
+  const content = useAppStore((s) => s.statsContent)
+  const setStatVisible = useAppStore((s) => s.setStatVisible)
+  const moveStat = useAppStore((s) => s.moveStat)
+  const stats = useRangeStats()
+  const [dragKey, setDragKey] = useState<StatKey | null>(null)
+  const [overKey, setOverKey] = useState<StatKey | null>(null)
+  const { order } = content
+
+  return (
+    <div className="stat-list" role="list" aria-label="Statystyki">
+      {order.map((key, index) => {
+        const def = statDefinition(key)
+        if (!def) return null
+        const Settings = STAT_SETTINGS[key]
+        return (
+          <div role="listitem" key={key}>
+            <StatConfigItem
+              label={def.label}
+              checked={content.visible[key]}
+              onToggle={(v) => setStatVisible(key, v)}
+              unavailable={unavailableReason(def, stats)}
+              onMove={(step) => moveStat(key, index + step)}
+              isFirst={index === 0}
+              isLast={index === order.length - 1}
+              dropTarget={overKey === key && dragKey !== key}
+              dragProps={{
+                draggable: true,
+                onDragStart: (e) => {
+                  e.dataTransfer.effectAllowed = 'move'
+                  setDragKey(key)
+                },
+                onDragOver: (e) => {
+                  if (!dragKey) return
+                  e.preventDefault()
+                  setOverKey(key)
+                },
+                onDrop: (e) => {
+                  e.preventDefault()
+                  if (dragKey) moveStat(dragKey, index)
+                  setDragKey(null)
+                  setOverKey(null)
+                },
+                onDragEnd: () => {
+                  setDragKey(null)
+                  setOverKey(null)
+                },
+              }}
+            >
+              <Settings />
+            </StatConfigItem>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 
 export default function StatsEditor() {
   const style = useAppStore((s) => s.statsStyle)
@@ -34,11 +150,14 @@ export default function StatsEditor() {
   const placement = useAppStore((s) => s.placements.stats)
   const updateStatsStyle = useAppStore((s) => s.updateStatsStyle)
   const updateStatsContent = useAppStore((s) => s.updateStatsContent)
-  const setStatVisible = useAppStore((s) => s.setStatVisible)
-  const setStatOverride = useAppStore((s) => s.setStatOverride)
   const resetStatsLayout = useAppStore((s) => s.resetStatsLayout)
 
   const isLayoutCustom = placement?.x != null || placement?.y != null || Object.keys(layout.chipOffsets).length > 0
+  const captioned = style.arrangement !== 'row'
+  const hasColumns = style.arrangement === 'columns' || style.arrangement === 'grid'
+  const heroOptions: SelectOption<StatKey>[] = content.order
+    .filter((key) => content.visible[key])
+    .map((key) => ({ value: key, label: STAT_DEFINITIONS.find((d) => d.key === key)?.label ?? key }))
 
   return (
     <>
@@ -47,48 +166,9 @@ export default function StatsEditor() {
       </p>
 
       <Section title="Elementy">
-        <StatConfigItem label="Etykieta dnia" checked={content.visible.day} onToggle={(v) => setStatVisible('day', v)}>
-          <TextField label="Treść" value={content.dayLabel} onChange={(v) => updateStatsContent({ dayLabel: v })} />
-        </StatConfigItem>
-
-        <StatConfigItem label="Dystans" checked={content.visible.distance} onToggle={(v) => setStatVisible('distance', v)}>
-          <SelectField
-            label="Dokładność"
-            value={String(content.distancePrecision)}
-            options={DISTANCE_PRECISION_OPTIONS}
-            onChange={(v) => updateStatsContent({ distancePrecision: Number(v) })}
-          />
-          <TextField
-            label="Własna wartość"
-            placeholder={OVERRIDE_PLACEHOLDER}
-            value={content.overrides.distance}
-            onChange={(v) => setStatOverride('distance', v)}
-          />
-        </StatConfigItem>
-
-        <StatConfigItem label="Przewyższenie" checked={content.visible.elevation} onToggle={(v) => setStatVisible('elevation', v)}>
-          <SelectField
-            label="Zaokrąglenie"
-            value={String(content.elevationRoundTo)}
-            options={ELEVATION_ROUND_OPTIONS}
-            onChange={(v) => updateStatsContent({ elevationRoundTo: Number(v) })}
-          />
-          <TextField
-            label="Własna wartość"
-            placeholder={OVERRIDE_PLACEHOLDER}
-            value={content.overrides.elevation}
-            onChange={(v) => setStatOverride('elevation', v)}
-          />
-        </StatConfigItem>
-
-        <StatConfigItem label="Czas" checked={content.visible.time} onToggle={(v) => setStatVisible('time', v)}>
-          <TextField
-            label="Własna wartość"
-            placeholder={OVERRIDE_PLACEHOLDER}
-            value={content.overrides.time}
-            onChange={(v) => setStatOverride('time', v)}
-          />
-        </StatConfigItem>
+        <Segmented label="Jednostki" showLabel value={content.units} options={UNIT_OPTIONS} onChange={(units) => updateStatsContent({ units })} />
+        <StatsList />
+        <p className="hint">Kolejność zmienisz, przeciągając wiersz lub strzałkami. Czas w ruchu pomija postoje.</p>
       </Section>
 
       <Section
@@ -101,16 +181,21 @@ export default function StatsEditor() {
           )
         }
       >
-        <Segmented
-          label="Układ nagłówka"
-          showLabel
-          value={style.arrangement}
-          options={ARRANGEMENT_OPTIONS}
-          onChange={(arrangement) => updateStatsStyle({ arrangement })}
-        />
-        {style.arrangement === 'columns' && (
+        <SelectField label="Układ nagłówka" value={style.arrangement} options={ARRANGEMENT_OPTIONS} onChange={(arrangement) => updateStatsStyle({ arrangement })} />
+        {style.arrangement === 'hero' && heroOptions.length > 0 && (
           <>
-            <CheckboxField label="Etykiety nad wartościami" checked={style.labels} onChange={(labels) => updateStatsStyle({ labels })} />
+            <SelectField
+              label="Duża liczba"
+              value={heroOptions.some((o) => o.value === style.heroKey) ? style.heroKey : heroOptions[0].value}
+              options={heroOptions}
+              onChange={(heroKey) => updateStatsStyle({ heroKey })}
+            />
+            <CheckboxField label="Pozostałe liczby pod spodem" checked={style.heroSecondary} onChange={(heroSecondary) => updateStatsStyle({ heroSecondary })} />
+          </>
+        )}
+        {captioned && <CheckboxField label="Etykiety nad wartościami" checked={style.labels} onChange={(labels) => updateStatsStyle({ labels })} />}
+        {hasColumns && (
+          <>
             <CheckboxField label="Linie podziału" checked={style.dividers} onChange={(dividers) => updateStatsStyle({ dividers })} />
             <CheckboxField label="Rozciągnij na całą szerokość" checked={style.stretch} onChange={(stretch) => updateStatsStyle({ stretch })} />
           </>
@@ -126,7 +211,7 @@ export default function StatsEditor() {
           defaultValue={DEFAULT_STATS_STYLE.fontSize}
           onChange={(v) => updateStatsStyle({ fontSize: v })}
         />
-        {(style.arrangement === 'row' || !style.stretch) && (
+        {(style.arrangement !== 'columns' || !style.stretch) && (
           <SliderField
             label="Odstęp"
             unit="px"

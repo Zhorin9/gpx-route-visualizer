@@ -385,6 +385,24 @@ describe('persisted state migration', () => {
   })
 })
 
+describe('stats saved before the new stats existed', () => {
+  it('keeps the saved order and visibility and adds the new stats hidden at the end', () => {
+    const merge = useAppStore.persist.getOptions().merge!
+    const saved = { statsContent: { dayLabel: 'D', visible: { day: false, distance: true, elevation: true, time: true }, order: ['time', 'distance'] } }
+    const out = merge(saved, get()) as typeof initial
+    expect(out.statsContent.order).toEqual(['time', 'distance', 'day', 'elevation', 'movingTime', 'avgSpeed', 'maxElevation'])
+    expect(out.statsContent.visible).toMatchObject({ day: false, movingTime: false, avgSpeed: false })
+    expect(out.statsContent.units).toBe('metric')
+  })
+
+  it('moves a stat in the display order and can undo it', () => {
+    get().moveStat('time', 0)
+    expect(get().statsContent.order.slice(0, 2)).toEqual(['time', 'day'])
+    get().undo()
+    expect(get().statsContent.order[0]).toBe('day')
+  })
+})
+
 describe('saving a template with a colour background', () => {
   it('stores the colour as a flat gradient', () => {
     get().updateBackground({ bgColor: '#336699' })

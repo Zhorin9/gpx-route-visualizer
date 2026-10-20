@@ -146,6 +146,8 @@ export interface StatsSlice {
   updateStatsStyle: (patch: Partial<StatsStyle>) => void
   updateStatsContent: (patch: Partial<Omit<StatsContent, 'visible' | 'overrides'>>) => void
   setStatVisible: (key: StatKey, visible: boolean) => void
+  // Moves a stat to another place in the display order.
+  moveStat: (key: StatKey, toIndex: number) => void
   setStatOverride: (key: keyof StatsContent['overrides'], value: string) => void
   setChipOffset: (key: StatKey, offset: Offset) => void
   resetStatsLayout: () => void

@@ -8,6 +8,7 @@ import {
   DEFAULT_SLIDES,
   DEFAULT_STATS_STYLE,
   DEFAULT_TITLE_STYLE,
+  STAT_ORDER,
   IDENTITY_TRANSFORM,
 } from './defaults'
 import { createHistory } from './history'
@@ -18,7 +19,7 @@ import { createStatsSlice } from './slices/statsSlice'
 import { createTemplatesSlice } from './slices/templatesSlice'
 import { createUiSlice } from './slices/uiSlice'
 import type { AppState, DocumentState, SetState } from './types'
-import type { StyleTemplate } from '../types'
+import type { StatKey, StyleTemplate } from '../types'
 
 const INITIAL_DOCUMENT: DocumentState = {
   aspectKey: '9:16',
@@ -80,6 +81,12 @@ function migrateV0(old: Record<string, unknown>): Partial<PersistedState> {
   }
 }
 
+// Saved before a stat existed: keep the user's order and add the newcomers at the end.
+export function completeOrder(order: StatKey[] | undefined): StatKey[] {
+  const known = (order ?? []).filter((k) => STAT_ORDER.includes(k))
+  return [...new Set([...known, ...STAT_ORDER])]
+}
+
 type LegacyTemplate = Omit<StyleTemplate, 'fonts' | 'gradient'> & { fontFamily?: string; bgColor?: string }
 
 // v2 templates had one font and a flat background colour, and the stats header was always one row.
@@ -133,6 +140,8 @@ export const useAppStore = create<AppState>()(
         statsContent: {
           dayLabel: s.statsContent.dayLabel,
           visible: s.statsContent.visible,
+          order: s.statsContent.order,
+          units: s.statsContent.units,
           distancePrecision: s.statsContent.distancePrecision,
           elevationRoundTo: s.statsContent.elevationRoundTo,
         },
@@ -154,6 +163,7 @@ export const useAppStore = create<AppState>()(
             ...current.statsContent,
             ...p.statsContent,
             visible: { ...current.statsContent.visible, ...p.statsContent?.visible },
+            order: completeOrder(p.statsContent?.order),
             overrides: current.statsContent.overrides,
           },
         }

@@ -435,7 +435,7 @@ Granica, której pilnujemy: **nie budujemy abstrakcji na zapas.** Interfejs pows
 | 6b.1 | Wybór bloków: dzień, dystans, przewyższenie, **czas całkowity**, **czas w ruchu**, **średnia prędkość**, **max wysokość**. Kolejność zmienia się przeciąganiem na liście w panelu. |
 | 6b.2 | Układy: **rząd** (jest), **kolumny** (jest), **siatka** (2 kolumny, zawijanie), **jedna duża liczba** (jeden wybrany blok bardzo duży, pozostałe drobne pod nim lub ukryte). |
 | 6b.3 | Przełącznik **km / mi**. Wpływa na dystans, prędkość (km/h / mph) i przewyższenie (m / ft), a także na profil wysokości, legendę koloru i znaczniki km. |
-| 6b.4 | **Czas w ruchu**: suma odcinków, na których prędkość ≥ 1,5 km/h, z pominięciem przerw dłuższych niż 2 min. Liczony tylko wewnątrz dni, tak jak `durationMs`. |
+| 6b.4 | **Czas w ruchu**: suma odcinków między punktami pokonanych z prędkością ≥ 1,5 km/h. Postoje i pauzy wypadają, a rzadki zapis (punkt co kilka minut) nadal się liczy. Liczony tylko wewnątrz dni, tak jak `durationMs`. |
 | 6b.5 | Ręczne nadpisanie wartości (`overrides`) zostaje i obejmuje nowe bloki. |
 | 6b.6 | Szablony stylu mogą ustawiać układ statystyk. |
 

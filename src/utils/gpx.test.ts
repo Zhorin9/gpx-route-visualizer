@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { computeRangeStats, cumulativeDistanceKm, elevationGain, flatBounds, parseGpxText, projectPointsToCanvas, splitIntoDays } from './gpx'
+import { computeRangeStats, cumulativeDistanceKm, elevationGain, flatBounds, movingDurationMs, parseGpxText, projectPointsToCanvas, splitIntoDays } from './gpx'
 import type { GpxPoint } from '../types'
 
 const gpx = (body: string) => `<?xml version="1.0"?><gpx xmlns="http://www.topografix.com/GPX/1/1">${body}</gpx>`
@@ -52,6 +52,44 @@ describe('computeRangeStats', () => {
     const stats = computeRangeStats(points, cum, 1, 2)
     expect(stats.distanceKm).toBeCloseTo(1.112, 2)
     expect(stats.durationMs).toBe(60_000)
+  })
+
+  it('reports the highest point, or nothing without elevation data', () => {
+    const points = [pt(120), pt(480), pt(300)]
+    const cum = cumulativeDistanceKm(points)
+    expect(computeRangeStats(points, cum, 0, 2).maxElevationM).toBe(480)
+    expect(computeRangeStats(points, cum, 0, 0).maxElevationM).toBe(120)
+    const flat = [pt(0), pt(0)]
+    expect(computeRangeStats(flat, cumulativeDistanceKm(flat), 0, 1).maxElevationM).toBeNull()
+  })
+})
+
+describe('movingDurationMs', () => {
+  // ~111 m per 0.001° of latitude.
+  const at = (i: number, t: number, dLat = 0.001 * i) => pt(0, t, 50 + dLat, 15)
+
+  it('counts only the minutes spent moving', () => {
+    const points = [
+      at(0, 0),
+      at(1, 60_000), // 6.7 km/h
+      at(2, 120_000),
+      at(2, 180_000, 0.002), // standing still for a minute
+      at(3, 240_000, 0.003),
+    ]
+    expect(movingDurationMs(points, cumulativeDistanceKm(points), 0, 4)).toBe(180_000)
+  })
+
+  it('drops a long stop but keeps sparse recordings, and skips the jump between days', () => {
+    // 111 m in 10 min is 0.7 km/h: a stop. 1.1 km in 10 min is 6.7 km/h: a sparse but moving recording.
+    const points = [at(0, 0), at(1, 60_000), at(2, 11 * 60_000), at(12, 21 * 60_000)]
+    const cum = cumulativeDistanceKm(points)
+    expect(movingDurationMs(points, cum, 0, 3)).toBe(11 * 60_000)
+    expect(movingDurationMs(points, cum, 0, 3, [3])).toBe(60_000)
+  })
+
+  it('is zero without timestamps', () => {
+    const points = [pt(0, null, 50, 15), pt(0, null, 50.01, 15)]
+    expect(movingDurationMs(points, cumulativeDistanceKm(points), 0, 1)).toBe(0)
   })
 })
 

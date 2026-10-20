@@ -147,3 +147,92 @@ export const columnsArrangement: StatsArrangementStrategy = {
     return { width: totalW, height, texts, dividers }
   },
 }
+
+const GRID_COLUMNS = 2
+const GRID_ROW_GAP_RATIO = 0.45
+
+// Two columns that wrap into rows; caption above every value.
+export const gridArrangement: StatsArrangementStrategy = {
+  id: 'grid',
+  label: 'Siatka',
+  arrange: ({ chips, style, fontStyle, frameW, measure }) => {
+    const labelSize = captionSize(style.fontSize)
+    const labelBlock = style.labels ? labelSize + captionGap(style.fontSize) : 0
+    const cols = Math.min(GRID_COLUMNS, chips.length)
+    const contentW = Math.max(
+      ...chips.map((c) =>
+        Math.max(
+          measure(c.value, style.fontFamily, style.fontSize, fontStyle),
+          style.labels ? measure(c.label.toUpperCase(), style.fontFamily, labelSize, fontStyle) + labelSize * LABEL_TRACKING * c.label.length : 0,
+        ),
+      ),
+    )
+    const cellW = style.stretch ? (frameW * (1 - 2 * COLUMN_PAD_RATIO) - style.spacing * (cols - 1)) / cols : contentW + 2
+    const cellH = style.fontSize + labelBlock
+    const rowGap = style.fontSize * GRID_ROW_GAP_RATIO
+    const rows = Math.ceil(chips.length / cols)
+    const width = cols * cellW + (cols - 1) * style.spacing
+    const height = rows * cellH + (rows - 1) * rowGap
+    const texts = chips.flatMap((chip, i) => {
+      const left = (i % cols) * (cellW + style.spacing)
+      const top = Math.floor(i / cols) * (cellH + rowGap)
+      return captionedValue(chip, style, left, top, cellW)
+    })
+    const dividers: StatsBox['dividers'] = []
+    if (style.dividers && cols > 1) {
+      const x = cellW + style.spacing / 2
+      dividers.push({ x1: x, y1: 0, x2: x, y2: height })
+    }
+    return { width, height, texts, dividers }
+  },
+}
+
+const HERO_RATIO = 2.4
+const HERO_SECONDARY_RATIO = 0.6
+
+// One figure large with its caption, the others in a small line under it.
+export const heroArrangement: StatsArrangementStrategy = {
+  id: 'hero',
+  label: 'Jedna duża liczba',
+  arrange: ({ chips, style, fontStyle, measure }) => {
+    const hero = chips.find((c) => c.key === style.heroKey) ?? chips[0]
+    const heroSize = Math.round(style.fontSize * HERO_RATIO)
+    const labelSize = captionSize(style.fontSize)
+    const labelBlock = style.labels ? labelSize + captionGap(heroSize) : 0
+    const smallSize = Math.max(14, Math.round(style.fontSize * HERO_SECONDARY_RATIO))
+    const others = style.heroSecondary ? chips.filter((c) => c !== hero) : []
+    const smallGap = Math.max(12, style.spacing * 0.6)
+
+    const caption = hero.label.toUpperCase()
+    const captionW = style.labels ? measure(caption, style.fontFamily, labelSize, fontStyle) + labelSize * LABEL_TRACKING * caption.length : 0
+    const heroW = measure(hero.value, style.fontFamily, heroSize, fontStyle)
+    const smallWidths = others.map((c) => measure(c.text, style.fontFamily, smallSize, fontStyle))
+    const smallW = smallWidths.reduce((sum, w) => sum + w, 0) + Math.max(0, others.length - 1) * smallGap
+    const width = Math.max(captionW, heroW, smallW, 1)
+
+    const texts: StatTextBox[] = []
+    if (style.labels) {
+      texts.push({
+        id: `${hero.key}:label`,
+        chipKey: hero.key,
+        text: caption,
+        x: (width - captionW) / 2,
+        y: 0,
+        fontSize: labelSize,
+        letterSpacing: labelSize * LABEL_TRACKING,
+        opacity: 0.85,
+        shadow: false,
+      })
+    }
+    texts.push({ id: hero.key, chipKey: hero.key, text: hero.value, x: (width - heroW) / 2, y: labelBlock, fontSize: heroSize, shadow: true })
+
+    const smallTop = labelBlock + heroSize * 1.08
+    let cursor = (width - smallW) / 2
+    others.forEach((chip, i) => {
+      texts.push({ id: chip.key, chipKey: chip.key, text: chip.text, x: cursor, y: smallTop, fontSize: smallSize, opacity: 0.9, shadow: true })
+      cursor += smallWidths[i] + smallGap
+    })
+    const height = others.length ? smallTop + smallSize : labelBlock + heroSize
+    return { width, height, texts, dividers: [] }
+  },
+}

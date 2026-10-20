@@ -1,3 +1,5 @@
+import type { Units } from './core/units'
+
 export interface GpxPoint {
   lat: number
   lon: number
@@ -28,7 +30,12 @@ export type KmInterval = 0 | 10 | 25 | 50
 export interface RangeStats {
   distanceKm: number
   elevationGainM: number
+  // Elapsed time inside each day (nights between days don't count).
   durationMs: number
+  // Elapsed time minus stops.
+  movingMs: number
+  // Highest point of the range; null when the file has no elevation.
+  maxElevationM: number | null
 }
 
 export interface TrackDay {
@@ -155,10 +162,11 @@ export interface RouteTransform {
   rotation: number
 }
 
-export type StatKey = 'day' | 'distance' | 'elevation' | 'time'
+export type StatKey = 'day' | 'distance' | 'elevation' | 'time' | 'movingTime' | 'avgSpeed' | 'maxElevation'
 
-// row: values side by side in one line; columns: equal columns across the frame, label above each value.
-export type StatsArrangement = 'row' | 'columns'
+// row: values side by side in one line; columns: equal columns across the frame, label above each value;
+// grid: two columns that wrap; hero: one figure large, the others small under it.
+export type StatsArrangement = 'row' | 'columns' | 'grid' | 'hero'
 
 export interface StatsStyle {
   arrangement: StatsArrangement
@@ -171,11 +179,17 @@ export interface StatsStyle {
   fontSize: number
   spacing: number
   rotation: number
+  // Hero arrangement: the figure shown large, and whether the others stay under it.
+  heroKey: StatKey
+  heroSecondary: boolean
 }
 
 export interface StatsContent {
   dayLabel: string
   visible: Record<StatKey, boolean>
+  // Display order of the stats; every key appears once.
+  order: StatKey[]
+  units: Units
   overrides: Record<Exclude<StatKey, 'day'>, string>
   distancePrecision: number
   elevationRoundTo: number

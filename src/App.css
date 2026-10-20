@@ -1649,3 +1649,53 @@
 .gradient-preset.active .gradient-swatch {
   border: 2px solid var(--color-accent);
 }
+
+/* ---------- Stats list ---------- */
+.stat-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.stat-config-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.stat-config-head .field.checkbox {
+  flex: 1;
+  min-width: 0;
+}
+
+.stat-config-note {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.stat-move {
+  display: flex;
+}
+
+.stat-move .day-icon-btn:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.stat-grip {
+  width: 10px;
+  height: 16px;
+  flex-shrink: 0;
+  cursor: grab;
+  background-image: radial-gradient(currentColor 1px, transparent 1.5px);
+  background-size: 5px 5px;
+  opacity: 0.45;
+}
+
+.stat-config-item.is-sortable {
+  border-radius: var(--radius);
+}
+
+.stat-config-item.is-drop-target {
+  box-shadow: 0 -2px 0 var(--color-accent-500);
+}

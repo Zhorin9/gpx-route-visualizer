@@ -11,6 +11,12 @@ export function createStatsSlice({ commit }: SliceContext): StatsSlice {
       commit(`statVisible:${key}`, (s) => ({
         statsContent: { ...s.statsContent, visible: { ...s.statsContent.visible, [key]: visible } },
       })),
+    moveStat: (key, toIndex) =>
+      commit(`statOrder:${key}`, (s) => {
+        const order = s.statsContent.order.filter((k) => k !== key)
+        order.splice(Math.max(0, Math.min(order.length, toIndex)), 0, key)
+        return { statsContent: { ...s.statsContent, order } }
+      }),
     setStatOverride: (key, value) =>
       commit(`statOverride:${key}`, (s) => ({
         statsContent: { ...s.statsContent, overrides: { ...s.statsContent.overrides, [key]: value } },
