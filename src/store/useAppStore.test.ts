@@ -385,6 +385,19 @@ describe('persisted state migration', () => {
   })
 })
 
+describe('stats header rotation', () => {
+  it('is not remembered, and a rotation saved by an older version is dropped', async () => {
+    get().updateStatsStyle({ rotation: 90 })
+    const saved = useAppStore.persist.getOptions().partialize!(get()) as { statsStyle: Record<string, unknown> }
+    expect(saved.statsStyle).not.toHaveProperty('rotation')
+    const migrate = useAppStore.persist.getOptions().migrate!
+    const old = (await migrate({ statsStyle: { ...initial.statsStyle, rotation: 90 } }, 3)) as { statsStyle: Record<string, unknown> }
+    expect(old.statsStyle).not.toHaveProperty('rotation')
+    const merged = useAppStore.persist.getOptions().merge!(old, initial) as typeof initial
+    expect(merged.statsStyle.rotation).toBe(0)
+  })
+})
+
 describe('stats saved before the new stats existed', () => {
   it('keeps the saved order and visibility and adds the new stats hidden at the end', () => {
     const merge = useAppStore.persist.getOptions().merge!

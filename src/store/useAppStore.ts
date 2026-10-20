@@ -54,11 +54,14 @@ const INITIAL_DOCUMENT: DocumentState = {
 
 // Rule: persist the user's look & feel preferences, never the per-route
 // content (track, texts, places, overrides) or transient UI state.
-type PersistedState = Pick<AppState, 'aspectKey' | 'previewBackdrop' | 'showSafeZones' | 'dimOpacity' | 'routeStyle' | 'statsStyle' | 'titleStyle' | 'customTemplates'> & {
+// The stats header's rotation is part of one design's layout, not a look to carry over:
+// a remembered 90° would turn the header of every route loaded afterwards.
+type PersistedState = Pick<AppState, 'aspectKey' | 'previewBackdrop' | 'showSafeZones' | 'dimOpacity' | 'routeStyle' | 'titleStyle' | 'customTemplates'> & {
+  statsStyle: Omit<AppState['statsStyle'], 'rotation'>
   statsContent: Omit<AppState['statsContent'], 'overrides'>
 }
 
-const STORE_VERSION = 3
+const STORE_VERSION = 4
 
 // v0 kept every style field flat on the root.
 function migrateV0(old: Record<string, unknown>): Partial<PersistedState> {
@@ -88,6 +91,11 @@ function migrateV0(old: Record<string, unknown>): Partial<PersistedState> {
       spacing: pick('statsSpacing', DEFAULT_STATS_STYLE.spacing),
     },
   }
+}
+
+function withoutRotation(style: AppState['statsStyle']): PersistedState['statsStyle'] {
+  const { rotation: _rotation, ...rest } = style
+  return rest
 }
 
 // Saved before a stat existed: keep the user's order and add the newcomers at the end.
@@ -146,7 +154,7 @@ export const useAppStore = create<AppState>()(
         showSafeZones: s.showSafeZones,
         dimOpacity: s.dimOpacity,
         routeStyle: s.routeStyle,
-        statsStyle: s.statsStyle,
+        statsStyle: withoutRotation(s.statsStyle),
         titleStyle: s.titleStyle,
         customTemplates: s.customTemplates,
         statsContent: {
@@ -160,7 +168,9 @@ export const useAppStore = create<AppState>()(
       }),
       migrate: (persisted, version) => {
         const state = version < 2 ? migrateV0((persisted ?? {}) as Record<string, unknown>) : ((persisted ?? {}) as Partial<PersistedState>)
-        return (version < 3 ? migrateV2(state) : state) as PersistedState
+        const v3 = version < 3 ? migrateV2(state) : state
+        // v3 still saved the rotation; drop it so the header starts level again.
+        return (version < 4 && v3.statsStyle ? { ...v3, statsStyle: withoutRotation(v3.statsStyle as AppState['statsStyle']) } : v3) as PersistedState
       },
       // Default shallow merge would drop style fields added after the data was saved.
       merge: (persisted, current) => {
