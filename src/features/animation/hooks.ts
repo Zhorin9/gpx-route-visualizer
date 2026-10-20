@@ -7,7 +7,9 @@ import { usePlayback } from './playback'
 
 // Seconds into the animation, or null while the editor shows the static view.
 export function useAnimationTime(): number | null {
-  return usePlayback((s) => (s.previewing ? s.t : null))
+  const enabled = useAppStore((s) => s.animation.enabled)
+  const t = usePlayback((s) => (s.previewing ? s.t : null))
+  return enabled ? t : null
 }
 
 // Fractional track index the line has reached, or null in the static view.

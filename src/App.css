@@ -1955,3 +1955,16 @@
   background: var(--color-accent-500);
   transition: width 0.15s linear;
 }
+
+/* Locks a group of panel controls (e.g. animation settings while it is off). */
+.panel-fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.panel-fieldset:disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}

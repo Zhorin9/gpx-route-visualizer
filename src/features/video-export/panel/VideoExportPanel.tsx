@@ -83,6 +83,18 @@ function Thumbnails({ job }: { job: VideoJob }) {
   )
 }
 
+function AnimationOff() {
+  const setActiveTab = useAppStore((s) => s.setActiveTab)
+  return (
+    <Section title="Wideo">
+      <p className="hint">Film zapisuje animację trasy, a ta jest wyłączona. Włącz ją w zakładce Animacja.</p>
+      <Button block onClick={() => setActiveTab('animation')}>
+        Przejdź do zakładki Animacja
+      </Button>
+    </Section>
+  )
+}
+
 export default function VideoExportPanel() {
   const service = useVideoEncoding()
   const hasRoute = useHasRoute()
@@ -102,6 +114,7 @@ export default function VideoExportPanel() {
   const formatOk = support?.find((s) => s.format === job.format)?.supported ?? false
 
   if (!hasRoute) return <p className="hint">Wgraj plik GPX, aby zapisać animację trasy.</p>
+  if (!animation.enabled) return <AnimationOff />
 
   const update = (patch: Partial<VideoJob>) => {
     setJob((j) => {

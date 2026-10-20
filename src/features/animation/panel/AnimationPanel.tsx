@@ -30,6 +30,16 @@ export function AnimationTimingSection() {
 
   return (
     <>
+      <Section title="Animacja trasy">
+        <CheckboxField label="Włącz animację" checked={settings.enabled} onChange={(enabled) => updateAnimation({ enabled })} />
+        <p className="hint">
+          {settings.enabled
+            ? 'Pod kadrem jest pasek odtwarzania, a w zakładce Eksport możesz zapisać film.'
+            : 'Animacja jest wyłączona: grafika jest statyczna, a eksport wideo niedostępny.'}
+        </p>
+      </Section>
+      {/* A disabled fieldset locks every control inside it at once. */}
+      <fieldset className="panel-fieldset" disabled={!settings.enabled}>
       <Section title="Oś czasu">
         <TimelineEditor />
         <p className="hint">Długość całej animacji: {formatTime(totalDuration(settings))}. Przeciągnij pasek, aby zmienić początek, a uchwyt z prawej — długość.</p>
@@ -61,6 +71,7 @@ export function AnimationTimingSection() {
         <SliderField label="Pauza na końcu" unit="s" min={0} max={5} step={0.5} value={settings.endHold} defaultValue={DEFAULT_ANIMATION.endHold} onChange={(endHold) => updateAnimation({ endHold })} />
         <CheckboxField label="Zapętlaj podgląd" checked={settings.loop} onChange={(loop) => updateAnimation({ loop })} />
       </Section>
+      </fieldset>
     </>
   )
 }

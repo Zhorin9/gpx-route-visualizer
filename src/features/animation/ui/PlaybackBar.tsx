@@ -24,7 +24,7 @@ export default function PlaybackBar() {
   const settings = useAppStore((s) => s.animation)
   const exporting = useAppStore((s) => s.exporting)
   const { t, playing, previewing, play, pause, stop, seek } = usePlayback()
-  if (!hasRoute) return null
+  if (!hasRoute || !settings.enabled) return null
   const total = totalDuration(settings)
 
   return (

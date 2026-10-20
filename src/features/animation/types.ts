@@ -10,6 +10,8 @@ export interface TrackClip {
 }
 
 export interface AnimationSettings {
+  // Off by default: no playback bar, settings locked, no video export.
+  enabled: boolean
   pacing: PacingId
   clips: Record<AnimationTrackId, TrackClip>
   entrance: Entrance
@@ -27,6 +29,7 @@ export interface AnimationSettings {
 }
 
 export const DEFAULT_ANIMATION: AnimationSettings = {
+  enabled: false,
   pacing: 'eased',
   clips: {
     header: { start: 0, duration: 0.8 },

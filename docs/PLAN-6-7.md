@@ -476,6 +476,8 @@ Granica, której pilnujemy: **nie budujemy abstrakcji na zapas.** Interfejs pows
 | 7a.7 | Statystyki mogą „liczyć się” razem z trasą (dystans rośnie od 0), co jest opcją na ścieżce Statystyki. |
 | 7a.8 | Znacznik profilu wysokości (6a.9) podąża za głowicą. |
 | 7a.9 | Po zatrzymaniu animacji edytor wraca do widoku statycznego (pełna trasa). Odtwarzanie nie zmienia dokumentu i nie zapisuje się w historii cofania. |
+| 7a.11 | **Włączanie animacji**, domyślnie wyłączona. Wyłączona: brak paska odtwarzania pod kadrem, ustawienia w zakładce Animacja zablokowane, eksport wideo niedostępny (z odesłaniem do zakładki Animacja). |
+| 7a.12 | Każda zmiana projektu (styl, szablon, przesunięcie elementu, cofnięcie) kończy podgląd i przywraca widok statyczny. Zmiany samej osi czasu podgląd zostawiają. |
 | 7a.10 | Podgląd płynny (≥ 30 fps) dla śladu do ok. 50 tys. punktów na przeciętnym laptopie. |
 
 #### Moduły
