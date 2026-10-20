@@ -94,7 +94,7 @@ export default function NeonRouteGroup() {
   const coreProps = {
     stroke: style.color,
     strokeWidth: style.coreWidth,
-    dash: style.dashed ? [style.coreWidth * 3, style.coreWidth * 2] : undefined,
+    dash: style.dotted ? [0.1, style.coreWidth * 2.4] : style.dashed ? [style.coreWidth * 3, style.coreWidth * 2] : undefined,
     listening: false,
     perfectDrawEnabled: false,
   }

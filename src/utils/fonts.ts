@@ -1,6 +1,6 @@
 import type { SelectOption } from '../types'
 
-type FontGroup = 'handwritten' | 'script' | 'display' | 'serif' | 'sans' | 'tech'
+type FontGroup = 'handwritten' | 'script' | 'display' | 'serif' | 'sans' | 'tech' | 'data'
 
 const GROUP_LABELS: Record<FontGroup, string> = {
   handwritten: 'Odręczne',
@@ -9,6 +9,7 @@ const GROUP_LABELS: Record<FontGroup, string> = {
   serif: 'Szeryfowe, eleganckie',
   sans: 'Nowoczesne bezszeryfowe',
   tech: 'Techniczne i futurystyczne',
+  data: 'Do liczb i danych',
 }
 
 interface FontDef {
@@ -55,6 +56,15 @@ const FONTS: FontDef[] = [
   { family: 'Chakra Petch', group: 'tech', weight: 600, boldWeight: 700, load: () => Promise.all([import('@fontsource/chakra-petch/600.css'), import('@fontsource/chakra-petch/700.css')]) },
   { family: 'Rajdhani', group: 'tech', weight: 600, boldWeight: 700, load: () => Promise.all([import('@fontsource/rajdhani/600.css'), import('@fontsource/rajdhani/700.css')]) },
   { family: 'Orbitron', group: 'tech', weight: 700, boldWeight: 900, load: () => Promise.all([import('@fontsource/orbitron/700.css'), import('@fontsource/orbitron/900.css')]) },
+  { family: 'Cormorant Garamond', group: 'serif', weight: 500, boldWeight: 600, load: () => Promise.all([import('@fontsource/cormorant-garamond/500.css'), import('@fontsource/cormorant-garamond/500-italic.css'), import('@fontsource/cormorant-garamond/600.css')]) },
+  { family: 'Libre Caslon Display', group: 'serif', weight: 400, boldWeight: 400, load: () => import('@fontsource/libre-caslon-display/400.css') },
+  { family: 'DM Serif Display', group: 'serif', weight: 400, boldWeight: 400, load: () => import('@fontsource/dm-serif-display/400.css') },
+  { family: 'Jost', group: 'sans', weight: 300, boldWeight: 500, load: () => Promise.all([import('@fontsource/jost/300.css'), import('@fontsource/jost/500.css')]) },
+  { family: 'Syne', group: 'sans', weight: 800, boldWeight: 800, load: () => import('@fontsource/syne/800.css') },
+  { family: 'Barlow Condensed', group: 'display', weight: 600, boldWeight: 700, load: () => Promise.all([import('@fontsource/barlow-condensed/500.css'), import('@fontsource/barlow-condensed/600.css'), import('@fontsource/barlow-condensed/700.css')]) },
+  { family: 'Reenie Beanie', group: 'handwritten', weight: 400, boldWeight: 400, load: () => import('@fontsource/reenie-beanie/400.css') },
+  { family: 'DM Mono', group: 'data', weight: 400, boldWeight: 500, load: () => Promise.all([import('@fontsource/dm-mono/400.css'), import('@fontsource/dm-mono/500.css')]) },
+  { family: 'Space Mono', group: 'data', weight: 400, boldWeight: 700, load: () => Promise.all([import('@fontsource/space-mono/400.css'), import('@fontsource/space-mono/700.css')]) },
   { family: 'Russo One', group: 'display', weight: 400, boldWeight: 400, load: () => import('@fontsource/russo-one/400.css') },
   { family: 'Teko', group: 'display', weight: 600, boldWeight: 700, load: () => Promise.all([import('@fontsource/teko/600.css'), import('@fontsource/teko/700.css')]) },
 ]
@@ -95,7 +105,7 @@ export function ensureFontLoaded(family: string): Promise<void> {
       .load()
       .then(() =>
         Promise.all(
-          [...new Set([def.weight, def.boldWeight])].map((w) => document.fonts.load(`${w} 40px "${family}"`, SAMPLE_TEXT)),
+          [...new Set([def.weight, def.boldWeight])].map((w) => document.fonts.load(`${w} 40px "${family}"`, SAMPLE_TEXT)).concat(document.fonts.load(`italic ${def.weight} 40px "${family}"`, SAMPLE_TEXT)),
         ),
       )
       .then(() => undefined)

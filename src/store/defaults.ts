@@ -11,6 +11,7 @@ import type {
   StatsStyle,
   StylePreset,
   TextNode,
+  TitleStyle,
   Waypoint,
 } from '../types'
 
@@ -27,6 +28,7 @@ export const DEFAULT_ROUTE_STYLE: RouteStyle = {
   remainingWidth: 2,
   shape: 'natural',
   dashed: false,
+  dotted: false,
   schematicSimplify: 40,
 }
 
@@ -40,6 +42,10 @@ export const DAY_COLORS = ['#ffe3bf', '#ffffff', '#f4a58a', '#9fd3c7', '#c9b6e4'
 export const IDENTITY_TRANSFORM: RouteTransform = { x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0 }
 
 export const DEFAULT_STATS_STYLE: StatsStyle = {
+  arrangement: 'columns',
+  stretch: true,
+  labels: true,
+  dividers: true,
   fontFamily: DEFAULT_FONT,
   color: '#ffffff',
   fontSize: 38,
@@ -63,6 +69,9 @@ export const DEFAULT_COLLAGE: CollageStyle = {
   gap: 8,
   margin: 0,
   bgColor: '#f3f2f2',
+  bgKind: 'color',
+  gradient: { from: '#a06f24', to: '#444141', angle: 172, grain: 6, smooth: true },
+  autoContrast: true,
   frame: { enabled: false, color: '#ffffff', thickness: 18, style: 'equal' },
   fit: 'cover',
 }
@@ -91,6 +100,32 @@ export function makeText(id: number, stageW: number, stageH: number): TextNode {
     outlineColor: '#000000',
     outlineWidth: 2,
     shadowEnabled: true,
+  }
+}
+
+export const DEFAULT_TITLE_STYLE: TitleStyle = {
+  fontFamily: DEFAULT_FONT,
+  color: '#ffffff',
+  italic: false,
+  uppercase: true,
+}
+
+export const TITLE_FONT_SIZE = 80
+
+// The track name, placed as on the template previews: centred, near the top.
+export function makeTitle(id: number, text: string, style: TitleStyle, y: number): TextNode {
+  return {
+    ...makeText(id, 0, 0),
+    text,
+    x: 0,
+    y,
+    fontSize: TITLE_FONT_SIZE,
+    fontFamily: style.fontFamily,
+    color: style.color,
+    italic: style.italic,
+    uppercase: style.uppercase,
+    letterSpacing: Math.round(TITLE_FONT_SIZE * 0.12),
+    role: 'title',
   }
 }
 

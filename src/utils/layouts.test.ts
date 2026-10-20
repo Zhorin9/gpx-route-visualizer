@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { LAYOUTS, computeSlots, frameInsets, layoutDef, slotAt } from './layouts'
+import { gradientLine } from './color'
 
 const W = 1080
 const H = 1350
@@ -82,5 +83,17 @@ describe('slotAt', () => {
   it('returns null outside every slot', () => {
     const slots = computeSlots(layoutDef('g22'), W, H, 40, 60)
     expect(slotAt(slots, 5, 5)).toBeNull()
+  })
+})
+
+describe('gradientLine', () => {
+  it('runs top to bottom at 180 degrees and left to right at 90', () => {
+    const down = gradientLine(180, 100, 200)
+    expect(down.start.y).toBeCloseTo(0)
+    expect(down.end.y).toBeCloseTo(200)
+    expect(down.start.x).toBeCloseTo(down.end.x)
+    const right = gradientLine(90, 100, 200)
+    expect(right.start.x).toBeCloseTo(0)
+    expect(right.end.x).toBeCloseTo(100)
   })
 })

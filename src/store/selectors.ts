@@ -41,19 +41,23 @@ export function useRangeStats() {
   return rangeStats(track, range, useDayBreaks())
 }
 
+const chip = (key: StatChip['key'], label: string, text: string): StatChip => ({ key, text, label, value: text })
+
 export function useStatsChips(): StatChip[] {
   const stats = useRangeStats()
   const content = useAppStore((s) => s.statsContent)
   if (!stats) return []
   const { visible, overrides } = content
   const chips: (StatChip | null)[] = [
-    visible.day && content.dayLabel ? { key: 'day', text: content.dayLabel } : null,
-    visible.distance ? { key: 'distance', text: overrides.distance || formatKm(stats.distanceKm, content.distancePrecision) } : null,
+    visible.day && content.dayLabel
+      ? { key: 'day', text: content.dayLabel, label: 'Dzień', value: content.dayLabel.replace(/^\s*dzie[ńn]\s*/i, '') || content.dayLabel }
+      : null,
+    visible.distance ? chip('distance', 'Dystans', overrides.distance || formatKm(stats.distanceKm, content.distancePrecision)) : null,
     visible.elevation
-      ? { key: 'elevation', text: overrides.elevation || formatElevation(stats.elevationGainM, content.elevationRoundTo) }
+      ? chip('elevation', 'Wznios', overrides.elevation || formatElevation(stats.elevationGainM, content.elevationRoundTo))
       : null,
     visible.time && (overrides.time || stats.durationMs > 0)
-      ? { key: 'time', text: overrides.time || formatDuration(stats.durationMs) }
+      ? chip('time', 'Czas', overrides.time || formatDuration(stats.durationMs))
       : null,
   ]
   return chips.filter((c): c is StatChip => c !== null)
@@ -67,6 +71,11 @@ export function isPanorama(slides: Slide[], kind: CarouselKind) {
 export function hasVisiblePhotos(slides: Slide[], kind: CarouselKind) {
   if (isPanorama(slides, kind)) return Boolean(slides[0].slots[0])
   return slides.some((slide) => Object.keys(slide.slots).length > 0)
+}
+
+// Anything opaque under the route: photos or a gradient. Otherwise the export is transparent.
+export function useHasBackground() {
+  return useAppStore((s) => s.collage.bgKind === 'gradient' || hasVisiblePhotos(s.slides, s.carouselKind))
 }
 
 export function usePanorama() {

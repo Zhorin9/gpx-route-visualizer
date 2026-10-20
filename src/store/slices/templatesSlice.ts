@@ -13,16 +13,25 @@ export function createTemplatesSlice({ get, commit }: SliceContext): TemplatesSl
         let texts = s.texts
         let waypoints = s.waypoints
         let slides = s.slides
+        let titleStyle = s.titleStyle
 
         if (parts.fonts) {
-          statsStyle = { ...statsStyle, ...template.statsStyle, fontFamily: template.fontFamily }
-          texts = texts.map((t) => ({ ...t, fontFamily: template.fontFamily }))
-          waypoints = waypoints.map((w) => ({ ...w, fontFamily: template.fontFamily }))
+          statsStyle = { ...statsStyle, ...template.statsStyle, fontFamily: template.fonts.data }
+          titleStyle = { ...titleStyle, fontFamily: template.fonts.title, italic: template.titleItalic ?? false, uppercase: template.titleUppercase ?? false }
+          texts = texts.map((t) => ({
+            ...t,
+            fontFamily: template.fonts.title,
+            italic: template.titleItalic ?? false,
+            ...(t.role === 'title' ? { uppercase: titleStyle.uppercase } : null),
+          }))
+          waypoints = waypoints.map((w) => ({ ...w, fontFamily: template.fonts.note }))
         }
         if (parts.colors) {
-          collage = { ...collage, bgColor: template.bgColor }
+          collage = { ...collage, bgKind: 'gradient', gradient: { ...template.gradient } }
           statsStyle = { ...statsStyle, color: template.textColor }
-          texts = texts.map((t) => ({ ...t, color: template.textColor }))
+          titleStyle = { ...titleStyle, color: template.titleColor ?? template.textColor }
+          texts = texts.map((t) => ({ ...t, color: template.titleColor ?? template.textColor }))
+          waypoints = waypoints.map((w) => ({ ...w, color: template.textColor }))
         }
         if (parts.layout) {
           const active = Math.min(s.activeSlide, slides.length - 1)
@@ -33,6 +42,7 @@ export function createTemplatesSlice({ get, commit }: SliceContext): TemplatesSl
 
         return {
           statsStyle,
+          titleStyle,
           collage,
           texts,
           waypoints,
@@ -45,24 +55,43 @@ export function createTemplatesSlice({ get, commit }: SliceContext): TemplatesSl
     saveTemplate: (name) => {
       const s = get()
       const { shape: _shape, schematicSimplify: _simplify, ...route } = s.routeStyle
+      const title = s.texts.find((t) => t.role === 'title') ?? s.texts[0]
+      const titleFont = title?.fontFamily ?? s.statsStyle.fontFamily
+      const titleColor = title && title.color !== s.statsStyle.color ? title.color : undefined
+      // Templates always carry a gradient; a plain colour background is saved as a flat one.
+      const gradient = s.collage.bgKind === 'gradient' ? s.collage.gradient : { ...s.collage.gradient, from: s.collage.bgColor, to: s.collage.bgColor, grain: 0 }
       const template: StyleTemplate = {
         id: `custom-${Date.now()}`,
         name: name.trim() || `Własny ${s.customTemplates.length + 1}`,
         desc: 'Zapisany własny styl',
-        fontFamily: s.statsStyle.fontFamily,
-        statsStyle: { fontSize: s.statsStyle.fontSize, spacing: s.statsStyle.spacing },
+        fonts: { title: titleFont, data: s.statsStyle.fontFamily, note: s.waypoints[0]?.fontFamily ?? s.statsStyle.fontFamily },
+        titleItalic: title?.italic ?? s.titleStyle.italic,
+        titleUppercase: s.titleStyle.uppercase,
+        titleColor,
+        statsStyle: {
+          arrangement: s.statsStyle.arrangement,
+          stretch: s.statsStyle.stretch,
+          labels: s.statsStyle.labels,
+          dividers: s.statsStyle.dividers,
+          fontSize: s.statsStyle.fontSize,
+          spacing: s.statsStyle.spacing,
+        },
         textColor: s.statsStyle.color,
         route,
         frame: s.collage.frame,
-        bgColor: s.collage.bgColor,
+        gradient,
         layoutKey: s.slides[Math.min(s.activeSlide, s.slides.length - 1)].layoutKey,
         preview: {
-          bg: s.collage.bgColor,
+          bg: `linear-gradient(${gradient.angle}deg, ${gradient.from}, ${gradient.to})`,
           text: s.statsStyle.color,
           line: s.routeStyle.color,
           title: 'TRASA',
-          titleFont: `'${s.statsStyle.fontFamily}', serif`,
+          titleFont: `'${titleFont}', serif`,
+          titleColor,
+          italic: title?.italic,
           dash: s.routeStyle.dashed,
+          dotted: s.routeStyle.dotted,
+          glow: s.routeStyle.glowEnabled,
           width: Math.max(1.5, s.routeStyle.coreWidth * 0.55),
           frame: s.collage.frame.enabled ? s.collage.frame.color : undefined,
         },

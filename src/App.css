@@ -48,6 +48,17 @@
   color: var(--accent-2);
 }
 
+.frame-status {
+  margin-left: auto;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.toolbar-hint + .frame-status {
+  margin-left: var(--space-3);
+}
+
 .link-btn {
   background: none;
   border: none;
@@ -1601,4 +1612,40 @@
 .photo-tape-item:hover .photo-tape-remove,
 .photo-tape-remove:focus-visible {
   display: grid;
+}
+
+/* ---------- Gradient background ---------- */
+.gradient-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.gradient-preset {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 0;
+  font-size: 11px;
+  text-align: center;
+  line-height: 1.2;
+  color: var(--text-muted);
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.gradient-swatch {
+  display: block;
+  height: 48px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm, 2px);
+}
+
+.gradient-preset.active {
+  color: var(--color-accent-700);
+}
+
+.gradient-preset.active .gradient-swatch {
+  border: 2px solid var(--color-accent);
 }

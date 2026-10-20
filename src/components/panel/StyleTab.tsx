@@ -65,7 +65,8 @@ export default function StyleTab() {
           defaultValue={DEFAULT_ROUTE_STYLE.coreWidth}
           onChange={(coreWidth) => update({ coreWidth })}
         />
-        <CheckboxField label="Linia przerywana" checked={style.dashed} onChange={(dashed) => update({ dashed })} />
+        <CheckboxField label="Linia przerywana" checked={style.dashed} onChange={(dashed) => update({ dashed, dotted: false })} />
+        <CheckboxField label="Linia kropkowana" checked={style.dotted} onChange={(dotted) => update({ dotted, dashed: false })} />
       </Section>
 
       <Section title="Poświata">

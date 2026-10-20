@@ -59,6 +59,7 @@ export function createElementsSlice({ get, commit }: SliceContext): ElementsSlic
     applyGlobalFont: (family) => {
       commit('globalFont', (s) => ({
         statsStyle: { ...s.statsStyle, fontFamily: family },
+        titleStyle: { ...s.titleStyle, fontFamily: family },
         texts: s.texts.map((t) => ({ ...t, fontFamily: family })),
         waypoints: s.waypoints.map((w) => ({ ...w, fontFamily: family })),
       }))

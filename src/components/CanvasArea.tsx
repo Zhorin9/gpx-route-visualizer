@@ -4,6 +4,7 @@ import useGpxImport from '../hooks/useGpxImport'
 import { useHasPhotos, useHasRoute } from '../store/selectors'
 import { useAppStore } from '../store/useAppStore'
 import { ASPECTS } from '../utils/aspects'
+import { gradientPresetName } from '../utils/gradients'
 import { layoutDef } from '../utils/layouts'
 import { FORMAT_ORDER, hasManualLayout, manualFlags } from '../utils/reflow'
 import type { AspectKey, SelectOption } from '../types'
@@ -96,7 +97,35 @@ function CanvasToolbar() {
           </button>
         </span>
       )}
+      <FrameStatus />
     </div>
+  )
+}
+
+
+// Read-only summary of what gets exported: mode, format, background and pixel size.
+function FrameStatus() {
+  const aspectKey = useAppStore((s) => s.aspectKey)
+  const slideCount = useAppStore((s) => s.slides.length)
+  const collage = useAppStore((s) => s.collage)
+  const hasPhotos = useHasPhotos()
+  const { w, h } = ASPECTS[aspectKey]
+
+  const mode = slideCount > 1 ? `Karuzela ${slideCount} × ${aspectKey}` : `Kadr ${aspectKey}`
+  const preset = gradientPresetName(collage.gradient)
+  const background =
+    collage.bgKind === 'gradient'
+      ? preset
+        ? `gradient „${preset}”`
+        : 'gradient własny'
+      : hasPhotos
+        ? `kolor ${collage.bgColor.toUpperCase()}`
+        : 'przezroczyste'
+
+  return (
+    <span className="frame-status" role="status">
+      {mode} · tło: {background} · {w}×{h} px
+    </span>
   )
 }
 
@@ -128,7 +157,6 @@ export default function CanvasArea() {
   const exporting = useAppStore((s) => s.exporting)
   const hasRoute = useHasRoute()
   const hasPhotos = useHasPhotos()
-  const photoCount = useAppStore((s) => s.photos.length)
   const slideCount = useAppStore((s) => s.slides.length)
   const carouselKind = useAppStore((s) => s.carouselKind)
   const cellCount = useAppStore((s) => layoutDef(s.slides[0].layoutKey).cells.length)
@@ -191,7 +219,7 @@ export default function CanvasArea() {
         )}
       </div>
       {slideCount > 1 && carouselKind === 'slides' && <SlideStrip />}
-      {(hasPhotos || photoCount > 0) && <PhotoTape />}
+      <PhotoTape />
       <PhotoPicker />
       <Toast />
     </div>

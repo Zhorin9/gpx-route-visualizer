@@ -227,7 +227,7 @@ export default function PhotoLayer() {
     const unframed = { ...collage, frame: { ...collage.frame, enabled: false } }
     return (
       <Layer>
-        {assignment && <Rect width={w * slides.length} height={h} fill={collage.bgColor} listening={false} />}
+        {assignment && collage.bgKind !== 'gradient' && <Rect width={w * slides.length} height={h} fill={collage.bgColor} listening={false} />}
         <SlotView
           slot={ribbonSlot(w, h, slides.length)}
           slide={0}
@@ -250,7 +250,7 @@ export default function PhotoLayer() {
         const slots = computeSlots(def, w, h, collage.gap, collage.margin)
         return (
           <Group key={slideIndex}>
-            {hasPhotos && <Rect x={slideIndex * w} width={w} height={h} fill={collage.bgColor} listening={false} />}
+            {hasPhotos && collage.bgKind !== 'gradient' && <Rect x={slideIndex * w} width={w} height={h} fill={collage.bgColor} listening={false} />}
             {slots.map((slot) => {
               const assignment = slide.slots[slot.index]
               return (

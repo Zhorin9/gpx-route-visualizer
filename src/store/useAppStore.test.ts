@@ -196,12 +196,12 @@ describe('style templates', () => {
     get().addText()
     const before = get().texts[0].text
     get().applyTemplate(retro, { ...all, layout: false, colors: false })
-    expect(get().routeStyle.dashed).toBe(true)
-    expect(get().statsStyle.fontFamily).toBe('Playfair Display')
-    expect(get().texts[0].fontFamily).toBe('Playfair Display')
+    expect(get().routeStyle.dotted).toBe(true)
+    expect(get().statsStyle.fontFamily).toBe('DM Mono')
+    expect(get().texts[0].fontFamily).toBe('DM Serif Display')
     expect(get().texts[0].text).toBe(before)
     expect(get().collage.frame.enabled).toBe(true)
-    expect(get().collage.bgColor).toBe(initial.collage.bgColor)
+    expect(get().collage.bgKind).toBe('color')
     expect(get().slides[0].slots[0].photoId).toBe(1)
     expect(get().slides[0].layoutKey).toBe('g1')
   })
@@ -212,11 +212,11 @@ describe('style templates', () => {
     expect(get().slides[0].layoutKey).toBe('c1')
     get().undo()
     expect(get().slides[0].layoutKey).toBe('g1')
-    expect(get().routeStyle.dashed).toBe(false)
+    expect(get().routeStyle.dotted).toBe(false)
   })
 
   it('saves the current look as a custom template', () => {
-    get().updateRouteStyle({ color: '#ff0000', dashed: true })
+    get().updateRouteStyle({ color: '#ff0000', dotted: true })
     get().saveTemplate('Mój')
     const saved = get().customTemplates[0]
     expect(saved).toMatchObject({ name: 'Mój', custom: true })
@@ -306,6 +306,20 @@ describe('multi-day routes', () => {
     expect(get().routeDays).toHaveLength(0)
     expect(get().track?.points).toHaveLength(3)
   })
+
+  it('turns the track name into one centred title, styled by the template', async () => {
+    vi.useRealTimers()
+    const gran = BUILT_IN_TEMPLATES.find((t) => t.id === 'plakat')!
+    get().applyTemplate(gran, { fonts: true, route: false, frame: false, colors: true, layout: false })
+    await get().loadGpxFile(gpx(50, 'Sardynia'))
+    await get().loadGpxFile(gpx(51, 'Dzień 2'), true)
+    const titles = get().texts.filter((t) => t.role === 'title')
+    expect(titles).toHaveLength(1)
+    expect(titles[0]).toMatchObject({ text: 'Sardynia', x: 0, fontFamily: 'Barlow Condensed', color: gran.titleColor, uppercase: true })
+
+    await get().loadGpxFile(gpx(52, 'Korsyka'))
+    expect(get().texts.filter((t) => t.role === 'title').map((t) => t.text)).toEqual(['Korsyka'])
+  })
 })
 
 describe('photo library', () => {
@@ -331,5 +345,50 @@ describe('tab switching on selection', () => {
     get().setActiveTab('media')
     get().select({ kind: 'waypoint', id })
     expect(get().activeTab).toBe('route')
+  })
+})
+
+describe('gradient background', () => {
+  it('flips text and route to dark on a light gradient and back, only when asked to', () => {
+    get().updateBackground({ bgKind: 'gradient', gradient: { from: '#f8f4f4', to: '#d7d3d3' } })
+    expect(get().statsStyle.color).toBe('#2d2b2b')
+    expect(get().routeStyle.color).toBe('#2d2b2b')
+    get().updateBackground({ gradient: { from: '#2f5a47', to: '#17302a' } })
+    expect(get().statsStyle.color).toBe('#f3f2f2')
+  })
+
+  it('leaves colours alone with auto contrast off', () => {
+    get().updateBackground({ autoContrast: false })
+    get().updateBackground({ bgKind: 'gradient', gradient: { from: '#f8f4f4', to: '#d7d3d3' } })
+    expect(get().statsStyle.color).toBe(initial.statsStyle.color)
+  })
+
+  it('applies a template background', () => {
+    const kartograf = BUILT_IN_TEMPLATES.find((t) => t.id === 'kartograf')!
+    get().applyTemplate(kartograf, { fonts: false, route: false, frame: false, colors: true, layout: false })
+    expect(get().collage.bgKind).toBe('gradient')
+    expect(get().collage.gradient.from).toBe(kartograf.gradient.from)
+  })
+})
+
+describe('persisted state migration', () => {
+  const migrate = useAppStore.persist.getOptions().migrate!
+
+  it('upgrades v2 custom templates and keeps the one-row stats header', async () => {
+    const legacy = { ...BUILT_IN_TEMPLATES[0], fonts: undefined, gradient: undefined, fontFamily: 'Lora', bgColor: '#123456', statsStyle: { fontSize: 30, spacing: 40 } }
+    const out = (await migrate({ statsStyle: { ...initial.statsStyle }, customTemplates: [legacy] }, 2)) as Partial<typeof initial>
+    expect(out.statsStyle?.arrangement).toBe('row')
+    const t = out.customTemplates![0]
+    expect(t.fonts).toEqual({ title: 'Lora', data: 'Lora', note: 'Lora' })
+    expect(t.gradient).toMatchObject({ from: '#123456', to: '#123456', grain: 0 })
+    expect(t.statsStyle.arrangement).toBe('row')
+  })
+})
+
+describe('saving a template with a colour background', () => {
+  it('stores the colour as a flat gradient', () => {
+    get().updateBackground({ bgColor: '#336699' })
+    get().saveTemplate('Płaski')
+    expect(get().customTemplates[0].gradient).toMatchObject({ from: '#336699', to: '#336699', grain: 0 })
   })
 })
