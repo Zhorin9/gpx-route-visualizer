@@ -11,6 +11,8 @@ import {
   STAT_ORDER,
   IDENTITY_TRANSFORM,
 } from './defaults'
+import { createProfileSlice } from '../features/elevation-profile/store'
+import { DEFAULT_PROFILE } from '../features/elevation-profile/types'
 import { createHistory } from './history'
 import { createElementsSlice } from './slices/elementsSlice'
 import { createMediaSlice } from './slices/mediaSlice'
@@ -41,6 +43,7 @@ const INITIAL_DOCUMENT: DocumentState = {
   sourceLayout: null,
   layoutOverrides: {},
   dimOpacity: 0,
+  profile: DEFAULT_PROFILE,
 }
 
 // Rule: persist the user's look & feel preferences, never the per-route
@@ -122,6 +125,7 @@ export const useAppStore = create<AppState>()(
         ...createStatsSlice(ctx),
         ...createElementsSlice(ctx),
         ...createTemplatesSlice(ctx),
+        ...createProfileSlice(ctx),
         ...history.slice,
       }
     },

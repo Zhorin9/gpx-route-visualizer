@@ -24,6 +24,7 @@ export function pickDocument(s: DocumentState): DocumentState {
     sourceLayout: s.sourceLayout,
     layoutOverrides: s.layoutOverrides,
     dimOpacity: s.dimOpacity,
+    profile: s.profile,
   }
 }
 

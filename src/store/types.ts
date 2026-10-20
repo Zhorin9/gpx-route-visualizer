@@ -32,6 +32,9 @@ import type {
   Waypoint,
 } from '../types'
 
+import type { ProfileSlice } from '../features/elevation-profile/store'
+import type { ProfileSettings } from '../features/elevation-profile/types'
+
 // Everything undo/redo covers — the user's composition, not UI chrome.
 export interface DocumentState {
   aspectKey: AspectKey
@@ -55,6 +58,7 @@ export interface DocumentState {
   sourceLayout: FormatLayout | null
   layoutOverrides: Partial<Record<AspectKey, FormatOverrides>>
   dimOpacity: number
+  profile: ProfileSettings
 }
 
 export interface Toast {
@@ -180,7 +184,15 @@ export interface HistorySlice {
   redo: () => void
 }
 
-export type AppState = DocumentState & UiSlice & MediaSlice & RouteSlice & StatsSlice & ElementsSlice & TemplatesSlice & HistorySlice
+export type AppState = DocumentState &
+  UiSlice &
+  MediaSlice &
+  RouteSlice &
+  StatsSlice &
+  ElementsSlice &
+  TemplatesSlice &
+  HistorySlice &
+  ProfileSlice
 
 export type SetState = (partial: Partial<AppState> | ((state: AppState) => Partial<AppState>)) => void
 export type GetState = () => AppState

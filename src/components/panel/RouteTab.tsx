@@ -5,6 +5,7 @@ import FileButton from '../ui/FileButton'
 import Section from '../ui/Section'
 import Segmented from '../ui/Segmented'
 import { IconClose, IconEye, IconEyeOff, IconMapPin, IconMountain, IconPlus, IconUpload } from '../icons'
+import PanelSections from '../../core/panel/PanelSections'
 import RangeTab from './RangeTab'
 import StyleTab from './StyleTab'
 import WaypointEditor from './PlacesTab'
@@ -170,6 +171,7 @@ export default function RouteTab() {
       )}
       <RangeTab />
       <StyleTab />
+      <PanelSections tab="route" />
     </>
   )
 }

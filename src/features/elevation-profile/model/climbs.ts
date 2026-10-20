@@ -18,6 +18,21 @@ export const DEFAULT_CLIMB_THRESHOLDS: ClimbThresholds = { minGainM: 30, minGrad
 // a short descent in the middle of a pass doesn't split it in two.
 const DIP_TOLERANCE_M = 10
 const DIP_SHARE = 0.1
+// A climb starts where the road actually tilts up: a long gentle approach is cut off.
+const LEAD_KM = 0.3
+const LEAD_GRADE_PCT = 2
+
+function trimApproach(ele: ArrayLike<number>, cumKm: ArrayLike<number>, start: number, peak: number): number {
+  let s = start
+  let j = start
+  while (s < peak) {
+    while (j < peak && cumKm[j] - cumKm[s] < LEAD_KM) j++
+    const km = cumKm[j] - cumKm[s]
+    if (km <= 0 || (ele[j] - ele[s]) / (km * 10) >= LEAD_GRADE_PCT) break
+    s++
+  }
+  return s
+}
 
 // Climbs in [from, to] of a smoothed elevation series, low point to summit.
 export function detectClimbs(
@@ -28,7 +43,8 @@ export function detectClimbs(
   { minGainM, minGradePct }: ClimbThresholds = DEFAULT_CLIMB_THRESHOLDS,
 ): Climb[] {
   const climbs: Climb[] = []
-  const finish = (start: number, peak: number) => {
+  const finish = (low: number, peak: number) => {
+    const start = trimApproach(ele, cumKm, low, peak)
     const gainM = ele[peak] - ele[start]
     const lengthKm = cumKm[peak] - cumKm[start]
     if (lengthKm <= 0) return

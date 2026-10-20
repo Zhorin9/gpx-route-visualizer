@@ -17,6 +17,14 @@ describe('detectClimbs', () => {
     expect(climb.avgGrade).toBeCloseTo(6)
   })
 
+  it('starts where the road tilts up, not at the bottom of a long gentle approach', () => {
+    // 3 km at 0.5%, then 1 km at 7%.
+    const ele = [...Array.from({ length: 30 }, (_, i) => 100 + i * 0.5), ...Array.from({ length: 11 }, (_, i) => 115 + i * 7)]
+    const [climb] = detectClimbs(ele, km(ele.length), 0, ele.length - 1)
+    expect(climb.startIdx).toBeGreaterThanOrEqual(27)
+    expect(climb.avgGrade).toBeGreaterThan(5)
+  })
+
   it('keeps a pass with a short dip in one piece', () => {
     const up = (from: number, n: number, step: number) => Array.from({ length: n }, (_, i) => from + i * step)
     const ele = [...up(0, 10, 8), ...up(72, 3, -2), ...up(68, 10, 8)]
