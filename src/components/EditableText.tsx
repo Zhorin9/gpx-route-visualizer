@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { Text } from 'react-konva'
 import type Konva from 'konva'
 import { useLayerAnimation } from '../core/animation/layers'
+import { SNAP_TARGET, snapDragEnd, snapDragMove } from '../core/canvas/snapDrag'
 import useInlineTextEditor from '../hooks/useInlineTextEditor'
 import { useAppStore } from '../store/useAppStore'
 import { ASPECTS } from '../utils/aspects'
@@ -69,12 +70,17 @@ export default function EditableText({ node }: { node: TextNode }) {
         {...shared}
         fill={node.color}
         visible={!hidden}
+        name={SNAP_TARGET}
         draggable
         onMouseDown={() => select({ kind: 'text', id: node.id })}
         onTouchStart={() => select({ kind: 'text', id: node.id })}
         onDblClick={startEditing}
         onDblTap={startEditing}
-        onDragEnd={(e) => updateText(node.id, { x: e.target.x(), y: e.target.y() - animation.offsetY })}
+        onDragMove={snapDragMove}
+        onDragEnd={(e) => {
+          snapDragEnd(e)
+          updateText(node.id, { x: e.target.x(), y: e.target.y() - animation.offsetY })
+        }}
         shadowColor="#000000"
         shadowBlur={node.shadowEnabled ? 10 : 0}
         shadowOpacity={node.shadowEnabled ? 0.6 : 0}
