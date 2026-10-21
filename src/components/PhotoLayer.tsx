@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Circle, Group, Image as KonvaImage, Layer, Line, Rect, Text } from 'react-konva'
 import type Konva from 'konva'
 import { hasVisiblePhotos, useActiveSlide, usePanorama } from '../store/selectors'
+import { CHROME_ACCENT as ACCENT } from '../core/canvas/chrome'
 import { useAppStore } from '../store/useAppStore'
 import { ASPECTS } from '../utils/aspects'
 import { UI_ONLY } from '../utils/exportImage'
@@ -11,7 +12,6 @@ import type { CollageStyle, Photo, SlotAssignment } from '../types'
 
 const ZOOM_STEP = 0.1
 const MAX_ZOOM = 4
-const ACCENT = '#b68235'
 
 interface Box {
   x: number
@@ -193,7 +193,7 @@ function SlotView({ slot, slide, frameOffsetX, collage, assignment, photo, selec
           name={UI_ONLY}
           width={slot.w}
           height={slot.h}
-          stroke="#b68235"
+          stroke={ACCENT}
           strokeWidth={2}
           strokeScaleEnabled={false}
           listening={false}

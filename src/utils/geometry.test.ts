@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { applyTransform, decimate, invertTransform, nearestPointOnPolyline, pointAt, posAtDistance } from './geometry'
+import { decimateIndexed, nearestPointOnPolyline, pointAt, posAtDistance } from './geometry'
 import { schematicizeRoute } from './schematicRoute'
 
 describe('nearestPointOnPolyline', () => {
@@ -27,22 +27,13 @@ describe('pointAt', () => {
 describe('decimate', () => {
   it('drops sub-pixel points but keeps both ends', () => {
     const flat = [0, 0, 0.1, 0, 0.2, 0, 5, 0, 5.1, 0]
-    expect(decimate(flat, 0, 4, 1)).toEqual([0, 0, 5, 0, 5.1, 0])
+    expect(decimateIndexed(flat, 0, 4, 1).points).toEqual([0, 0, 5, 0, 5.1, 0])
   })
 })
 
 describe('posAtDistance', () => {
   it('finds the fractional index for a cumulative distance', () => {
     expect(posAtDistance([0, 1, 3, 6], 0, 3, 2)).toBe(1.5)
-  })
-})
-
-describe('transforms', () => {
-  it('invertTransform undoes applyTransform', () => {
-    const t = { x: 30, y: -12, scaleX: 1.4, scaleY: 0.8, rotation: 37 }
-    const back = invertTransform(applyTransform({ x: 5, y: 9 }, t), t)
-    expect(back.x).toBeCloseTo(5)
-    expect(back.y).toBeCloseTo(9)
   })
 })
 

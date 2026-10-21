@@ -15,15 +15,30 @@ export interface GpxTrack {
   points: GpxPoint[]
 }
 
-// One GPX file of a multi-day trip; the files are joined into a single track, each day keeps its slice.
-export interface RouteDay {
+// One GPX file of the route (a day of a multi-day trip). Its points live in the track cache,
+// outside the history.
+export interface TrackPart {
   id: number
   name: string
-  startIdx: number
-  endIdx: number
   color: string
   dashed: boolean
   visible: boolean
+  // Key of the part's points in the track cache.
+  sourceKey: string
+}
+
+// What the route is made of. Part of the document, so undo covers loading and removing files;
+// the joined track is derived from it (store/derived.ts).
+export interface RouteSource {
+  // The trip's name: the first file's track name.
+  name: string | null
+  parts: TrackPart[]
+}
+
+// A part placed on the joined track: the slice of points it covers.
+export interface RoutePart extends TrackPart {
+  startIdx: number
+  endIdx: number
 }
 
 // 0 = no markers, otherwise a marker every N km.

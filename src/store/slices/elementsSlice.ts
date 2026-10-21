@@ -1,12 +1,8 @@
 import { ASPECTS } from '../../utils/aspects'
-import { makeText, makeWaypoint } from '../defaults'
+import { makeText, makeWaypoint, nextId } from '../defaults'
 import type { ElementsSlice, SliceContext } from '../types'
 
 // Derived from the list rather than a module counter, so ids stay unique after undo.
-function nextId(items: { id: number }[]): number {
-  return items.reduce((max, item) => Math.max(max, item.id), 0) + 1
-}
-
 export function createElementsSlice({ get, commit }: SliceContext): ElementsSlice {
   const slice: ElementsSlice = {
     addText: () => {

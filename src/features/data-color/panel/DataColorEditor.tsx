@@ -8,9 +8,11 @@ import { DATA_SOURCES, dataSource, type DataSourceId } from '../../../core/data/
 import ColorField from '../../../components/fields/ColorField'
 import { useHasRoute } from '../../../store/selectors'
 import { useAppStore } from '../../../store/useAppStore'
+import { selectTrack, selectRouteDays } from '../../../store/derived'
 import type { GpxTrack, SelectOption } from '../../../types'
 import type { DataColorSettings } from '../types'
 import { useActiveDataColor } from '../useDataColoring'
+import './DataColorEditor.css'
 
 const GLOW_OPTIONS: SelectOption<DataColorSettings['glow']>[] = [
   { value: 'follow', label: 'Jak linia' },
@@ -77,7 +79,7 @@ function ManualRange() {
 export function DataColorSettingsFields() {
   const settings = useAppStore((s) => s.dataColor)
   const glowEnabled = useAppStore((s) => s.routeStyle.glowEnabled)
-  const track = useAppStore((s) => s.track)
+  const track = useAppStore(selectTrack)
   const updateDataColor = useAppStore((s) => s.updateDataColor)
   const active = useActiveDataColor()
 
@@ -125,7 +127,7 @@ function firstAvailable(track: GpxTrack | null): DataSourceId {
 
 function LineColor() {
   const color = useAppStore((s) => s.routeStyle.color)
-  const multiDay = useAppStore((s) => s.routeDays.length > 1)
+  const multiDay = useAppStore((s) => selectRouteDays(s).length > 1)
   const updateRouteStyle = useAppStore((s) => s.updateRouteStyle)
   if (multiDay) return <p className="hint">Trasa ma kilka dni: każdy dzień ma własny kolor, ustawiany w podzakładce „Linia”.</p>
   return <ColorField label="Kolor" value={color} onChange={(c) => updateRouteStyle({ color: c })} />
@@ -135,7 +137,7 @@ function LineColor() {
 export function ColorPage() {
   const hasRoute = useHasRoute()
   const source = useAppStore((s) => s.dataColor.source)
-  const track = useAppStore((s) => s.track)
+  const track = useAppStore(selectTrack)
   const updateDataColor = useAppStore((s) => s.updateDataColor)
   if (!hasRoute) return <p className="hint">Wgraj plik GPX, aby ustawić kolor trasy.</p>
   const mode = source === 'none' ? 'single' : 'data'

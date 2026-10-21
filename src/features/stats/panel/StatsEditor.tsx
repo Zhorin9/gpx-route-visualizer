@@ -17,6 +17,7 @@ import { distanceUnit, heightUnit, type Units } from '../../../core/units'
 import { STAT_DEFINITIONS, statDefinition, type StatDefinition } from '../model/definitions'
 import { STATS_ARRANGEMENTS } from '../model/registry'
 import type { RangeStats, SelectOption, StatKey, StatsArrangement, StatsContent } from '../../../types'
+import './StatsEditor.css'
 
 const ARRANGEMENT_OPTIONS: SelectOption<StatsArrangement>[] = STATS_ARRANGEMENTS.map((a) => ({ value: a.id, label: a.label }))
 

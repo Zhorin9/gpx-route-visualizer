@@ -1,19 +1,12 @@
-import { ASPECTS, defaultTitleY } from '../../utils/aspects'
-import { parseGpxText } from '../../utils/gpx'
+import { ASPECTS } from '../../utils/aspects'
 import { loadPhoto } from '../../utils/image'
-import { computeSlots, frameInsets, hasVisiblePhotos, layoutDef } from '../../utils/layouts'
+import { computeSlots, frameInsets, frameStyleFor, hasVisiblePhotos, isPanorama, layoutDef } from '../../utils/layouts'
 import { INK, PAPER, mixHex, toneOf, type Tone } from '../../utils/color'
 import { measureTextWidth } from '../../utils/measureText'
 import { reflowTo, resetToAuto } from '../../utils/reflow'
-import { CAROUSEL_SLIDES, DAY_COLORS, DEFAULT_SLOT_CROP, DEFAULT_STATS_CONTENT, IDENTITY_TRANSFORM, MAX_SLIDES, MIN_CAROUSEL_SLIDES, makeText, makeTitle } from '../defaults'
-import type { CarouselKind, LayoutGroup, RouteDay, Slide } from '../../types'
+import { CAROUSEL_SLIDES, DEFAULT_SLOT_CROP, MAX_SLIDES, MIN_CAROUSEL_SLIDES, makeText, nextId } from '../defaults'
+import type { CarouselKind, Slide } from '../../types'
 import type { MediaSlice, SliceContext } from '../types'
-
-const CREATIVE: LayoutGroup = 'creative'
-
-function nextId(items: { id: number }[]): number {
-  return items.reduce((max, item) => Math.max(max, item.id), 0) + 1
-}
 
 // Texts left beyond the right edge after the ribbon shrinks would be unreachable.
 function keepInside<T extends { x: number }>(texts: T[], width: number): T[] {
@@ -27,93 +20,10 @@ function withSlide(slides: Slide[], index: number, update: (slide: Slide) => Sli
   return slides.map((slide, i) => (i === index ? update(slide) : slide))
 }
 
-export function createMediaSlice({ set, get, commit, resetHistory }: SliceContext): MediaSlice {
+export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice {
   return {
-    track: null,
-    gpxError: '',
     photos: [],
     photoError: '',
-    routeDays: [],
-
-    loadGpxFile: async (file, append = false) => {
-      try {
-        const parsed = parseGpxText(await file.text())
-        const s = get()
-        if (append && s.track) {
-          // Another day: the file is joined to the track and keeps its own slice and colour.
-          const first = s.track.points.length
-          const days: RouteDay[] = s.routeDays.length
-            ? s.routeDays
-            : [{ id: 1, name: s.track.name ?? 'Dzień 1', startIdx: 0, endIdx: first - 1, color: s.routeStyle.color, dashed: s.routeStyle.dashed, visible: true }]
-          const used = new Set(days.map((d) => d.color.toLowerCase()))
-          const color = DAY_COLORS.find((c) => !used.has(c)) ?? DAY_COLORS[days.length % DAY_COLORS.length]
-          const day: RouteDay = {
-            id: days.reduce((max, d) => Math.max(max, d.id), 0) + 1,
-            name: parsed.name ?? file.name.replace(/\.gpx$/i, ''),
-            startIdx: first,
-            endIdx: first + parsed.points.length - 1,
-            color,
-            dashed: false,
-            visible: true,
-          }
-          const points = [...s.track.points, ...parsed.points]
-          set({
-            track: { name: s.track.name, points },
-            routeDays: [...days, day],
-            range: { start: 0, end: points.length - 1 },
-            progress: 100,
-            gpxError: '',
-          })
-          return
-        }
-        // Waypoints and history are anchored to the previous track — start clean.
-        // The track name becomes the title, replacing the previous track's one.
-        const name = (parsed.name ?? file.name.replace(/\.gpx$/i, '')).trim()
-        set((s) => ({
-          texts: [
-            ...s.texts.filter((t) => t.role !== 'title'),
-            ...(name ? [makeTitle(nextId(s.texts), name, s.titleStyle, defaultTitleY(s.aspectKey))] : []),
-          ],
-          track: parsed,
-          routeDays: [],
-          gpxError: '',
-          range: { start: 0, end: parsed.points.length - 1 },
-          progress: 100,
-          waypoints: [],
-          routeTransform: IDENTITY_TRANSFORM,
-          sourceLayout: s.sourceLayout && { ...s.sourceLayout, route: IDENTITY_TRANSFORM },
-          layoutOverrides: Object.fromEntries(Object.entries(s.layoutOverrides).map(([k, o]) => [k, { ...o, route: undefined }])),
-          statsContent: { ...s.statsContent, overrides: DEFAULT_STATS_CONTENT.overrides },
-          selection: s.selection?.kind === 'waypoint' ? null : s.selection,
-        }))
-        resetHistory()
-      } catch (err) {
-        set({ gpxError: err instanceof Error ? err.message : 'Nie udało się odczytać pliku GPX' })
-      }
-    },
-
-    updateDay: (id, patch) => set((s) => ({ routeDays: s.routeDays.map((d) => (d.id === id ? { ...d, ...patch } : d)) })),
-
-    removeDay: (id) => {
-      const s = get()
-      const day = s.routeDays.find((d) => d.id === id)
-      if (!s.track || !day || s.routeDays.length < 2) return
-      const length = day.endIdx - day.startIdx + 1
-      const shift = (i: number) => (i > day.endIdx ? i - length : i)
-      const rest = s.routeDays.filter((d) => d.id !== id).map((d) => ({ ...d, startIdx: shift(d.startIdx), endIdx: shift(d.endIdx) }))
-      const points = s.track.points.filter((_, i) => i < day.startIdx || i > day.endIdx)
-      const waypoints = s.waypoints.filter((w) => w.trackPos < day.startIdx || w.trackPos > day.endIdx).map((w) => ({ ...w, trackPos: shift(w.trackPos) }))
-      set({
-        track: { ...s.track, points },
-        routeDays: rest.length > 1 ? rest : [],
-        routeStyle: rest.length > 1 ? s.routeStyle : { ...s.routeStyle, color: rest[0].color, dashed: rest[0].dashed },
-        range: { start: 0, end: points.length - 1 },
-        progress: 100,
-        waypoints,
-        selection: s.selection?.kind === 'waypoint' && !waypoints.some((w) => w.id === (s.selection as { id: number }).id) ? null : s.selection,
-      })
-      resetHistory()
-    },
 
     loadPhotoFiles: async (files, target) => {
       const loaded: { name: string; image: HTMLCanvasElement; thumb: string }[] = []
@@ -148,7 +58,7 @@ export function createMediaSlice({ set, get, commit, resetHistory }: SliceContex
         }
         // Remaining photos fill empty slots from the first slide on; extras stay in the tape.
         // A panorama has a single slot, so only its photo is placed.
-        const panorama = s.carouselKind === 'panorama' && slides.length > 1
+        const panorama = isPanorama(slides, s.carouselKind)
         slides = slides.map((slide, slideIndex) => {
           if (panorama && slideIndex > 0) return slide
           const slots = { ...slide.slots }
@@ -169,7 +79,7 @@ export function createMediaSlice({ set, get, commit, resetHistory }: SliceContex
 
     placePhoto: (photoId) => {
       const s = get()
-      const panorama = s.carouselKind === 'panorama' && s.slides.length > 1
+      const panorama = isPanorama(s.slides, s.carouselKind)
       let target: { slide: number; index: number } | null = null
       if (panorama) target = { slide: 0, index: 0 }
       else if (s.selection?.kind === 'slot') target = { slide: s.selection.slide, index: s.selection.index }
@@ -220,7 +130,7 @@ export function createMediaSlice({ set, get, commit, resetHistory }: SliceContex
     setLayout: (slide, key) =>
       commit('layout', (s) => ({
         slides: withSlide(s.slides, slide, (sl) => ({ ...sl, layoutKey: key })),
-        collage: { ...s.collage, frame: { ...s.collage.frame, style: layoutDef(key).group === CREATIVE ? 'polaroid' : 'equal' } },
+        collage: { ...s.collage, frame: { ...s.collage.frame, style: frameStyleFor(key) } },
       })),
 
     setCarousel: (on) => {

@@ -13,7 +13,9 @@ import { FORMAT_ORDER } from '../../../utils/reflow'
 import { totalDuration } from '../../animation/model/timeline'
 import { formatTime } from '../../animation/ui/formatTime'
 import { frameCount, outputSize, renderThumbnails, renderVideo, type VideoJob, type VideoProgress } from '../exportVideo'
+import { selectTrack } from '../../../store/derived'
 import type { AspectKey, SelectOption } from '../../../types'
+import './VideoExportPanel.css'
 
 const FORMAT_LABELS: Record<VideoFormat, string> = { mp4: 'MP4', webm: 'WebM', gif: 'GIF' }
 const ASPECT_LABELS: Record<AspectKey, string> = { '9:16': 'Story / Reels 9:16', '4:5': 'Post 4:5', '1:1': 'Kwadrat 1:1' }
@@ -51,7 +53,7 @@ function useFormatSupport(width: number, height: number, fps: number) {
 
 function Thumbnails({ job }: { job: VideoJob }) {
   const animation = useAppStore((s) => s.animation)
-  const track = useAppStore((s) => s.track)
+  const track = useAppStore(selectTrack)
   const [thumbs, setThumbs] = useState<string[]>([])
 
   // Re-rendered when what the frames show can change; not while another export is running.
@@ -101,7 +103,7 @@ export default function VideoExportPanel() {
   const hasBackground = useHasBackground()
   const currentAspect = useAppStore((s) => s.aspectKey)
   const animation = useAppStore((s) => s.animation)
-  const trackName = useAppStore((s) => s.track?.name ?? null)
+  const trackName = useAppStore((s) => selectTrack(s)?.name ?? null)
   const slideCount = useAppStore((s) => s.slides.length)
   const [job, setJob] = useState<VideoJob>({ format: 'mp4', aspect: currentAspect, fps: 30, repeat: 1, loopForever: true, quality: 'medium' })
   const [phase, setPhase] = useState<Phase>({ kind: 'idle' })

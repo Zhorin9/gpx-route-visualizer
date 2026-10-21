@@ -1,56 +1,20 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import {
-  DEFAULT_COLLAGE,
-  DEFAULT_ROUTE_STYLE,
-  DEFAULT_STATS_CONTENT,
-  DEFAULT_STATS_LAYOUT,
-  DEFAULT_SLIDES,
-  DEFAULT_STATS_STYLE,
-  DEFAULT_TITLE_STYLE,
-  STAT_ORDER,
-  IDENTITY_TRANSFORM,
-} from './defaults'
+import { DEFAULT_COLLAGE, DEFAULT_ROUTE_STYLE, DEFAULT_STATS_STYLE, STAT_ORDER } from './defaults'
 import { createAnimationSlice } from '../features/animation/store'
-import { DEFAULT_ANIMATION } from '../features/animation/types'
 import { createDataColorSlice } from '../features/data-color/store'
-import { DEFAULT_DATA_COLOR } from '../features/data-color/types'
 import { createProfileSlice } from '../features/elevation-profile/store'
-import { DEFAULT_PROFILE } from '../features/elevation-profile/types'
+import { INITIAL_DOCUMENT } from './document'
 import { createHistory } from './history'
 import { createElementsSlice } from './slices/elementsSlice'
 import { createMediaSlice } from './slices/mediaSlice'
 import { createRouteSlice } from './slices/routeSlice'
+import { createRouteSourceSlice } from './slices/routeSourceSlice'
 import { createStatsSlice } from './slices/statsSlice'
 import { createTemplatesSlice } from './slices/templatesSlice'
 import { createUiSlice } from './slices/uiSlice'
-import type { AppState, DocumentState, SetState } from './types'
+import type { AppState, SetState } from './types'
 import type { StatKey, StyleTemplate } from '../types'
-
-const INITIAL_DOCUMENT: DocumentState = {
-  aspectKey: '9:16',
-  routeStyle: DEFAULT_ROUTE_STYLE,
-  routeTransform: IDENTITY_TRANSFORM,
-  range: { start: 0, end: 0 },
-  progress: 100,
-  statsStyle: DEFAULT_STATS_STYLE,
-  titleStyle: DEFAULT_TITLE_STYLE,
-  statsContent: DEFAULT_STATS_CONTENT,
-  statsLayout: DEFAULT_STATS_LAYOUT,
-  placements: {},
-  texts: [],
-  waypoints: [],
-  slides: DEFAULT_SLIDES,
-  collage: DEFAULT_COLLAGE,
-  carouselKind: 'panorama',
-  kmInterval: 0,
-  sourceLayout: null,
-  layoutOverrides: {},
-  dimOpacity: 0,
-  profile: DEFAULT_PROFILE,
-  dataColor: DEFAULT_DATA_COLOR,
-  animation: DEFAULT_ANIMATION,
-}
 
 // Rule: persist the user's look & feel preferences, never the per-route
 // content (track, texts, places, overrides) or transient UI state.
@@ -135,6 +99,7 @@ export const useAppStore = create<AppState>()(
         ...INITIAL_DOCUMENT,
         ...createUiSlice(ctx),
         ...createMediaSlice(ctx),
+        ...createRouteSourceSlice(ctx),
         ...createRouteSlice(ctx),
         ...createStatsSlice(ctx),
         ...createElementsSlice(ctx),

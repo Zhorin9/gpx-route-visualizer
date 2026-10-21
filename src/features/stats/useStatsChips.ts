@@ -1,5 +1,5 @@
 import { useCountHead } from '../../core/animation/layers'
-import { rangeStats } from '../../store/derived'
+import { rangeStats, selectTrack } from '../../store/derived'
 import { useDayBreaks, useRangeStats } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { buildChips } from './model/definitions'
@@ -7,7 +7,7 @@ import type { StatChip } from '../../types'
 
 export function useStatsChips(): StatChip[] {
   const full = useRangeStats()
-  const track = useAppStore((s) => s.track)
+  const track = useAppStore(selectTrack)
   const range = useAppStore((s) => s.range)
   const breaks = useDayBreaks()
   const content = useAppStore((s) => s.statsContent)

@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { registerCanvasElement } from '../core/canvas/registry'
 import { BUILT_IN_TEMPLATES } from '../utils/templates'
+import { selectRouteDays, selectTrack } from './derived'
+import { DOCUMENT_KEYS, pickDocument } from './document'
 import { useAppStore } from './useAppStore'
 
 const initial = useAppStore.getState()
@@ -15,6 +17,13 @@ const get = () => useAppStore.getState()
 const fakePhoto = (id: number) => ({ id, name: 'p' + id, image: {} as HTMLCanvasElement, thumb: '' })
 
 describe('history', () => {
+  it('snapshots every document field and nothing else', () => {
+    const doc = pickDocument(get())
+    expect(Object.keys(doc).sort()).toEqual([...DOCUMENT_KEYS].sort())
+    for (const key of DOCUMENT_KEYS) expect(doc[key]).toBe(get()[key])
+    expect(doc).not.toHaveProperty('past')
+  })
+
   it('coalesces repeats of the same action into one undo step', () => {
     get().updateRouteStyle({ coreWidth: 6 })
     get().updateRouteStyle({ coreWidth: 7 })
@@ -281,22 +290,80 @@ describe('multi-day routes', () => {
   it('joins files into one track with a day each and removes a day again', async () => {
     vi.useRealTimers()
     await get().loadGpxFile(gpx(50, 'Pierwszy'))
-    expect(get().routeDays).toHaveLength(0)
+    expect(selectRouteDays(get())).toHaveLength(0)
     await get().loadGpxFile(gpx(51, 'Drugi'), true)
     await get().loadGpxFile(gpx(52, 'Trzeci'), true)
-    expect(get().routeDays.map((d) => [d.startIdx, d.endIdx])).toEqual([[0, 2], [3, 5], [6, 8]])
-    expect(new Set(get().routeDays.map((d) => d.color)).size).toBe(3)
-    expect(get().track?.points).toHaveLength(9)
+    expect(selectRouteDays(get()).map((d) => [d.startIdx, d.endIdx])).toEqual([[0, 2], [3, 5], [6, 8]])
+    expect(new Set(selectRouteDays(get()).map((d) => d.color)).size).toBe(3)
+    expect(selectTrack(get())?.points).toHaveLength(9)
 
     get().addWaypoint(4)
-    get().removeDay(get().routeDays[1].id)
-    expect(get().track?.points).toHaveLength(6)
-    expect(get().routeDays.map((d) => [d.startIdx, d.endIdx])).toEqual([[0, 2], [3, 5]])
+    get().removePart(selectRouteDays(get())[1].id)
+    expect(selectTrack(get())?.points).toHaveLength(6)
+    expect(selectRouteDays(get()).map((d) => [d.startIdx, d.endIdx])).toEqual([[0, 2], [3, 5]])
     expect(get().waypoints).toHaveLength(0)
 
-    get().removeDay(get().routeDays[0].id)
-    expect(get().routeDays).toHaveLength(0)
-    expect(get().track?.points).toHaveLength(3)
+    get().removePart(selectRouteDays(get())[0].id)
+    expect(selectRouteDays(get())).toHaveLength(0)
+    expect(selectTrack(get())?.points).toHaveLength(3)
+  })
+
+  it('keeps the places of the other days where they were when a day is removed', async () => {
+    vi.useRealTimers()
+    await get().loadGpxFile(gpx(50, 'A'))
+    await get().loadGpxFile(gpx(51, 'B'), true)
+    await get().loadGpxFile(gpx(52, 'C'), true)
+    get().addWaypoint(1)
+    get().addWaypoint(7.5)
+    const before = get().waypoints.map((w) => selectTrack(get())!.points[Math.floor(w.trackPos)].lat)
+    get().removePart(selectRouteDays(get())[1].id)
+    expect(get().waypoints.map((w) => selectTrack(get())!.points[Math.floor(w.trackPos)].lat)).toEqual(before)
+    expect(get().waypoints[1].trackPos).toBe(4.5)
+  })
+
+  it('undoes appending a day: the track and its range go back together', async () => {
+    vi.useRealTimers()
+    await get().loadGpxFile(gpx(50, 'A'))
+    get().setRange({ start: 0, end: 1 })
+    await get().loadGpxFile(gpx(51, 'B'), true)
+    get().undo()
+    expect(selectTrack(get())?.points).toHaveLength(3)
+    expect(get().range).toEqual({ start: 0, end: 1 })
+  })
+
+  it('undoes loading another file: the previous route comes back with its places', async () => {
+    vi.useRealTimers()
+    await get().loadGpxFile(gpx(50, 'A'))
+    get().addWaypoint(1)
+    await get().loadGpxFile(gpx(60, 'B'))
+    expect(selectTrack(get())?.points[0].lat).toBe(60)
+    expect(get().waypoints).toHaveLength(0)
+    get().undo()
+    expect(selectTrack(get())?.points[0].lat).toBe(50)
+    expect(get().waypoints).toHaveLength(1)
+    expect(get().texts.find((t) => t.role === 'title')?.text).toBe('A')
+  })
+
+  it('undoes removing a day', async () => {
+    vi.useRealTimers()
+    await get().loadGpxFile(gpx(50, 'A'))
+    await get().loadGpxFile(gpx(51, 'B'), true)
+    get().removePart(selectRouteDays(get())[1].id)
+    expect(selectTrack(get())?.points).toHaveLength(3)
+    get().undo()
+    expect(selectTrack(get())?.points).toHaveLength(6)
+    expect(selectRouteDays(get())).toHaveLength(2)
+  })
+
+  it('undoes a change of a day colour', async () => {
+    vi.useRealTimers()
+    await get().loadGpxFile(gpx(50, 'A'))
+    await get().loadGpxFile(gpx(51, 'B'), true)
+    const color = selectRouteDays(get())[1].color
+    get().updatePart(selectRouteDays(get())[1].id, { color: '#123456' })
+    expect(selectRouteDays(get())[1].color).toBe('#123456')
+    get().undo()
+    expect(selectRouteDays(get())[1].color).toBe(color)
   })
 
   it('replaces the whole route when a file is loaded without append', async () => {
@@ -304,8 +371,8 @@ describe('multi-day routes', () => {
     await get().loadGpxFile(gpx(50, 'A'))
     await get().loadGpxFile(gpx(51, 'B'), true)
     await get().loadGpxFile(gpx(52, 'C'))
-    expect(get().routeDays).toHaveLength(0)
-    expect(get().track?.points).toHaveLength(3)
+    expect(selectRouteDays(get())).toHaveLength(0)
+    expect(selectTrack(get())?.points).toHaveLength(3)
   })
 
   it('turns the track name into one centred title, styled by the template', async () => {

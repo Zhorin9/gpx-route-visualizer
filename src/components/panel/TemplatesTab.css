@@ -1,0 +1,98 @@
+/* ---------- Style templates ---------- */
+.template-name-row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.template-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.template-card {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.template-card.active {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.template-card-body {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.template-thumb {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+}
+
+.template-thumb svg {
+  position: absolute;
+  inset: 27% 8% 10% 8%;
+  width: 84%;
+  height: 63%;
+  overflow: visible;
+}
+
+.template-thumb-title {
+  position: absolute;
+  top: 13%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 15px;
+  letter-spacing: 0.12em;
+}
+
+.template-thumb-frame {
+  position: absolute;
+  inset: 0;
+  border: 6px solid;
+}
+
+.template-card-name {
+  padding: var(--space-2) 10px 0;
+  font-family: var(--font-heading);
+  font-size: 16px;
+}
+
+.template-card-desc {
+  padding: 2px 10px var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.template-card-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  cursor: pointer;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+}
+
+.template-name-row .field {
+  flex: 1;
+  min-width: 0;
+}

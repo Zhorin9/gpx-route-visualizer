@@ -89,6 +89,11 @@ export const MIN_CAROUSEL_SLIDES = 2
 export const CAROUSEL_SLIDES = 2
 export const MAX_SLIDES = 5
 
+// The next free id in a list of document items.
+export function nextId(items: { id: number }[]): number {
+  return items.reduce((max, item) => Math.max(max, item.id), 0) + 1
+}
+
 export function makeText(id: number, stageW: number, stageH: number): TextNode {
   return {
     id,

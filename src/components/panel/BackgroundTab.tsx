@@ -9,6 +9,7 @@ import { useAppStore } from '../../store/useAppStore'
 import { DEFAULT_COLLAGE } from '../../store/defaults'
 import { GRADIENT_PRESETS } from '../../utils/gradients'
 import type { BackgroundKind, SelectOption } from '../../types'
+import './BackgroundTab.css'
 
 const BACKGROUND_OPTIONS: SelectOption<BackgroundKind>[] = [
   { value: 'transparent', label: 'Przezroczyste' },

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { decimate, pointAt, posAtDistance } from '../../utils/geometry'
+import { decimateIndexed, pointAt, posAtDistance } from '../../utils/geometry'
 import { buildRouteGeometry, type RouteGeometryInput } from './geometry'
-import type { RouteDay } from '../../types'
+import type { RoutePart } from '../../types'
 
 // A wiggly track: 400 points, one km apart.
 const N = 400
@@ -31,15 +31,16 @@ function legacySplit(progress: number) {
   const splitPos = posAtDistance(cum, start, end, target)
   const splitIdx = Math.floor(splitPos)
   const split = pointAt(projected, splitPos)
-  const completed = decimate(projected, start, splitIdx)
+  const completed = decimateIndexed(projected, start, splitIdx).points
   completed.push(split.x, split.y)
-  const remaining = [split.x, split.y].concat(splitIdx + 1 <= end ? decimate(projected, splitIdx + 1, end) : [])
+  const remaining = [split.x, split.y].concat(splitIdx + 1 <= end ? decimateIndexed(projected, splitIdx + 1, end).points : [])
   return { completed, remaining }
 }
 
-const day = (id: number, startIdx: number, endIdx: number, visible = true): RouteDay => ({
+const day = (id: number, startIdx: number, endIdx: number, visible = true): RoutePart => ({
   id,
   name: `d${id}`,
+  sourceKey: `d${id}`,
   startIdx,
   endIdx,
   color: `#00000${id}`,
@@ -52,7 +53,7 @@ describe('buildRouteGeometry', () => {
     const g = buildRouteGeometry(base)
     expect(g.segments).toHaveLength(1)
     expect(g.segments[0].role).toBe('completed')
-    expect(g.segments[0].points).toEqual(decimate(projected, 20, 380))
+    expect(g.segments[0].points).toEqual(decimateIndexed(projected, 20, 380).points)
     expect(g.head).toBeNull()
   })
 

@@ -36,17 +36,36 @@
   --panel-bg: var(--color-bg);
   --surface: var(--color-surface);
   --surface-2: var(--color-neutral-200);
-  --surface-3: var(--color-neutral-300);
   --border: var(--color-divider);
   --border-strong: color-mix(in srgb, var(--color-text) 35%, transparent);
   --text: var(--color-text);
   --text-muted: color-mix(in srgb, var(--color-text) 62%, transparent);
-  --accent-1: var(--color-accent);
-  --accent-2: var(--color-accent-700);
+  --accent: var(--color-accent);
   --accent-soft: var(--color-accent-100);
+  --accent-strong: var(--color-accent-500);
+  --accent-deep: var(--color-accent-600);
+  --accent-text: var(--color-accent-700);
+  --accent-text-strong: var(--color-accent-800);
+  --on-accent-soft: var(--color-accent-900);
+  --on-accent: #ffffff;
   --focus: var(--color-accent);
   --danger: #a33a2c;
   --danger-soft: color-mix(in srgb, #a33a2c 10%, transparent);
+
+  --placeholder: var(--color-neutral-300);
+  --placeholder-strong: var(--color-neutral-400);
+  --ring-neutral: var(--color-neutral-600);
+  --neutral-deep: var(--color-neutral-700);
+  --thumb-outline: #ffffff;
+  --checker-a: #bdbaba;
+  --checker-b: #cfcccc;
+
+  /* Animation timeline: one colour per kind of track. */
+  --track-header: #8a6326;
+  --track-waypoints: #4f8a5e;
+  --track-stats: #7d7979;
+  --timeline-handle: rgba(255, 255, 255, 0.35);
+  --playhead: #d9412b;
 
   --radius-lg: 7px;
   --radius: 4px;
@@ -107,7 +126,7 @@ textarea {
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--color-accent) 30%, transparent);
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 /* Keyboard users get a clear ring; mouse clicks don't. */

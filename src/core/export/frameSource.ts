@@ -1,4 +1,4 @@
-import { pickDocument } from '../../store/history'
+import { pickDocument } from '../../store/document'
 import { useAppStore } from '../../store/useAppStore'
 import { ASPECTS } from '../../utils/aspects'
 import { UI_ONLY, stageHandle } from '../../utils/exportImage'
