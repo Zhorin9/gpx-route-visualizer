@@ -19,7 +19,7 @@ export default function TextEditor({ id }: { id: number }) {
   return (
     <>
       <Section title="Treść">
-        <TextField label="Tekst" value={selected.text} onChange={(text) => updateText(selected.id, { text })} />
+        <TextField label="Tekst" multiline value={selected.text} onChange={(text) => updateText(selected.id, { text })} />
         <SelectField
           label="Czcionka"
           value={selected.fontFamily}

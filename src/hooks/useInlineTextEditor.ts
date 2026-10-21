@@ -7,8 +7,8 @@ export interface EditOptions {
 }
 
 // Double-click a Konva.Text to edit it in place: overlays a <textarea>
-// matching the node's font, position and rotation. Enter or clicking away
-// commits, Escape cancels.
+// matching the node's font, position and rotation. Enter starts a new line,
+// Ctrl+Enter or clicking away commits, Escape cancels.
 export default function useInlineTextEditor() {
   const [hidden, setHidden] = useState(false)
 
@@ -50,6 +50,7 @@ export default function useInlineTextEditor() {
       outline: 'none',
       resize: 'none',
       lineHeight: String(textNode.lineHeight()),
+      textAlign: textNode.align(),
       whiteSpace: 'pre',
       zIndex: '1000',
     })
@@ -71,7 +72,7 @@ export default function useInlineTextEditor() {
     }
     textarea.addEventListener('keydown', (e) => {
       e.stopPropagation()
-      if (e.key === 'Enter' && !e.shiftKey) {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault()
         finish(true)
       } else if (e.key === 'Escape') {
