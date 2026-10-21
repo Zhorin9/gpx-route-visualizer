@@ -1,4 +1,4 @@
-import { layoutDef } from '../../utils/layouts'
+import { frameStyleFor } from '../../utils/layouts'
 import type { StyleTemplate } from '../../types'
 import type { SliceContext, TemplatesSlice } from '../types'
 
@@ -36,7 +36,7 @@ export function createTemplatesSlice({ get, commit }: SliceContext): TemplatesSl
         if (parts.layout) {
           const active = Math.min(s.activeSlide, slides.length - 1)
           slides = slides.map((slide, i) => (i === active ? { ...slide, layoutKey: template.layoutKey } : slide))
-          collage = { ...collage, frame: { ...collage.frame, style: layoutDef(template.layoutKey).group === 'creative' ? 'polaroid' : 'equal' } }
+          collage = { ...collage, frame: { ...collage.frame, style: frameStyleFor(template.layoutKey) } }
         }
         if (parts.frame) collage = { ...collage, frame: { ...template.frame } }
 

@@ -1,4 +1,4 @@
-import type { CarouselKind, LayoutGroup, LayoutKey, Slide } from '../types'
+import type { CarouselKind, FrameKind, LayoutGroup, LayoutKey, Slide } from '../types'
 
 export type SlotKind = 'cell' | 'backdrop' | 'framed'
 
@@ -248,6 +248,11 @@ export function slotAt(slots: SlotRect[], px: number, py: number): SlotRect | nu
     if (Math.abs(lx) <= s.w / 2 && Math.abs(ly) <= s.h / 2) return s
   }
   return null
+}
+
+// Creative layouts come with polaroid frames, grids with equal ones.
+export function frameStyleFor(key: LayoutKey): FrameKind {
+  return layoutDef(key).group === 'creative' ? 'polaroid' : 'equal'
 }
 
 export function isPanorama(slides: Slide[], kind: CarouselKind) {

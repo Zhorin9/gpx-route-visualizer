@@ -4,6 +4,7 @@ import type Konva from 'konva'
 import { useAppStore } from '../../store/useAppStore'
 import { UI_ONLY } from '../../utils/exportImage'
 import { useLayerAnimation } from '../animation/layers'
+import { CHROME_ACCENT } from './chrome'
 import { canvasElement } from './registry'
 import type { ElementKind } from '../../types'
 
@@ -63,7 +64,7 @@ export default function DraggableElement({ kind, width, height, defaultX, defaul
           y={-OUTLINE_PAD}
           width={width + OUTLINE_PAD * 2}
           height={height + OUTLINE_PAD * 2}
-          stroke="#b68235"
+          stroke={CHROME_ACCENT}
           strokeWidth={2.5}
           strokeScaleEnabled={false}
           dash={[8, 5]}

@@ -1,4 +1,5 @@
 import { ASPECTS } from '../utils/aspects'
+import { manualFlags } from '../utils/reflow'
 import { computeSlots, hasVisiblePhotos, isPanorama, layoutDef, photoCoversFrame, ribbonSlot } from '../utils/layouts'
 import { dayBreaks, projectTrack, rangeStats, selectRouteDays, selectTrack, trackCumKm, trackDays } from './derived'
 import { useAppStore } from './useAppStore'
@@ -44,6 +45,16 @@ export function usePhotoBackground() {
 // Anything opaque under the route: photos or a gradient. Otherwise the export is transparent.
 export function useHasBackground() {
   return useAppStore((s) => s.collage.bgKind !== 'transparent' || hasVisiblePhotos(s.slides, s.carouselKind))
+}
+
+// What was placed by hand in the current format (nothing in the source format).
+export function useManualFlags() {
+  const aspectKey = useAppStore((s) => s.aspectKey)
+  const texts = useAppStore((s) => s.texts)
+  const placements = useAppStore((s) => s.placements)
+  const routeTransform = useAppStore((s) => s.routeTransform)
+  const sourceLayout = useAppStore((s) => s.sourceLayout)
+  return manualFlags({ aspectKey, texts, placements, routeTransform, sourceLayout })
 }
 
 export function usePanorama() {

@@ -87,10 +87,6 @@ export function decimateIndexed(flat: ArrayLike<number>, fromIdx: number, toIdx:
   return { points, positions }
 }
 
-export function decimate(flat: ArrayLike<number>, fromIdx: number, toIdx: number, minDist = 1.5): number[] {
-  return decimateIndexed(flat, fromIdx, toIdx, minDist).points
-}
-
 // Fractional index where the cumulative distance reaches `target`.
 export function posAtDistance(cum: ArrayLike<number>, fromIdx: number, toIdx: number, target: number): number {
   if (target <= cum[fromIdx]) return fromIdx
@@ -114,13 +110,4 @@ export function applyTransform(p: Point2D, t: RouteTransform): Point2D {
   const sx = p.x * t.scaleX
   const sy = p.y * t.scaleY
   return { x: t.x + sx * cos - sy * sin, y: t.y + sx * sin + sy * cos }
-}
-
-export function invertTransform(p: Point2D, t: RouteTransform): Point2D {
-  const rad = (-t.rotation * Math.PI) / 180
-  const cos = Math.cos(rad)
-  const sin = Math.sin(rad)
-  const x = p.x - t.x
-  const y = p.y - t.y
-  return { x: (x * cos - y * sin) / t.scaleX, y: (x * sin + y * cos) / t.scaleY }
 }

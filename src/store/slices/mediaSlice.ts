@@ -1,18 +1,12 @@
 import { ASPECTS } from '../../utils/aspects'
 import { loadPhoto } from '../../utils/image'
-import { computeSlots, frameInsets, hasVisiblePhotos, layoutDef } from '../../utils/layouts'
+import { computeSlots, frameInsets, frameStyleFor, hasVisiblePhotos, isPanorama, layoutDef } from '../../utils/layouts'
 import { INK, PAPER, mixHex, toneOf, type Tone } from '../../utils/color'
 import { measureTextWidth } from '../../utils/measureText'
 import { reflowTo, resetToAuto } from '../../utils/reflow'
-import { CAROUSEL_SLIDES, DEFAULT_SLOT_CROP, MAX_SLIDES, MIN_CAROUSEL_SLIDES, makeText } from '../defaults'
-import type { CarouselKind, LayoutGroup, Slide } from '../../types'
+import { CAROUSEL_SLIDES, DEFAULT_SLOT_CROP, MAX_SLIDES, MIN_CAROUSEL_SLIDES, makeText, nextId } from '../defaults'
+import type { CarouselKind, Slide } from '../../types'
 import type { MediaSlice, SliceContext } from '../types'
-
-const CREATIVE: LayoutGroup = 'creative'
-
-function nextId(items: { id: number }[]): number {
-  return items.reduce((max, item) => Math.max(max, item.id), 0) + 1
-}
 
 // Texts left beyond the right edge after the ribbon shrinks would be unreachable.
 function keepInside<T extends { x: number }>(texts: T[], width: number): T[] {
@@ -64,7 +58,7 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
         }
         // Remaining photos fill empty slots from the first slide on; extras stay in the tape.
         // A panorama has a single slot, so only its photo is placed.
-        const panorama = s.carouselKind === 'panorama' && slides.length > 1
+        const panorama = isPanorama(slides, s.carouselKind)
         slides = slides.map((slide, slideIndex) => {
           if (panorama && slideIndex > 0) return slide
           const slots = { ...slide.slots }
@@ -85,7 +79,7 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
 
     placePhoto: (photoId) => {
       const s = get()
-      const panorama = s.carouselKind === 'panorama' && s.slides.length > 1
+      const panorama = isPanorama(s.slides, s.carouselKind)
       let target: { slide: number; index: number } | null = null
       if (panorama) target = { slide: 0, index: 0 }
       else if (s.selection?.kind === 'slot') target = { slide: s.selection.slide, index: s.selection.index }
@@ -136,7 +130,7 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
     setLayout: (slide, key) =>
       commit('layout', (s) => ({
         slides: withSlide(s.slides, slide, (sl) => ({ ...sl, layoutKey: key })),
-        collage: { ...s.collage, frame: { ...s.collage.frame, style: layoutDef(key).group === CREATIVE ? 'polaroid' : 'equal' } },
+        collage: { ...s.collage, frame: { ...s.collage.frame, style: frameStyleFor(key) } },
       })),
 
     setCarousel: (on) => {

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { Group, Rect, Transformer } from 'react-konva'
 import type Konva from 'konva'
 import { useForcedGhost } from '../core/animation/layers'
+import { CHROME_ACCENT } from '../core/canvas/chrome'
 import { styleColoring } from '../core/route/coloring'
 import { routeDecorations, useProvidedColoring } from '../core/route/providers'
 import RoutePainter from '../core/route/RoutePainter'
@@ -117,9 +118,9 @@ export default function RouteGroup() {
           name={UI_ONLY}
           rotateEnabled
           rotationSnaps={[0, 90, 180, 270]}
-          anchorStroke="#b68235"
+          anchorStroke={CHROME_ACCENT}
           anchorFill="#ffffff"
-          borderStroke="#b68235"
+          borderStroke={CHROME_ACCENT}
           borderDash={[6, 4]}
         />
       )}

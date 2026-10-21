@@ -1,13 +1,9 @@
 import { defaultTitleY } from '../../utils/aspects'
 import { parseGpxText } from '../../utils/gpx'
-import { DAY_COLORS, DEFAULT_STATS_CONTENT, IDENTITY_TRANSFORM, makeTitle } from '../defaults'
+import { DAY_COLORS, DEFAULT_STATS_CONTENT, IDENTITY_TRANSFORM, makeTitle, nextId } from '../defaults'
 import { joinTrack } from '../derived'
 import type { RouteSource, TrackPart } from '../../types'
 import type { RouteSourceSlice, SliceContext } from '../types'
-
-function nextId(items: { id: number }[]): number {
-  return items.reduce((max, item) => Math.max(max, item.id), 0) + 1
-}
 
 // Keys are never reused, so a file brought back by undo can't pick up another file's points.
 let lastSourceKey = 0

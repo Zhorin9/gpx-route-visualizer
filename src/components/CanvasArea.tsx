@@ -1,12 +1,12 @@
 import { useRef, useState, type DragEvent } from 'react'
 import useElementSize from '../hooks/useElementSize'
 import useGpxImport from '../hooks/useGpxImport'
-import { useHasPhotos, useHasRoute, usePhotoBackground } from '../store/selectors'
+import { useHasPhotos, useHasRoute, useManualFlags, usePhotoBackground } from '../store/selectors'
 import { useAppStore } from '../store/useAppStore'
 import { ASPECTS } from '../utils/aspects'
 import { gradientPresetName } from '../utils/gradients'
 import { layoutDef } from '../utils/layouts'
-import { FORMAT_ORDER, hasManualLayout, manualFlags } from '../utils/reflow'
+import { FORMAT_ORDER, hasManualLayout } from '../utils/reflow'
 import type { AspectKey, SelectOption } from '../types'
 import { canvasControls } from '../core/canvas/chrome'
 import CanvasStage from './CanvasStage'
@@ -43,10 +43,7 @@ function CanvasToolbar() {
   const slideCount = useAppStore((s) => s.slides.length)
   const setCarousel = useAppStore((s) => s.setCarousel)
   const setAspectKey = useAppStore((s) => s.setAspectKey)
-  const texts = useAppStore((s) => s.texts)
-  const placements = useAppStore((s) => s.placements)
-  const sourceLayout = useAppStore((s) => s.sourceLayout)
-  const customLayout = hasManualLayout(manualFlags({ aspectKey, texts, placements, routeTransform: transform, sourceLayout }))
+  const customLayout = hasManualLayout(useManualFlags())
   const setAddingWaypoint = useAppStore((s) => s.setAddingWaypoint)
 
   const isTransformed =

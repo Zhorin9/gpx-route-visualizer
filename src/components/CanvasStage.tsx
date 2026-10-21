@@ -2,7 +2,7 @@ import { useState, type DragEvent } from 'react'
 import { Stage, Layer } from 'react-konva'
 import type Konva from 'konva'
 import useGpxImport from '../hooks/useGpxImport'
-import { useActiveSlide, useHasPhotos, useHasRoute, usePanorama } from '../store/selectors'
+import { useActiveSlide, useHasBackground, useHasRoute, usePanorama } from '../store/selectors'
 import { useAppStore } from '../store/useAppStore'
 import { ASPECTS, STORY_SAFE_ZONE } from '../utils/aspects'
 import { computeSlots, layoutDef, ribbonSlot, slotAt } from '../utils/layouts'
@@ -17,9 +17,7 @@ import SlotToolbar from './SlotToolbar'
 
 export default function CanvasStage({ previewScale }: { previewScale: number }) {
   const aspectKey = useAppStore((s) => s.aspectKey)
-  const hasPhotos = useHasPhotos()
-  const filled = useAppStore((s) => s.collage.bgKind !== 'transparent')
-  const hasBackground = hasPhotos || filled
+  const hasBackground = useHasBackground()
   const previewBackdrop = useAppStore((s) => s.previewBackdrop)
   const adding = useAppStore((s) => s.addingWaypoint)
   const showSafeZones = useAppStore((s) => s.showSafeZones)

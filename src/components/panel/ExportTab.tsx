@@ -4,14 +4,14 @@ import Button from '../ui/Button'
 import Section from '../ui/Section'
 import Segmented from '../ui/Segmented'
 import { IconDownload } from '../icons'
-import { useHasBackground, useHasRoute } from '../../store/selectors'
+import { useHasBackground, useHasRoute, useManualFlags } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { ASPECTS } from '../../utils/aspects'
 import { exportFileNames } from '../../utils/exportImage'
 import { exportProject } from '../../utils/exportProject'
 import { canvasElements, type CanvasElementDefinition } from '../../core/canvas/registry'
 import SubTabs from '../../core/panel/SubTabs'
-import { FORMAT_ORDER, SOURCE_ASPECT, hasManualLayout, manualFlags } from '../../utils/reflow'
+import { FORMAT_ORDER, SOURCE_ASPECT, hasManualLayout } from '../../utils/reflow'
 import { selectTrack } from '../../store/derived'
 import type { AspectKey, ExportFormat, SelectOption } from '../../types'
 
@@ -62,10 +62,7 @@ function FormatLayoutSection() {
   const showSafeZones = useAppStore((s) => s.showSafeZones)
   const setShowSafeZones = useAppStore((s) => s.setShowSafeZones)
   const resetFormatLayout = useAppStore((s) => s.resetFormatLayout)
-  const placements = useAppStore((s) => s.placements)
-  const routeTransform = useAppStore((s) => s.routeTransform)
-  const sourceLayout = useAppStore((s) => s.sourceLayout)
-  const flags = manualFlags({ aspectKey, texts, placements, routeTransform, sourceLayout })
+  const flags = useManualFlags()
   const manual = hasManualLayout(flags)
 
   if (aspectKey === SOURCE_ASPECT) return null
