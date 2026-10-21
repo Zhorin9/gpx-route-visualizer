@@ -1,0 +1,107 @@
+/* ---------- Multi-format export ---------- */
+.format-card-meta {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.export-files {
+  margin: 0;
+  padding-left: var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  word-break: break-all;
+}
+
+.export-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0 0 var(--space-4);
+}
+
+.export-summary strong {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.export-summary span {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.format-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  cursor: pointer;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.format-card.active {
+  border-color: var(--accent);
+}
+
+.format-card input {
+  accent-color: var(--accent);
+}
+
+.format-card-frame {
+  flex-shrink: 0;
+  background: linear-gradient(172deg, var(--accent-deep), var(--neutral-deep));
+  box-shadow: var(--shadow-md);
+}
+
+.format-card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.format-card-name {
+  font-family: var(--font-heading);
+  font-size: 16px;
+}
+
+.element-states {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.element-states li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) 10px;
+  font-size: var(--text-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.element-state-tag {
+  flex-shrink: 0;
+  padding: 1px var(--space-2);
+  font-size: var(--text-xs);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+
+.manual .element-state-tag {
+  border-color: var(--accent);
+}
+
+.tag-custom {
+  padding: 2px var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--accent-text-strong);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+}

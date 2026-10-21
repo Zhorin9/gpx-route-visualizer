@@ -5,6 +5,7 @@ import { totalDuration } from '../model/timeline'
 import { usePlayback } from '../playback'
 import { TRACK_LABELS, TRACK_ORDER, type TrackClip } from '../types'
 import { formatTime } from '../ui/formatTime'
+import './TimelineEditor.css'
 
 const SNAP_S = 0.1
 const MIN_CLIP_S = 0.1

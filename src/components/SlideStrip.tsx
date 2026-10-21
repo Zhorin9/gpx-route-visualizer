@@ -4,6 +4,7 @@ import { useAppStore } from '../store/useAppStore'
 import { MAX_SLIDES, MIN_CAROUSEL_SLIDES } from '../store/defaults'
 import { ASPECTS } from '../utils/aspects'
 import { computeSlots, layoutDef } from '../utils/layouts'
+import './SlideStrip.css'
 
 const THUMB_H = 72
 

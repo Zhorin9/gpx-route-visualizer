@@ -15,6 +15,7 @@ import { formatTime } from '../../animation/ui/formatTime'
 import { frameCount, outputSize, renderThumbnails, renderVideo, type VideoJob, type VideoProgress } from '../exportVideo'
 import { selectTrack } from '../../../store/derived'
 import type { AspectKey, SelectOption } from '../../../types'
+import './VideoExportPanel.css'
 
 const FORMAT_LABELS: Record<VideoFormat, string> = { mp4: 'MP4', webm: 'WebM', gif: 'GIF' }
 const ASPECT_LABELS: Record<AspectKey, string> = { '9:16': 'Story / Reels 9:16', '4:5': 'Post 4:5', '1:1': 'Kwadrat 1:1' }

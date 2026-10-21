@@ -14,6 +14,7 @@ import SubTabs from '../../core/panel/SubTabs'
 import { FORMAT_ORDER, SOURCE_ASPECT, hasManualLayout } from '../../utils/reflow'
 import { selectTrack } from '../../store/derived'
 import type { AspectKey, ExportFormat, SelectOption } from '../../types'
+import './ExportTab.css'
 
 type Scale = '1' | '2'
 

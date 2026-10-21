@@ -12,6 +12,7 @@ import { selectTrack, selectRouteDays } from '../../../store/derived'
 import type { GpxTrack, SelectOption } from '../../../types'
 import type { DataColorSettings } from '../types'
 import { useActiveDataColor } from '../useDataColoring'
+import './DataColorEditor.css'
 
 const GLOW_OPTIONS: SelectOption<DataColorSettings['glow']>[] = [
   { value: 'follow', label: 'Jak linia' },

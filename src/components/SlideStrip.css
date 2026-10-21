@@ -1,0 +1,75 @@
+/* ---------- Carousel slides ---------- */
+.slide-strip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-5);
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+
+.slide-thumb {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.slide-thumb-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.slide-thumb-frame {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.slide-thumb-label {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.slide-thumb-remove {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  display: none;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  cursor: pointer;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+}
+
+.slide-thumb:hover .slide-thumb-remove,
+.slide-thumb-remove:focus-visible {
+  display: grid;
+}
+
+.slide-add {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  margin-bottom: 19px;
+  cursor: pointer;
+  background: none;
+  color: var(--accent-text-strong);
+  border: 1.5px dashed var(--accent);
+}
+
+.slide-add:hover {
+  background: var(--accent-soft);
+}

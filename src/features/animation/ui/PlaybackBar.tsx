@@ -3,6 +3,7 @@ import { useAppStore } from '../../../store/useAppStore'
 import { totalDuration } from '../model/timeline'
 import { usePlayback } from '../playback'
 import { formatTime } from './formatTime'
+import './PlaybackBar.css'
 
 function PlayIcon({ playing }: { playing: boolean }) {
   return playing ? (

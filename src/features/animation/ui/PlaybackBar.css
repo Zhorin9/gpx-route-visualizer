@@ -1,0 +1,40 @@
+/* ---------- Animation playback bar ---------- */
+.playback-time {
+  flex-shrink: 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.playback-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-5);
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+
+.playback-play {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  color: var(--on-accent);
+  cursor: pointer;
+  background: var(--accent-strong);
+  border: none;
+  border-radius: 50%;
+}
+
+.playback-play:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.playback-slider {
+  flex: 1;
+  min-width: 80px;
+  accent-color: var(--accent-strong);
+}

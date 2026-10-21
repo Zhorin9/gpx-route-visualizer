@@ -6,6 +6,7 @@ import { IconClose } from '../icons'
 import { useAppStore } from '../../store/useAppStore'
 import { BUILT_IN_TEMPLATES } from '../../utils/templates'
 import type { StyleTemplate, TemplateParts } from '../../types'
+import './TemplatesTab.css'
 
 const PART_LABELS: { key: keyof TemplateParts; label: string }[] = [
   { key: 'fonts', label: 'Czcionki' },

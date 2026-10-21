@@ -15,6 +15,7 @@ import { useAppStore } from '../../store/useAppStore'
 import { formatKm } from '../../utils/format'
 import { selectTrack, selectRouteDays } from '../../store/derived'
 import type { KmInterval, RoutePart, SelectOption, WaypointKind } from '../../types'
+import './RouteTab.css'
 
 const KM_OPTIONS: SelectOption<string>[] = [
   { value: '10', label: 'Co 10' },
