@@ -4,6 +4,7 @@ import { useAppStore } from '../../store/useAppStore'
 import { pacingFor } from './model/pacing'
 import { clamp01, clipProgress, layerAt } from './model/timeline'
 import { usePlayback } from './playback'
+import { selectTrack } from '../../store/derived'
 
 // Seconds into the animation, or null while the editor shows the static view.
 export function useAnimationTime(): number | null {
@@ -16,7 +17,7 @@ export function useAnimationTime(): number | null {
 export function useAnimationHead(): number | null {
   const t = useAnimationTime()
   const settings = useAppStore((s) => s.animation)
-  const track = useAppStore((s) => s.track)
+  const track = useAppStore(selectTrack)
   const range = useAppStore((s) => s.range)
   const cumKm = useTrackCumKm()
   const breaks = useDayBreaks()

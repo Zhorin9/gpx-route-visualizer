@@ -1,4 +1,4 @@
-import { pickDocument } from '../../store/history'
+import { pickDocument } from '../../store/document'
 import { useAppStore } from '../../store/useAppStore'
 import type { DocumentState } from '../../store/types'
 import { usePlayback } from './playback'

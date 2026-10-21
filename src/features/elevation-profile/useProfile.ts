@@ -7,7 +7,8 @@ import { elevationGain } from '../../utils/gpx'
 import { memoOne } from '../../utils/memo'
 import { detectClimbs, type Climb } from './model/climbs'
 import { sampleByDistance, type ProfileSamples } from './model/profile'
-import type { GpxTrack, RouteDay, RouteRange } from '../../types'
+import { selectTrack, selectRouteDays } from '../../store/derived'
+import type { GpxTrack, RoutePart, RouteRange } from '../../types'
 
 export interface ProfileData {
   samples: ProfileSamples
@@ -18,7 +19,7 @@ export interface ProfileData {
 }
 
 const profileData = memoOne(
-  (track: GpxTrack, cumKm: Float64Array, range: RouteRange, days: RouteDay[], columns: number): ProfileData => {
+  (track: GpxTrack, cumKm: Float64Array, range: RouteRange, days: RoutePart[], columns: number): ProfileData => {
     const ele = dataSeries(track, cumKm, 'elevation')
     const hiddenDays = days.filter((d) => !d.visible)
     const hidden = hiddenDays.length ? (i: number) => hiddenDays.some((d) => i >= d.startIdx && i <= d.endIdx) : undefined
@@ -34,9 +35,9 @@ const profileData = memoOne(
 )
 
 export function useProfileData(columns: number): ProfileData | null {
-  const track = useAppStore((s) => s.track)
+  const track = useAppStore(selectTrack)
   const range = useAppStore((s) => s.range)
-  const days = useAppStore((s) => s.routeDays)
+  const days = useAppStore(selectRouteDays)
   const cumKm = useTrackCumKm()
   if (!track || !cumKm || range.end <= range.start) return null
   return profileData(track, cumKm, range, days, columns)

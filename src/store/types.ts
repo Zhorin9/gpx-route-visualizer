@@ -11,10 +11,10 @@ import type {
   Photo,
   Slide,
   SlotAssignment,
-  GpxTrack,
+  GpxPoint,
   Offset,
   KmInterval,
-  RouteDay,
+  RouteSource,
   RouteRange,
   RouteStyle,
   RouteTransform,
@@ -28,6 +28,7 @@ import type {
   TemplateParts,
   TabKey,
   TextNode,
+  TrackPart,
   TitleStyle,
   Waypoint,
 } from '../types'
@@ -43,6 +44,8 @@ import type { ProfileSettings } from '../features/elevation-profile/types'
 export interface DocumentState {
   aspectKey: AspectKey
   routeStyle: RouteStyle
+  // The GPX files the route is made of; the track itself is derived from it.
+  routeSource: RouteSource | null
   routeTransform: RouteTransform
   range: RouteRange
   progress: number
@@ -109,16 +112,20 @@ export interface UiSlice {
   bumpFontsVersion: () => void
 }
 
-export interface MediaSlice {
-  track: GpxTrack | null
+export interface RouteSourceSlice {
+  // Parsed points of every file loaded in this session, by TrackPart.sourceKey. Outside the
+  // history (like the photo library), so undo can bring back a file that was replaced.
+  trackCache: Record<string, GpxPoint[]>
   gpxError: string
+  // Replaces the route, or with `append` adds the file as another day.
+  loadGpxFile: (file: File, append?: boolean) => Promise<void>
+  updatePart: (id: number, patch: Partial<Pick<TrackPart, 'color' | 'dashed' | 'visible'>>) => void
+  removePart: (id: number) => void
+}
+
+export interface MediaSlice {
   photos: Photo[]
   photoError: string
-  // Empty for a single file; with several, one entry per GPX file joined into `track`.
-  routeDays: RouteDay[]
-  loadGpxFile: (file: File, append?: boolean) => Promise<void>
-  updateDay: (id: number, patch: Partial<Pick<RouteDay, "color" | "dashed" | "visible">>) => void
-  removeDay: (id: number) => void
   setAspectKey: (key: AspectKey) => void
   resetFormatLayout: () => void
   // Adds photos to the library; with a target they replace that slot, otherwise they fill empty slots in order.
@@ -196,6 +203,7 @@ export interface HistorySlice {
 export type AppState = DocumentState &
   UiSlice &
   MediaSlice &
+  RouteSourceSlice &
   RouteSlice &
   StatsSlice &
   ElementsSlice &

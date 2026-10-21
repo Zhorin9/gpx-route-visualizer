@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { decimate, pointAt, posAtDistance } from '../../utils/geometry'
 import { buildRouteGeometry, type RouteGeometryInput } from './geometry'
-import type { RouteDay } from '../../types'
+import type { RoutePart } from '../../types'
 
 // A wiggly track: 400 points, one km apart.
 const N = 400
@@ -37,9 +37,10 @@ function legacySplit(progress: number) {
   return { completed, remaining }
 }
 
-const day = (id: number, startIdx: number, endIdx: number, visible = true): RouteDay => ({
+const day = (id: number, startIdx: number, endIdx: number, visible = true): RoutePart => ({
   id,
   name: `d${id}`,
+  sourceKey: `d${id}`,
   startIdx,
   endIdx,
   color: `#00000${id}`,

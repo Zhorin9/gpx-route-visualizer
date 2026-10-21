@@ -12,6 +12,7 @@ import { exportProject } from '../../utils/exportProject'
 import { canvasElements, type CanvasElementDefinition } from '../../core/canvas/registry'
 import SubTabs from '../../core/panel/SubTabs'
 import { FORMAT_ORDER, SOURCE_ASPECT, hasManualLayout, manualFlags } from '../../utils/reflow'
+import { selectTrack } from '../../store/derived'
 import type { AspectKey, ExportFormat, SelectOption } from '../../types'
 
 type Scale = '1' | '2'
@@ -106,7 +107,7 @@ function ImageExport() {
   const hasRoute = useHasRoute()
   const hasBackground = useHasBackground()
   const aspectKey = useAppStore((s) => s.aspectKey)
-  const trackName = useAppStore((s) => s.track?.name ?? null)
+  const trackName = useAppStore((s) => selectTrack(s)?.name ?? null)
   const slideCount = useAppStore((s) => s.slides.length)
   const exporting = useAppStore((s) => s.exporting)
   const [chosenFormat, setFormat] = useState<ExportFormat>('png')

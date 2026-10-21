@@ -1,34 +1,8 @@
+import { pickDocument } from './document'
 import type { AppState, Commit, DocumentState, GetState, HistorySlice, SetState } from './types'
 
 const COALESCE_MS = 800
 const HISTORY_LIMIT = 100
-
-export function pickDocument(s: DocumentState): DocumentState {
-  return {
-    aspectKey: s.aspectKey,
-    routeStyle: s.routeStyle,
-    routeTransform: s.routeTransform,
-    range: s.range,
-    progress: s.progress,
-    statsStyle: s.statsStyle,
-    titleStyle: s.titleStyle,
-    statsContent: s.statsContent,
-    statsLayout: s.statsLayout,
-    placements: s.placements,
-    texts: s.texts,
-    waypoints: s.waypoints,
-    slides: s.slides,
-    collage: s.collage,
-    carouselKind: s.carouselKind,
-    kmInterval: s.kmInterval,
-    sourceLayout: s.sourceLayout,
-    layoutOverrides: s.layoutOverrides,
-    dimOpacity: s.dimOpacity,
-    profile: s.profile,
-    dataColor: s.dataColor,
-    animation: s.animation,
-  }
-}
 
 // Undo/redo restores a snapshot, so a selection may point at something gone.
 function validSelection(s: AppState, doc: DocumentState): Partial<AppState> {

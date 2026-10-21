@@ -1,10 +1,11 @@
 import { useAppStore } from '../store/useAppStore'
 import { useTrackCumKm } from '../store/selectors'
 import { formatClock, formatNumber } from '../utils/format'
+import { selectTrack } from '../store/derived'
 
 // Human-readable description of a point index — "12,4 km · 09:35" — for range sliders.
 export default function useRouteRange() {
-  const track = useAppStore((s) => s.track)
+  const track = useAppStore(selectTrack)
   const cum = useTrackCumKm()
 
   const lastIndex = track ? track.points.length - 1 : 0

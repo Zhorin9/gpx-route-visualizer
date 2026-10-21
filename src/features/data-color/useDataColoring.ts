@@ -1,6 +1,7 @@
 import { colorScale, palette, paletteBins } from '../../core/data/palettes'
 import { dataSeries, dataSource, type DataSourceId } from '../../core/data/sources'
 import { percentile } from '../../core/data/smoothing'
+import { selectTrack } from '../../store/derived'
 import type { RouteColoring } from '../../core/route/coloring'
 import { useTrackCumKm } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
@@ -37,7 +38,7 @@ const activeDataColor = memoOne(
 
 // The colour-by-data state for the current track, or null when the route keeps its colour.
 export function useActiveDataColor(): ActiveDataColor | null {
-  const track = useAppStore((s) => s.track)
+  const track = useAppStore(selectTrack)
   const range = useAppStore((s) => s.range)
   const settings = useAppStore((s) => s.dataColor)
   const cumKm = useTrackCumKm()

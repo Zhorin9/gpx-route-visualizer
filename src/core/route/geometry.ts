@@ -1,14 +1,14 @@
 import { decimateIndexed, pointAt, posAtDistance, type IndexedLine } from '../../utils/geometry'
 import { memoOne } from '../../utils/memo'
 import { schematicizeRoute } from '../../utils/schematicRoute'
-import type { RouteDay, RouteRange, RouteShape } from '../../types'
+import type { RoutePart, RouteRange, RouteShape } from '../../types'
 
 // One stroke of the route, in route-group coordinates.
 export interface RouteSegment extends IndexedLine {
   // completed: drawn with the route style; remaining: the faint "ghost" ahead of the head.
   role: 'completed' | 'remaining'
   // Set on multi-day routes: the day supplies colour and dash.
-  day?: RouteDay
+  day?: RoutePart
   // Schematic routes have sharp corners.
   square: boolean
 }
@@ -27,7 +27,7 @@ export interface RouteGeometryInput {
   range: RouteRange
   // 0-100 by distance; the static "progress" setting.
   progress: number
-  days: RouteDay[]
+  days: RoutePart[]
   shape: RouteShape
   simplify: number
   // Fractional track index the route is drawn up to (animation); overrides `progress`.
@@ -109,7 +109,7 @@ export function buildRouteGeometry(input: RouteGeometryInput): RouteGeometry {
   const active = decimateIndexed(projected, range.start, range.end)
   const square = shape === 'schematic'
 
-  const lines: { line: IndexedLine; day?: RouteDay }[] =
+  const lines: { line: IndexedLine; day?: RoutePart }[] =
     days.length >= 2
       ? days
           .filter((d) => d.visible)
@@ -151,7 +151,7 @@ export const routeGeometry = memoOne(
     cum: Float64Array | null,
     range: RouteRange,
     progress: number,
-    days: RouteDay[],
+    days: RoutePart[],
     shape: RouteShape,
     simplify: number,
     head: number | null,

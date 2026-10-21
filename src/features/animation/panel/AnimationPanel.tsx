@@ -9,6 +9,7 @@ import { totalDuration } from '../model/timeline'
 import { DEFAULT_ANIMATION, type Entrance, type PacingId } from '../types'
 import { formatTime } from '../ui/formatTime'
 import TimelineEditor from './TimelineEditor'
+import { selectTrack } from '../../../store/derived'
 import type { SelectOption } from '../../../types'
 
 const PACING_OPTIONS: SelectOption<PacingId>[] = PACINGS.map((p) => ({ value: p.id, label: p.label }))
@@ -21,7 +22,7 @@ const ENTRANCE_OPTIONS: SelectOption<Entrance>[] = [
 export function AnimationTimingSection() {
   const hasRoute = useHasRoute()
   const settings = useAppStore((s) => s.animation)
-  const track = useAppStore((s) => s.track)
+  const track = useAppStore(selectTrack)
   const updateAnimation = useAppStore((s) => s.updateAnimation)
   const setDrawDuration = useAppStore((s) => s.setDrawDuration)
   if (!hasRoute) return <p className="hint">Wgraj plik GPX, aby animować trasę.</p>

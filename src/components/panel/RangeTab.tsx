@@ -5,9 +5,10 @@ import useRouteRange from '../../hooks/useRouteRange'
 import { useRangeStats, useTrackDays } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { formatDay, formatDuration, formatElevation, formatKm } from '../../utils/format'
+import { selectTrack } from '../../store/derived'
 
 export default function RangeTab() {
-  const track = useAppStore((s) => s.track)
+  const track = useAppStore(selectTrack)
   const range = useAppStore((s) => s.range)
   const setRange = useAppStore((s) => s.setRange)
   const progress = useAppStore((s) => s.progress)

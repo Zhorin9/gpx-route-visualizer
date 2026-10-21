@@ -1,32 +1,32 @@
 import { ASPECTS } from '../utils/aspects'
 import { computeSlots, hasVisiblePhotos, isPanorama, layoutDef, photoCoversFrame, ribbonSlot } from '../utils/layouts'
-import { dayBreaks, projectTrack, rangeStats, trackCumKm, trackDays } from './derived'
+import { dayBreaks, projectTrack, rangeStats, selectRouteDays, selectTrack, trackCumKm, trackDays } from './derived'
 import { useAppStore } from './useAppStore'
 
 export function useProjectedTrack() {
-  const track = useAppStore((s) => s.track)
+  const track = useAppStore(selectTrack)
   const aspectKey = useAppStore((s) => s.aspectKey)
   const slideCount = useAppStore((s) => s.slides.length)
   return projectTrack(track, aspectKey, slideCount)
 }
 
 export function useDayBreaks() {
-  return dayBreaks(useAppStore((s) => s.routeDays))
+  return dayBreaks(useAppStore(selectRouteDays))
 }
 
 export function useTrackCumKm() {
   return trackCumKm(
-    useAppStore((s) => s.track),
+    useAppStore(selectTrack),
     useDayBreaks(),
   )
 }
 
 export function useTrackDays() {
-  return trackDays(useAppStore((s) => s.track))
+  return trackDays(useAppStore(selectTrack))
 }
 
 export function useRangeStats() {
-  const track = useAppStore((s) => s.track)
+  const track = useAppStore(selectTrack)
   const range = useAppStore((s) => s.range)
   return rangeStats(track, range, useDayBreaks())
 }
@@ -59,7 +59,7 @@ export function useActiveSlide() {
 }
 
 export function useHasRoute() {
-  return useAppStore((s) => s.track !== null)
+  return useAppStore((s) => selectTrack(s) !== null)
 }
 
 // Slot rectangles of a slide in frame pixels, for the layout actually applied (not a hover preview).

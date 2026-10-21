@@ -1,5 +1,5 @@
 import { IDENTITY_TRANSFORM, STYLE_PRESETS } from '../defaults'
-import { trackDays } from '../derived'
+import { selectTrack, trackDays } from '../derived'
 import type { RouteSlice, SliceContext } from '../types'
 
 export function createRouteSlice({ get, commit }: SliceContext): RouteSlice {
@@ -15,7 +15,7 @@ export function createRouteSlice({ get, commit }: SliceContext): RouteSlice {
     setProgress: (value) => commit('progress', { progress: value }),
 
     selectDay: (dayIndex) => {
-      const day = trackDays(get().track)[dayIndex]
+      const day = trackDays(selectTrack(get()))[dayIndex]
       if (!day) return
       commit('range:day', (s) => ({
         range: { start: day.startIdx, end: day.endIdx },

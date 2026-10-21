@@ -4,6 +4,7 @@ import { useAppStore } from '../store/useAppStore'
 import { usePointAnimation } from '../core/animation/layers'
 import { distanceIn, distanceToKm, distanceUnit } from '../core/units'
 import { applyTransform, pointAt, posAtDistance } from '../utils/geometry'
+import { selectRouteDays } from '../store/derived'
 
 const LABEL_SIZE = 20
 
@@ -35,7 +36,7 @@ export default function KmMarkers() {
   const interval = useAppStore((s) => s.kmInterval)
   const range = useAppStore((s) => s.range)
   const transform = useAppStore((s) => s.routeTransform)
-  const days = useAppStore((s) => s.routeDays)
+  const days = useAppStore(selectRouteDays)
   const color = useAppStore((s) => s.routeStyle.color)
   const fontFamily = useAppStore((s) => s.statsStyle.fontFamily)
   const units = useAppStore((s) => s.statsContent.units)

@@ -13,7 +13,8 @@ import useGpxImport from '../../hooks/useGpxImport'
 import { useHasRoute, useTrackCumKm } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { formatKm } from '../../utils/format'
-import type { KmInterval, RouteDay, SelectOption, WaypointKind } from '../../types'
+import { selectTrack, selectRouteDays } from '../../store/derived'
+import type { KmInterval, RoutePart, SelectOption, WaypointKind } from '../../types'
 
 const KM_OPTIONS: SelectOption<string>[] = [
   { value: '10', label: 'Co 10' },
@@ -33,7 +34,7 @@ function KindIcon({ kind }: { kind: WaypointKind }) {
 
 // Loads a GPX file in place of the current route (or the first one).
 function GpxFileButton() {
-  const hasTrack = useAppStore((s) => s.track != null)
+  const hasTrack = useAppStore((s) => selectTrack(s) != null)
   const gpxError = useAppStore((s) => s.gpxError)
   const { importFiles } = useGpxImport()
   return (
@@ -51,11 +52,11 @@ function GpxFileButton() {
 }
 
 function RoutesSection() {
-  const track = useAppStore((s) => s.track)
-  const days = useAppStore((s) => s.routeDays)
+  const track = useAppStore(selectTrack)
+  const days = useAppStore(selectRouteDays)
   const routeStyle = useAppStore((s) => s.routeStyle)
-  const updateDay = useAppStore((s) => s.updateDay)
-  const removeDay = useAppStore((s) => s.removeDay)
+  const updatePart = useAppStore((s) => s.updatePart)
+  const removePart = useAppStore((s) => s.removePart)
   const loadGpxFile = useAppStore((s) => s.loadGpxFile)
   const cum = useTrackCumKm()
   const [selectedId, setSelectedId] = useState<number | null>(null)
@@ -67,7 +68,7 @@ function RoutesSection() {
     ? days.map((d) => ({ id: d.id, name: d.name, km: cum[d.endIdx] - cum[d.startIdx], color: d.color, visible: d.visible }))
     : [{ id: 0, name: track.name ?? 'Trasa bez nazwy', km: cum[cum.length - 1], color: routeStyle.color, visible: true }]
   const total = multi ? cum[cum.length - 1] : 0
-  const selected: RouteDay | undefined = multi ? (days.find((d) => d.id === selectedId) ?? days[0]) : undefined
+  const selected: RoutePart | undefined = multi ? (days.find((d) => d.id === selectedId) ?? days[0]) : undefined
 
   return (
     <Section title="Trasy">
@@ -86,11 +87,11 @@ function RoutesSection() {
                   type="button"
                   className="day-icon-btn"
                   aria-label={row.visible ? `Ukryj dzień ${i + 1}` : `Pokaż dzień ${i + 1}`}
-                  onClick={() => updateDay(row.id, { visible: !row.visible })}
+                  onClick={() => updatePart(row.id, { visible: !row.visible })}
                 >
                   {row.visible ? <IconEye /> : <IconEyeOff />}
                 </button>
-                <button type="button" className="day-icon-btn" aria-label={`Usuń dzień ${i + 1}`} onClick={() => removeDay(row.id)}>
+                <button type="button" className="day-icon-btn" aria-label={`Usuń dzień ${i + 1}`} onClick={() => removePart(row.id)}>
                   <IconClose width={14} height={14} />
                 </button>
               </>
@@ -114,12 +115,12 @@ function RoutesSection() {
       {selected && (
         <>
           <h6 className="subhead">Zaznaczony: Dzień {days.indexOf(selected) + 1}</h6>
-          <ColorField label="Kolor linii" value={selected.color} onChange={(color) => updateDay(selected.id, { color })} />
+          <ColorField label="Kolor linii" value={selected.color} onChange={(color) => updatePart(selected.id, { color })} />
           <Segmented
             label="Styl linii"
             value={selected.dashed ? 'dashed' : 'solid'}
             options={LINE_OPTIONS}
-            onChange={(v) => updateDay(selected.id, { dashed: v === 'dashed' })}
+            onChange={(v) => updatePart(selected.id, { dashed: v === 'dashed' })}
           />
         </>
       )}
