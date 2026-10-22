@@ -3,7 +3,7 @@ import CheckboxField from '../../../components/fields/CheckboxField'
 import Button from '../../../components/ui/Button'
 import Section from '../../../components/ui/Section'
 import Segmented from '../../../components/ui/Segmented'
-import { IconDownload } from '../../../components/icons'
+import { IconCheckCircle, IconDownload } from '../../../components/icons'
 import { useVideoEncoding, type EncodeQuality, type FormatSupport, type VideoFormat } from '../../../services/video-encoding'
 import { useHasBackground, useHasRoute } from '../../../store/selectors'
 import { useAppStore } from '../../../store/useAppStore'
@@ -36,7 +36,7 @@ function formatBytes(bytes: number): string {
   return `${formatNumber(Math.max(1, Math.round(bytes / 1024)))} kB`
 }
 
-type Phase = { kind: 'idle' } | { kind: 'rendering'; progress: VideoProgress; etaS: number | null } | { kind: 'done'; files: ExportFile[] } | { kind: 'error'; message: string }
+type Phase = { kind: 'idle' } | { kind: 'rendering'; progress: VideoProgress; etaS: number | null } | { kind: 'done'; files: ExportFile[] }
 
 function useFormatSupport(width: number, height: number, fps: number) {
   const service = useVideoEncoding()
@@ -105,6 +105,7 @@ export default function VideoExportPanel() {
   const animation = useAppStore((s) => s.animation)
   const trackName = useAppStore((s) => selectTrack(s)?.name ?? null)
   const slideCount = useAppStore((s) => s.slides.length)
+  const showToast = useAppStore((s) => s.showToast)
   const [job, setJob] = useState<VideoJob>({ format: 'mp4', aspect: currentAspect, fps: 30, repeat: 1, loopForever: true, quality: 'medium' })
   const [phase, setPhase] = useState<Phase>({ kind: 'idle' })
   const abortRef = useRef<AbortController | null>(null)
@@ -143,9 +144,13 @@ export default function VideoExportPanel() {
     try {
       const files = await renderVideo(service, job, trackName, onProgress, controller.signal)
       setPhase({ kind: 'done', files })
+      downloadFiles(files, archiveBaseName(trackName))
     } catch (e) {
-      if (e instanceof DOMException && e.name === 'AbortError') setPhase({ kind: 'idle' })
-      else setPhase({ kind: 'error', message: e instanceof Error ? e.message : String(e) })
+      setPhase({ kind: 'idle' })
+      if (!(e instanceof DOMException && e.name === 'AbortError')) {
+        const reason = e instanceof Error ? e.message : String(e)
+        showToast(`Eksport nie powiódł się: ${reason}`, { label: 'Spróbuj ponownie', run: start }, true)
+      }
     } finally {
       abortRef.current = null
     }
@@ -212,37 +217,45 @@ export default function VideoExportPanel() {
         {tooLong && <p className="error">Film jest dłuższy niż minuta — Instagram go przytnie. Skróć oś czasu lub liczbę powtórzeń.</p>}
 
         {rendering ? (
-          <div className="render-progress" role="status">
+          <div className="render-state" role="status">
+            <div className="render-head">
+              <span className="render-title">Renderowanie wideo</span>
+              <span>{pct}%</span>
+            </div>
             <div className="render-bar">
               <span style={{ width: `${pct}%` }} />
             </div>
-            <span>
-              Renderowanie {pct}% · klatka {phase.progress.done} z {phase.progress.total}
-              {phase.etaS != null && ` · zostało ok. ${Math.ceil(phase.etaS)} s`}
-            </span>
-            <Button size="sm" onClick={() => abortRef.current?.abort()}>
-              Anuluj
-            </Button>
+            <div className="render-meta">
+              <span>
+                Klatka {phase.progress.done} / {phase.progress.total}
+              </span>
+              {phase.etaS != null && <span>Pozostało ok. {Math.ceil(phase.etaS)} s</span>}
+            </div>
+            <Button onClick={() => abortRef.current?.abort()}>Anuluj</Button>
           </div>
         ) : phase.kind === 'done' ? (
-          <div className="render-done">
-            <p className="hint">
-              Gotowe: {phase.files.length === 1 ? phase.files[0].name : `${phase.files.length} pliki`} ({formatBytes(phase.files.reduce((s, f) => s + f.blob.size, 0))}).
+          <div className="render-state" role="status">
+            <div className="render-head">
+              <IconCheckCircle />
+              <span className="render-title">Wideo gotowe</span>
+            </div>
+            <p className="render-meta">
+              {phase.files.length === 1 ? phase.files[0].name : `${phase.files.length} pliki w ZIP`} · {job.aspect} · {width} × {height} ·{' '}
+              {formatNumber(duration * (job.format === 'gif' ? 1 : job.repeat), 1)} s · {formatBytes(phase.files.reduce((s, f) => s + f.blob.size, 0))}
             </p>
-            <Button variant="primary" icon={<IconDownload />} block onClick={() => downloadFiles(phase.files, archiveBaseName(trackName))}>
-              Pobierz {phase.files.length > 1 ? 'ZIP' : FORMAT_LABELS[job.format]}
-            </Button>
-            <Button block onClick={() => setPhase({ kind: 'idle' })}>
-              Renderuj ponownie
-            </Button>
+            <div className="button-row">
+              <Button variant="primary" icon={<IconDownload />} onClick={() => downloadFiles(phase.files, archiveBaseName(trackName))}>
+                Pobierz ponownie
+              </Button>
+              <Button variant="ghost" onClick={() => setPhase({ kind: 'idle' })}>
+                Zamknij
+              </Button>
+            </div>
           </div>
         ) : (
-          <>
-            {phase.kind === 'error' && <p className="error">Nie udało się zapisać filmu: {phase.message}</p>}
-            <Button variant="primary" block disabled={!formatOk || tooLong || !support} onClick={start}>
-              Renderuj {FORMAT_LABELS[job.format]}
-            </Button>
-          </>
+          <Button variant="primary" block disabled={!formatOk || tooLong || !support} onClick={start}>
+            Renderuj {FORMAT_LABELS[job.format]}
+          </Button>
         )}
       </Section>
     </>

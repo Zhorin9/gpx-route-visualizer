@@ -9,7 +9,7 @@ import Section from '../../../components/ui/Section'
 import Segmented from '../../../components/ui/Segmented'
 import StatConfigItem from './StatConfigItem'
 import { DEFAULT_STATS_STYLE } from '../../../store/defaults'
-import { useHasRoute, useRangeStats } from '../../../store/selectors'
+import { useRangeStats } from '../../../store/selectors'
 import { useAppStore } from '../../../store/useAppStore'
 import { FONT_OPTIONS } from '../../../utils/fonts'
 import { formatNumber } from '../../../utils/format'
@@ -142,13 +142,6 @@ function StatsList() {
       })}
     </div>
   )
-}
-
-// The Dane tab: the stats header's settings, once there is a route to count.
-export function StatsSection() {
-  const hasRoute = useHasRoute()
-  if (!hasRoute) return <p className="hint">Wgraj plik GPX, aby ustawić statystyki.</p>
-  return <StatsEditor />
 }
 
 export default function StatsEditor() {

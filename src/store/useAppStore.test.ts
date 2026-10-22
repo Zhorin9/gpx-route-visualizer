@@ -63,9 +63,10 @@ describe('elements', () => {
     const id = get().addText()
     vi.advanceTimersByTime(1000)
     get().deleteText(id)
-    expect(get().toast).toMatchObject({ message: 'Usunięto tekst', undoable: true })
+    expect(get().toast).toMatchObject({ message: 'Usunięto tekst', action: 'undo' })
     get().undo()
     expect(get().texts.map((t) => t.id)).toEqual([id])
+    expect(get().toast).toMatchObject({ message: 'Cofnięto: usunięcie tekstu', action: 'redo' })
   })
 
   it('assigns ids that stay unique after undo', () => {

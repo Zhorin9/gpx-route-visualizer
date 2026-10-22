@@ -70,10 +70,14 @@ export interface DocumentState {
   animation: AnimationSettings
 }
 
+// undo and redo are the history's own; anything else brings its handler.
+export type ToastAction = 'undo' | 'redo' | { label: string; run: () => void }
+
 export interface Toast {
   id: number
   message: string
-  undoable: boolean
+  action?: ToastAction
+  error?: boolean
 }
 
 export interface UiSlice {
@@ -107,7 +111,7 @@ export interface UiSlice {
   setPreviewLayout: (key: LayoutKey | null) => void
   setActiveSlide: (index: number) => void
   requestPhoto: (target: { slide: number; index: number } | null) => void
-  showToast: (message: string, undoable?: boolean) => void
+  showToast: (message: string, action?: ToastAction, error?: boolean) => void
   dismissToast: () => void
   bumpFontsVersion: () => void
 }
@@ -193,9 +197,15 @@ export interface TemplatesSlice {
   deleteTemplate: (id: string) => void
 }
 
+export interface HistoryEntry {
+  doc: DocumentState
+  // What the step changed, as the undo toast names it.
+  label: string
+}
+
 export interface HistorySlice {
-  past: DocumentState[]
-  future: DocumentState[]
+  past: HistoryEntry[]
+  future: HistoryEntry[]
   undo: () => void
   redo: () => void
 }

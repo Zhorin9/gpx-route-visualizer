@@ -10,6 +10,7 @@ import { FORMAT_ORDER, hasManualLayout } from '../utils/reflow'
 import type { AspectKey, SelectOption } from '../types'
 import { canvasControls } from '../core/canvas/chrome'
 import CanvasStage from './CanvasStage'
+import GpxErrorCard from './GpxErrorCard'
 import PhotoPicker from './PhotoPicker'
 import PhotoTape from './PhotoTape'
 import SlideStrip from './SlideStrip'
@@ -17,6 +18,7 @@ import Segmented from './ui/Segmented'
 import { IconMove, IconReset, IconRoute, IconSafeZone, IconUpload } from './icons'
 import Button from './ui/Button'
 import FileButton from './ui/FileButton'
+import StatusCard from './ui/StatusCard'
 import Toast from './ui/Toast'
 
 const VIEWPORT_PADDING = 24
@@ -130,21 +132,22 @@ function FrameStatus() {
 
 function EmptyState({ onFiles }: { onFiles: (files: FileList | null) => void }) {
   return (
-    <div className="empty-state">
-      <div className="empty-state-icon">
-        <IconRoute width={28} height={28} />
-      </div>
-      <h2>Zacznij od zdjęć lub trasy</h2>
-      <p>Przeciągnij tutaj zdjęcia albo plik .gpx z Garmina, Stravy lub Komoot. Trasa jest opcjonalna — możesz pracować na samych zdjęciach.</p>
-      <div className="button-row">
-        <FileButton accept="image/*" multiple onFiles={onFiles} variant="primary" icon={<IconUpload />}>
-          Dodaj zdjęcia
-        </FileButton>
-        <FileButton accept=".gpx,application/gpx+xml" onFiles={onFiles} icon={<IconUpload />}>
-          Wgraj GPX
-        </FileButton>
-      </div>
-    </div>
+    <StatusCard
+      icon={<IconRoute />}
+      title="Zacznij od zdjęć lub trasy"
+      actions={
+        <div className="button-row">
+          <FileButton accept="image/*" multiple onFiles={onFiles} variant="primary" icon={<IconUpload />}>
+            Dodaj zdjęcia
+          </FileButton>
+          <FileButton accept=".gpx,application/gpx+xml" onFiles={onFiles} icon={<IconUpload />}>
+            Wgraj GPX
+          </FileButton>
+        </div>
+      }
+    >
+      Przeciągnij tutaj zdjęcia albo plik .gpx z Garmina, Stravy lub Komoot. Trasa jest opcjonalna — możesz pracować na samych zdjęciach.
+    </StatusCard>
   )
 }
 
@@ -198,12 +201,7 @@ export default function CanvasArea() {
         {previewScale > 0 && <CanvasStage previewScale={previewScale} />}
         {!hasRoute && !hasPhotos && cellCount <= 1 && slideCount === 1 && (
           <div className="canvas-overlay">
-            <EmptyState onFiles={importFiles} />
-            {gpxError && (
-              <p className="error" role="alert">
-                {gpxError}
-              </p>
-            )}
+            {gpxError ? <GpxErrorCard /> : <EmptyState onFiles={importFiles} />}
           </div>
         )}
         {exporting && (

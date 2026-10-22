@@ -5,7 +5,7 @@ import type { GpxPoint, GpxTrack, RangeStats, TrackDay } from '../types'
 export function parseGpxText(xmlText: string): GpxTrack {
   const doc = new DOMParser().parseFromString(xmlText, 'application/xml')
   if (doc.getElementsByTagName('parsererror').length) {
-    throw new Error('Nie udało się odczytać pliku GPX (nieprawidłowy XML)')
+    throw new Error('nie jest poprawnym plikiem XML')
   }
 
   // Tracks are what devices record; planned routes (<rte>) are a fallback.
@@ -32,7 +32,7 @@ export function parseGpxText(xmlText: string): GpxTrack {
   }
 
   if (points.length < 2) {
-    throw new Error('Nie znaleziono trasy w pliku GPX')
+    throw new Error('nie zawiera punktów trasy')
   }
 
   const nameEl = doc.getElementsByTagName('trk')[0]?.getElementsByTagName('name')[0] ?? doc.getElementsByTagName('name')[0]

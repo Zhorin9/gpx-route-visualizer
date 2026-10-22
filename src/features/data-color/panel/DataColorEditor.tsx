@@ -1,12 +1,11 @@
 import CheckboxField from '../../../components/fields/CheckboxField'
-import SelectField from '../../../components/fields/SelectField'
+import { IconInfo } from '../../../components/icons'
 import SliderField from '../../../components/fields/SliderField'
 import Section from '../../../components/ui/Section'
 import Segmented from '../../../components/ui/Segmented'
 import { PALETTES, paletteCss } from '../../../core/data/palettes'
 import { DATA_SOURCES, dataSource, type DataSourceId } from '../../../core/data/sources'
 import ColorField from '../../../components/fields/ColorField'
-import { useHasRoute } from '../../../store/selectors'
 import { useAppStore } from '../../../store/useAppStore'
 import { selectTrack, selectRouteDays } from '../../../store/derived'
 import type { GpxTrack, SelectOption } from '../../../types'
@@ -83,10 +82,15 @@ export function DataColorSettingsFields() {
   const updateDataColor = useAppStore((s) => s.updateDataColor)
   const active = useActiveDataColor()
 
-  const options: SelectOption<DataSourceId>[] = DATA_SOURCES.map((src) => {
+  const missing = DATA_SOURCES.flatMap((src) => {
     const why = track ? src.unavailable(track) : null
-    return { value: src.id, label: why ? `${src.label} (${why})` : src.label }
+    return why ? [`${src.label.toLowerCase()} (${why})`] : []
   })
+  const options: SelectOption<DataSourceId>[] = DATA_SOURCES.map((src) => ({
+    value: src.id,
+    label: src.label,
+    disabled: track != null && src.unavailable(track) != null,
+  }))
   const unavailable = settings.source !== 'none' && track ? dataSource(settings.source).unavailable(track) : null
 
   function chooseRange(rangeMode: DataColorSettings['rangeMode']) {
@@ -98,7 +102,15 @@ export function DataColorSettingsFields() {
   return (
     <>
       {settings.source !== 'none' && (
-        <SelectField label="Dane" value={settings.source} options={options} onChange={(source) => updateDataColor({ source })} />
+        <>
+          <Segmented label="Dane" showLabel value={settings.source} options={options} onChange={(source) => updateDataColor({ source })} />
+          {missing.length > 0 && (
+            <p className="note">
+              <IconInfo />
+              Niedostępne w tym pliku: {missing.join(', ')}.
+            </p>
+          )}
+        </>
       )}
       {unavailable && <p className="hint">Ten plik GPX nie ma tych danych ({unavailable}) — trasa zostaje w jednym kolorze.</p>}
       {settings.source !== 'none' && !unavailable && (
@@ -135,11 +147,9 @@ function LineColor() {
 
 // Trasa → Kolor: one colour for the line, or colours from the recorded data.
 export function ColorPage() {
-  const hasRoute = useHasRoute()
   const source = useAppStore((s) => s.dataColor.source)
   const track = useAppStore(selectTrack)
   const updateDataColor = useAppStore((s) => s.updateDataColor)
-  if (!hasRoute) return <p className="hint">Wgraj plik GPX, aby ustawić kolor trasy.</p>
   const mode = source === 'none' ? 'single' : 'data'
   return (
     <Section title="Kolor linii">

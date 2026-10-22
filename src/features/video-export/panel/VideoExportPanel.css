@@ -41,24 +41,60 @@
   font-variant-numeric: tabular-nums;
 }
 
-.render-progress,
-.render-done {
+/* Rendering and its result: a heading with the number that matters, a hairline bar, the details. */
+.render-state {
   display: flex;
   flex-direction: column;
+  gap: 14px;
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+}
+
+.render-state .btn {
+  align-self: flex-start;
+}
+
+.render-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+.render-title {
+  margin-right: auto;
+  font-family: var(--font-heading);
+  font-size: 22px;
+}
+
+.render-head > svg {
+  width: 28px;
+  height: 28px;
+  stroke-width: 1.5;
+  color: var(--accent-text);
+}
+
+.render-meta {
+  display: flex;
+  justify-content: space-between;
   gap: var(--space-2);
-  font-size: var(--text-sm);
+  margin: 0;
+  font-size: var(--text-md);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 .render-bar {
-  height: 8px;
-  overflow: hidden;
+  position: relative;
+  height: 2px;
   background: var(--border);
-  border-radius: var(--radius);
 }
 
 .render-bar span {
   display: block;
   height: 100%;
-  background: var(--accent-strong);
+  background: var(--accent);
   transition: width 0.15s linear;
 }

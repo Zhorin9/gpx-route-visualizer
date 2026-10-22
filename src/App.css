@@ -143,37 +143,50 @@
   pointer-events: auto;
 }
 
-.empty-state {
-  max-width: 300px;
-  padding: var(--space-5);
+/* ---------- Status card (empty, error) ---------- */
+
+.status-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 32px var(--space-5);
   text-align: center;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
+  border: 1px dashed var(--color-neutral-400);
 }
 
-.empty-state-icon {
-  width: 52px;
-  height: 52px;
-  margin: 0 auto var(--space-3);
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  border: 1px solid var(--accent);
+.status-card.status-error {
+  border-style: solid;
+  border-color: var(--border);
+}
+
+.status-card > svg {
+  width: 32px;
+  height: 32px;
+  stroke-width: 1.5;
   color: var(--accent-text);
 }
 
-.empty-state h2 {
-  margin: 0 0 var(--space-2);
+.status-card.status-error > svg {
+  color: var(--danger);
+}
+
+.status-card h3 {
+  margin: 0;
   font-size: 22px;
 }
 
-.empty-state p {
-  margin: 0 0 var(--space-4);
-  font-size: var(--text-sm);
-  line-height: 1.5;
+.status-card p {
+  max-width: 260px;
+  margin: 0;
+  font-size: var(--text-md);
   color: var(--text-muted);
+}
+
+.canvas-overlay .status-card {
+  max-width: 340px;
+  background: var(--bg);
+  box-shadow: var(--shadow-md);
 }
 
 .drop-indicator {
@@ -198,41 +211,34 @@
   transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
-  background: var(--bg);
-  border: 1px solid var(--border-strong);
-  border-radius: 999px;
-  box-shadow: var(--shadow-lg);
-  font-size: var(--text-md);
+  gap: 14px;
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  font-size: 14px;
+  white-space: nowrap;
   animation: toast-in 0.2s ease-out;
   z-index: 30;
+}
+
+.toast-error {
+  border-color: var(--danger);
 }
 
 .toast-action {
   background: none;
   border: none;
-  padding: var(--space-1) 6px;
+  padding: 0;
   color: var(--accent-text);
-  font-weight: 600;
+  text-decoration: underline;
   cursor: pointer;
 }
 
-.toast-close {
-  display: grid;
-  place-items: center;
-  width: 26px;
-  height: 26px;
-  background: none;
-  border: none;
-  border-radius: 50%;
+.toast-shortcut {
+  font-family: inherit;
+  font-size: var(--text-sm);
   color: var(--text-muted);
-  cursor: pointer;
-}
-
-.toast-close:hover {
-  background: var(--surface-2);
-  color: var(--text);
 }
 
 @keyframes toast-in {
@@ -663,6 +669,23 @@
   margin: 0;
   color: var(--danger);
   font-size: var(--text-sm);
+}
+
+/* A hint that explains why something is unavailable, led by an info icon. */
+.note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  font-size: var(--text-md);
+}
+
+.note > svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.5;
+  color: var(--accent-text);
 }
 
 /* ---------- Segmented ---------- */

@@ -19,7 +19,8 @@ export function createRouteSourceSlice({ set, get, commit }: SliceContext): Rout
       try {
         parsed = parseGpxText(await file.text())
       } catch (err) {
-        set({ gpxError: err instanceof Error ? err.message : 'Nie udało się odczytać pliku GPX' })
+        const reason = err instanceof Error ? err.message : 'nie jest plikiem GPX'
+        set({ gpxError: `Plik „${file.name}” ${reason}. Sprawdź, czy to eksport GPX z zegarka lub aplikacji.` })
         return
       }
       const sourceKey = newSourceKey()

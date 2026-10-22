@@ -332,6 +332,7 @@ export interface SelectOption<T extends string = string> {
   value: T
   label: string
   group?: string
+  disabled?: boolean
 }
 
 export type Selection =

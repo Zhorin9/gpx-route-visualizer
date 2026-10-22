@@ -4,6 +4,10 @@ import ColorField from '../fields/ColorField'
 import CheckboxField from '../fields/CheckboxField'
 import Section from '../ui/Section'
 import Segmented from '../ui/Segmented'
+import FileButton from '../ui/FileButton'
+import StatusCard from '../ui/StatusCard'
+import { IconImage } from '../icons'
+import useGpxImport from '../../hooks/useGpxImport'
 import { useActiveSlide, useHasPhotos, usePanorama } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { DEFAULT_COLLAGE } from '../../store/defaults'
@@ -102,6 +106,7 @@ export default function MediaTab() {
   const dimOpacity = useAppStore((s) => s.dimOpacity)
   const setDimOpacity = useAppStore((s) => s.setDimOpacity)
   const setActiveTab = useAppStore((s) => s.setActiveTab)
+  const { importFiles } = useGpxImport()
 
   const carouselKind = useAppStore((s) => s.carouselKind)
   const setCarouselKind = useAppStore((s) => s.setCarouselKind)
@@ -123,6 +128,19 @@ export default function MediaTab() {
 
   return (
     <>
+      {!hasPhotos && (
+        <StatusCard
+          icon={<IconImage />}
+          title="Kolaż czeka na zdjęcia"
+          actions={
+            <FileButton accept="image/*" multiple onFiles={importFiles} variant="primary">
+              Dodaj zdjęcia
+            </FileButton>
+          }
+        >
+          Wybierz zdjęcia z dysku albo przeciągnij je na podgląd. Trasa działa też bez nich.
+        </StatusCard>
+      )}
       {slides.length > 1 && (
         <Section title="Karuzela">
           <Segmented label="Sposób podziału" showLabel value={carouselKind} options={CAROUSEL_KIND_OPTIONS} onChange={setCarouselKind} />
