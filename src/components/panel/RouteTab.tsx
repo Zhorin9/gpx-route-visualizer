@@ -4,6 +4,8 @@ import Button from '../ui/Button'
 import FileButton from '../ui/FileButton'
 import Section from '../ui/Section'
 import Segmented from '../ui/Segmented'
+import StatusCard from '../ui/StatusCard'
+import GpxErrorCard from '../GpxErrorCard'
 import { IconClose, IconEye, IconEyeOff, IconMapPin, IconMountain, IconPlus, IconUpload } from '../icons'
 import SubTabs from '../../core/panel/SubTabs'
 import RangeTab from './RangeTab'
@@ -33,15 +35,34 @@ function KindIcon({ kind }: { kind: WaypointKind }) {
   return kind === 'point' ? <IconMapPin /> : <IconMountain />
 }
 
+// Before there is a route the tab is only this; a file that failed to load says why instead.
+function RouteEmpty() {
+  const gpxError = useAppStore((s) => s.gpxError)
+  const { importFiles } = useGpxImport()
+  if (gpxError) return <GpxErrorCard />
+  return (
+    <StatusCard
+      icon={<IconUpload />}
+      title="Dodaj trasę"
+      actions={
+        <FileButton accept=".gpx,application/gpx+xml" onFiles={importFiles} variant="primary">
+          Wgraj plik
+        </FileButton>
+      }
+    >
+      Przeciągnij plik GPX na podgląd albo wybierz go z dysku.
+    </StatusCard>
+  )
+}
+
 // Loads a GPX file in place of the current route (or the first one).
 function GpxFileButton() {
-  const hasTrack = useAppStore((s) => selectTrack(s) != null)
   const gpxError = useAppStore((s) => s.gpxError)
   const { importFiles } = useGpxImport()
   return (
     <>
-      <FileButton accept=".gpx,application/gpx+xml" onFiles={(files) => importFiles(files)} icon={<IconUpload />} block variant={hasTrack ? 'secondary' : 'primary'}>
-        {hasTrack ? 'Zmień plik GPX' : 'Wgraj plik GPX'}
+      <FileButton accept=".gpx,application/gpx+xml" onFiles={importFiles} icon={<IconUpload />} block>
+        Zmień plik GPX
       </FileButton>
       {gpxError && (
         <p className="error" role="alert">
@@ -178,24 +199,13 @@ function PoiSection() {
 
 // Trasa → Linia: the route itself — files and days, markers, places, range and line style.
 function RouteLinePage() {
-  const hasRoute = useHasRoute()
   const selection = useAppStore((s) => s.selection)
   return (
     <>
-      {!hasRoute && (
-        <Section title="Trasa">
-          <p className="hint">Wgraj plik .gpx z Garmina, Stravy lub Komoot. Kolejne pliki możesz potem dodać jako następne dni wyprawy.</p>
-          <GpxFileButton />
-        </Section>
-      )}
-      {hasRoute && (
-        <>
-          <RoutesSection />
-          <MarkersSection />
-          <PoiSection />
-          {selection?.kind === 'waypoint' && <WaypointEditor id={selection.id} />}
-        </>
-      )}
+      <RoutesSection />
+      <MarkersSection />
+      <PoiSection />
+      {selection?.kind === 'waypoint' && <WaypointEditor id={selection.id} />}
       <RangeTab />
       <StyleTab />
     </>
@@ -204,5 +214,7 @@ function RouteLinePage() {
 
 // Kolor, Profil and Statystyki are added by their features.
 export default function RouteTab() {
+  const hasRoute = useHasRoute()
+  if (!hasRoute) return <RouteEmpty />
   return <SubTabs tab="route" own={[{ id: 'line', label: 'Linia', Component: RouteLinePage }]} />
 }

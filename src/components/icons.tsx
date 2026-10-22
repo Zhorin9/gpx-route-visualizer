@@ -250,3 +250,32 @@ export function IconChevron(props: SVGProps<SVGSVGElement>) {
     </svg>
   )
 }
+
+export function IconAlert(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...common} width="16" height="16" aria-hidden="true" {...props}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 8v4" />
+      <path d="M12 16h.01" />
+    </svg>
+  )
+}
+
+export function IconInfo(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...common} width="16" height="16" aria-hidden="true" {...props}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 16v-4" />
+      <path d="M12 8h.01" />
+    </svg>
+  )
+}
+
+export function IconCheckCircle(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...common} width="16" height="16" aria-hidden="true" {...props}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="m9 12 2 2 4-4" />
+    </svg>
+  )
+}

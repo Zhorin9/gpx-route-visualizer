@@ -26,7 +26,7 @@ export function createElementsSlice({ get, commit }: SliceContext): ElementsSlic
         texts: s.texts.filter((t) => t.id !== id),
         selection: s.selection?.kind === 'text' && s.selection.id === id ? null : s.selection,
       }))
-      get().showToast('Usunięto tekst', true)
+      get().showToast('Usunięto tekst', 'undo')
     },
 
     addWaypoint: (trackPos) => {
@@ -49,7 +49,7 @@ export function createElementsSlice({ get, commit }: SliceContext): ElementsSlic
         waypoints: s.waypoints.filter((w) => w.id !== id),
         selection: s.selection?.kind === 'waypoint' && s.selection.id === id ? null : s.selection,
       }))
-      get().showToast('Usunięto miejscowość', true)
+      get().showToast('Usunięto miejscowość', 'undo')
     },
 
     applyGlobalFont: (family) => {
@@ -59,7 +59,7 @@ export function createElementsSlice({ get, commit }: SliceContext): ElementsSlic
         texts: s.texts.map((t) => ({ ...t, fontFamily: family })),
         waypoints: s.waypoints.map((w) => ({ ...w, fontFamily: family })),
       }))
-      get().showToast('Zmieniono czcionkę wszędzie', true)
+      get().showToast('Zmieniono czcionkę wszędzie', 'undo')
     },
 
     setPlacement: (kind, placement) => commit(`element:move:${kind}`, (s) => ({ placements: { ...s.placements, [kind]: placement } })),

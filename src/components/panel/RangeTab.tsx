@@ -19,7 +19,7 @@ export default function RangeTab() {
   const stats = useRangeStats()
   const { lastIndex, describe } = useRouteRange()
 
-  if (!track) return <p className="hint">Wgraj plik GPX, aby wybrać fragment trasy.</p>
+  if (!track) return null
 
   const isFull = range.start === 0 && range.end === lastIndex
 

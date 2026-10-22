@@ -55,7 +55,7 @@ export function createUiSlice({ set }: SliceContext): UiSlice {
     setPreviewLayout: (key) => set({ previewLayoutKey: key }),
     setActiveSlide: (index) => set({ activeSlide: index }),
     requestPhoto: (target) => set({ photoRequest: target }),
-    showToast: (message, undoable = false) => set({ toast: { id: nextToastId++, message, undoable } }),
+    showToast: (message, action, error) => set({ toast: { id: nextToastId++, message, action, error } }),
     setExporting: (value) => set({ exporting: value }),
     dismissToast: () => set({ toast: null }),
     bumpFontsVersion: () => set((s) => ({ fontsVersion: s.fontsVersion + 1 })),

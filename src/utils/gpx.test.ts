@@ -37,8 +37,8 @@ describe('parseGpxText', () => {
   })
 
   it('rejects invalid XML and files without a track', () => {
-    expect(() => parseGpxText('<gpx><trk>')).toThrow(/nieprawidłowy XML/)
-    expect(() => parseGpxText(gpx('<wpt lat="1" lon="1"/>'))).toThrow(/Nie znaleziono trasy/)
+    expect(() => parseGpxText('<gpx><trk>')).toThrow(/nie jest poprawnym plikiem XML/)
+    expect(() => parseGpxText(gpx('<wpt lat="1" lon="1"/>'))).toThrow(/nie zawiera punktów trasy/)
   })
 })
 

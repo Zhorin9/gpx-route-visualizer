@@ -23,7 +23,7 @@ export default function Segmented<T extends string>({ label, value, options, onC
             aria-checked={opt.value === value}
             className={opt.value === value ? 'segment active' : 'segment'}
             onClick={() => onChange(opt.value)}
-            disabled={disabled}
+            disabled={disabled || opt.disabled}
           >
             {opt.label}
           </button>
