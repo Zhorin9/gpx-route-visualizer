@@ -389,6 +389,7 @@
 }
 
 .field input[type='text'],
+.field textarea,
 .field select {
   width: 100%;
   background: transparent;
@@ -401,16 +402,24 @@
   transition: border-color var(--transition);
 }
 
+.field textarea {
+  font-family: inherit;
+  resize: vertical;
+}
+
 .field input[type='text']:hover,
+.field textarea:hover,
 .field select:hover {
   border-color: var(--border-strong);
 }
 
-.field input[type='text']::placeholder {
+.field input[type='text']::placeholder,
+.field textarea::placeholder {
   color: var(--text-muted);
 }
 
 .field input[type='text']:focus,
+.field textarea:focus,
 .field select:focus {
   outline: none;
   border-color: var(--accent);

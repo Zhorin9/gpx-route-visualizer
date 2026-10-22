@@ -29,7 +29,7 @@ export default function StatsHeaderNode() {
   const frameW = ASPECTS[aspectKey].w
   const fontStyle = konvaFontStyle(style.fontFamily)
   const box = arrangementFor(style.arrangement).arrange({ chips, style, fontStyle, frameW, chipOffsets, measure: measureTextWidth })
-  const defaultY = title ? statsYBelowTitle({ y: title.y, fontSize: fittedTitleSize(title, frameW) }) : defaultStatsY(aspectKey)
+  const defaultY = title ? statsYBelowTitle({ y: title.y, fontSize: fittedTitleSize(title, frameW), lines: title.text.split('\n').length }) : defaultStatsY(aspectKey)
 
   return (
     <DraggableElement kind={STATS_KIND} width={box.width} height={box.height} defaultX={(frameW - box.width) / 2} defaultY={defaultY} rotation={style.rotation}>

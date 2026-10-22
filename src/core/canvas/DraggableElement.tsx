@@ -6,6 +6,7 @@ import { UI_ONLY } from '../../utils/exportImage'
 import { useLayerAnimation } from '../animation/layers'
 import { CHROME_ACCENT } from './chrome'
 import { canvasElement } from './registry'
+import { SNAP_BOX, SNAP_TARGET, snapDragEnd, snapDragMove } from './snapDrag'
 import type { ElementKind } from '../../types'
 
 const HIT_PADDING = 24
@@ -37,6 +38,7 @@ export default function DraggableElement({ kind, width, height, defaultX, defaul
   const onSelect = () => select({ kind: 'element', element: kind })
 
   function handleDragEnd(e: Konva.KonvaEventObject<DragEvent>) {
+    snapDragEnd(e)
     // Drags of inner parts (a stats chip) bubble up here too; those are handled where they start.
     if (e.target !== e.currentTarget) return
     setPlacement(kind, { x: e.target.x() - width / 2, y: e.target.y() - height / 2 - animation.offsetY })
@@ -50,12 +52,15 @@ export default function DraggableElement({ kind, width, height, defaultX, defaul
       offsetX={width / 2}
       offsetY={height / 2}
       rotation={rotation}
+      name={SNAP_TARGET}
       draggable
       onMouseDown={onSelect}
       onTouchStart={onSelect}
+      onDragMove={snapDragMove}
       onDragEnd={handleDragEnd}
     >
       <Rect x={-HIT_PADDING} y={-HIT_PADDING} width={width + HIT_PADDING * 2} height={height + HIT_PADDING * 2} fill="#000" opacity={0} />
+      <Rect name={SNAP_BOX} width={width} height={height} listening={false} />
       {children}
       {selected && (
         <Rect

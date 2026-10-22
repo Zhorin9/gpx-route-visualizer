@@ -3,6 +3,7 @@ import { Group, Rect, Transformer } from 'react-konva'
 import type Konva from 'konva'
 import { useForcedGhost } from '../core/animation/layers'
 import { CHROME_ACCENT } from '../core/canvas/chrome'
+import { SNAP_BOX, SNAP_TARGET, snapDragEnd, snapDragMove } from '../core/canvas/snapDrag'
 import { styleColoring } from '../core/route/coloring'
 import { routeDecorations, useProvidedColoring } from '../core/route/providers'
 import RoutePainter from '../core/route/RoutePainter'
@@ -81,9 +82,16 @@ export default function RouteGroup() {
       <Group
         ref={groupRef}
         {...transform}
+        name={SNAP_TARGET}
         draggable={editable}
-        onDragMove={syncTransform}
-        onDragEnd={syncTransform}
+        onDragMove={(e) => {
+          snapDragMove(e)
+          syncTransform(e)
+        }}
+        onDragEnd={(e) => {
+          snapDragEnd(e)
+          syncTransform(e)
+        }}
         onTransform={syncTransform}
         onTransformEnd={syncTransform}
       >
@@ -97,10 +105,13 @@ export default function RouteGroup() {
             onTap={handleHitClick}
           />
         )}
-        <RoutePainter segments={geometry.segments} style={style} coloring={coloring} />
-        {routeDecorations().map((Decoration, i) => (
-          <Decoration key={i} geometry={geometry} />
-        ))}
+        {/* The drawn route, without the padded hit box, is what others line up with. */}
+        <Group name={SNAP_BOX}>
+          <RoutePainter segments={geometry.segments} style={style} coloring={coloring} />
+          {routeDecorations().map((Decoration, i) => (
+            <Decoration key={i} geometry={geometry} />
+          ))}
+        </Group>
       </Group>
 
       {projected &&
