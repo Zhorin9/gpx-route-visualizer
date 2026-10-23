@@ -31,6 +31,7 @@ import type {
   TrackPart,
   TitleStyle,
   Waypoint,
+  PointStyle,
 } from '../types'
 
 import type { AnimationSlice } from '../features/animation/store'
@@ -57,6 +58,8 @@ export interface DocumentState {
   placements: Record<ElementKind, ElementPlacement>
   texts: TextNode[]
   waypoints: Waypoint[]
+  // How photos pinned to places look.
+  pointStyle: PointStyle
   slides: Slide[]
   collage: CollageStyle
   carouselKind: CarouselKind
@@ -133,7 +136,8 @@ export interface MediaSlice {
   setAspectKey: (key: AspectKey) => void
   resetFormatLayout: () => void
   // Adds photos to the library; with a target they replace that slot, otherwise they fill empty slots in order.
-  loadPhotoFiles: (files: File[], target?: { slide: number; index: number }) => Promise<void>
+  // A slot gets the first photo, a place (waypoint id) gets it pinned instead of filling slots.
+  loadPhotoFiles: (files: File[], target?: { slide: number; index: number } | { waypoint: number }) => Promise<void>
   assignPhoto: (slide: number, index: number, photoId: number) => void
   // Puts a library photo in the selected slot, else the first empty one.
   placePhoto: (photoId: number) => void
@@ -183,6 +187,7 @@ export interface ElementsSlice {
   deleteText: (id: number) => void
   addWaypoint: (trackPos: number) => number
   updateWaypoint: (id: number, patch: Partial<Waypoint>) => void
+  updatePointStyle: (patch: Partial<PointStyle>) => void
   deleteWaypoint: (id: number) => void
   applyGlobalFont: (family: string) => void
   setPlacement: (kind: ElementKind, placement: ElementPlacement) => void

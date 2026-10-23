@@ -8,13 +8,19 @@ import { useHasPhotos, usePhotoBackground } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { DEFAULT_COLLAGE } from '../../store/defaults'
 import { GRADIENT_PRESETS } from '../../utils/gradients'
-import type { BackgroundKind, SelectOption } from '../../types'
+import type { BackgroundKind, BackgroundPattern, SelectOption } from '../../types'
 import './BackgroundTab.css'
 
 const BACKGROUND_OPTIONS: SelectOption<BackgroundKind>[] = [
   { value: 'transparent', label: 'Przezroczyste' },
   { value: 'color', label: 'Kolor' },
   { value: 'gradient', label: 'Gradient' },
+]
+
+const PATTERN_OPTIONS: SelectOption<BackgroundPattern>[] = [
+  { value: 'none', label: 'Brak' },
+  { value: 'grid', label: 'Siatka' },
+  { value: 'contours', label: 'Poziomice' },
 ]
 
 const BACKDROP_OPTIONS: SelectOption<'checkerboard' | 'color'>[] = [
@@ -96,6 +102,7 @@ export default function BackgroundTab() {
             <SliderField label="Kąt" unit="°" min={0} max={360} value={gradient.angle} defaultValue={DEFAULT_COLLAGE.gradient.angle} onChange={(angle) => updateBackground({ gradient: { angle } })} />
             <SliderField label="Ziarno filmowe" unit="%" min={0} max={30} value={gradient.grain} defaultValue={DEFAULT_COLLAGE.gradient.grain} onChange={(grain) => updateBackground({ gradient: { grain } })} />
             <CheckboxField label="Wygładź przejście" checked={gradient.smooth} onChange={(smooth) => updateBackground({ gradient: { smooth } })} />
+            <Segmented label="Wzór" showLabel value={gradient.pattern ?? 'none'} options={PATTERN_OPTIONS} onChange={(pattern) => updateBackground({ gradient: { pattern } })} />
             <CheckboxField label="Automatyczny kontrast tekstu" checked={collage.autoContrast} onChange={(autoContrast) => updateBackground({ autoContrast })} />
             <p className="hint">Na jasnym gradiencie napisy i trasa same przechodzą na ciemny kolor. „Wygładź” usuwa pasy w przejściu, ziarno nadaje papierowy charakter.</p>
           </Section>

@@ -1,11 +1,51 @@
-import { Layer, Rect } from 'react-konva'
+import { Layer, Rect, Shape } from 'react-konva'
+import type Konva from 'konva'
 import { useAppStore } from '../store/useAppStore'
 import { ASPECTS } from '../utils/aspects'
 import { gradientLine } from '../utils/color'
 import { noiseTile } from '../utils/image'
+import type { BackgroundPattern } from '../types'
+
+const GRID_STEP = 72
+const CONTOUR_STEP = 60
+
+// Fine lines in the text colour: a drafting grid, or contour rings round a point low on each slide.
+function Pattern({ kind, width, height, slideWidth }: { kind: BackgroundPattern; width: number; height: number; slideWidth: number }) {
+  const color = useAppStore((s) => s.statsStyle.color)
+  if (kind === 'none') return null
+  function sceneFunc(context: Konva.Context) {
+    const ctx = context._context
+    ctx.strokeStyle = color
+    ctx.beginPath()
+    if (kind === 'grid') {
+      ctx.globalAlpha = 0.1
+      ctx.lineWidth = 1.5
+      for (let x = 0; x <= width; x += GRID_STEP) {
+        ctx.moveTo(x, 0)
+        ctx.lineTo(x, height)
+      }
+      for (let y = 0; y <= height; y += GRID_STEP) {
+        ctx.moveTo(0, y)
+        ctx.lineTo(width, y)
+      }
+    } else {
+      ctx.globalAlpha = 0.14
+      ctx.lineWidth = 3
+      const reach = Math.hypot(slideWidth, height)
+      for (let left = 0; left < width; left += slideWidth) {
+        for (let r = CONTOUR_STEP; r < reach; r += CONTOUR_STEP) {
+          ctx.moveTo(left + slideWidth * 0.3 + r, height * 0.7)
+          ctx.arc(left + slideWidth * 0.3, height * 0.7, r, 0, Math.PI * 2)
+        }
+      }
+    }
+    ctx.stroke()
+  }
+  return <Shape sceneFunc={sceneFunc} perfectDrawEnabled={false} />
+}
 
 // The frame's background across the whole carousel ribbon, drawn under the photos:
-// a flat colour or one gradient. Nothing at all when the background is transparent.
+// a flat colour or one gradient, with an optional pattern. Nothing at all when the background is transparent.
 export default function BackgroundLayer() {
   const collage = useAppStore((s) => s.collage)
   const slideCount = useAppStore((s) => s.slides.length)
@@ -36,6 +76,7 @@ export default function BackgroundLayer() {
         fillLinearGradientEndPoint={end}
         fillLinearGradientColorStops={[0, gradient.from, 1, gradient.to]}
       />
+      <Pattern kind={gradient.pattern ?? 'none'} width={width} height={h} slideWidth={w} />
       {grainOpacity > 0 && <Rect width={width} height={h} fillPatternImage={noiseTile() as unknown as HTMLImageElement} fillPatternRepeat="repeat" opacity={grainOpacity} />}
     </Layer>
   )

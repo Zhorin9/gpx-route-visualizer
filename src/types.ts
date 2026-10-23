@@ -106,6 +106,17 @@ export interface Waypoint {
   fontFamily: string
   fontSize: number
   color: string
+  // Shown at the label, the way the document's point style says.
+  photoId?: number
+}
+
+// How a photo pinned to a place is shown: framed like a print, cut round, in a thin frame,
+// as a film frame, or not at all (the name alone, over a rule).
+export type PhotoMarker = 'polaroid' | 'circle' | 'square' | 'film' | 'label'
+
+export interface PointStyle {
+  marker: PhotoMarker
+  size: 'S' | 'M' | 'L'
 }
 
 export type RouteShape = 'natural' | 'schematic'
@@ -116,6 +127,9 @@ export interface RouteStyle {
   glowEnabled: boolean
   glowWidth: number
   glowBlur: number
+  // null = the line's own colour.
+  glowColor: string | null
+  glowOpacity: number
   remainingVisible: boolean
   remainingDashed: boolean
   remainingOpacity: number
@@ -146,20 +160,8 @@ export interface StyleTemplate {
   frame: CollageStyle['frame']
   gradient: GradientStyle
   layoutKey: LayoutKey
-  preview: {
-    bg: string
-    text: string
-    line: string
-    title: string
-    titleFont: string
-    titleColor?: string
-    italic?: boolean
-    dash: boolean
-    dotted?: boolean
-    glow?: boolean
-    width: number
-    frame?: string
-  }
+  // Absent from templates saved before photos could sit on the route.
+  pointStyle?: PointStyle
   custom?: boolean
 }
 
@@ -169,6 +171,7 @@ export interface TemplateParts {
   frame: boolean
   colors: boolean
   layout: boolean
+  points: boolean
 }
 
 export interface RouteTransform {
@@ -284,7 +287,11 @@ export interface GradientStyle {
   grain: number
   // Dithers the blend so the gradient shows no banding.
   smooth: boolean
+  // Fine lines over the background in the text colour; absent = none.
+  pattern?: BackgroundPattern
 }
+
+export type BackgroundPattern = 'none' | 'grid' | 'contours'
 
 // transparent: nothing behind the photos (a PNG to lay over a photo in Instagram);
 // color / gradient: the whole frame is filled, so the file can also be a JPG.

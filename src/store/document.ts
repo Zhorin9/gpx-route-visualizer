@@ -1,4 +1,4 @@
-import { DEFAULT_COLLAGE, DEFAULT_ROUTE_STYLE, DEFAULT_SLIDES, DEFAULT_STATS_CONTENT, DEFAULT_STATS_LAYOUT, DEFAULT_STATS_STYLE, DEFAULT_TITLE_STYLE, IDENTITY_TRANSFORM } from './defaults'
+import { DEFAULT_COLLAGE, DEFAULT_POINT_STYLE, DEFAULT_ROUTE_STYLE, DEFAULT_SLIDES, DEFAULT_STATS_CONTENT, DEFAULT_STATS_LAYOUT, DEFAULT_STATS_STYLE, DEFAULT_TITLE_STYLE, IDENTITY_TRANSFORM } from './defaults'
 import { DEFAULT_ANIMATION } from '../features/animation/types'
 import { DEFAULT_DATA_COLOR } from '../features/data-color/types'
 import { DEFAULT_PROFILE } from '../features/elevation-profile/types'
@@ -20,6 +20,7 @@ export const INITIAL_DOCUMENT: DocumentState = {
   placements: {},
   texts: [],
   waypoints: [],
+  pointStyle: DEFAULT_POINT_STYLE,
   slides: DEFAULT_SLIDES,
   collage: DEFAULT_COLLAGE,
   carouselKind: 'panorama',

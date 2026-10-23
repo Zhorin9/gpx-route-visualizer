@@ -2,6 +2,7 @@ import { DEFAULT_FONT } from '../utils/fonts'
 import { DEFAULT_LAYOUT } from '../utils/layouts'
 import type {
   CollageStyle,
+  PointStyle,
   RouteStyle,
   RouteTransform,
   Slide,
@@ -22,6 +23,8 @@ export const DEFAULT_ROUTE_STYLE: RouteStyle = {
   glowEnabled: false,
   glowWidth: 14,
   glowBlur: 25,
+  glowColor: null,
+  glowOpacity: 0.8,
   remainingVisible: true,
   remainingDashed: true,
   remainingOpacity: 0.35,
@@ -35,7 +38,7 @@ export const DEFAULT_ROUTE_STYLE: RouteStyle = {
 
 export const STYLE_PRESETS: Record<StylePreset, Partial<RouteStyle>> = {
   flat: { coreWidth: 5, glowEnabled: false },
-  neon: { coreWidth: 3.5, glowEnabled: true, glowWidth: 14, glowBlur: 25 },
+  neon: { coreWidth: 3.5, glowEnabled: true, glowWidth: 14, glowBlur: 25, glowColor: null, glowOpacity: 0.8 },
 }
 
 export const DAY_COLORS = ['#ffe3bf', '#ffffff', '#f4a58a', '#9fd3c7', '#c9b6e4', '#f2e07b']
@@ -77,11 +80,13 @@ export const DEFAULT_COLLAGE: CollageStyle = {
   margin: 0,
   bgColor: '#f3f2f2',
   bgKind: 'transparent',
-  gradient: { from: '#a06f24', to: '#444141', angle: 172, grain: 6, smooth: true },
+  gradient: { from: '#a06f24', to: '#444141', angle: 172, grain: 6, smooth: true, pattern: 'none' },
   autoContrast: true,
   frame: { enabled: false, color: '#ffffff', thickness: 18, style: 'equal' },
   fit: 'cover',
 }
+
+export const DEFAULT_POINT_STYLE: PointStyle = { marker: 'polaroid', size: 'M' }
 
 export const DEFAULT_SLIDES: Slide[] = [{ layoutKey: DEFAULT_LAYOUT, slots: {} }]
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { detectClimbs } from './climbs'
-import { distanceFraction, sampleByDistance } from './profile'
+import { distanceFraction, sampleByDistance, smoothSamples } from './profile'
 
 // One point every 100 m.
 const km = (n: number) => Float64Array.from({ length: n }, (_, i) => i * 0.1)
@@ -67,5 +67,18 @@ describe('distanceFraction', () => {
   it('converts a track position into a share of the distance', () => {
     expect(distanceFraction([0, 1, 3, 4], 0, 3, 1.5)).toBeCloseTo(0.5)
     expect(distanceFraction([0, 1, 3, 4], 1, 3, 3)).toBe(1)
+  })
+})
+
+describe('smoothSamples', () => {
+  it('averages neighbours and leaves hidden samples hidden', () => {
+    const samples = { values: Float32Array.from([0, 10, 0, NaN, 6]), positions: new Float32Array(5), min: 0, max: 10 }
+    const out = smoothSamples(samples, 1)
+    expect(out.values[0]).toBe(5)
+    expect(out.values[1]).toBeCloseTo(10 / 3)
+    expect(out.values[2]).toBe(5)
+    expect(out.values[3]).toBeNaN()
+    expect(out.values[4]).toBe(6)
+    expect(out.max).toBe(6)
   })
 })

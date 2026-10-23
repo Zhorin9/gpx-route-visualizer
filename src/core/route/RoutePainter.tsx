@@ -39,11 +39,12 @@ function SolidStroke({ segment, style, color }: { segment: RouteSegment; style: 
       {style.glowEnabled && (
         <Line
           points={segment.points}
-          stroke={color}
+          stroke={style.glowColor ?? color}
           strokeWidth={style.glowWidth}
-          opacity={0.8}
-          shadowColor={color}
+          opacity={style.glowOpacity}
+          shadowColor={style.glowColor ?? color}
           shadowBlur={style.glowBlur}
+          shadowEnabled={style.glowBlur > 0}
           shadowOpacity={1}
           listening={false}
           perfectDrawEnabled={false}
@@ -63,7 +64,7 @@ function SolidStroke({ segment, style, color }: { segment: RouteSegment; style: 
   )
 }
 
-// The route's look: a core line, an optional glow under it and a ghost of the part
+// The route's look: a core line, an optional glow or outline under it and a ghost of the part
 // not yet drawn. Same look whatever the colours come from.
 export default function RoutePainter({ segments, style, coloring }: RoutePainterProps) {
   return (

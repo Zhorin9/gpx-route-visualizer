@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { cumulativeDistanceKm } from '../../utils/gpx'
-import { COLOR_BINS, PALETTES, colorScale, paletteBins } from './palettes'
+import { COLOR_BINS, PALETTES, colorScale, mixStops, paletteBins } from './palettes'
 import { percentile, windowMean, windowSlope } from './smoothing'
 import { dataSeries, dataSource, gradeSource, speedSource } from './sources'
 import type { GpxPoint, GpxTrack } from '../../types'
@@ -63,6 +63,16 @@ describe('data sources', () => {
 })
 
 describe('palettes', () => {
+  it('mixes moved gradient stops, holding the end colours past the ends', () => {
+    const stops = [
+      { at: 0.2, color: '#000000' },
+      { at: 0.6, color: '#ffffff' },
+    ]
+    expect(mixStops(stops, 0)).toBe('#000000')
+    expect(mixStops(stops, 0.4)).toBe('#808080')
+    expect(mixStops(stops, 1)).toBe('#ffffff')
+  })
+
   it('quantises into bins and runs low to high', () => {
     for (const p of PALETTES) {
       const bins = paletteBins(p, false)

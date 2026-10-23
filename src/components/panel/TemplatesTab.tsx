@@ -14,31 +14,54 @@ const PART_LABELS: { key: keyof TemplateParts; label: string }[] = [
   { key: 'frame', label: 'Ramka zdjęć' },
   { key: 'colors', label: 'Kolory kadru' },
   { key: 'layout', label: 'Układ zdjęć' },
+  { key: 'points', label: 'Zdjęcia w punktach' },
 ]
 
-const ROUTE_PATH = 'M14 88 C22 80 16 72 26 68 S40 62 38 54 C36 46 48 42 54 38 S66 36 70 30 C74 24 82 24 84 18 S80 12 76 10'
+const ROUTE_PATH = 'M8 90 C14 60 32 70 38 46 S60 38 66 22 S86 14 92 8'
+// Route widths are set for a 1080 px frame; the card is a fifth of that.
+const THUMB_SCALE = 0.45
+
+// The background as CSS, with its pattern in the text colour.
+function thumbBackground({ gradient, textColor }: StyleTemplate) {
+  const base = `linear-gradient(${gradient.angle}deg, ${gradient.from}, ${gradient.to})`
+  const ink = (share: number) => `color-mix(in srgb, ${textColor} ${share}%, transparent)`
+  if (gradient.pattern === 'grid') return `linear-gradient(${ink(10)} 1px, transparent 1px) 0 0/14px 14px, linear-gradient(90deg, ${ink(10)} 1px, transparent 1px) 0 0/14px 14px, ${base}`
+  if (gradient.pattern === 'contours') return `repeating-radial-gradient(circle at 30% 70%, transparent 0 11px, ${ink(14)} 11px 12px), ${base}`
+  return base
+}
 
 function TemplateThumb({ template }: { template: StyleTemplate }) {
-  const { preview } = template
+  const { route, textColor, fonts } = template
+  const color = route.color ?? textColor
+  const marker = template.pointStyle?.marker
+  const width = (w = 0) => Math.max(1, w * THUMB_SCALE)
   return (
-    <span className="template-thumb" style={{ background: preview.bg, color: preview.text }}>
-      {preview.frame && <span className="template-thumb-frame" style={{ borderColor: preview.frame }} />}
-      <span
-        className="template-thumb-title"
-        style={{ fontFamily: preview.titleFont, color: preview.titleColor ?? preview.text, fontStyle: preview.italic ? 'italic' : 'normal' }}
-      >
-        {preview.title}
+    <span className="template-thumb" style={{ background: thumbBackground(template), color: textColor }}>
+      {template.frame.enabled && <span className="template-thumb-frame" style={{ borderColor: template.frame.color }} />}
+      <span className="template-thumb-title" style={{ fontFamily: `'${fonts.title}', serif`, color: template.titleColor ?? textColor, fontStyle: template.titleItalic ? 'italic' : 'normal' }}>
+        {template.titleUppercase ? 'SARDYNIA' : 'Sardynia'}
+      </span>
+      <span className="template-thumb-sub" style={{ fontFamily: `'${fonts.data}', serif` }}>
+        3 dni · 148 km
       </span>
       <svg viewBox="0 0 100 100" preserveAspectRatio="none" fill="none" strokeLinecap="round" strokeLinejoin="round">
-        <path
-          d={ROUTE_PATH}
-          stroke={preview.line}
-          strokeWidth={preview.width}
-          strokeDasharray={preview.dotted ? '0.1 6' : preview.dash ? '9 6' : undefined}
-          style={preview.glow ? { filter: `drop-shadow(0 0 3px ${preview.line})` } : undefined}
-          vectorEffect="non-scaling-stroke"
-        />
+        {route.glowEnabled && (
+          <path
+            d={ROUTE_PATH}
+            stroke={route.glowColor ?? color}
+            strokeWidth={width(route.glowWidth)}
+            opacity={route.glowOpacity}
+            style={route.glowBlur ? { filter: `blur(${route.glowBlur * 0.25}px)` } : undefined}
+            vectorEffect="non-scaling-stroke"
+          />
+        )}
+        <path d={ROUTE_PATH} stroke={color} strokeWidth={width(route.coreWidth)} strokeDasharray={route.dotted ? '0.1 6' : route.dashed ? '5 4' : undefined} vectorEffect="non-scaling-stroke" />
       </svg>
+      {marker && (
+        <span className={`template-thumb-photo marker-${marker}`} style={{ borderColor: marker === 'film' ? textColor : color }}>
+          {marker === 'label' ? <span style={{ borderColor: textColor }}>Monte Tuttavista</span> : <span className="template-thumb-image" />}
+        </span>
+      )}
     </span>
   )
 }
@@ -48,8 +71,8 @@ export default function TemplatesTab() {
   const applyTemplate = useAppStore((s) => s.applyTemplate)
   const saveTemplate = useAppStore((s) => s.saveTemplate)
   const deleteTemplate = useAppStore((s) => s.deleteTemplate)
-  const [selectedId, setSelectedId] = useState('default')
-  const [parts, setParts] = useState<TemplateParts>({ fonts: true, route: true, frame: true, colors: true, layout: false })
+  const [selectedId, setSelectedId] = useState(BUILT_IN_TEMPLATES[0].id)
+  const [parts, setParts] = useState<TemplateParts>({ fonts: true, route: true, frame: true, colors: true, layout: false, points: true })
   const [naming, setNaming] = useState(false)
   const [name, setName] = useState('')
 
@@ -65,8 +88,8 @@ export default function TemplatesTab() {
 
   return (
     <>
-      <Section title="Szablony stylu">
-        <div className="template-grid" role="group" aria-label="Szablony stylu">
+      <Section title="Presety stylu">
+        <div className="template-grid" role="group" aria-label="Presety stylu">
           {templates.map((template) => (
             <div key={template.id} className={template.id === selected.id ? 'template-card active' : 'template-card'}>
               <button type="button" className="template-card-body" aria-pressed={template.id === selected.id} onClick={() => setSelectedId(template.id)}>

@@ -49,6 +49,10 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
         }
 
         lastPhotoId = id - 1
+        if (target && 'waypoint' in target) {
+          const photoId = queue[0]
+          return { photos, waypoints: s.waypoints.map((w) => (w.id === target.waypoint ? { ...w, photoId } : w)) }
+        }
         if (target) {
           const photoId = queue.shift()!
           slides = withSlide(slides, target.slide, (slide) => ({

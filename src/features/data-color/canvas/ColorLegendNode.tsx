@@ -5,6 +5,7 @@ import { useAppStore } from '../../../store/useAppStore'
 import { ASPECTS, STORY_SAFE_ZONE } from '../../../utils/aspects'
 import { konvaFontStyle } from '../../../utils/fonts'
 import { measureTextWidth } from '../../../utils/measureText'
+import { profileHeight } from '../../elevation-profile/types'
 import { LEGEND_KIND } from '../types'
 import { useActiveDataColor } from '../useDataColoring'
 
@@ -22,7 +23,7 @@ export default function ColorLegendNode() {
   const textColor = useAppStore((s) => s.statsStyle.color)
   const fontFamily = useAppStore((s) => s.statsStyle.fontFamily)
   // Keeps clear of the elevation chart when both sit at the bottom.
-  const profileBelow = useAppStore((s) => (s.profile.enabled && s.profile.placement === 'bottom' && s.placements.elevationProfile == null ? s.profile.height : 0))
+  const profileBelow = useAppStore((s) => (s.profile.enabled && s.placements.elevationProfile == null ? profileHeight(s.profile) : 0))
   useAppStore((s) => s.fontsVersion)
   if (!active) return null
 
