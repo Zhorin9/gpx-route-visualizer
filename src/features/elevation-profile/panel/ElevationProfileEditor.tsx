@@ -7,7 +7,7 @@ import { PALETTES, paletteCss, paletteStops } from '../../../core/data/palettes'
 import { dataSource, type DataSourceId } from '../../../core/data/sources'
 import { distanceUnit, formatGain, type Units } from '../../../core/units'
 import { formatNumber } from '../../../utils/format'
-import { selectTrack } from '../../../store/derived'
+import { selectGroundInRange, selectTrack } from '../../../store/derived'
 import { useHasRoute } from '../../../store/selectors'
 import { useAppStore } from '../../../store/useAppStore'
 import { DEFAULT_PROFILE, PROFILE_KIND, type ProfileChartStyle, type ProfileColorMode, type ProfileLayout, type ProfileSettings } from '../types'
@@ -219,11 +219,13 @@ export function ElevationProfileSection() {
   const hasRoute = useHasRoute()
   const enabled = useAppStore((s) => s.profile.enabled)
   const updateProfile = useAppStore((s) => s.updateProfile)
+  const ground = useAppStore(selectGroundInRange)
   if (!hasRoute) return null
   return (
     <>
       <Section title="Profil wysokości" collapseId="profile">
         <CheckboxField label="Pokaż profil wysokości" checked={enabled} onChange={(on) => updateProfile({ enabled: on })} />
+        {enabled && !ground && <p className="hint">Lot i linia prosta nie mają wysokości terenu, więc dla tego zakresu profil jest ukryty.</p>}
         {enabled && <ElevationProfileSettings />}
       </Section>
       {enabled && <ElevationProfileAdvanced />}

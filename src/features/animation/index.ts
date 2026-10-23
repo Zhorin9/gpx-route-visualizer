@@ -6,16 +6,18 @@ import { addRouteDecoration, provideRouteHead } from '../../core/route/providers
 import CommitProbe from './canvas/CommitProbe'
 import { waitForCommit } from './canvas/commitState'
 import { stopPreviewOnEdit } from './editStopsPreview'
-import RouteHeadDot from './canvas/RouteHeadDot'
+import RouteHeadMarker from './canvas/RouteHeadMarker'
 import { useAnimatedLayer, useAnimatedPoint, useAnimationGhost, useAnimationHead, useCountingHead } from './hooks'
 import { AnimationTimingSection } from './panel/AnimationPanel'
 import { usePlayback } from './playback'
 import PlaybackBar from './ui/PlaybackBar'
+import { BUILT_IN_VEHICLES, registerVehicle } from './vehicles'
 
 export function registerAnimation() {
   provideRouteHead(useAnimationHead)
   provideAnimation({ layer: useAnimatedLayer, point: useAnimatedPoint, countHead: useCountingHead, ghost: useAnimationGhost })
-  addRouteDecoration(RouteHeadDot)
+  for (const vehicle of BUILT_IN_VEHICLES) registerVehicle(vehicle)
+  addRouteDecoration(RouteHeadMarker)
   addRouteDecoration(CommitProbe)
   addCanvasControls(PlaybackBar)
   registerPanelSection({ id: 'animation', label: 'Animacja', tab: 'export', order: 10, Component: AnimationTimingSection })

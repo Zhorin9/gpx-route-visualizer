@@ -16,10 +16,11 @@ export function luminance(hex: string): number {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b
 }
 
-export function mixHex(a: string, b: string): string {
+// `t` of the way from a to b; halfway by default.
+export function mixHex(a: string, b: string, t = 0.5): string {
   const [ar, ag, ab] = channels(a)
   const [br, bg, bb] = channels(b)
-  const to = (x: number, y: number) => Math.round((x + y) / 2).toString(16).padStart(2, '0')
+  const to = (x: number, y: number) => Math.round(x + (y - x) * t).toString(16).padStart(2, '0')
   return `#${to(ar, br)}${to(ag, bg)}${to(ab, bb)}`
 }
 

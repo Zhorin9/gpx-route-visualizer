@@ -38,7 +38,7 @@ export const DEFAULT_ROUTE_STYLE: RouteStyle = {
 
 export const STYLE_PRESETS: Record<StylePreset, Partial<RouteStyle>> = {
   flat: { coreWidth: 5, glowEnabled: false },
-  neon: { coreWidth: 3.5, glowEnabled: true, glowWidth: 14, glowBlur: 25, glowColor: null, glowOpacity: 0.8 },
+  neon: { coreWidth: 1.5, glowEnabled: true, glowWidth: 6, glowBlur: 15, glowColor: null, glowOpacity: 0.44 },
 }
 
 export const DAY_COLORS = ['#ffe3bf', '#ffffff', '#f4a58a', '#9fd3c7', '#c9b6e4', '#f2e07b']
@@ -63,7 +63,7 @@ export const STAT_ORDER: StatKey[] = ['day', 'distance', 'elevation', 'time', 'm
 
 export const DEFAULT_STATS_CONTENT: StatsContent = {
   dayLabel: 'DZIEŃ 1',
-  visible: { day: true, distance: true, elevation: true, time: true, movingTime: false, avgSpeed: false, maxElevation: false },
+  visible: { day: false, distance: true, elevation: false, time: true, movingTime: false, avgSpeed: true, maxElevation: false },
   order: STAT_ORDER,
   units: 'metric',
   overrides: { distance: '', elevation: '', time: '', movingTime: '', avgSpeed: '', maxElevation: '' },

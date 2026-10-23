@@ -6,14 +6,13 @@ import TextField from '../../../components/fields/TextField'
 import Button from '../../../components/ui/Button'
 import CheckboxField from '../../../components/fields/CheckboxField'
 import Section from '../../../components/ui/Section'
-import Segmented from '../../../components/ui/Segmented'
 import StatConfigItem from './StatConfigItem'
 import { DEFAULT_STATS_STYLE } from '../../../store/defaults'
 import { useRangeStats } from '../../../store/selectors'
 import { useAppStore } from '../../../store/useAppStore'
 import { FONT_OPTIONS } from '../../../utils/fonts'
 import { formatNumber } from '../../../utils/format'
-import { distanceUnit, heightUnit, type Units } from '../../../core/units'
+import { distanceUnit, heightUnit } from '../../../core/units'
 import { STAT_DEFINITIONS, statDefinition, type StatDefinition } from '../model/definitions'
 import { STATS_ARRANGEMENTS } from '../model/registry'
 import type { RangeStats, SelectOption, StatKey, StatsArrangement, StatsContent } from '../../../types'
@@ -21,10 +20,7 @@ import './StatsEditor.css'
 
 const ARRANGEMENT_OPTIONS: SelectOption<StatsArrangement>[] = STATS_ARRANGEMENTS.map((a) => ({ value: a.id, label: a.label }))
 
-const UNIT_OPTIONS: SelectOption<Units>[] = [
-  { value: 'metric', label: 'km, m' },
-  { value: 'imperial', label: 'mi, ft' },
-]
+
 
 const OVERRIDE_PLACEHOLDER = 'puste = wyliczone z GPX'
 
@@ -144,13 +140,18 @@ function StatsList() {
   )
 }
 
+// A planned leg has no recording: its times come from the route service or an average speed.
+function EstimatedNote() {
+  const estimated = useRangeStats()?.estimatedTime
+  return estimated ? <p className="hint">Czas jest szacowany dla odcinków z planera podróży, dlatego na grafice stoi przed nim „~”.</p> : null
+}
+
 export default function StatsEditor() {
   const style = useAppStore((s) => s.statsStyle)
   const content = useAppStore((s) => s.statsContent)
   const layout = useAppStore((s) => s.statsLayout)
   const placement = useAppStore((s) => s.placements.stats)
   const updateStatsStyle = useAppStore((s) => s.updateStatsStyle)
-  const updateStatsContent = useAppStore((s) => s.updateStatsContent)
   const resetStatsLayout = useAppStore((s) => s.resetStatsLayout)
 
   const isLayoutCustom = placement?.x != null || placement?.y != null || Object.keys(layout.chipOffsets).length > 0
@@ -167,9 +168,9 @@ export default function StatsEditor() {
       </p>
 
       <Section title="Statystyki">
-        <Segmented label="Jednostki" showLabel value={content.units} options={UNIT_OPTIONS} onChange={(units) => updateStatsContent({ units })} />
         <StatsList />
         <p className="hint">Kolejność zmienisz, przeciągając wiersz lub strzałkami. Czas w ruchu pomija postoje.</p>
+        <EstimatedNote />
       </Section>
 
       <Section

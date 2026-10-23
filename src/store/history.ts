@@ -47,6 +47,9 @@ const STEP_LABELS: Record<string, string> = {
   animation: 'zmiana animacji',
   globalFont: 'zmiana czcionki',
   template: 'zastosowanie szablonu',
+  travel: 'zmiana podróży',
+  camera: 'zmiana kamery',
+  map: 'zmiana mapy',
 }
 
 function stepLabel(key: string): string {

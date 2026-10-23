@@ -5,9 +5,10 @@ import { useForcedGhost } from '../core/animation/layers'
 import { CHROME_ACCENT } from '../core/canvas/chrome'
 import { SNAP_BOX, SNAP_TARGET, snapDragEnd, snapDragMove } from '../core/canvas/snapDrag'
 import { styleColoring } from '../core/route/coloring'
-import { routeDecorations, useProvidedColoring } from '../core/route/providers'
+import { routeDecorations, useProvidedColoring, useWorldView } from '../core/route/providers'
 import RoutePainter from '../core/route/RoutePainter'
 import { useRouteGeometry } from '../core/route/useRouteGeometry'
+import { composeView, steadyStyle } from '../core/route/view'
 import { useProjectedTrack } from '../store/selectors'
 import { useAppStore } from '../store/useAppStore'
 import { UI_ONLY } from '../utils/exportImage'
@@ -28,9 +29,16 @@ function readTransform(node: Konva.Node): RouteTransform {
 export default function RouteGroup() {
   const savedStyle = useAppStore((s) => s.routeStyle)
   const forcedGhost = useForcedGhost()
-  const style = useMemo(() => (forcedGhost && !savedStyle.remainingVisible ? { ...savedStyle, remainingVisible: true } : savedStyle), [forcedGhost, savedStyle])
-  const transform = useAppStore((s) => s.routeTransform)
-  const editable = useAppStore((s) => s.routeEditable)
+  const view = useWorldView()
+  const zoom = view?.zoom ?? 1
+  // The camera enlarges the route, not its strokes: widths stay as set.
+  const style = useMemo(
+    () => steadyStyle(forcedGhost && !savedStyle.remainingVisible ? { ...savedStyle, remainingVisible: true } : savedStyle, zoom),
+    [forcedGhost, savedStyle, zoom],
+  )
+  const transform = composeView(useAppStore((s) => s.routeTransform), view)
+  // Moving the route by hand sets where it sits in the static view, so not while the camera moves it.
+  const editable = useAppStore((s) => s.routeEditable) && !view
   const adding = useAppStore((s) => s.addingWaypoint)
   const range = useAppStore((s) => s.range)
   const waypoints = useAppStore((s) => s.waypoints)

@@ -8,6 +8,7 @@ import { FORMATS } from '../core/formats/registry'
 import { computeSlots, layoutDef, ribbonSlot, slotAt } from '../utils/layouts'
 import { stageHandle } from '../utils/exportImage'
 import CanvasElements from '../core/canvas/CanvasElements'
+import { stageUnderlays } from '../core/canvas/chrome'
 import BackgroundLayer from './BackgroundLayer'
 import EditableText from './EditableText'
 import RouteGroup from './RouteGroup'
@@ -90,6 +91,9 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
         ...(!hasBackground && !isCheckerboard ? { background: previewBackdrop } : null),
       }}
     >
+      {stageUnderlays().map((Underlay, i) => (
+        <Underlay key={i} previewScale={previewScale} />
+      ))}
       {/* Sized to the preview, not the export: a full 1080×1920 canvas
           would be redrawn at every change only to be cropped by CSS. */}
       <Stage

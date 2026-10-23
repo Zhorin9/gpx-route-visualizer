@@ -20,8 +20,11 @@ export function createUiSlice({ set }: SliceContext): UiSlice {
     toast: null,
     fontsVersion: 0,
     exporting: false,
+    centerView: 'map',
 
-    setActiveTab: (tab) => set({ activeTab: tab }),
+    // A tab with its own workspace (Podróż → the map) opens on it; the frame is one click away.
+    setActiveTab: (tab) => set({ activeTab: tab, centerView: 'map' }),
+    setCenterView: (view) => set({ centerView: view }),
     setSubTab: (tab, page) => set((s) => ({ activeTab: tab, subTabs: { ...s.subTabs, [tab]: page } })),
     setPreviewBackdrop: (value) => set({ previewBackdrop: value }),
     // Picking something on the canvas brings up its settings: photos live in the first tab, texts in

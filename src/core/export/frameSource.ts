@@ -14,7 +14,7 @@ export interface FrameSource {
   // Moves time-based content (the animation) to `t` seconds and waits until the frame shows it.
   seek: (t: number) => Promise<void>
   // The whole ribbon (all slides side by side) at output resolution.
-  render: (scale: number) => HTMLCanvasElement
+  render: (scale: number) => Promise<HTMLCanvasElement>
   // Restores the document and the editor exactly as they were.
   end: () => void
 }
@@ -27,7 +27,15 @@ export interface FrameClock {
   release: () => void
 }
 
+// Drawn under the stage in files, e.g. a map rendered at the output resolution; null = nothing to add.
+export type FrameUnderlay = (width: number, height: number, scale: number) => Promise<HTMLCanvasElement | null>
+
 let clock: FrameClock | null = null
+let underlay: FrameUnderlay | null = null
+
+export function provideFrameUnderlay(value: FrameUnderlay) {
+  underlay = value
+}
 
 // The animation registers how to move to a moment in time; the source never imports it.
 export function provideFrameClock(value: FrameClock) {
@@ -59,10 +67,11 @@ export async function beginStageFrames(): Promise<FrameSource> {
     seek: async (t) => {
       await clock?.seek(t)
     },
-    render: (scale) => {
+    render: async (scale) => {
       const stage = stageHandle.current
       if (!stage) throw new Error('Brak podglądu do wyrenderowania')
       const { aspectKey, slides } = store.getState()
+      const below = await underlay?.(FORMATS[aspectKey].w * slides.length, FORMATS[aspectKey].h, scale)
       const uiNodes = stage.find(`.${UI_ONLY}`).filter((n) => n.visible())
       uiNodes.forEach((n) => n.hide())
       // The stage is drawn at preview size; pixelRatio scales it back up. The ratio is fractional,
@@ -71,7 +80,9 @@ export async function beginStageFrames(): Promise<FrameSource> {
       const canvas = stage.toCanvas({ pixelRatio })
       uiNodes.forEach((n) => n.show())
       stage.batchDraw()
-      return canvas
+      if (!below) return canvas
+      below.getContext('2d')?.drawImage(canvas, 0, 0, below.width, below.height)
+      return below
     },
     end: () => {
       clock?.release()

@@ -2,7 +2,7 @@ import { FORMATS, bottomInset } from '../core/formats/registry'
 import { profileBand } from '../features/elevation-profile/types'
 import { manualFlags } from '../utils/reflow'
 import { computeSlots, hasVisiblePhotos, isPanorama, layoutDef, photoCoversFrame, ribbonSlot } from '../utils/layouts'
-import { dayBreaks, projectTrack, rangeStats, selectRouteDays, selectTrack, trackCumKm, trackDays } from './derived'
+import { dayBreaks, projectTrack, trackFit, rangeStats, selectRouteDays, selectRouteParts, selectTrack, trackCumKm, trackDays } from './derived'
 import { useShallow } from 'zustand/react/shallow'
 import { useAppStore } from './useAppStore'
 import type { AspectKey } from '../types'
@@ -18,10 +18,22 @@ function routeBox(s: Parameters<typeof profileBand>[0] & { aspectKey: AspectKey;
   return [columns.routeW, h - bottomInset(s.aspectKey) + ROUTE_PAD_OVERLAP - profileBand(s)]
 }
 
+// Box the route is fitted to, in frame pixels from the top-left corner.
+export function useRouteBox() {
+  return useAppStore(useShallow(routeBox))
+}
+
 export function useProjectedTrack() {
   const track = useAppStore(selectTrack)
   const [boxW, boxH] = useAppStore(useShallow(routeBox))
   return projectTrack(track, boxW, boxH)
+}
+
+// Where the projection placed the route, in Web Mercator: the map and the camera follow it.
+export function useTrackFit() {
+  const track = useAppStore(selectTrack)
+  const [boxW, boxH] = useAppStore(useShallow(routeBox))
+  return trackFit(track, boxW, boxH)
 }
 
 export function useDayBreaks() {
@@ -42,7 +54,7 @@ export function useTrackDays() {
 export function useRangeStats() {
   const track = useAppStore(selectTrack)
   const range = useAppStore((s) => s.range)
-  return rangeStats(track, range, useDayBreaks())
+  return rangeStats(track, range, useDayBreaks(), useAppStore(selectRouteParts))
 }
 
 export { hasVisiblePhotos, isPanorama }

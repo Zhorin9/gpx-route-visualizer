@@ -49,6 +49,7 @@ export const BUILT_IN_TEMPLATES: StyleTemplate[] = [
     gradient: flat('#123a63', 'grid'),
     layoutKey: 'g1',
     pointStyle: points('square'),
+    map: { labels: false },
   },
   {
     id: 'topo',
@@ -63,6 +64,7 @@ export const BUILT_IN_TEMPLATES: StyleTemplate[] = [
     gradient: flat('#e9e4d3', 'contours'),
     layoutKey: 'g1',
     pointStyle: points('circle'),
+    map: { hillshade: true },
   },
   {
     id: 'granat',
@@ -86,7 +88,7 @@ export const BUILT_IN_TEMPLATES: StyleTemplate[] = [
     titleUppercase: true,
     statsStyle: columns(30),
     textColor: '#e6fff8',
-    route: line('#d8fff3', 4, ['#5af0c8', 18, 0.5, 20]),
+    route: line('#d8fff3', 1.5, ['#5af0c8', 6, 0.44, 15]),
     frame: NO_FRAME,
     gradient: flat('#0b0b0f'),
     layoutKey: 'g1',
@@ -119,6 +121,7 @@ export const BUILT_IN_TEMPLATES: StyleTemplate[] = [
     gradient: flat('#f3f2f2'),
     layoutKey: 'g1',
     pointStyle: points('label'),
+    map: { labels: false },
   },
   {
     id: 'film',

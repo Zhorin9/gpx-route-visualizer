@@ -15,8 +15,41 @@ export interface GpxTrack {
   points: GpxPoint[]
 }
 
-// One GPX file of the route (a day of a multi-day trip). Its points live in the track cache,
-// outside the history.
+// A place the trip goes through, picked in the travel planner.
+export interface Stop {
+  id: number
+  name: string
+  lat: number
+  lon: number
+  // A via point shapes the line but is not a named place.
+  via: boolean
+  // Seconds the animated line rests here; 1 s at a stop on the way and none at the end when unset.
+  pause?: number
+}
+
+export type TravelModeId = 'plane' | 'train' | 'car' | 'bike' | 'foot'
+
+// The shape of a leg's line: along roads or rails, a straight line on the map, or a great-circle arc.
+export type LineKind = 'road' | 'straight' | 'arc'
+
+// What a routed leg keeps away from.
+export type RouteOption = 'avoid_toll' | 'avoid_motorways' | 'avoid_unpaved'
+
+// How a leg of the trip was planned: its stops (the first and last are its ends) and the way it is travelled.
+export interface TravelPlan {
+  mode: TravelModeId
+  // Variant of the mode, e.g. the bike's road / trekking / mtb.
+  profile?: string
+  options?: RouteOption[]
+  // The mode's own shape when unset.
+  line?: LineKind
+  // Seconds the animation takes to draw this leg.
+  duration?: number
+  stops: Stop[]
+}
+
+// One GPX file of the route (a day of a multi-day trip) or one leg from the travel planner.
+// Its points live in the track cache, outside the history.
 export interface TrackPart {
   id: number
   name: string
@@ -25,7 +58,17 @@ export interface TrackPart {
   visible: boolean
   // Key of the part's points in the track cache.
   sourceKey: string
+  // Set for a leg from the planner; absent for a GPX file.
+  plan?: TravelPlan
+  // false: the heights aren't the ground's (a flight, a straight line), so climbing doesn't count.
+  groundElevation?: false
+  // The points' times are an estimate, not a recording.
+  estimatedTime?: true
+  // Marker at the head of the animated line; the animation's own one when absent.
+  vehicle?: VehicleId
 }
+
+export type VehicleId = 'dot' | 'plane' | 'train' | 'car' | 'bike' | 'walker' | 'boat'
 
 // What the route is made of. Part of the document, so undo covers loading and removing files;
 // the joined track is derived from it (store/derived.ts).
@@ -53,6 +96,8 @@ export interface RangeStats {
   movingMs: number
   // Highest point of the range; null when the file has no elevation.
   maxElevationM: number | null
+  // Some of the range's times are estimated (a planned leg), so the time figures are approximate.
+  estimatedTime?: boolean
 }
 
 export interface TrackDay {
@@ -108,6 +153,8 @@ export interface Waypoint {
   color: string
   // Shown at the label, the way the document's point style says.
   photoId?: number
+  // The planner's stop this label names; it follows the stop when the trip changes.
+  stopId?: number
 }
 
 // How a photo pinned to a place is shown: framed like a print, cut round, in a thin frame,
@@ -162,6 +209,9 @@ export interface StyleTemplate {
   layoutKey: LayoutKey
   // Absent from templates saved before photos could sit on the route.
   pointStyle?: PointStyle
+  // On a map background: the base style, terrain shading and names. The map's colours come
+  // from the template's background and text.
+  map?: { styleId?: string; hillshade?: boolean; labels?: boolean }
   custom?: boolean
 }
 
@@ -294,8 +344,8 @@ export interface GradientStyle {
 export type BackgroundPattern = 'none' | 'grid' | 'contours'
 
 // transparent: nothing behind the photos (a PNG to lay over a photo in Instagram);
-// color / gradient: the whole frame is filled, so the file can also be a JPG.
-export type BackgroundKind = 'transparent' | 'color' | 'gradient'
+// color / gradient / map: the whole frame is filled, so the file can also be a JPG.
+export type BackgroundKind = 'transparent' | 'color' | 'gradient' | 'map'
 
 export interface CollageStyle {
   gap: number
@@ -327,7 +377,7 @@ export interface FormatOverrides {
 
 export type ExportFormat = 'png' | 'jpg'
 
-export type TabKey = 'background' | 'media' | 'route' | 'texts' | 'style' | 'export'
+export type TabKey = 'background' | 'media' | 'travel' | 'route' | 'texts' | 'style' | 'export'
 
 export interface SelectOption<T extends string = string> {
   value: T

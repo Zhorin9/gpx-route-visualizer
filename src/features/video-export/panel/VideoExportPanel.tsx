@@ -101,6 +101,7 @@ export default function VideoExportPanel() {
   const service = useVideoEncoding()
   const hasRoute = useHasRoute()
   const hasBackground = useHasBackground()
+  const onMap = useAppStore((s) => s.collage.bgKind === 'map')
   const currentAspect = useAppStore((s) => s.aspectKey)
   const animation = useAppStore((s) => s.animation)
   const trackName = useAppStore((s) => selectTrack(s)?.name ?? null)
@@ -193,6 +194,7 @@ export default function VideoExportPanel() {
           </>
         )}
         {!hasBackground && job.format !== 'gif' && <p className="hint">Bez zdjęcia ani gradientu tło filmu będzie czarne.</p>}
+        {onMap && <p className="hint">Film z mapą renderuje się dłużej: każda klatka czeka, aż mapa wczyta się w pełnej rozdzielczości. Pozostały czas liczy się z tym.</p>}
       </Section>
 
       <Section title="Podgląd">

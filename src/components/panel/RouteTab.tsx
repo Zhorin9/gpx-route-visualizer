@@ -38,6 +38,7 @@ function KindIcon({ kind }: { kind: WaypointKind }) {
 // Before there is a route the tab is only this; a file that failed to load says why instead.
 function RouteEmpty() {
   const gpxError = useAppStore((s) => s.gpxError)
+  const setActiveTab = useAppStore((s) => s.setActiveTab)
   const { importFiles } = useGpxImport()
   if (gpxError) return <GpxErrorCard />
   return (
@@ -45,12 +46,15 @@ function RouteEmpty() {
       icon={<IconUpload />}
       title="Dodaj trasę"
       actions={
-        <FileButton accept=".gpx,application/gpx+xml" onFiles={importFiles} variant="primary">
-          Wgraj plik
-        </FileButton>
+        <>
+          <FileButton accept=".gpx,application/gpx+xml" onFiles={importFiles} variant="primary">
+            Wgraj plik
+          </FileButton>
+          <Button onClick={() => setActiveTab('travel')}>Zaplanuj podróż</Button>
+        </>
       }
     >
-      Przeciągnij plik GPX na podgląd albo wybierz go z dysku.
+      Przeciągnij plik GPX na podgląd albo wybierz go z dysku. Bez pliku zaplanujesz trasę z przystanków.
     </StatusCard>
   )
 }
@@ -86,8 +90,9 @@ function RoutesSection() {
   if (!track || !cum) return null
 
   const multi = days.length > 1
+  // A planned leg is named by its places; a file is one day of the trip.
   const rows: { id: number; name: string; km: number; color: string; visible: boolean }[] = multi
-    ? days.map((d) => ({ id: d.id, name: d.name, km: cum[d.endIdx] - cum[d.startIdx], color: d.color, visible: d.visible }))
+    ? days.map((d, i) => ({ id: d.id, name: d.plan ? d.name : `Dzień ${i + 1} · ${d.name}`, km: cum[d.endIdx] - cum[d.startIdx], color: d.color, visible: d.visible }))
     : [{ id: 0, name: track.name ?? 'Trasa bez nazwy', km: cum[cum.length - 1], color: routeStyle.color, visible: true }]
   const total = multi ? cum[cum.length - 1] : 0
   const selected: RoutePart | undefined = multi ? (days.find((d) => d.id === selectedId) ?? days[0]) : undefined
@@ -100,7 +105,7 @@ function RoutesSection() {
           <div key={row.id} className={multi && row.id === selected?.id ? 'day-row active' : 'day-row'}>
             <button type="button" className="day-row-main" disabled={!multi} aria-selected={multi && row.id === selected?.id} onClick={() => setSelectedId(row.id)}>
               <span className="day-dot" style={{ background: row.color }} />
-              <span className="day-name">{multi ? `Dzień ${i + 1} · ${row.name}` : row.name}</span>
+              <span className="day-name">{row.name}</span>
               <span className="day-km">{formatKm(row.km, 1)}</span>
             </button>
             {multi && (
@@ -136,7 +141,7 @@ function RoutesSection() {
 
       {selected && (
         <>
-          <h6 className="subhead">Zaznaczony: Dzień {days.indexOf(selected) + 1}</h6>
+          <h6 className="subhead">Zaznaczony: {selected.plan ? selected.name : `Dzień ${days.indexOf(selected) + 1}`}</h6>
           <ColorField label="Kolor linii" value={selected.color} onChange={(color) => updatePart(selected.id, { color })} />
           <Segmented
             label="Styl linii"

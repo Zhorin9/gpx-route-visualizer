@@ -5,6 +5,7 @@ import { usePointAnimation } from '../core/animation/layers'
 import { distanceIn, distanceToKm, distanceUnit } from '../core/units'
 import { applyTransform, pointAt, posAtDistance } from '../utils/geometry'
 import { selectRouteDays } from '../store/derived'
+import { useViewTransform } from '../core/route/view'
 
 const LABEL_SIZE = 20
 
@@ -31,11 +32,11 @@ function KmMark({ mark, label, fontFamily }: { mark: Mark; label: string; fontFa
 }
 
 // Distance marks (km or mi) along the visible route. Outside the route group, like waypoint labels,
-// so rotating the route moves them with it but the text stays upright.
+// so rotating the route or moving the camera carries them along but the text stays upright and its size.
 export default function KmMarkers() {
   const interval = useAppStore((s) => s.kmInterval)
   const range = useAppStore((s) => s.range)
-  const transform = useAppStore((s) => s.routeTransform)
+  const transform = useViewTransform()
   const days = useAppStore(selectRouteDays)
   const color = useAppStore((s) => s.routeStyle.color)
   const fontFamily = useAppStore((s) => s.statsStyle.fontFamily)

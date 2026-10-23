@@ -8,8 +8,9 @@ import { gradientPresetName } from '../utils/gradients'
 import { layoutDef } from '../utils/layouts'
 import { hasManualLayout } from '../utils/reflow'
 import type { AspectKey, SelectOption } from '../types'
-import { canvasControls } from '../core/canvas/chrome'
+import { canvasControls, workspaceFor } from '../core/canvas/chrome'
 import CanvasStage from './CanvasStage'
+import CenterViewSwitch from './CenterViewSwitch'
 import GpxErrorCard from './GpxErrorCard'
 import PhotoPicker from './PhotoPicker'
 import PhotoTape from './PhotoTape'
@@ -32,6 +33,7 @@ const MODE_OPTIONS: SelectOption<FrameMode>[] = [
 ]
 
 function CanvasToolbar() {
+  const hasWorkspace = useAppStore((s) => workspaceFor(s.activeTab) != null)
   const hasRoute = useHasRoute()
   const aspectKey = useAppStore((s) => s.aspectKey)
   const routeEditable = useAppStore((s) => s.routeEditable)
@@ -53,6 +55,7 @@ function CanvasToolbar() {
 
   return (
     <div className="canvas-toolbar" role="toolbar" aria-label="Narzędzia podglądu">
+      {hasWorkspace && <CenterViewSwitch />}
       {FORMATS[aspectKey].carousel && (
         <Segmented
           label="Tryb kadru"
@@ -158,7 +161,28 @@ function EmptyState({ onFiles }: { onFiles: (files: FileList | null) => void }) 
   )
 }
 
+// The frame at a size that fits the box: the live preview a workspace shows in its corner.
+function FramePreview({ width, height }: { width: number; height: number }) {
+  const aspectKey = useAppStore((s) => s.aspectKey)
+  const slideCount = useAppStore((s) => s.slides.length)
+  const { w, h } = FORMATS[aspectKey]
+  return <CanvasStage previewScale={Math.min(width / (w * slideCount), height / h)} />
+}
+
 export default function CanvasArea() {
+  const workspace = useAppStore((s) => (s.centerView === 'map' ? workspaceFor(s.activeTab) : undefined))
+  if (workspace) {
+    return (
+      <div className="canvas-area">
+        <workspace.Component preview={(box) => <FramePreview {...box} />} />
+        <Toast />
+      </div>
+    )
+  }
+  return <FrameArea />
+}
+
+function FrameArea() {
   const viewportRef = useRef<HTMLDivElement>(null)
   const { width, height } = useElementSize(viewportRef)
   const aspectKey = useAppStore((s) => s.aspectKey)

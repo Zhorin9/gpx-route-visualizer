@@ -50,7 +50,7 @@ async function sampleFrames(frames: FrameSource, aspect: AspectKey, slide: numbe
   const out: HTMLCanvasElement[] = []
   for (const t of times) {
     await frames.seek(t)
-    out.push(cropSlide(frames.render(scale), slide, aspect, scale))
+    out.push(cropSlide(await frames.render(scale), slide, aspect, scale))
   }
   return out
 }
@@ -100,7 +100,7 @@ export async function renderVideo(
     for (let f = 0; f < total; f++) {
       throwIfAborted(signal)
       await frames.seek((f % count) / job.fps)
-      const ribbon = frames.render(scale)
+      const ribbon = await frames.render(scale)
       const timestamp = Math.round((f * 1_000_000) / job.fps)
       for (let slide = 0; slide < sessions.length; slide++) {
         await sessions[slide].addFrame(cropSlide(ribbon, slide, job.aspect, scale, scratch[slide]), timestamp)
