@@ -9,16 +9,15 @@ import { useHasBackground, useHasRoute } from '../../../store/selectors'
 import { useAppStore } from '../../../store/useAppStore'
 import { archiveBaseName, downloadFiles, type ExportFile } from '../../../utils/exportImage'
 import { formatNumber } from '../../../utils/format'
-import { FORMAT_ORDER } from '../../../utils/reflow'
+import { FORMATS, FORMAT_ORDER } from '../../../core/formats/registry'
 import { totalDuration } from '../../animation/model/timeline'
 import { formatTime } from '../../animation/ui/formatTime'
 import { frameCount, outputSize, renderThumbnails, renderVideo, type VideoJob, type VideoProgress } from '../exportVideo'
 import { selectTrack } from '../../../store/derived'
-import type { AspectKey, SelectOption } from '../../../types'
+import type { SelectOption } from '../../../types'
 import './VideoExportPanel.css'
 
 const FORMAT_LABELS: Record<VideoFormat, string> = { mp4: 'MP4', webm: 'WebM', gif: 'GIF' }
-const ASPECT_LABELS: Record<AspectKey, string> = { '9:16': 'Story / Reels 9:16', '4:5': 'Post 4:5', '1:1': 'Kwadrat 1:1' }
 const FPS: Record<VideoFormat, number[]> = { mp4: [24, 30, 60], webm: [24, 30, 60], gif: [10, 15, 20] }
 const QUALITY_OPTIONS: SelectOption<EncodeQuality>[] = [
   { value: 'low', label: 'Niska' },
@@ -172,7 +171,7 @@ export default function VideoExportPanel() {
           label="Proporcje"
           showLabel
           value={job.aspect}
-          options={FORMAT_ORDER.map((a) => ({ value: a, label: ASPECT_LABELS[a] }))}
+          options={FORMAT_ORDER.map((a) => ({ value: a, label: FORMATS[a].exportName }))}
           onChange={(aspect) => update({ aspect })}
           disabled={rendering}
         />

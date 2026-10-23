@@ -1,22 +1,16 @@
-import type { AspectKey, AspectOption } from '../types'
-
-export const ASPECTS: Record<AspectKey, AspectOption> = {
-  '9:16': { w: 1080, h: 1920, label: 'Story (9:16)' },
-  '4:5': { w: 1080, h: 1350, label: 'Post (4:5)' },
-  '1:1': { w: 1080, h: 1080, label: 'Kwadrat (1:1)' },
-}
-
-// Areas Instagram covers with its own UI on a Story (profile bar, reply box).
-export const STORY_SAFE_ZONE = { top: 250, bottom: 340 }
+import { FORMATS } from '../core/formats/registry'
+import type { AspectKey } from '../types'
 
 export function defaultStatsY(aspectKey: AspectKey): number {
-  return aspectKey === '9:16' ? STORY_SAFE_ZONE.top + 30 : 70
+  const zone = FORMATS[aspectKey].safeZone
+  return zone ? zone.top + 30 : 70
 }
 
-// 13% from the top, as on the template previews; on a Story, clear of the profile bar.
+// 13% from the top, as on the template previews; clear of the platform's top bar.
 export function defaultTitleY(aspectKey: AspectKey): number {
-  const y = Math.round(ASPECTS[aspectKey].h * 0.13)
-  return aspectKey === '9:16' ? Math.max(y, STORY_SAFE_ZONE.top + 30) : y
+  const { h, safeZone } = FORMATS[aspectKey]
+  const y = Math.round(h * 0.13)
+  return safeZone ? Math.max(y, safeZone.top + 30) : y
 }
 
 // With a title, the stats header sits just below its last line.

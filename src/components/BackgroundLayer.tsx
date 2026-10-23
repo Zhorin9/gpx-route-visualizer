@@ -1,7 +1,7 @@
 import { Layer, Rect, Shape } from 'react-konva'
 import type Konva from 'konva'
 import { useAppStore } from '../store/useAppStore'
-import { ASPECTS } from '../utils/aspects'
+import { FORMATS } from '../core/formats/registry'
 import { gradientLine } from '../utils/color'
 import { noiseTile } from '../utils/image'
 import type { BackgroundPattern } from '../types'
@@ -54,7 +54,7 @@ export default function BackgroundLayer() {
   if (collage.bgKind === 'transparent') return null
 
   const { gradient } = collage
-  const { w, h } = ASPECTS[aspectKey]
+  const { w, h } = FORMATS[aspectKey]
   const width = w * slideCount
   if (collage.bgKind === 'color') {
     return (

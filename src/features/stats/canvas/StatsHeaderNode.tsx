@@ -1,7 +1,8 @@
 import { Line, Text } from 'react-konva'
 import DraggableElement from '../../../core/canvas/DraggableElement'
 import { useAppStore } from '../../../store/useAppStore'
-import { ASPECTS, defaultStatsY, statsYBelowTitle } from '../../../utils/aspects'
+import { FORMATS } from '../../../core/formats/registry'
+import { defaultStatsY, statsYBelowTitle } from '../../../utils/aspects'
 import { konvaFontStyle } from '../../../utils/fonts'
 import { measureTextWidth } from '../../../utils/measureText'
 import { fittedTitleSize } from '../../../utils/title'
@@ -26,7 +27,7 @@ export default function StatsHeaderNode() {
 
   if (!chips.length) return null
 
-  const frameW = ASPECTS[aspectKey].w
+  const frameW = FORMATS[aspectKey].w
   const fontStyle = konvaFontStyle(style.fontFamily)
   const box = arrangementFor(style.arrangement).arrange({ chips, style, fontStyle, frameW, chipOffsets, measure: measureTextWidth })
   const defaultY = title ? statsYBelowTitle({ y: title.y, fontSize: fittedTitleSize(title, frameW), lines: title.text.split('\n').length }) : defaultStatsY(aspectKey)

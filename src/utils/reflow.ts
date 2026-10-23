@@ -1,14 +1,13 @@
+import { FORMATS } from '../core/formats/registry'
 import { DEFAULT_SLOT_CROP } from '../store/defaults'
 import type { DocumentState } from '../store/types'
 import type { AspectKey, ElementPlacement, FormatLayout, FormatOverrides } from '../types'
-import { ASPECTS, STORY_SAFE_ZONE } from './aspects'
 
 // The layout authored in this format is the reference; the others are derived from it.
 export const SOURCE_ASPECT: AspectKey = '4:5'
-export const FORMAT_ORDER: AspectKey[] = ['4:5', '9:16', '1:1']
 
 const TOLERANCE = 1
-// Room kept under a text's top edge so it doesn't run into the story's reply box.
+// Room kept under a text's top edge so it doesn't run into the bottom safe zone.
 const TEXT_BOTTOM_ROOM = 60
 
 type LayoutState = Pick<DocumentState, 'texts' | 'placements' | 'routeTransform'>
@@ -24,8 +23,9 @@ export function readLayout(s: LayoutState): FormatLayout {
 }
 
 function clampToSafe(y: number, aspect: AspectKey): number {
-  if (aspect !== '9:16') return y
-  return Math.max(STORY_SAFE_ZONE.top, Math.min(ASPECTS[aspect].h - STORY_SAFE_ZONE.bottom - TEXT_BOTTOM_ROOM, y))
+  const { h, safeZone } = FORMATS[aspect]
+  if (!safeZone) return y
+  return Math.max(safeZone.top, Math.min(h - safeZone.bottom - TEXT_BOTTOM_ROOM, y))
 }
 
 const mapElements = (elements: FormatLayout['elements'], fn: (p: ElementPlacement) => ElementPlacement) =>
@@ -33,7 +33,7 @@ const mapElements = (elements: FormatLayout['elements'], fn: (p: ElementPlacemen
 
 // Same width in every format, so only vertical positions change.
 export function autoLayout(base: FormatLayout, to: AspectKey): FormatLayout {
-  const ratio = ASPECTS[to].h / ASPECTS[SOURCE_ASPECT].h
+  const ratio = FORMATS[to].h / FORMATS[SOURCE_ASPECT].h
   return {
     texts: Object.fromEntries(Object.entries(base.texts).map(([id, p]) => [id, { x: p.x, y: clampToSafe(p.y * ratio, to) }])),
     elements: mapElements(base.elements, (p) => ({ x: p.x, y: p.y == null ? null : clampToSafe(p.y * ratio, to) })),
@@ -42,7 +42,7 @@ export function autoLayout(base: FormatLayout, to: AspectKey): FormatLayout {
 }
 
 function toSource(layout: FormatLayout, from: AspectKey): FormatLayout {
-  const ratio = ASPECTS[SOURCE_ASPECT].h / ASPECTS[from].h
+  const ratio = FORMATS[SOURCE_ASPECT].h / FORMATS[from].h
   return {
     texts: Object.fromEntries(Object.entries(layout.texts).map(([id, p]) => [id, { x: p.x, y: p.y * ratio }])),
     elements: mapElements(layout.elements, (p) => ({ x: p.x, y: p.y == null ? null : p.y * ratio })),

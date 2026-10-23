@@ -2,7 +2,7 @@ import { IconClose, IconPlus } from './icons'
 import { useActiveSlide } from '../store/selectors'
 import { useAppStore } from '../store/useAppStore'
 import { MAX_SLIDES, MIN_CAROUSEL_SLIDES } from '../store/defaults'
-import { ASPECTS } from '../utils/aspects'
+import { FORMATS } from '../core/formats/registry'
 import { computeSlots, layoutDef } from '../utils/layouts'
 import './SlideStrip.css'
 
@@ -18,7 +18,7 @@ export default function SlideStrip() {
   const removeSlide = useAppStore((s) => s.removeSlide)
   const activeSlide = useActiveSlide()
 
-  const { w, h } = ASPECTS[aspectKey]
+  const { w, h } = FORMATS[aspectKey]
   const thumbW = Math.round((THUMB_H * w) / h)
   const thumbById = new Map(photos.map((p) => [p.id, p.thumb]))
 

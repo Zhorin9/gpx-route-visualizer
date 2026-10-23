@@ -1,5 +1,5 @@
 import type Konva from 'konva'
-import { ASPECTS } from './aspects'
+import { FORMATS } from '../core/formats/registry'
 import { slugify } from './format'
 import { createZip } from './zip'
 import type { AspectKey, ExportFormat } from '../types'
@@ -33,8 +33,8 @@ export function canvasToBlob(canvas: HTMLCanvasElement, mime: string, quality = 
 
 // One slide of the rendered ribbon, cropped to the exact output size.
 export function cropSlide(ribbon: HTMLCanvasElement, index: number, aspectKey: AspectKey, scale: number, target?: HTMLCanvasElement): HTMLCanvasElement {
-  const w = ASPECTS[aspectKey].w * scale
-  const h = ASPECTS[aspectKey].h * scale
+  const w = FORMATS[aspectKey].w * scale
+  const h = FORMATS[aspectKey].h * scale
   const out = target ?? document.createElement('canvas')
   if (out.width !== w) out.width = w
   if (out.height !== h) out.height = h

@@ -1,6 +1,6 @@
 import { pickDocument } from '../../store/document'
 import { useAppStore } from '../../store/useAppStore'
-import { ASPECTS } from '../../utils/aspects'
+import { FORMATS } from '../formats/registry'
 import { UI_ONLY, stageHandle } from '../../utils/exportImage'
 import { reflowTo } from '../../utils/reflow'
 import type { AspectKey } from '../../types'
@@ -67,7 +67,7 @@ export async function beginStageFrames(): Promise<FrameSource> {
       uiNodes.forEach((n) => n.hide())
       // The stage is drawn at preview size; pixelRatio scales it back up. The ratio is fractional,
       // so the canvas can come out a pixel short — render a hair larger; callers crop to the exact size.
-      const pixelRatio = ((ASPECTS[aspectKey].w * scale * slides.length) / stage.width()) * 1.0001
+      const pixelRatio = ((FORMATS[aspectKey].w * scale * slides.length) / stage.width()) * 1.0001
       const canvas = stage.toCanvas({ pixelRatio })
       uiNodes.forEach((n) => n.show())
       stage.batchDraw()

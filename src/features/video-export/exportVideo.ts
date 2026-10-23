@@ -1,7 +1,7 @@
 import { beginStageFrames, type FrameSource } from '../../core/export/frameSource'
 import type { EncodeQuality, EncodingSession, VideoEncodingService, VideoFormat } from '../../services/video-encoding'
 import { useAppStore } from '../../store/useAppStore'
-import { ASPECTS } from '../../utils/aspects'
+import { FORMATS } from '../../core/formats/registry'
 import { cropSlide, exportFileNames, type ExportFile } from '../../utils/exportImage'
 import { totalDuration } from '../animation/model/timeline'
 import type { AspectKey } from '../../types'
@@ -27,7 +27,7 @@ export const outputScale = (format: VideoFormat) => (format === 'gif' ? 0.5 : 1)
 
 export function outputSize(job: Pick<VideoJob, 'format' | 'aspect'>) {
   const scale = outputScale(job.format)
-  return { width: Math.round(ASPECTS[job.aspect].w * scale), height: Math.round(ASPECTS[job.aspect].h * scale) }
+  return { width: Math.round(FORMATS[job.aspect].w * scale), height: Math.round(FORMATS[job.aspect].h * scale) }
 }
 
 export function animationLength(): number {
@@ -46,7 +46,7 @@ function throwIfAborted(signal?: AbortSignal) {
 
 // Frames of one slide at given moments, at a given output height; for palettes and previews.
 async function sampleFrames(frames: FrameSource, aspect: AspectKey, slide: number, times: number[], height: number): Promise<HTMLCanvasElement[]> {
-  const scale = height / ASPECTS[aspect].h
+  const scale = height / FORMATS[aspect].h
   const out: HTMLCanvasElement[] = []
   for (const t of times) {
     await frames.seek(t)

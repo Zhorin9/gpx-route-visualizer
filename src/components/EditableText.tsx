@@ -5,7 +5,7 @@ import { useLayerAnimation } from '../core/animation/layers'
 import { SNAP_TARGET, snapDragEnd, snapDragMove } from '../core/canvas/snapDrag'
 import useInlineTextEditor from '../hooks/useInlineTextEditor'
 import { useAppStore } from '../store/useAppStore'
-import { ASPECTS } from '../utils/aspects'
+import { FORMATS } from '../core/formats/registry'
 import { konvaFontStyle } from '../utils/fonts'
 import { displayText, fittedTitleSize } from '../utils/title'
 import SelectionOutline from './SelectionOutline'
@@ -18,7 +18,7 @@ export default function EditableText({ node }: { node: TextNode }) {
   const { hidden, edit } = useInlineTextEditor()
   const shapeRef = useRef<Konva.Text>(null)
   const outlineRef = useRef<Konva.Text>(null)
-  const frameW = useAppStore((s) => ASPECTS[s.aspectKey].w)
+  const frameW = useAppStore((s) => FORMATS[s.aspectKey].w)
   const isTitle = node.role === 'title'
   const fontsVersion = useAppStore((s) => s.fontsVersion)
   const animation = useLayerAnimation('header')

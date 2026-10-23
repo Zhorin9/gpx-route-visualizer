@@ -1,4 +1,4 @@
-import { ASPECTS } from '../utils/aspects'
+import { FORMATS } from '../core/formats/registry'
 import { computeRangeStats, cumulativeDistanceKm, projectPointsToCanvas, splitIntoDays } from '../utils/gpx'
 import { memoOne } from '../utils/memo'
 import type { AspectKey, GpxPoint, GpxTrack, RoutePart, RouteRange, RouteSource, TrackDay } from '../types'
@@ -51,7 +51,7 @@ export const trackDays = memoOne((track: GpxTrack | null): TrackDay[] => (track 
 // The route is fitted to the whole carousel ribbon, so it can cross slide borders.
 export const projectTrack = memoOne((track: GpxTrack | null, aspectKey: AspectKey, slideCount: number) => {
   if (!track) return null
-  const { w, h } = ASPECTS[aspectKey]
+  const { w, h } = FORMATS[aspectKey]
   return projectPointsToCanvas(track.points, w * slideCount, h)
 })
 

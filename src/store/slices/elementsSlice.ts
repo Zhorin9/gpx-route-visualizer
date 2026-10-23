@@ -1,4 +1,4 @@
-import { ASPECTS } from '../../utils/aspects'
+import { FORMATS } from '../../core/formats/registry'
 import { makeText, makeWaypoint, nextId } from '../defaults'
 import type { ElementsSlice, SliceContext } from '../types'
 
@@ -7,7 +7,7 @@ export function createElementsSlice({ get, commit }: SliceContext): ElementsSlic
   const slice: ElementsSlice = {
     addText: () => {
       const s = get()
-      const { w, h } = ASPECTS[s.aspectKey]
+      const { w, h } = FORMATS[s.aspectKey]
       const base = makeText(nextId(s.texts), w, h)
       const node = { ...base, x: base.x + Math.min(s.activeSlide, s.slides.length - 1) * w }
       commit('text:add', {

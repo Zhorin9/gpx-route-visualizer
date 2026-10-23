@@ -3,10 +3,10 @@ import useElementSize from '../hooks/useElementSize'
 import useGpxImport from '../hooks/useGpxImport'
 import { useHasPhotos, useHasRoute, useManualFlags, usePhotoBackground } from '../store/selectors'
 import { useAppStore } from '../store/useAppStore'
-import { ASPECTS } from '../utils/aspects'
+import { FORMATS, FORMAT_ORDER } from '../core/formats/registry'
 import { gradientPresetName } from '../utils/gradients'
 import { layoutDef } from '../utils/layouts'
-import { FORMAT_ORDER, hasManualLayout } from '../utils/reflow'
+import { hasManualLayout } from '../utils/reflow'
 import type { AspectKey, SelectOption } from '../types'
 import { canvasControls } from '../core/canvas/chrome'
 import CanvasStage from './CanvasStage'
@@ -24,8 +24,7 @@ import Toast from './ui/Toast'
 const VIEWPORT_PADDING = 24
 
 type FrameMode = 'single' | 'carousel'
-const FORMAT_LABELS: Record<AspectKey, string> = { '4:5': 'Post 4:5', '9:16': 'Story 9:16', '1:1': 'Kwadrat 1:1' }
-const FORMAT_OPTIONS = FORMAT_ORDER.map((value) => ({ value, label: FORMAT_LABELS[value] })) as SelectOption<AspectKey>[]
+const FORMAT_OPTIONS: SelectOption<AspectKey>[] = FORMAT_ORDER.map((value) => ({ value, label: FORMATS[value].label }))
 
 const MODE_OPTIONS: SelectOption<FrameMode>[] = [
   { value: 'single', label: 'Kadr' },
@@ -77,14 +76,14 @@ function CanvasToolbar() {
       )}
       <Segmented label="Format kadru" value={aspectKey} options={FORMAT_OPTIONS} onChange={setAspectKey} />
       {customLayout && <span className="tag-custom">własny układ</span>}
-      {aspectKey === '9:16' && (
+      {FORMATS[aspectKey].safeZone && (
         <Button
           size="sm"
           variant="ghost"
           icon={<IconSafeZone />}
           pressed={showSafeZones}
           onClick={() => setShowSafeZones(!showSafeZones)}
-          title="Pokaż obszary zasłaniane przez interfejs Instagrama (nie trafiają do eksportu)"
+          title="Pokaż obszary zasłaniane przez interfejs platformy (nie trafiają do eksportu)"
         >
           Strefy bezpieczne
         </Button>
@@ -108,7 +107,7 @@ function FrameStatus() {
   const aspectKey = useAppStore((s) => s.aspectKey)
   const slideCount = useAppStore((s) => s.slides.length)
   const collage = useAppStore((s) => s.collage)
-  const { w, h } = ASPECTS[aspectKey]
+  const { w, h } = FORMATS[aspectKey]
 
   const photoBackground = usePhotoBackground()
   const mode = slideCount > 1 ? `Karuzela ${slideCount} × ${aspectKey}` : `Kadr ${aspectKey}`
@@ -166,7 +165,7 @@ export default function CanvasArea() {
   const { importFiles } = useGpxImport()
   const [dragging, setDragging] = useState(false)
 
-  const { w, h } = ASPECTS[aspectKey]
+  const { w, h } = FORMATS[aspectKey]
   const previewScale =
     width > 0 && height > 0 ? Math.min((width - VIEWPORT_PADDING * 2) / (w * slideCount), (height - VIEWPORT_PADDING * 2) / h, 1) : 0
 

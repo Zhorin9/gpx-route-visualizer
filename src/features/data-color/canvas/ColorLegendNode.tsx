@@ -2,7 +2,7 @@ import { Rect, Text } from 'react-konva'
 import DraggableElement from '../../../core/canvas/DraggableElement'
 import { dataSource } from '../../../core/data/sources'
 import { useAppStore } from '../../../store/useAppStore'
-import { ASPECTS, STORY_SAFE_ZONE } from '../../../utils/aspects'
+import { FORMATS, bottomInset } from '../../../core/formats/registry'
 import { konvaFontStyle } from '../../../utils/fonts'
 import { measureTextWidth } from '../../../utils/measureText'
 import { profileHeight } from '../../elevation-profile/types'
@@ -36,8 +36,8 @@ export default function ColorLegendNode() {
   const title = `${source.label.toUpperCase()} · ${source.unit(units)}`
   const stops = active.bins.flatMap((c, i) => [i / Math.max(1, active.bins.length - 1), c])
 
-  const { h } = ASPECTS[aspectKey]
-  const bottom = (aspectKey === '9:16' ? STORY_SAFE_ZONE.bottom + 20 : 60) + (profileBelow ? profileBelow + 30 : 0)
+  const { h } = FORMATS[aspectKey]
+  const bottom = bottomInset(aspectKey) + (profileBelow ? profileBelow + 30 : 0)
   const text = (key: string, value: string, x: number, y: number, size: number, extra = {}) => (
     <Text key={key} text={value} x={x} y={y} fontSize={size} fontFamily={fontFamily} fontStyle={fontStyle} fill={textColor} listening={false} perfectDrawEnabled={false} {...SHADOW} {...extra} />
   )
