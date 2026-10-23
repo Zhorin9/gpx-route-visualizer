@@ -5,7 +5,7 @@ import { useAppStore } from '../../../store/useAppStore'
 import { FORMATS, bottomInset } from '../../../core/formats/registry'
 import { konvaFontStyle } from '../../../utils/fonts'
 import { measureTextWidth } from '../../../utils/measureText'
-import { profileHeight } from '../../elevation-profile/types'
+import { profileBand } from '../../elevation-profile/types'
 import { LEGEND_KIND } from '../types'
 import { useActiveDataColor } from '../useDataColoring'
 
@@ -23,7 +23,7 @@ export default function ColorLegendNode() {
   const textColor = useAppStore((s) => s.statsStyle.color)
   const fontFamily = useAppStore((s) => s.statsStyle.fontFamily)
   // Keeps clear of the elevation chart when both sit at the bottom.
-  const profileBelow = useAppStore((s) => (s.profile.enabled && s.placements.elevationProfile == null ? profileHeight(s.profile) : 0))
+  const profileBelow = useAppStore(profileBand)
   useAppStore((s) => s.fontsVersion)
   if (!active) return null
 
@@ -36,14 +36,14 @@ export default function ColorLegendNode() {
   const title = `${source.label.toUpperCase()} · ${source.unit(units)}`
   const stops = active.bins.flatMap((c, i) => [i / Math.max(1, active.bins.length - 1), c])
 
-  const { h } = FORMATS[aspectKey]
-  const bottom = bottomInset(aspectKey) + (profileBelow ? profileBelow + 30 : 0)
+  const { h, safeZone } = FORMATS[aspectKey]
+  const bottom = bottomInset(aspectKey) + profileBelow
   const text = (key: string, value: string, x: number, y: number, size: number, extra = {}) => (
     <Text key={key} text={value} x={x} y={y} fontSize={size} fontFamily={fontFamily} fontStyle={fontStyle} fill={textColor} listening={false} perfectDrawEnabled={false} {...SHADOW} {...extra} />
   )
 
   return (
-    <DraggableElement kind={LEGEND_KIND} width={WIDTH} height={height} defaultX={60} defaultY={h - bottom - height}>
+    <DraggableElement kind={LEGEND_KIND} width={WIDTH} height={height} defaultX={Math.max(60, safeZone?.left ?? 0)} defaultY={h - bottom - height}>
       {text('title', title, 0, 0, LABEL * 0.8, { letterSpacing: LABEL * 0.08, opacity: 0.85 })}
       <Rect
         y={LABEL + GAP}

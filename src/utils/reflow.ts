@@ -1,14 +1,13 @@
+import type { LayoutContext } from '../core/formats/layouts'
 import { FORMATS } from '../core/formats/registry'
 import { DEFAULT_SLOT_CROP } from '../store/defaults'
 import type { DocumentState } from '../store/types'
-import type { AspectKey, ElementPlacement, FormatLayout, FormatOverrides, Slide } from '../types'
+import type { AspectKey, FormatLayout, FormatOverrides, Slide } from '../types'
 
 // The layout authored in this format is the reference; the others are derived from it.
 export const SOURCE_ASPECT: AspectKey = '4:5'
 
 const TOLERANCE = 1
-// Room kept under a text's top edge so it doesn't run into the bottom safe zone.
-const TEXT_BOTTOM_ROOM = 60
 
 type LayoutState = Pick<DocumentState, 'texts' | 'placements' | 'routeTransform'>
 type BaseState = LayoutState & Pick<DocumentState, 'aspectKey' | 'sourceLayout'>
@@ -22,33 +21,11 @@ export function readLayout(s: LayoutState): FormatLayout {
   }
 }
 
-function clampToSafe(y: number, aspect: AspectKey): number {
-  const { h, safeZone } = FORMATS[aspect]
-  if (!safeZone) return y
-  return Math.max(safeZone.top, Math.min(h - safeZone.bottom - TEXT_BOTTOM_ROOM, y))
-}
+const context = (s: LayoutState, key: AspectKey): LayoutContext => ({ source: FORMATS[SOURCE_ASPECT], format: FORMATS[key], texts: s.texts })
 
-const mapElements = (elements: FormatLayout['elements'], fn: (p: ElementPlacement) => ElementPlacement) =>
-  Object.fromEntries(Object.entries(elements).map(([kind, p]) => [kind, fn(p)]))
-
-// Same width in every format, so only vertical positions change.
-export function autoLayout(base: FormatLayout, to: AspectKey): FormatLayout {
-  const ratio = FORMATS[to].h / FORMATS[SOURCE_ASPECT].h
-  return {
-    texts: Object.fromEntries(Object.entries(base.texts).map(([id, p]) => [id, { x: p.x, y: clampToSafe(p.y * ratio, to) }])),
-    elements: mapElements(base.elements, (p) => ({ x: p.x, y: p.y == null ? null : clampToSafe(p.y * ratio, to) })),
-    route: { ...base.route, y: base.route.y * ratio },
-  }
-}
-
-function toSource(layout: FormatLayout, from: AspectKey): FormatLayout {
-  const ratio = FORMATS[SOURCE_ASPECT].h / FORMATS[from].h
-  return {
-    texts: Object.fromEntries(Object.entries(layout.texts).map(([id, p]) => [id, { x: p.x, y: p.y * ratio }])),
-    elements: mapElements(layout.elements, (p) => ({ x: p.x, y: p.y == null ? null : p.y * ratio })),
-    route: { ...layout.route, y: layout.route.y * ratio },
-  }
-}
+// The automatic layout of a format, computed by the format's own strategy.
+const autoLayout = (base: FormatLayout, s: LayoutState, key: AspectKey) => FORMATS[key].layout.fromSource(base, context(s, key))
+const toSource = (live: FormatLayout, s: BaseState) => FORMATS[s.aspectKey].layout.toSource(live, context(s, s.aspectKey))
 
 const near = (a: number | null, b: number | null) => (a === null || b === null ? a === b : Math.abs(a - b) <= TOLERANCE)
 
@@ -60,7 +37,7 @@ function routeDiffers(a: FormatLayout['route'], b: FormatLayout['route']) {
 function baseFor(s: BaseState): FormatLayout {
   const live = readLayout(s)
   if (s.aspectKey === SOURCE_ASPECT) return live
-  const inferred = toSource(live, s.aspectKey)
+  const inferred = toSource(live, s)
   const known = s.sourceLayout
   return {
     texts: Object.fromEntries(Object.keys(live.texts).map((id) => [id, known?.texts[Number(id)] ?? inferred.texts[Number(id)]])),
@@ -94,7 +71,7 @@ export interface ManualFlags {
 // Which elements were moved by hand in the current format (never in the source format).
 export function manualFlags(s: BaseState): ManualFlags {
   if (s.aspectKey === SOURCE_ASPECT) return { elements: {}, route: false, texts: {} }
-  const ov = manualOverrides(readLayout(s), autoLayout(baseFor(s), s.aspectKey))
+  const ov = manualOverrides(readLayout(s), autoLayout(baseFor(s), s, s.aspectKey))
   const flagged = (record: object) => Object.fromEntries(Object.keys(record).map((key) => [key, true]))
   return { elements: flagged(ov.elements), route: Boolean(ov.route), texts: flagged(ov.texts) }
 }
@@ -117,9 +94,9 @@ export function reflowTo(s: ReflowState, key: AspectKey): Partial<DocumentState>
   if (s.aspectKey === key) return {}
   const base = baseFor(s)
   const layoutOverrides = { ...s.layoutOverrides }
-  if (s.aspectKey !== SOURCE_ASPECT) layoutOverrides[s.aspectKey] = manualOverrides(readLayout(s), autoLayout(base, s.aspectKey))
+  if (s.aspectKey !== SOURCE_ASPECT) layoutOverrides[s.aspectKey] = manualOverrides(readLayout(s), autoLayout(base, s, s.aspectKey))
 
-  let next = key === SOURCE_ASPECT ? base : autoLayout(base, key)
+  let next = key === SOURCE_ASPECT ? base : autoLayout(base, s, key)
   const ov = layoutOverrides[key]
   if (key !== SOURCE_ASPECT && ov) {
     next = {
@@ -162,5 +139,5 @@ export function resetToAuto(s: ReflowState): Partial<DocumentState> {
   const base = baseFor(s)
   const layoutOverrides = { ...s.layoutOverrides }
   delete layoutOverrides[s.aspectKey]
-  return { ...applyLayout(s, autoLayout(base, s.aspectKey)), sourceLayout: base, layoutOverrides }
+  return { ...applyLayout(s, autoLayout(base, s, s.aspectKey)), sourceLayout: base, layoutOverrides }
 }

@@ -1,7 +1,7 @@
 import { Line, Text } from 'react-konva'
 import DraggableElement from '../../../core/canvas/DraggableElement'
 import { useAppStore } from '../../../store/useAppStore'
-import { FORMATS } from '../../../core/formats/registry'
+import { textColumn } from '../../../core/formats/registry'
 import { defaultStatsY, statsYBelowTitle } from '../../../utils/aspects'
 import { konvaFontStyle } from '../../../utils/fonts'
 import { measureTextWidth } from '../../../utils/measureText'
@@ -27,13 +27,14 @@ export default function StatsHeaderNode() {
 
   if (!chips.length) return null
 
-  const frameW = FORMATS[aspectKey].w
+  // Laid out across the frame, or across the side column of a landscape format.
+  const column = textColumn(aspectKey)
   const fontStyle = konvaFontStyle(style.fontFamily)
-  const box = arrangementFor(style.arrangement).arrange({ chips, style, fontStyle, frameW, chipOffsets, measure: measureTextWidth })
-  const defaultY = title ? statsYBelowTitle({ y: title.y, fontSize: fittedTitleSize(title, frameW), lines: title.text.split('\n').length }) : defaultStatsY(aspectKey)
+  const box = arrangementFor(style.arrangement).arrange({ chips, style, fontStyle, frameW: column.w, chipOffsets, measure: measureTextWidth })
+  const defaultY = title ? statsYBelowTitle({ y: title.y, fontSize: fittedTitleSize(title, column.w), lines: title.text.split('\n').length }) : defaultStatsY(aspectKey)
 
   return (
-    <DraggableElement kind={STATS_KIND} width={box.width} height={box.height} defaultX={(frameW - box.width) / 2} defaultY={defaultY} rotation={style.rotation}>
+    <DraggableElement kind={STATS_KIND} width={box.width} height={box.height} defaultX={column.x + (column.w - box.width) / 2} defaultY={defaultY} rotation={style.rotation}>
       {box.dividers.map((d, i) => (
         <Line key={`d${i}`} points={[d.x1, d.y1, d.x2, d.y2]} stroke={style.color} strokeWidth={2} opacity={0.4} listening={false} />
       ))}

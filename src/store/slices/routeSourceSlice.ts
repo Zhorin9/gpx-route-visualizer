@@ -1,4 +1,4 @@
-import { defaultTitleY } from '../../utils/aspects'
+import { defaultTitlePlace } from '../../utils/aspects'
 import { parseGpxText } from '../../utils/gpx'
 import { DAY_COLORS, DEFAULT_STATS_CONTENT, IDENTITY_TRANSFORM, makeTitle, nextId } from '../defaults'
 import { joinTrack } from '../derived'
@@ -55,7 +55,7 @@ export function createRouteSourceSlice({ set, get, commit }: SliceContext): Rout
       commit('route:load', (s) => ({
         texts: [
           ...s.texts.filter((t) => t.role !== 'title'),
-          ...(name ? [makeTitle(nextId(s.texts), name, s.titleStyle, defaultTitleY(s.aspectKey))] : []),
+          ...(name ? [makeTitle(nextId(s.texts), name, s.titleStyle, defaultTitlePlace(s.aspectKey))] : []),
         ],
         routeSource: { name: parsed.name, parts: [first] },
         range: { start: 0, end: parsed.points.length - 1 },

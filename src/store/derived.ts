@@ -1,7 +1,6 @@
-import { FORMATS } from '../core/formats/registry'
 import { computeRangeStats, cumulativeDistanceKm, projectPointsToCanvas, splitIntoDays } from '../utils/gpx'
 import { memoOne } from '../utils/memo'
-import type { AspectKey, GpxPoint, GpxTrack, RoutePart, RouteRange, RouteSource, TrackDay } from '../types'
+import type { GpxPoint, GpxTrack, RoutePart, RouteRange, RouteSource, TrackDay } from '../types'
 
 // Pure, memoized derivations shared by the canvas and the panel. Kept out of
 // the store so heavy arrays aren't duplicated into state or history.
@@ -48,12 +47,8 @@ export const trackCumKm = memoOne((track: GpxTrack | null, breaks: readonly numb
 
 export const trackDays = memoOne((track: GpxTrack | null): TrackDay[] => (track ? splitIntoDays(track.points) : []))
 
-// The route is fitted to the whole carousel ribbon, so it can cross slide borders.
-export const projectTrack = memoOne((track: GpxTrack | null, aspectKey: AspectKey, slideCount: number) => {
-  if (!track) return null
-  const { w, h } = FORMATS[aspectKey]
-  return projectPointsToCanvas(track.points, w * slideCount, h)
-})
+// Fitted to a box at the frame's top-left corner (the whole carousel ribbon, or the route area).
+export const projectTrack = memoOne((track: GpxTrack | null, boxW: number, boxH: number) => (track ? projectPointsToCanvas(track.points, boxW, boxH) : null))
 
 export const rangeStats = memoOne((track: GpxTrack | null, range: RouteRange, breaks: readonly number[]) => {
   const cum = trackCumKm(track, breaks)

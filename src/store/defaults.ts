@@ -130,12 +130,11 @@ export const DEFAULT_TITLE_STYLE: TitleStyle = {
 export const TITLE_FONT_SIZE = 80
 
 // The track name, placed as on the template previews: centred, near the top.
-export function makeTitle(id: number, text: string, style: TitleStyle, y: number): TextNode {
+export function makeTitle(id: number, text: string, style: TitleStyle, at: { x: number; y: number }): TextNode {
   return {
     ...makeText(id, 0, 0),
     text,
-    x: 0,
-    y,
+    ...at,
     fontSize: TITLE_FONT_SIZE,
     fontFamily: style.fontFamily,
     color: style.color,
