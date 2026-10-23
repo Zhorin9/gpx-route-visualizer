@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { LAYOUTS, computeSlots, frameInsets, layoutDef, photoCoversFrame, slotAt } from './layouts'
+import { LAYOUTS, computeSlots, frameInsets, layoutDef, layoutFits, photoCoversFrame, slotAt } from './layouts'
 import type { LayoutKey, Slide } from '../types'
 import { gradientLine } from './color'
 
@@ -35,6 +35,14 @@ describe('computeSlots', () => {
     expect(backdrop).toMatchObject({ x: 0, y: 0, w: W, h: H, kind: 'backdrop' })
     expect(framed.kind).toBe('framed')
     expect(framed.x).toBeCloseTo(0.18 * W, 5)
+  })
+
+  it('offers each layout only in frames of its shape', () => {
+    const offered = (w: number, h: number) => LAYOUTS.filter((l) => layoutFits(l, w, h)).map((l) => l.key)
+    expect(offered(1920, 1080)).toEqual(expect.arrayContaining(['g1', 'g3v', 'w1b2s', 'w1p']))
+    expect(offered(1920, 1080)).not.toContain('g3h')
+    expect(offered(1080, 1350)).not.toContain('w1b2s')
+    expect(offered(1080, 1080)).toContain('g23')
   })
 
   it('tilts scrapbook photos', () => {

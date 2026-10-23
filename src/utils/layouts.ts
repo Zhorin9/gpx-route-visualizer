@@ -18,6 +18,8 @@ export interface LayoutDef {
   label: string
   group: LayoutGroup
   cells: LayoutCell[]
+  // Shape of frame the layout makes sense in; any when not set.
+  orientation?: 'portrait' | 'landscape'
 }
 
 const T = 1 / 3
@@ -87,6 +89,7 @@ export const LAYOUTS: LayoutDef[] = [
     key: 'g3h',
     label: '3 poziome',
     group: 'grid',
+    orientation: 'portrait',
     cells: [
       { x: 0, y: 0, w: 1, h: T },
       { x: 0, y: T, w: 1, h: T },
@@ -113,6 +116,7 @@ export const LAYOUTS: LayoutDef[] = [
     key: 'g23',
     label: '2×3',
     group: 'grid',
+    orientation: 'portrait',
     cells: [0, T, 2 * T].flatMap((y) => [
       { x: 0, y, w: 0.5, h: T },
       { x: 0.5, y, w: 0.5, h: T },
@@ -139,6 +143,25 @@ export const LAYOUTS: LayoutDef[] = [
       { x: 2 * T, y: 0, w: T, h: 0.4 },
       { x: 0, y: 0.4, w: 1, h: 0.6 },
     ],
+  },
+  {
+    key: 'w1b2s',
+    label: '1 duże + 2 małe obok',
+    group: 'grid',
+    orientation: 'landscape',
+    cells: [
+      { x: 0, y: 0, w: 2 * T, h: 1 },
+      { x: 2 * T, y: 0, w: T, h: 0.5 },
+      { x: 2 * T, y: 0.5, w: T, h: 0.5 },
+    ],
+  },
+  {
+    // Leaves the side column of the landscape layout to the title and stats.
+    key: 'w1p',
+    label: 'Zdjęcie z pasem na tekst',
+    group: 'grid',
+    orientation: 'landscape',
+    cells: [{ x: 0, y: 0, w: 0.6, h: 1 }],
   },
   {
     key: 'c1',
@@ -182,6 +205,10 @@ export const LAYOUTS: LayoutDef[] = [
 export const LAYOUT_BY_KEY = new Map(LAYOUTS.map((l) => [l.key, l]))
 
 export const DEFAULT_LAYOUT: LayoutKey = 'g1'
+
+export function layoutFits(def: LayoutDef, w: number, h: number): boolean {
+  return !def.orientation || (def.orientation === 'landscape') === w > h
+}
 
 export function layoutDef(key: LayoutKey): LayoutDef {
   return LAYOUT_BY_KEY.get(key) ?? LAYOUTS[0]
