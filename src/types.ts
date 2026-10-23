@@ -309,7 +309,7 @@ export interface CollageStyle {
   fit: 'cover' | 'contain'
 }
 
-export type AspectKey = '9:16' | '4:5' | '1:1'
+export type AspectKey = '9:16' | '4:5' | '1:1' | '16:9'
 
 // Positions of the elements whose placement differs between formats.
 export interface FormatLayout {

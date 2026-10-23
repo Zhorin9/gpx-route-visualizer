@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_SLIDES } from '../store/defaults'
 import type { DocumentState } from '../store/types'
-import { manualFlags, reflowTo } from './reflow'
+import { manualFlags, reflowTo, slideCountIn } from './reflow'
 
 type State = Parameters<typeof reflowTo>[0]
 
@@ -13,12 +13,25 @@ const state = (over: Partial<State> = {}): State => ({
   sourceLayout: null,
   layoutOverrides: {},
   slides: DEFAULT_SLIDES,
+  parkedSlides: [],
   ...over,
 })
 
 const step = (s: State, key: State['aspectKey']): State => ({ ...s, ...reflowTo(s, key) }) as State
 
 describe('reflow between formats', () => {
+  it('shows one slide in a format without a carousel and brings the others back', () => {
+    const photo = (photoId: number) => ({ photoId, offsetX: 0, offsetY: 0, zoom: 1 })
+    const slides = [1, 2, 3].map((id) => ({ layoutKey: 'g1' as const, slots: { 0: photo(id) } }))
+    const wide = step(state({ slides }), '16:9')
+    expect(wide.slides).toHaveLength(1)
+    expect(slideCountIn(wide, '16:9')).toBe(1)
+    expect(slideCountIn(wide, '4:5')).toBe(3)
+    const back = step(step(wide, '9:16'), '4:5')
+    expect(back.slides.map((s) => s.slots[0].photoId)).toEqual([1, 2, 3])
+    expect(back.parkedSlides).toEqual([])
+  })
+
   it('comes back to the same layout after a round trip', () => {
     const start = state()
     const back = step(step(step(start, '9:16'), '1:1'), '4:5')

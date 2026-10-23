@@ -22,6 +22,7 @@ export const INITIAL_DOCUMENT: DocumentState = {
   waypoints: [],
   pointStyle: DEFAULT_POINT_STYLE,
   slides: DEFAULT_SLIDES,
+  parkedSlides: [],
   collage: DEFAULT_COLLAGE,
   carouselKind: 'panorama',
   kmInterval: 0,

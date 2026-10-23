@@ -122,6 +122,19 @@
   border-top: 1px dashed var(--accent);
 }
 
+.safe-zone.side {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-bottom: none;
+  border-right: 1px dashed var(--accent);
+}
+
+.safe-zone.side.right {
+  border-right: none;
+  border-left: 1px dashed var(--accent);
+}
+
 .safe-zone span {
   font-size: 10px;
   color: var(--accent-text-strong);

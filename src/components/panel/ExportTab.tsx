@@ -11,7 +11,7 @@ import { exportFileNames } from '../../utils/exportImage'
 import { exportProject } from '../../utils/exportProject'
 import { canvasElements, type CanvasElementDefinition } from '../../core/canvas/registry'
 import SubTabs from '../../core/panel/SubTabs'
-import { SOURCE_ASPECT, hasManualLayout } from '../../utils/reflow'
+import { SOURCE_ASPECT, hasManualLayout, slideCountIn } from '../../utils/reflow'
 import { selectTrack } from '../../store/derived'
 import type { AspectKey, ExportFormat, SelectOption } from '../../types'
 import './ExportTab.css'
@@ -104,7 +104,8 @@ function ImageExport() {
   const hasBackground = useHasBackground()
   const aspectKey = useAppStore((s) => s.aspectKey)
   const trackName = useAppStore((s) => selectTrack(s)?.name ?? null)
-  const slideCount = useAppStore((s) => s.slides.length)
+  const slides = useAppStore((s) => s.slides)
+  const parkedSlides = useAppStore((s) => s.parkedSlides)
   const exporting = useAppStore((s) => s.exporting)
   const [chosenFormat, setFormat] = useState<ExportFormat>('png')
   const [scale, setScale] = useState<Scale>('1')
@@ -116,7 +117,7 @@ function ImageExport() {
   const fileScale = scale === '2' ? 2 : 1
   const baseName = trackName ?? (hasRoute ? null : 'kolaz')
   const formats = FORMAT_ORDER.filter((f) => picked.includes(f))
-  const fileNames = formats.flatMap((f) => exportFileNames(format, fileScale, f, baseName, slideCount))
+  const fileNames = formats.flatMap((f) => exportFileNames(format, fileScale, f, baseName, slideCountIn({ slides, parkedSlides }, f)))
   const canExport = (hasRoute || hasBackground) && formats.length > 0 && !exporting
 
   const scaleOptions: SelectOption<Scale>[] = [

@@ -10,6 +10,7 @@ import { useAppStore } from '../../../store/useAppStore'
 import { archiveBaseName, downloadFiles, type ExportFile } from '../../../utils/exportImage'
 import { formatNumber } from '../../../utils/format'
 import { FORMATS, FORMAT_ORDER } from '../../../core/formats/registry'
+import { slideCountIn } from '../../../utils/reflow'
 import { totalDuration } from '../../animation/model/timeline'
 import { formatTime } from '../../animation/ui/formatTime'
 import { frameCount, outputSize, renderThumbnails, renderVideo, type VideoJob, type VideoProgress } from '../exportVideo'
@@ -103,10 +104,10 @@ export default function VideoExportPanel() {
   const currentAspect = useAppStore((s) => s.aspectKey)
   const animation = useAppStore((s) => s.animation)
   const trackName = useAppStore((s) => selectTrack(s)?.name ?? null)
-  const slideCount = useAppStore((s) => s.slides.length)
   const showToast = useAppStore((s) => s.showToast)
   const [job, setJob] = useState<VideoJob>({ format: 'mp4', aspect: currentAspect, fps: 30, repeat: 1, loopForever: true, quality: 'medium' })
   const [phase, setPhase] = useState<Phase>({ kind: 'idle' })
+  const slideCount = useAppStore((s) => slideCountIn(s, job.aspect))
   const abortRef = useRef<AbortController | null>(null)
 
   const { width, height } = outputSize(job)

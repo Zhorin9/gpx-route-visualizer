@@ -252,7 +252,12 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
       })
     },
 
-    setAspectKey: (key) => commit('aspect', (s) => reflowTo(s, key)),
+    setAspectKey: (key) =>
+      commit('aspect', (s) => {
+        const next = reflowTo(s, key)
+        const slideGone = s.selection?.kind === 'slot' && next.slides && s.selection.slide >= next.slides.length
+        return slideGone ? { ...next, selection: null } : next
+      }),
     resetFormatLayout: () => commit('format:reset', (s) => resetToAuto(s)),
 
     setDimOpacity: (value) => commit('dim', { dimOpacity: value }),

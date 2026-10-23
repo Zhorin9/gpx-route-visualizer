@@ -42,6 +42,7 @@ function CanvasToolbar() {
   const setShowSafeZones = useAppStore((s) => s.setShowSafeZones)
   const adding = useAppStore((s) => s.addingWaypoint)
   const slideCount = useAppStore((s) => s.slides.length)
+  const parkedSlides = useAppStore((s) => s.parkedSlides.length)
   const setCarousel = useAppStore((s) => s.setCarousel)
   const setAspectKey = useAppStore((s) => s.setAspectKey)
   const customLayout = hasManualLayout(useManualFlags())
@@ -52,12 +53,14 @@ function CanvasToolbar() {
 
   return (
     <div className="canvas-toolbar" role="toolbar" aria-label="Narzędzia podglądu">
-      <Segmented
-        label="Tryb kadru"
-        value={slideCount > 1 ? 'carousel' : 'single'}
-        options={MODE_OPTIONS}
-        onChange={(mode) => setCarousel(mode === 'carousel')}
-      />
+      {FORMATS[aspectKey].carousel && (
+        <Segmented
+          label="Tryb kadru"
+          value={slideCount > 1 ? 'carousel' : 'single'}
+          options={MODE_OPTIONS}
+          onChange={(mode) => setCarousel(mode === 'carousel')}
+        />
+      )}
       <Button
         size="sm"
         variant="ghost"
@@ -76,6 +79,11 @@ function CanvasToolbar() {
       )}
       <Segmented label="Format kadru" value={aspectKey} options={FORMAT_OPTIONS} onChange={setAspectKey} />
       {customLayout && <span className="tag-custom">własny układ</span>}
+      {parkedSlides > 0 && (
+        <span className="toolbar-hint" role="status">
+          Ten format ma jeden kadr. Pozostałe slajdy ({parkedSlides}) wrócą po przejściu na format Instagrama.
+        </span>
+      )}
       {FORMATS[aspectKey].safeZone && (
         <Button
           size="sm"

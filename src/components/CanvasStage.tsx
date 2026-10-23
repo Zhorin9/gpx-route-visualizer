@@ -157,6 +157,8 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
           <div className="safe-zone bottom" style={{ height: safeZone.bottom * previewScale }}>
             <span>{safeZone.bottomLabel}</span>
           </div>
+          {safeZone.left > 0 && <div className="safe-zone side" style={{ left: 0, width: safeZone.left * previewScale }} />}
+          {safeZone.right > 0 && <div className="safe-zone side right" style={{ right: 0, width: safeZone.right * previewScale }} />}
         </div>
       )}
     </div>

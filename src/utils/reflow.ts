@@ -1,7 +1,7 @@
 import { FORMATS } from '../core/formats/registry'
 import { DEFAULT_SLOT_CROP } from '../store/defaults'
 import type { DocumentState } from '../store/types'
-import type { AspectKey, ElementPlacement, FormatLayout, FormatOverrides } from '../types'
+import type { AspectKey, ElementPlacement, FormatLayout, FormatOverrides, Slide } from '../types'
 
 // The layout authored in this format is the reference; the others are derived from it.
 export const SOURCE_ASPECT: AspectKey = '4:5'
@@ -12,7 +12,7 @@ const TEXT_BOTTOM_ROOM = 60
 
 type LayoutState = Pick<DocumentState, 'texts' | 'placements' | 'routeTransform'>
 type BaseState = LayoutState & Pick<DocumentState, 'aspectKey' | 'sourceLayout'>
-type ReflowState = BaseState & Pick<DocumentState, 'layoutOverrides' | 'slides'>
+type ReflowState = BaseState & Pick<DocumentState, 'layoutOverrides' | 'slides' | 'parkedSlides'>
 
 export function readLayout(s: LayoutState): FormatLayout {
   return {
@@ -135,11 +135,25 @@ export function reflowTo(s: ReflowState, key: AspectKey): Partial<DocumentState>
     sourceLayout: key === SOURCE_ASPECT ? null : base,
     layoutOverrides,
     // Crops were framed for the old shape.
-    slides: s.slides.map((slide) => ({
-      ...slide,
-      slots: Object.fromEntries(Object.entries(slide.slots).map(([i, a]) => [i, { ...a, ...DEFAULT_SLOT_CROP }])),
-    })),
+    ...carouselSlides(
+      s.slides.map((slide) => ({
+        ...slide,
+        slots: Object.fromEntries(Object.entries(slide.slots).map(([i, a]) => [i, { ...a, ...DEFAULT_SLOT_CROP }])),
+      })),
+      s.parkedSlides,
+      FORMATS[key].carousel,
+    ),
   }
+}
+
+// A format without a carousel shows only the first slide; the others wait for one that has it.
+function carouselSlides(slides: Slide[], parked: Slide[], carousel: boolean): Pick<DocumentState, 'slides' | 'parkedSlides'> {
+  return carousel ? { slides: [...slides, ...parked], parkedSlides: [] } : { slides: slides.slice(0, 1), parkedSlides: [...slides.slice(1), ...parked] }
+}
+
+// Slides the given format exports, whichever format is open now.
+export function slideCountIn(s: Pick<DocumentState, 'slides' | 'parkedSlides'>, key: AspectKey): number {
+  return FORMATS[key].carousel ? s.slides.length + s.parkedSlides.length : 1
 }
 
 // Drops every hand-placed element of the current format and follows the source again.

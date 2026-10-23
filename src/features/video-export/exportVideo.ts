@@ -77,7 +77,6 @@ export async function renderVideo(
   onProgress: (p: VideoProgress) => void,
   signal?: AbortSignal,
 ): Promise<ExportFile[]> {
-  const slideCount = useAppStore.getState().slides.length
   const duration = animationLength()
   const count = frameCount(job, duration)
   const total = count * (job.format === 'gif' ? 1 : Math.max(1, job.repeat))
@@ -88,6 +87,7 @@ export async function renderVideo(
   try {
     await frames.useFormat(job.aspect)
     throwIfAborted(signal)
+    const slideCount = useAppStore.getState().slides.length
     for (let slide = 0; slide < slideCount; slide++) {
       const paletteSamples =
         job.format === 'gif' ? await sampleFrames(frames, job.aspect, slide, [0.2, 0.45, 0.7, 0.95].map((k) => duration * k), Math.round(height / 2)) : undefined
@@ -111,7 +111,7 @@ export async function renderVideo(
     }
 
     const blobs = await Promise.all(sessions.map((s) => s.finish()))
-    const names = exportFileNames(job.format, 1, job.aspect, trackName, slideCount)
+    const names = exportFileNames(job.format, 1, job.aspect, trackName, sessions.length)
     return blobs.map((blob, i) => ({ name: names[i], blob }))
   } catch (e) {
     sessions.forEach((s) => s.abort())
