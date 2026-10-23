@@ -2,8 +2,11 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { DEFAULT_COLLAGE, DEFAULT_ROUTE_STYLE, DEFAULT_STATS_STYLE, STAT_ORDER } from './defaults'
 import { createAnimationSlice } from '../features/animation/store'
+import { createCameraSlice } from '../features/camera/store'
+import { createMapSlice } from '../features/map/store'
 import { createDataColorSlice } from '../features/data-color/store'
 import { createProfileSlice } from '../features/elevation-profile/store'
+import { createTravelSlice } from '../features/travel/store'
 import { INITIAL_DOCUMENT } from './document'
 import { createHistory } from './history'
 import { createElementsSlice } from './slices/elementsSlice'
@@ -107,6 +110,9 @@ export const useAppStore = create<AppState>()(
         ...createProfileSlice(ctx),
         ...createDataColorSlice(ctx),
         ...createAnimationSlice(ctx),
+        ...createCameraSlice(ctx),
+        ...createMapSlice(ctx),
+        ...createTravelSlice(ctx),
         ...history.slice,
       }
     },

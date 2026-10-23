@@ -5,12 +5,12 @@ import { useRouteHead } from '../../core/route/providers'
 import { useTrackCumKm } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { posAtDistance } from '../../utils/geometry'
-import { elevationGain } from '../../utils/gpx'
+import { groundGain } from '../../utils/gpx'
 import { memoOne } from '../../utils/memo'
 import { useActiveDataColor, type ActiveDataColor } from '../data-color/useDataColoring'
 import { detectClimbs, type Climb } from './model/climbs'
 import { sampleAt, sampleByDistance, smoothSamples, type ProfileSamples } from './model/profile'
-import { selectTrack, selectRouteDays } from '../../store/derived'
+import { flatSpans, selectRouteDays, selectRouteParts, selectTrack } from '../../store/derived'
 import type { GpxTrack, RoutePart, RouteRange } from '../../types'
 import type { ProfileColorMode } from './types'
 
@@ -28,7 +28,7 @@ export interface ProfileData {
 const SMOOTHING_SHARE = 150
 
 const profileData = memoOne(
-  (track: GpxTrack, cumKm: Float64Array, range: RouteRange, days: RoutePart[], columns: number, smoothing: number): ProfileData => {
+  (track: GpxTrack, cumKm: Float64Array, range: RouteRange, days: RoutePart[], parts: RoutePart[], columns: number, smoothing: number): ProfileData => {
     const ele = dataSeries(track, cumKm, 'elevation')
     const hiddenDays = days.filter((d) => !d.visible)
     const hidden = hiddenDays.length ? (i: number) => hiddenDays.some((d) => i >= d.startIdx && i <= d.endIdx) : undefined
@@ -38,7 +38,7 @@ const profileData = memoOne(
       samples: smoothSamples(samples, Math.round((smoothing * columns) / SMOOTHING_SHARE)),
       climbs: detectClimbs(ele, cumKm, range.start, range.end),
       // The same figure as the stats header, so the two never disagree.
-      gainM: elevationGain(track.points, range.start, range.end),
+      gainM: groundGain(track.points, range.start, range.end, flatSpans(parts)),
       range,
       cumKm,
     }
@@ -49,10 +49,11 @@ export function useProfileData(columns: number): ProfileData | null {
   const track = useAppStore(selectTrack)
   const range = useAppStore((s) => s.range)
   const days = useAppStore(selectRouteDays)
+  const parts = useAppStore(selectRouteParts)
   const smoothing = useAppStore((s) => s.profile.smoothing)
   const cumKm = useTrackCumKm()
   if (!track || !cumKm || range.end <= range.start) return null
-  return profileData(track, cumKm, range, days, columns, smoothing)
+  return profileData(track, cumKm, range, days, parts, columns, smoothing)
 }
 
 // Each sample's value of a source; elevation is the chart itself.

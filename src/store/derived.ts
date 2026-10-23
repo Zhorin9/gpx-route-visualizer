@@ -1,4 +1,4 @@
-import { computeRangeStats, cumulativeDistanceKm, projectPointsToCanvas, splitIntoDays } from '../utils/gpx'
+import { computeRangeStats, cumulativeDistanceKm, fitMercator, projectWithFit, splitIntoDays, type Span } from '../utils/gpx'
 import { memoOne } from '../utils/memo'
 import type { GpxPoint, GpxTrack, RoutePart, RouteRange, RouteSource, TrackDay } from '../types'
 
@@ -33,6 +33,9 @@ const NO_PARTS: RoutePart[] = []
 // Usable directly as zustand selectors: the result keeps its identity while the source doesn't change.
 export const selectTrack = (s: SourceState): GpxTrack | null => joinTrack(s.routeSource, s.trackCache)?.track ?? null
 
+// Every part, a single file too.
+export const selectRouteParts = (s: SourceState): RoutePart[] => joinTrack(s.routeSource, s.trackCache)?.parts ?? NO_PARTS
+
 // Empty for a single file: one part is drawn in the route's own style, not as a day.
 export const selectRouteDays = (s: SourceState): RoutePart[] => {
   const parts = joinTrack(s.routeSource, s.trackCache)?.parts
@@ -48,10 +51,25 @@ export const trackCumKm = memoOne((track: GpxTrack | null, breaks: readonly numb
 export const trackDays = memoOne((track: GpxTrack | null): TrackDay[] => (track ? splitIntoDays(track.points) : []))
 
 // Fitted to a box at the frame's top-left corner (the whole carousel ribbon, or the route area).
-export const projectTrack = memoOne((track: GpxTrack | null, boxW: number, boxH: number) => (track ? projectPointsToCanvas(track.points, boxW, boxH) : null))
+export const trackFit = memoOne((track: GpxTrack | null, boxW: number, boxH: number) => (track ? fitMercator(track.points, boxW, boxH) : null))
 
-export const rangeStats = memoOne((track: GpxTrack | null, range: RouteRange, breaks: readonly number[]) => {
+export const projectTrack = memoOne((track: GpxTrack | null, boxW: number, boxH: number) => {
+  const fit = trackFit(track, boxW, boxH)
+  return track && fit ? projectWithFit(track.points, fit) : null
+})
+
+// Whether the range has any ground heights; a flight alone has none, so it shows no elevation profile.
+export const selectGroundInRange = (s: SourceState & { range: RouteRange }): boolean =>
+  selectRouteParts(s).some((p) => p.groundElevation !== false && p.startIdx <= s.range.end && p.endIdx >= s.range.start)
+
+// Parts whose heights aren't the ground's (flights): stats and the profile count no climbing there.
+export const flatSpans = memoOne((parts: RoutePart[]): Span[] => parts.filter((p) => p.groundElevation === false).map((p) => [p.startIdx, p.endIdx]))
+
+export const rangeStats = memoOne((track: GpxTrack | null, range: RouteRange, breaks: readonly number[], parts: RoutePart[]) => {
   const cum = trackCumKm(track, breaks)
   if (!track || !cum) return null
-  return computeRangeStats(track.points, cum, range.start, range.end, breaks)
+  return {
+    ...computeRangeStats(track.points, cum, range.start, range.end, breaks, flatSpans(parts)),
+    estimatedTime: parts.some((p) => p.estimatedTime && p.startIdx <= range.end && p.endIdx >= range.start),
+  }
 })

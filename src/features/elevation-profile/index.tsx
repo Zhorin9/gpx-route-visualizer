@@ -3,6 +3,7 @@ import { registerPanelSection } from '../../core/panel/registry'
 import { addRouteDecoration } from '../../core/route/providers'
 import { IconMountain } from '../../components/icons'
 import { useHasRoute } from '../../store/selectors'
+import { selectGroundInRange } from '../../store/derived'
 import { useAppStore } from '../../store/useAppStore'
 import ElevationProfileNode from './canvas/ElevationProfileNode'
 import ProfileRouteMarker from './canvas/ProfileRouteMarker'
@@ -11,7 +12,8 @@ import { PROFILE_KIND } from './types'
 
 function useIsAvailable() {
   const enabled = useAppStore((s) => s.profile.enabled)
-  return useHasRoute() && enabled
+  const ground = useAppStore(selectGroundInRange)
+  return useHasRoute() && enabled && ground
 }
 
 export function registerElevationProfile() {

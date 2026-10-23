@@ -1,5 +1,7 @@
 import { DEFAULT_COLLAGE, DEFAULT_POINT_STYLE, DEFAULT_ROUTE_STYLE, DEFAULT_SLIDES, DEFAULT_STATS_CONTENT, DEFAULT_STATS_LAYOUT, DEFAULT_STATS_STYLE, DEFAULT_TITLE_STYLE, IDENTITY_TRANSFORM } from './defaults'
 import { DEFAULT_ANIMATION } from '../features/animation/types'
+import { DEFAULT_CAMERA } from '../features/camera/model/camera'
+import { DEFAULT_MAP } from '../features/map/types'
 import { DEFAULT_DATA_COLOR } from '../features/data-color/types'
 import { DEFAULT_PROFILE } from '../features/elevation-profile/types'
 import type { DocumentState } from './types'
@@ -32,6 +34,8 @@ export const INITIAL_DOCUMENT: DocumentState = {
   profile: DEFAULT_PROFILE,
   dataColor: DEFAULT_DATA_COLOR,
   animation: DEFAULT_ANIMATION,
+  camera: DEFAULT_CAMERA,
+  map: DEFAULT_MAP,
 }
 
 export const DOCUMENT_KEYS = Object.keys(INITIAL_DOCUMENT) as (keyof DocumentState)[]

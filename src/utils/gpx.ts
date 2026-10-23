@@ -116,13 +116,36 @@ export function movingDurationMs(points: GpxPoint[], cumKm: Float64Array, startI
   return total
 }
 
-function maxElevation(points: GpxPoint[], startIdx: number, endIdx: number): number | null {
+// Inclusive index spans whose heights aren't the ground's (a flight): they count no climbing.
+export type Span = readonly [number, number]
+
+// The stretches of [startIdx, endIdx] outside the given spans.
+function groundPieces(startIdx: number, endIdx: number, flat: readonly Span[]): Span[] {
+  const pieces: Span[] = []
+  let from = startIdx
+  for (const [a, b] of [...flat].sort((x, y) => x[0] - y[0])) {
+    if (b < from || a > endIdx) continue
+    if (a > from) pieces.push([from, a - 1])
+    from = Math.max(from, b + 1)
+  }
+  if (from <= endIdx) pieces.push([from, endIdx])
+  return pieces
+}
+
+// Climbing on the ground only: each stretch between flights counts on its own.
+export function groundGain(points: GpxPoint[], startIdx: number, endIdx: number, flat: readonly Span[] = []): number {
+  return groundPieces(startIdx, endIdx, flat).reduce((sum, [a, b]) => sum + elevationGain(points, a, b), 0)
+}
+
+function maxElevation(points: GpxPoint[], startIdx: number, endIdx: number, flat: readonly Span[]): number | null {
   let max = -Infinity
   let any = false
-  for (let i = startIdx; i <= endIdx; i++) {
-    const ele = points[i].ele
-    if (ele !== 0) any = true
-    if (ele > max) max = ele
+  for (const [a, b] of groundPieces(startIdx, endIdx, flat)) {
+    for (let i = a; i <= b; i++) {
+      const ele = points[i].ele
+      if (ele !== 0) any = true
+      if (ele > max) max = ele
+    }
   }
   return any ? max : null
 }
@@ -133,13 +156,14 @@ export function computeRangeStats(
   startIdx: number,
   endIdx: number,
   breaks: readonly number[] = [],
+  flat: readonly Span[] = [],
 ): RangeStats {
   return {
     distanceKm: (cumKm[endIdx] ?? 0) - (cumKm[startIdx] ?? 0),
-    elevationGainM: elevationGain(points, startIdx, endIdx),
+    elevationGainM: groundGain(points, startIdx, endIdx, flat),
     durationMs: durationMs(points, startIdx, endIdx, breaks),
     movingMs: movingDurationMs(points, cumKm, startIdx, endIdx, breaks),
-    maxElevationM: maxElevation(points, startIdx, endIdx),
+    maxElevationM: maxElevation(points, startIdx, endIdx, flat),
   }
 }
 
@@ -190,33 +214,72 @@ export function flatBounds(flat: ArrayLike<number>, from = 0, to = flat.length):
   return { minX, maxX, minY, maxY }
 }
 
-// Projects lat/lon onto the canvas, preserving aspect ratio, north up,
-// centered in the box. Returns a flat [x0, y0, x1, y1, ...] array.
-export function projectPointsToCanvas(points: GpxPoint[], boxWidth: number, boxHeight: number, padding = 80): Float64Array {
-  let minLat = Infinity
-  let maxLat = -Infinity
-  let minLon = Infinity
-  let maxLon = -Infinity
+// Web Mercator, as map tiles use it: the world spans [0, 1] both ways, x eastward, y southward.
+export const mercatorX = (lon: number) => (lon + 180) / 360
+
+export function mercatorY(lat: number): number {
+  const sin = Math.sin((Math.max(-85.05, Math.min(85.05, lat)) * Math.PI) / 180)
+  return 0.5 - Math.log((1 + sin) / (1 - sin)) / (4 * Math.PI)
+}
+
+// Where the projection put the route: a frame pixel is (mercator − origin) × scale.
+// The map background and the camera take their view from it.
+export interface MercatorFit {
+  scale: number
+  x0: number
+  y0: number
+}
+
+// The track fitted inside the box with `padding` on every side, centred, north up.
+export function fitMercator(points: GpxPoint[], boxWidth: number, boxHeight: number, padding = 80): MercatorFit {
+  let minX = Infinity
+  let maxX = -Infinity
+  let minY = Infinity
+  let maxY = -Infinity
   for (const p of points) {
-    if (p.lat < minLat) minLat = p.lat
-    if (p.lat > maxLat) maxLat = p.lat
-    if (p.lon < minLon) minLon = p.lon
-    if (p.lon > maxLon) maxLon = p.lon
+    const x = mercatorX(p.lon)
+    const y = mercatorY(p.lat)
+    if (x < minX) minX = x
+    if (x > maxX) maxX = x
+    if (y < minY) minY = y
+    if (y > maxY) maxY = y
   }
+  const w = maxX - minX || 1e-9
+  const h = maxY - minY || 1e-9
+  const scale = Math.min((boxWidth - padding * 2) / w, (boxHeight - padding * 2) / h)
+  return { scale, x0: minX - (boxWidth - w * scale) / 2 / scale, y0: minY - (boxHeight - h * scale) / 2 / scale }
+}
 
-  const latRange = maxLat - minLat || 1e-6
-  const lonRange = maxLon - minLon || 1e-6
-  // Correct for longitude distortion at this latitude.
-  const lonScaleFactor = Math.cos(((minLat + maxLat) / 2) * (Math.PI / 180))
-
-  const scale = Math.min((boxWidth - padding * 2) / (lonRange * lonScaleFactor), (boxHeight - padding * 2) / latRange)
-  const offsetX = (boxWidth - lonRange * lonScaleFactor * scale) / 2
-  const offsetY = (boxHeight - latRange * scale) / 2
-
+// Projects lat/lon onto the canvas with the fit. Returns a flat [x0, y0, x1, y1, ...] array.
+export function projectWithFit(points: GpxPoint[], fit: MercatorFit): Float64Array {
   const flat = new Float64Array(points.length * 2)
   points.forEach((p, i) => {
-    flat[i * 2] = (p.lon - minLon) * lonScaleFactor * scale + offsetX
-    flat[i * 2 + 1] = (maxLat - p.lat) * scale + offsetY
+    flat[i * 2] = (mercatorX(p.lon) - fit.x0) * fit.scale
+    flat[i * 2 + 1] = (mercatorY(p.lat) - fit.y0) * fit.scale
   })
   return flat
+}
+
+export function projectPointsToCanvas(points: GpxPoint[], boxWidth: number, boxHeight: number, padding = 80): Float64Array {
+  return projectWithFit(points, fitMercator(points, boxWidth, boxHeight, padding))
+}
+
+const escapeXml = (text: string) => text.replace(/[<>&"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' })[c] as string)
+
+// A GPX file of the points, readable by parseGpxText and by other apps.
+export function toGpxText(name: string, points: GpxPoint[]): string {
+  const trkpts = points
+    .map((p) => {
+      const lon = ((((p.lon + 180) % 360) + 360) % 360) - 180
+      const time = p.time != null ? `<time>${new Date(p.time).toISOString()}</time>` : ''
+      return `<trkpt lat="${p.lat.toFixed(6)}" lon="${lon.toFixed(6)}"><ele>${p.ele.toFixed(1)}</ele>${time}</trkpt>`
+    })
+    .join('\n')
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="GPX Route Visualizer" xmlns="http://www.topografix.com/GPX/1/1">
+<trk><name>${escapeXml(name)}</name><trkseg>
+${trkpts}
+</trkseg></trk>
+</gpx>
+`
 }

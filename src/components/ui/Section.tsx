@@ -3,6 +3,8 @@ import { IconChevron } from '../icons'
 
 // Remembered per section while the app is open, so switching tabs doesn't reopen it.
 const collapsedIds = new Set<string>()
+// Sections the person has folded or opened; the others start as `startCollapsed` says.
+const touchedIds = new Set<string>()
 
 export interface SectionProps {
   title?: string
@@ -10,13 +12,17 @@ export interface SectionProps {
   actions?: ReactNode
   // Makes the heading a button that folds the content away.
   collapseId?: string
+  // Folded until opened ('Zaawansowane').
+  startCollapsed?: boolean
 }
 
-export default function Section({ title, children, actions, collapseId }: SectionProps) {
-  const [collapsed, setCollapsed] = useState(() => (collapseId ? collapsedIds.has(collapseId) : false))
+export default function Section({ title, children, actions, collapseId, startCollapsed = false }: SectionProps) {
+  const [collapsed, setCollapsed] = useState(() => (collapseId ? (touchedIds.has(collapseId) ? collapsedIds.has(collapseId) : startCollapsed) : false))
 
   function toggle() {
     if (!collapseId) return
+    if (!touchedIds.has(collapseId) && startCollapsed) collapsedIds.add(collapseId)
+    touchedIds.add(collapseId)
     if (collapsedIds.has(collapseId)) collapsedIds.delete(collapseId)
     else collapsedIds.add(collapseId)
     setCollapsed(collapsedIds.has(collapseId))

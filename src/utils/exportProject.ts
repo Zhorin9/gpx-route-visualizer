@@ -10,7 +10,7 @@ export async function exportProject(formats: AspectKey[], scale: 1 | 2, format: 
     const files: ExportFile[] = []
     for (const key of formats) {
       await frames.useFormat(key)
-      files.push(...(await ribbonToFiles(frames.render(scale), format, scale, key, trackName, useAppStore.getState().slides.length)))
+      files.push(...(await ribbonToFiles(await frames.render(scale), format, scale, key, trackName, useAppStore.getState().slides.length)))
     }
     await downloadFiles(files, archiveBaseName(trackName))
   } finally {

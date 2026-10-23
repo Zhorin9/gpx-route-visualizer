@@ -1,0 +1,258 @@
+/* ---------- Podróż: stops and legs ---------- */
+.travel-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.travel-panel h6 {
+  margin: 0;
+  font-size: var(--text-md);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.trip-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.trip-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 0;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.trip-row.dragging {
+  opacity: 0.5;
+}
+
+.trip-letter {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: #f3f2f2;
+  background: #24351f;
+  border: 2px solid #f3f2f2;
+  border-radius: 12px;
+}
+
+.trip-row.selected .trip-letter {
+  background: var(--accent);
+}
+
+.trip-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.trip-title {
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trip-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.trip-handle {
+  padding: 0 2px;
+  font-size: 11px;
+  letter-spacing: -0.1em;
+  color: var(--color-neutral-500);
+  background: none;
+  border: none;
+  cursor: grab;
+}
+
+/* A leg between two stops: indented, a thin line on the left; the edited one tinted. */
+.trip-leg {
+  padding: 7px 0 7px 10px;
+}
+
+.trip-leg-mark {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  margin-left: 5px;
+  border-left: 1.5px solid var(--color-neutral-500);
+}
+
+.trip-leg.selected {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border-left: 2px solid var(--accent);
+  padding-left: 8px;
+}
+
+.add-stop {
+  align-self: flex-start;
+  margin-top: -6px;
+  padding: 0 0 0 34px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--accent-text);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.add-stop:hover {
+  text-decoration: underline;
+}
+
+/* The selected leg's (or stop's) settings. */
+.leg-box {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--border);
+}
+
+.leg-box h6 {
+  margin: 0;
+}
+
+.mode-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.mode-opt {
+  padding: 8px 0;
+  font: inherit;
+  font-size: 11px;
+  text-align: center;
+  color: var(--text);
+  background: none;
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.mode-opt:hover {
+  background: var(--accent-soft);
+}
+
+.mode-opt.active {
+  color: var(--accent-text);
+  border-color: var(--accent);
+}
+
+.line-kinds {
+  display: flex;
+  gap: 8px;
+}
+
+.line-kinds .tag {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.line-kinds .tag-outline {
+  background: none;
+}
+
+.line-kinds .tag:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.seconds-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.seconds-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.seconds-stepper button {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  font: inherit;
+  color: var(--text);
+  background: none;
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.seconds-stepper button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.seconds-value {
+  min-width: 34px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.leg-vias {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+/* ---------- Place search suggestions ---------- */
+.place-options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  margin: 2px 0 0;
+  padding: var(--space-1);
+  list-style: none;
+  background: var(--panel-bg);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+
+.place-option {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.place-option small {
+  color: var(--text-muted);
+}
+
+.place-option.active {
+  color: var(--on-accent-soft);
+  background: var(--accent-soft);
+}
+
+.place-option.more {
+  margin-top: var(--space-1);
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+}

@@ -5,8 +5,8 @@ import { INK, PAPER, mixHex, toneOf, type Tone } from '../../utils/color'
 import { measureTextWidth } from '../../utils/measureText'
 import { reflowTo, resetToAuto } from '../../utils/reflow'
 import { CAROUSEL_SLIDES, DEFAULT_SLOT_CROP, MAX_SLIDES, MIN_CAROUSEL_SLIDES, makeText, nextId } from '../defaults'
-import type { CarouselKind, Slide } from '../../types'
-import type { MediaSlice, SliceContext } from '../types'
+import type { CarouselKind, CollageStyle, Slide } from '../../types'
+import type { AppState, MediaSlice, SliceContext } from '../types'
 
 // Texts left beyond the right edge after the ribbon shrinks would be unreachable.
 function keepInside<T extends { x: number }>(texts: T[], width: number): T[] {
@@ -15,6 +15,25 @@ function keepInside<T extends { x: number }>(texts: T[], width: number): T[] {
 
 // Ids are never reused, so undoing a removal can't pick up a photo uploaded later.
 let lastPhotoId = 0
+
+// Whether a colour or gradient background is light or dark; null for the other kinds.
+export const collageTone = (c: CollageStyle): Tone | null =>
+  c.bgKind === 'gradient' ? toneOf(mixHex(c.gradient.from, c.gradient.to)) : c.bgKind === 'color' ? toneOf(c.bgColor) : null
+
+// With auto contrast, text and route flip to dark or light when the background does. Over photos
+// the background isn't what the text sits on, so the colours are left alone.
+export function withContrast(s: AppState, collage: CollageStyle, before: Tone | null, after: Tone | null): Partial<AppState> {
+  if (!collage.autoContrast || !after || after === (before ?? 'dark') || hasVisiblePhotos(s.slides, s.carouselKind)) return { collage }
+  const color = after === 'light' ? INK : PAPER
+  return {
+    collage,
+    statsStyle: { ...s.statsStyle, color },
+    titleStyle: { ...s.titleStyle, color },
+    texts: s.texts.map((t) => ({ ...t, color })),
+    waypoints: s.waypoints.map((w) => ({ ...w, color })),
+    routeStyle: { ...s.routeStyle, color },
+  }
+}
 
 function withSlide(slides: Slide[], index: number, update: (slide: Slide) => Slide): Slide[] {
   return slides.map((slide, i) => (i === index ? update(slide) : slide))
@@ -196,25 +215,10 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
     updateFrame: (patch) =>
       commit(`frame:${Object.keys(patch).join()}`, (s) => ({ collage: { ...s.collage, frame: { ...s.collage.frame, ...patch } } })),
 
-    // With auto contrast, text and route flip to dark or light when the gradient does.
     updateBackground: ({ gradient, ...patch }) =>
       commit('background', (s) => {
         const collage = { ...s.collage, ...patch, gradient: { ...s.collage.gradient, ...gradient } }
-        const tone = (c: typeof collage): Tone | null =>
-          c.bgKind === 'gradient' ? toneOf(mixHex(c.gradient.from, c.gradient.to)) : c.bgKind === 'color' ? toneOf(c.bgColor) : null
-        const before = tone(s.collage) ?? 'dark'
-        const after = tone(collage)
-        // Over photos the background isn't what the text sits on: leave the colours alone.
-        if (!collage.autoContrast || !after || after === before || hasVisiblePhotos(s.slides, s.carouselKind)) return { collage }
-        const color = after === 'light' ? INK : PAPER
-        return {
-          collage,
-          statsStyle: { ...s.statsStyle, color },
-          titleStyle: { ...s.titleStyle, color },
-          texts: s.texts.map((t) => ({ ...t, color })),
-          waypoints: s.waypoints.map((w) => ({ ...w, color })),
-          routeStyle: { ...s.routeStyle, color },
-        }
+        return withContrast(s, collage, collageTone(s.collage), collageTone(collage))
       }),
 
     addCaption: (slide, index) => {

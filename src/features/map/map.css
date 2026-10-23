@@ -1,0 +1,24 @@
+/* ---------- Map under the frame ---------- */
+.map-underlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+}
+
+.map-underlay-map,
+.map-underlay-dim {
+  position: absolute;
+  inset: 0;
+}
+
+.map-status {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  padding: 2px var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  background: var(--panel-bg);
+  border-radius: var(--radius-sm);
+}

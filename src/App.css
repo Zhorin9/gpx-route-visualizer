@@ -1,13 +1,166 @@
 /* ---------- Layout ---------- */
 
-.app {
+.app-shell {
   display: flex;
+  flex-direction: column;
   height: 100vh;
   height: 100dvh;
+}
+
+.app {
+  flex: 1;
+  min-height: 0;
+  display: flex;
   gap: var(--space-5);
   padding: var(--space-5);
   overflow: hidden;
 }
+
+/* ---------- Top bar: project, undo, settings, download ---------- */
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 20px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.top-bar-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-heading);
+  font-size: 18px;
+}
+
+.top-bar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.top-bar-ab {
+  font-family: inherit;
+  background: none;
+}
+
+.top-bar-ab:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.settings {
+  position: relative;
+}
+
+.settings-toggle {
+  display: flex;
+  padding: 7px 9px;
+  color: var(--text);
+  background: none;
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.settings-toggle:hover,
+.settings-toggle.open {
+  color: var(--accent-text);
+  border-color: var(--accent);
+}
+
+.settings-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 50;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+}
+
+.settings-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-label {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.settings-select {
+  padding: 8px 12px;
+  font-size: 14px;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--border);
+}
+
+.settings-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.settings-links button {
+  display: flex;
+  justify-content: space-between;
+  padding: 0;
+  font-size: 14px;
+  text-align: left;
+  color: var(--text);
+  background: none;
+  border: none;
+}
+
+.settings-links button:disabled,
+.view-switch-opt:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* Kadr / Mapa */
+.view-switch {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.view-switch-opt {
+  padding: 7px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--text);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+}
+
+.view-switch-opt + .view-switch-opt {
+  border-left: 1px solid var(--border);
+}
+
+.view-switch-opt.active {
+  color: var(--accent-text);
+  border-bottom-color: var(--accent);
+}
+
 
 .canvas-area {
   position: relative;
@@ -1316,6 +1469,10 @@
 /* ---------- Small screens: canvas on top, panel below ---------- */
 
 @media (max-width: 860px) {
+  .top-bar {
+    padding: var(--space-2) var(--space-3);
+  }
+
   .app {
     flex-direction: column;
     gap: var(--space-3);
@@ -1335,4 +1492,25 @@
   .toast {
     bottom: var(--space-3);
   }
+}
+
+/* ---------- Tags (design system) ---------- */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+  border-radius: calc(var(--radius) * 0.75);
+}
+
+.tag-accent {
+  color: var(--accent-text-strong);
+  background: var(--accent-soft);
+}
+
+.tag-outline {
+  color: var(--accent);
+  border-color: var(--accent);
 }

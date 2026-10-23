@@ -1,4 +1,5 @@
 import type { AnimationTrackId } from '../../core/animation/layers'
+import type { VehicleId } from '../../types'
 
 export type PacingId = 'constant' | 'eased' | 'bySpeed'
 export type Entrance = 'fade' | 'slide'
@@ -24,6 +25,8 @@ export interface AnimationSettings {
   // The rest of the line stays visible, faint, ahead of the drawing.
   ghost: boolean
   headDot: boolean
+  // Marker at the head of the line; a part of the route may choose its own.
+  vehicle: VehicleId
   headSize: number
   loop: boolean
 }
@@ -43,6 +46,7 @@ export const DEFAULT_ANIMATION: AnimationSettings = {
   countStats: true,
   ghost: true,
   headDot: true,
+  vehicle: 'dot',
   headSize: 9,
   loop: true,
 }

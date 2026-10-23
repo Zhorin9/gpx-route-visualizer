@@ -1,3 +1,4 @@
+import { paletteFrom } from '../../features/map/model/styles'
 import { frameStyleFor } from '../../utils/layouts'
 import type { StyleTemplate } from '../../types'
 import type { SliceContext, TemplatesSlice } from '../types'
@@ -14,6 +15,7 @@ export function createTemplatesSlice({ get, commit }: SliceContext): TemplatesSl
         let waypoints = s.waypoints
         let slides = s.slides
         let titleStyle = s.titleStyle
+        let map = s.map
 
         if (parts.fonts) {
           statsStyle = { ...statsStyle, ...template.statsStyle, fontFamily: template.fonts.data }
@@ -27,7 +29,10 @@ export function createTemplatesSlice({ get, commit }: SliceContext): TemplatesSl
           waypoints = waypoints.map((w) => ({ ...w, fontFamily: template.fonts.note }))
         }
         if (parts.colors) {
-          collage = { ...collage, bgKind: 'gradient', gradient: { ...template.gradient } }
+          // A map stays the background, repainted in the template's colours; otherwise the template's gradient.
+          const onMap = collage.bgKind === 'map'
+          collage = { ...collage, bgKind: onMap ? 'map' : 'gradient', gradient: { ...template.gradient } }
+          map = { ...map, labels: true, hillshade: false, ...template.map, palette: paletteFrom(template.gradient, template.textColor) }
           statsStyle = { ...statsStyle, color: template.textColor }
           titleStyle = { ...titleStyle, color: template.titleColor ?? template.textColor }
           texts = texts.map((t) => ({ ...t, color: template.titleColor ?? template.textColor }))
@@ -47,6 +52,7 @@ export function createTemplatesSlice({ get, commit }: SliceContext): TemplatesSl
           texts,
           waypoints,
           slides,
+          map,
           ...(parts.route ? { routeStyle: { ...s.routeStyle, ...template.route } } : null),
           ...(parts.points && template.pointStyle ? { pointStyle: { ...template.pointStyle } } : null),
         }
@@ -85,6 +91,7 @@ export function createTemplatesSlice({ get, commit }: SliceContext): TemplatesSl
         gradient,
         layoutKey: s.slides[Math.min(s.activeSlide, s.slides.length - 1)].layoutKey,
         pointStyle: s.pointStyle,
+        ...(s.collage.bgKind === 'map' ? { map: { styleId: s.map.styleId, hillshade: s.map.hillshade, labels: s.map.labels } } : null),
         custom: true,
       }
       commit('template:save', { customTemplates: [...s.customTemplates, template] })

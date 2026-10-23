@@ -3,6 +3,7 @@ import { MOVING_MIN_KMH } from '../../../utils/gpx'
 import { memoOne } from '../../../utils/memo'
 import type { GpxTrack, RouteRange } from '../../../types'
 import type { PacingId } from '../types'
+import { scheduleHead, type ScheduleStep } from './schedule'
 import { easeInOut } from './timeline'
 
 export interface PacingContext {
@@ -11,6 +12,8 @@ export interface PacingContext {
   range: RouteRange
   // Starts of days after the first: the night between two days takes no time.
   breaks: readonly number[]
+  // A planned trip is drawn leg by leg with rests at the stops (model/schedule.ts).
+  schedule?: ScheduleStep[] | null
 }
 
 // How the line's progress (0-1 of its time) maps to a place on the track.
@@ -73,4 +76,12 @@ export const PACINGS: readonly PacingStrategy[] = [constantPacing, easedPacing, 
 
 export function pacingFor(id: PacingId): PacingStrategy {
   return PACINGS.find((s) => s.id === id) ?? easedPacing
+}
+
+// Where the head is at `progress` of the line's bar. A planned trip over its whole length follows its
+// legs' own times and rests, eased leg by leg with the eased pacing; anything else, the pacing alone.
+export function headFor(id: PacingId, progress: number, ctx: PacingContext): number {
+  const whole = ctx.range.start === 0 && ctx.range.end === ctx.track.points.length - 1
+  if (ctx.schedule && whole) return scheduleHead(ctx.schedule, progress, ctx.cumKm, id === 'eased' ? easeInOut : (f) => f)
+  return pacingFor(id).headAt(progress, ctx)
 }

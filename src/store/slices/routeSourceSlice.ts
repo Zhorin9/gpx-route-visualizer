@@ -2,12 +2,31 @@ import { defaultTitlePlace } from '../../utils/aspects'
 import { parseGpxText } from '../../utils/gpx'
 import { DAY_COLORS, DEFAULT_STATS_CONTENT, IDENTITY_TRANSFORM, makeTitle, nextId } from '../defaults'
 import { joinTrack } from '../derived'
-import type { RouteSource, TrackPart } from '../../types'
+import type { RouteSource, RouteStyle, TrackPart } from '../../types'
 import type { RouteSourceSlice, SliceContext } from '../types'
 
 // Keys are never reused, so a file brought back by undo can't pick up another file's points.
 let lastSourceKey = 0
-const newSourceKey = () => `gpx-${++lastSourceKey}`
+export const newSourceKey = () => `gpx-${++lastSourceKey}`
+
+// Colours for a new list of parts. A part on its own is drawn in the route's style, so it brings
+// its colour and line into it. With more, each part has its own colour: the one that used to stand
+// alone takes over the route's, a new one (no colour yet) gets the first free one.
+export function settleParts(before: TrackPart[], parts: TrackPart[], style: RouteStyle): { parts: TrackPart[]; routeStyle: RouteStyle } {
+  if (parts.length === 1) return { parts, routeStyle: { ...style, color: parts[0].color || style.color, dashed: parts[0].dashed } }
+  const alone = before.length === 1 ? before[0].id : null
+  const kept = parts.map((p) => (p.id === alone ? { ...p, color: style.color, dashed: style.dashed } : p))
+  const used = new Set(kept.map((p) => p.color.toLowerCase()))
+  return {
+    routeStyle: style,
+    parts: kept.map((p) => {
+      if (p.color) return p
+      const color = DAY_COLORS.find((c) => !used.has(c)) ?? DAY_COLORS[used.size % DAY_COLORS.length]
+      used.add(color)
+      return { ...p, color }
+    }),
+  }
+}
 
 export function createRouteSourceSlice({ set, get, commit }: SliceContext): RouteSourceSlice {
   return {
@@ -31,13 +50,8 @@ export function createRouteSourceSlice({ set, get, commit }: SliceContext): Rout
       const source = s.routeSource
       if (append && source) {
         // Another day: the file is joined to the track and keeps its own slice and colour.
-        // The first day takes over the colour the single route had.
-        const parts: TrackPart[] =
-          source.parts.length === 1 ? [{ ...source.parts[0], color: s.routeStyle.color, dashed: s.routeStyle.dashed }] : source.parts
-        const used = new Set(parts.map((d) => d.color.toLowerCase()))
-        const color = DAY_COLORS.find((c) => !used.has(c)) ?? DAY_COLORS[parts.length % DAY_COLORS.length]
-        const part: TrackPart = { id: nextId(parts), name: parsed.name ?? fileName, color, dashed: false, visible: true, sourceKey }
-        const routeSource: RouteSource = { ...source, parts: [...parts, part] }
+        const part: TrackPart = { id: nextId(source.parts), name: parsed.name ?? fileName, color: '', dashed: false, visible: true, sourceKey }
+        const routeSource: RouteSource = { ...source, parts: settleParts(source.parts, [...source.parts, part], s.routeStyle).parts }
         const joined = joinTrack(routeSource, get().trackCache)
         commit('route:append', {
           routeSource,
@@ -81,13 +95,13 @@ export function createRouteSourceSlice({ set, get, commit }: SliceContext): Rout
       if (!s.routeSource || !joined || !day || joined.parts.length < 2) return
       const length = day.endIdx - day.startIdx + 1
       const shift = (i: number) => (i > day.endIdx ? i - length : i)
-      const rest = s.routeSource.parts.filter((d) => d.id !== id)
+      const settled = settleParts(s.routeSource.parts, s.routeSource.parts.filter((d) => d.id !== id), s.routeStyle)
       const points = joined.track.points.length - length
       const waypoints = s.waypoints.filter((w) => w.trackPos < day.startIdx || w.trackPos > day.endIdx).map((w) => ({ ...w, trackPos: shift(w.trackPos) }))
       commit('route:remove', {
-        routeSource: { ...s.routeSource, parts: rest },
-        // Back to one file: the route is drawn in that day's colour.
-        routeStyle: rest.length > 1 ? s.routeStyle : { ...s.routeStyle, color: rest[0].color, dashed: rest[0].dashed },
+        routeSource: { ...s.routeSource, parts: settled.parts },
+        // Back to one part: the route is drawn in that part's colour.
+        routeStyle: settled.routeStyle,
         range: { start: 0, end: points - 1 },
         progress: 100,
         waypoints,

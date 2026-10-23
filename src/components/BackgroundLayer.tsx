@@ -45,13 +45,14 @@ function Pattern({ kind, width, height, slideWidth }: { kind: BackgroundPattern;
 }
 
 // The frame's background across the whole carousel ribbon, drawn under the photos:
-// a flat colour or one gradient, with an optional pattern. Nothing at all when the background is transparent.
+// a flat colour or one gradient, with an optional pattern. Nothing at all for a transparent background,
+// nor for a map, which lies under the stage.
 export default function BackgroundLayer() {
   const collage = useAppStore((s) => s.collage)
   const slideCount = useAppStore((s) => s.slides.length)
   const aspectKey = useAppStore((s) => s.aspectKey)
 
-  if (collage.bgKind === 'transparent') return null
+  if (collage.bgKind !== 'color' && collage.bgKind !== 'gradient') return null
 
   const { gradient } = collage
   const { w, h } = FORMATS[aspectKey]

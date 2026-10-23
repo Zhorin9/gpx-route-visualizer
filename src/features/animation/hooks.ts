@@ -1,10 +1,11 @@
 import { STATIC_LAYER, type AnimationTrackId, type LayerState } from '../../core/animation/layers'
 import { useDayBreaks, useTrackCumKm } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
-import { pacingFor } from './model/pacing'
+import { headFor } from './model/pacing'
+import { tripSchedule } from './model/schedule'
 import { clamp01, clipProgress, layerAt } from './model/timeline'
 import { usePlayback } from './playback'
-import { selectTrack } from '../../store/derived'
+import { selectRouteParts, selectTrack } from '../../store/derived'
 
 // Seconds into the animation, or null while the editor shows the static view.
 export function useAnimationTime(): number | null {
@@ -21,9 +22,10 @@ export function useAnimationHead(): number | null {
   const range = useAppStore((s) => s.range)
   const cumKm = useTrackCumKm()
   const breaks = useDayBreaks()
+  const schedule = tripSchedule(useAppStore(selectRouteParts))
   if (t == null || !track || !cumKm || range.end <= range.start) return null
   const p = clipProgress(settings.clips.route, t)
-  return pacingFor(settings.pacing).headAt(p, { track, cumKm, range, breaks })
+  return headFor(settings.pacing, p, { track, cumKm, range, breaks, schedule })
 }
 
 export function useAnimatedLayer(track: AnimationTrackId): LayerState {

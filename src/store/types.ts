@@ -36,10 +36,15 @@ import type {
 
 import type { AnimationSlice } from '../features/animation/store'
 import type { AnimationSettings } from '../features/animation/types'
+import type { CameraSlice } from '../features/camera/store'
+import type { CameraSettings } from '../features/camera/model/camera'
+import type { MapSlice } from '../features/map/store'
+import type { MapSettings } from '../features/map/types'
 import type { DataColorSlice } from '../features/data-color/store'
 import type { DataColorSettings } from '../features/data-color/types'
 import type { ProfileSlice } from '../features/elevation-profile/store'
 import type { ProfileSettings } from '../features/elevation-profile/types'
+import type { TravelSlice } from '../features/travel/store'
 
 // Everything undo/redo covers — the user's composition, not UI chrome.
 export interface DocumentState {
@@ -73,6 +78,9 @@ export interface DocumentState {
   profile: ProfileSettings
   dataColor: DataColorSettings
   animation: AnimationSettings
+  camera: CameraSettings
+  // The map background: its style and look.
+  map: MapSettings
 }
 
 // undo and redo are the history's own; anything else brings its handler.
@@ -105,6 +113,9 @@ export interface UiSlice {
   fontsVersion: number
   // Files are rendered format by format; the canvas is covered meanwhile.
   exporting: boolean
+  // What the middle of the editor shows in a tab that has its own workspace: that workspace or the frame.
+  centerView: 'map' | 'frame'
+  setCenterView: (view: 'map' | 'frame') => void
   setExporting: (value: boolean) => void
   setActiveTab: (tab: TabKey) => void
   setSubTab: (tab: TabKey, page: string) => void
@@ -128,7 +139,7 @@ export interface RouteSourceSlice {
   gpxError: string
   // Replaces the route, or with `append` adds the file as another day.
   loadGpxFile: (file: File, append?: boolean) => Promise<void>
-  updatePart: (id: number, patch: Partial<Pick<TrackPart, 'color' | 'dashed' | 'visible'>>) => void
+  updatePart: (id: number, patch: Partial<Pick<TrackPart, 'color' | 'dashed' | 'visible' | 'vehicle'>>) => void
   removePart: (id: number) => void
 }
 
@@ -228,7 +239,10 @@ export type AppState = DocumentState &
   HistorySlice &
   ProfileSlice &
   DataColorSlice &
-  AnimationSlice
+  AnimationSlice &
+  CameraSlice &
+  MapSlice &
+  TravelSlice
 
 export type SetState = (partial: Partial<AppState> | ((state: AppState) => Partial<AppState>)) => void
 export type GetState = () => AppState

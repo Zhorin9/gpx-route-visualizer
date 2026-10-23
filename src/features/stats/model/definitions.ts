@@ -30,10 +30,12 @@ interface NumericStat {
   // Null = the track has no data for it.
   compute: (stats: RangeStats) => number | null
   format: (value: number, content: StatsContent) => string
+  // A time figure: shown with ~ when the times are estimated (a planned leg).
+  timed?: boolean
 }
 
 // A figure from the track, unless the user typed their own value.
-function numericStat({ key, label, caption, requires, compute, format }: NumericStat): StatDefinition {
+function numericStat({ key, label, caption, requires, compute, format, timed }: NumericStat): StatDefinition {
   return {
     key,
     label,
@@ -43,7 +45,7 @@ function numericStat({ key, label, caption, requires, compute, format }: Numeric
       const override = content.overrides[key]
       const value = compute(stats)
       if (!override && value == null) return null
-      const text = override || format(value as number, content)
+      const text = override || (timed && stats.estimatedTime ? '~' : '') + format(value as number, content)
       return { key, label: caption, text, value: text }
     },
   }
@@ -80,6 +82,7 @@ const time = numericStat({
   label: 'Czas całkowity',
   caption: 'Czas',
   requires: 'time',
+  timed: true,
   compute: (s) => (s.durationMs > 0 ? s.durationMs : null),
   format: (ms) => formatDuration(ms),
 })
@@ -89,6 +92,7 @@ const movingTime = numericStat({
   label: 'Czas w ruchu',
   caption: 'W ruchu',
   requires: 'time',
+  timed: true,
   compute: (s) => (s.movingMs > 0 ? s.movingMs : null),
   format: (ms) => formatDuration(ms),
 })
@@ -99,6 +103,7 @@ const avgSpeed = numericStat({
   label: 'Średnia prędkość',
   caption: 'Śr. prędkość',
   requires: 'time',
+  timed: true,
   compute: (s) => (s.movingMs > 0 ? s.distanceKm / (s.movingMs / 3_600_000) : null),
   format: (kmh, c) => formatSpeed(kmh, c.units),
 })

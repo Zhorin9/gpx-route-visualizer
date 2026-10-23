@@ -513,7 +513,8 @@ describe('stats saved before the new stats existed', () => {
     const saved = { statsContent: { dayLabel: 'D', visible: { day: false, distance: true, elevation: true, time: true }, order: ['time', 'distance'] } }
     const out = merge(saved, get()) as typeof initial
     expect(out.statsContent.order).toEqual(['time', 'distance', 'day', 'elevation', 'movingTime', 'avgSpeed', 'maxElevation'])
-    expect(out.statsContent.visible).toMatchObject({ day: false, movingTime: false, avgSpeed: false })
+    // A stat the saved data doesn't know takes its default: average speed is shown, moving time isn't.
+    expect(out.statsContent.visible).toMatchObject({ day: false, movingTime: false, avgSpeed: true })
     expect(out.statsContent.units).toBe('metric')
   })
 

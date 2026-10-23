@@ -8,6 +8,7 @@ import { useHasPhotos, usePhotoBackground } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { DEFAULT_COLLAGE } from '../../store/defaults'
 import { GRADIENT_PRESETS } from '../../utils/gradients'
+import { backgroundKind, backgroundKinds } from '../../core/background/registry'
 import type { BackgroundKind, BackgroundPattern, SelectOption } from '../../types'
 import './BackgroundTab.css'
 
@@ -39,6 +40,9 @@ export default function BackgroundTab() {
   const setActiveTab = useAppStore((s) => s.setActiveTab)
   const { gradient, bgKind } = collage
   const backdropIsColor = previewBackdrop !== 'checkerboard'
+  // Kinds added by features (the map) follow the built-in ones and bring their own settings.
+  const kindOptions = [...BACKGROUND_OPTIONS, ...backgroundKinds().map((k) => ({ value: k.kind, label: k.label }))]
+  const added = backgroundKind(bgKind)
 
   // A photo covers the whole frame: a colour or gradient underneath could never be seen.
   if (photoBackground) {
@@ -57,7 +61,7 @@ export default function BackgroundTab() {
       <p className="hint">Tło to osobna warstwa pod zdjęciami: zmiana układu go nie rusza, a zmiana tła nie rusza zdjęć.</p>
 
       <Section title="Rodzaj tła">
-        <Segmented label="Rodzaj tła" value={bgKind} options={BACKGROUND_OPTIONS} onChange={(kind) => updateBackground({ bgKind: kind })} />
+        <Segmented label="Rodzaj tła" value={bgKind} options={kindOptions} onChange={(kind) => (backgroundKind(kind)?.select ?? (() => updateBackground({ bgKind: kind })))()} />
         {bgKind === 'color' && (
           <>
             <ColorField label="Kolor tła" value={collage.bgColor} onChange={(bgColor) => updateBackground({ bgColor })} />
@@ -73,6 +77,8 @@ export default function BackgroundTab() {
           </p>
         )}
       </Section>
+
+      {added && <added.Panel />}
 
       {bgKind === 'gradient' && (
         <>
