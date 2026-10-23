@@ -6,12 +6,21 @@ import { defaultStatsY, statsYBelowTitle } from '../../../utils/aspects'
 import { konvaFontStyle } from '../../../utils/fonts'
 import { measureTextWidth } from '../../../utils/measureText'
 import { fittedTitleSize } from '../../../utils/title'
+import type { ArrangeInput } from '../model/arrangements'
 import { arrangementFor } from '../model/registry'
 import { useStatsChips } from '../useStatsChips'
 
 export const STATS_KIND = 'stats'
 
 const SHADOW = { shadowColor: '#000000', shadowBlur: 10, shadowOpacity: 0.6 }
+
+// In a side column the figures shrink until none is cut short by its cell.
+function arrangeInColumn(input: ArrangeInput) {
+  const { arrange } = arrangementFor(input.style.arrangement)
+  const box = arrange(input)
+  const overflow = Math.max(1, ...box.texts.map((t) => (t.width ? input.measure(t.text, input.style.fontFamily, t.fontSize, input.fontStyle) / t.width : 1)))
+  return overflow > 1 ? arrange({ ...input, style: { ...input.style, fontSize: Math.floor(input.style.fontSize / overflow) } }) : box
+}
 
 // Draws whatever box the chosen arrangement computes; dragging the box moves the
 // whole header, dragging a chip in the one-line arrangement stores its own offset.
@@ -30,7 +39,8 @@ export default function StatsHeaderNode() {
   // Laid out across the frame, or across the side column of a landscape format.
   const column = textColumn(aspectKey)
   const fontStyle = konvaFontStyle(style.fontFamily)
-  const box = arrangementFor(style.arrangement).arrange({ chips, style, fontStyle, frameW: column.w, chipOffsets, measure: measureTextWidth })
+  const input = { chips, style, fontStyle, frameW: column.w, chipOffsets, measure: measureTextWidth }
+  const box = column.x > 0 ? arrangeInColumn(input) : arrangementFor(style.arrangement).arrange(input)
   const defaultY = title ? statsYBelowTitle({ y: title.y, fontSize: fittedTitleSize(title, column.w), lines: title.text.split('\n').length }) : defaultStatsY(aspectKey)
 
   return (

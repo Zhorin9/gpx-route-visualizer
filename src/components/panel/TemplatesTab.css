@@ -37,7 +37,6 @@
   position: relative;
   display: block;
   width: 100%;
-  aspect-ratio: 4 / 5;
   overflow: hidden;
 }
 
@@ -121,6 +120,39 @@
   display: block;
   padding-top: 3px;
   border-top: 1px solid;
+}
+
+.template-thumb.landscape svg {
+  top: 14%;
+  left: 5%;
+  width: 50%;
+  height: 72%;
+}
+
+.template-thumb.landscape .template-thumb-title {
+  top: 20%;
+  left: 58%;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+.template-thumb.landscape .template-thumb-sub {
+  top: 38%;
+  left: 58%;
+  font-size: 7px;
+  white-space: nowrap;
+}
+
+.template-thumb.landscape .template-thumb-photo {
+  top: 34%;
+  left: 12%;
+  width: 18%;
+}
+
+.template-thumb.landscape .marker-label {
+  top: 60%;
+  left: 58%;
+  width: 34%;
 }
 
 .template-thumb-frame {
