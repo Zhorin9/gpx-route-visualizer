@@ -68,8 +68,8 @@ export default function StyleTab() {
         <CheckboxField label="Linia kropkowana" checked={style.dotted} onChange={(dotted) => update({ dotted, dashed: false })} />
       </Section>
 
-      <Section title="Poświata">
-        <CheckboxField label="Efekt neonu" checked={style.glowEnabled} onChange={(glowEnabled) => update({ glowEnabled })} />
+      <Section title="Poświata i obrys">
+        <CheckboxField label="Efekt neonu lub obrys" checked={style.glowEnabled} onChange={(glowEnabled) => update({ glowEnabled })} />
         {style.glowEnabled && (
           <>
             <SliderField
@@ -90,6 +90,16 @@ export default function StyleTab() {
               defaultValue={DEFAULT_ROUTE_STYLE.glowBlur}
               onChange={(glowBlur) => update({ glowBlur })}
             />
+            <SliderField
+              label="Krycie"
+              unit="%"
+              min={5}
+              value={Math.round(style.glowOpacity * 100)}
+              defaultValue={Math.round(DEFAULT_ROUTE_STYLE.glowOpacity * 100)}
+              onChange={(v) => update({ glowOpacity: v / 100 })}
+            />
+            <CheckboxField label="Kolor jak linia" checked={style.glowColor == null} onChange={(same) => update({ glowColor: same ? null : style.color })} />
+            {style.glowColor != null && <ColorField label="Kolor obrysu" value={style.glowColor} onChange={(glowColor) => update({ glowColor })} />}
           </>
         )}
       </Section>

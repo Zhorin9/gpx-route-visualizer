@@ -45,11 +45,11 @@ export default function GradientRouteShape({ segment, style, coloring }: Gradien
     ctx.lineJoin = segment.square ? 'miter' : 'round'
 
     if (style.glowEnabled) {
-      ctx.globalAlpha = 0.8
+      ctx.globalAlpha = style.glowOpacity
       ctx.lineWidth = style.glowWidth
       ctx.shadowBlur = style.glowBlur * blurScale
       for (const run of runs) {
-        const color = coloring.glow.kind === 'uniform' ? coloring.glow.color : run.color
+        const color = style.glowColor ?? (coloring.glow.kind === 'uniform' ? coloring.glow.color : run.color)
         ctx.strokeStyle = color
         ctx.shadowColor = color
         tracePath(ctx, points, run)

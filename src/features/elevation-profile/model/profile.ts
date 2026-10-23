@@ -51,3 +51,49 @@ export function distanceFraction(cumKm: ArrayLike<number>, from: number, to: num
   const km = cumKm[i] + (cumKm[i + 1] - cumKm[i]) * (pos - i)
   return Math.max(0, Math.min(1, (km - cumKm[from]) / span))
 }
+
+// A per-point series read at each sample; NaN where the chart is hidden.
+export function sampleAt(series: ArrayLike<number>, samples: ProfileSamples): Float32Array {
+  return samples.positions.map((p, i) => (Number.isFinite(samples.values[i]) ? series[Math.round(p)] : NaN))
+}
+
+// Mean over ±radius samples, skipping hidden ones; hidden samples stay hidden.
+export function smoothSamples(samples: ProfileSamples, radius: number): ProfileSamples {
+  if (radius < 1) return samples
+  const { values } = samples
+  const out = new Float32Array(values.length)
+  let min = Infinity
+  let max = -Infinity
+  for (let i = 0; i < values.length; i++) {
+    if (!Number.isFinite(values[i])) {
+      out[i] = NaN
+      continue
+    }
+    let sum = 0
+    let n = 0
+    for (let j = Math.max(0, i - radius); j <= Math.min(values.length - 1, i + radius); j++) {
+      if (!Number.isFinite(values[j])) continue
+      sum += values[j]
+      n++
+    }
+    out[i] = sum / n
+    min = Math.min(min, out[i])
+    max = Math.max(max, out[i])
+  }
+  return { values: out, positions: samples.positions, min: Number.isFinite(min) ? min : 0, max: Number.isFinite(max) ? max : 0 }
+}
+
+// Runs of consecutive samples that pass `keep`.
+export function sampleRuns(count: number, keep: (i: number) => boolean): [number, number][] {
+  const out: [number, number][] = []
+  let start = -1
+  for (let i = 0; i <= count; i++) {
+    const ok = i < count && keep(i)
+    if (ok && start < 0) start = i
+    if (!ok && start >= 0) {
+      out.push([start, i - 1])
+      start = -1
+    }
+  }
+  return out
+}

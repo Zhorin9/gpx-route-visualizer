@@ -1,103 +1,137 @@
 import { DEFAULT_COLLAGE, DEFAULT_ROUTE_STYLE, DEFAULT_STATS_STYLE } from '../store/defaults'
-import type { GradientStyle, StyleTemplate } from '../types'
+import type { BackgroundPattern, PhotoMarker, RouteStyle, StyleTemplate } from '../types'
 
 const { shape: _shape, schematicSimplify: _simplify, ...DEFAULT_ROUTE_LOOK } = DEFAULT_ROUTE_STYLE
 
-const PAPER = '#f3f2f2'
-const INK = '#2d2b2b'
-const FILM_GRAIN = 6
+const PRINT = '#fbf8f1'
 
 // Figures in equal columns with a small caption above and thin rules between, as in the design.
 const columns = (fontSize: number) => ({ arrangement: 'columns' as const, stretch: true, labels: true, dividers: true, fontSize })
 
-const gradient = (from: string, to: string, angle = 172): GradientStyle => ({ from, to, angle, grain: FILM_GRAIN, smooth: true })
-const frame = (color: string, thickness: number, style: 'equal' | 'polaroid' = 'equal') => ({ enabled: true, color, thickness, style })
-const NO_FRAME = { ...DEFAULT_COLLAGE.frame, enabled: false }
+const flat = (color: string, pattern: BackgroundPattern = 'none', grain = 0) => ({ from: color, to: color, angle: 180, grain, smooth: true, pattern })
 
-// Each template pairs three fonts (title, figures, notes) with a route look, a frame and a background.
+// The line, and an outline under it: colour, width, opacity and blur.
+function line(color: string, coreWidth: number, outline?: [string, number, number, number?], extra: Partial<RouteStyle> = {}): Partial<RouteStyle> {
+  const under = outline && { glowEnabled: true, glowColor: outline[0], glowWidth: outline[1], glowOpacity: outline[2], glowBlur: outline[3] ?? 0 }
+  return { ...DEFAULT_ROUTE_LOOK, color, coreWidth, remainingVisible: false, ...under, ...extra }
+}
+
+const NO_FRAME = { ...DEFAULT_COLLAGE.frame, enabled: false }
+const POLAROID = { enabled: true, color: PRINT, thickness: 24, style: 'polaroid' as const }
+const points = (marker: PhotoMarker) => ({ marker, size: 'M' as const })
+
+// Each preset pairs a background, a line, the type and the way a photo shows at a place on the route.
 export const BUILT_IN_TEMPLATES: StyleTemplate[] = [
   {
-    id: 'kartograf',
-    name: 'Kartograf',
-    desc: 'Cormorant + Lora · atlas',
-    fonts: { title: 'Cormorant Garamond', data: 'Cormorant Garamond', note: 'Lora' },
-    titleItalic: true,
-    statsStyle: columns(DEFAULT_STATS_STYLE.fontSize + 6),
-    textColor: INK,
-    route: { ...DEFAULT_ROUTE_LOOK, color: '#3d2a1f', coreWidth: 3, remainingVisible: false },
-    frame: frame(PAPER, 20),
-    gradient: gradient('#ffe3bf', '#9b9797'),
-    layoutKey: 'g1',
-    preview: { bg: 'linear-gradient(172deg, #ffe3bf, #facb8d 45%, #9b9797)', text: INK, line: '#3d2a1f', title: 'Sardynia', titleFont: "'Cormorant Garamond', serif", dash: false, width: 2, frame: PAPER, italic: true },
-  },
-  {
-    id: 'retro',
-    name: 'Pocztówka',
-    desc: 'DM Serif + DM Mono · kropkowana trasa',
-    fonts: { title: 'DM Serif Display', data: 'DM Mono', note: 'DM Mono' },
-    statsStyle: columns(30),
-    textColor: PAPER,
-    route: { ...DEFAULT_ROUTE_LOOK, color: '#fbf5dc', coreWidth: 5, dotted: true, remainingVisible: false },
-    frame: frame(PAPER, 28, 'polaroid'),
-    gradient: gradient('#facb8d', '#7d7979'),
+    id: 'papier',
+    name: 'Papier',
+    desc: 'polaroid',
+    fonts: { title: 'Cinzel', data: 'Lora', note: 'Lora' },
+    titleUppercase: true,
+    statsStyle: columns(DEFAULT_STATS_STYLE.fontSize - 6),
+    textColor: '#3a2a1c',
+    route: line('#8a3b24', 5, ['#8a3b24', 10, 0.18]),
+    frame: POLAROID,
+    gradient: flat('#ede6d6', 'none', 6),
     layoutKey: 'c1',
-    preview: { bg: 'linear-gradient(172deg, #facb8d, #c28d41 55%, #7d7979)', text: PAPER, line: '#fbf5dc', title: 'Sardynia', titleFont: "'DM Serif Display', serif", dash: false, dotted: true, width: 3, frame: PAPER },
+    pointStyle: points('polaroid'),
   },
   {
-    id: 'plakat',
-    name: 'Grań',
-    desc: 'Barlow Condensed · czerń i złoto',
-    fonts: { title: 'Barlow Condensed', data: 'Barlow Condensed', note: 'Barlow Condensed' },
+    id: 'blueprint',
+    name: 'Blueprint',
+    desc: 'kwadrat, ramka',
+    fonts: { title: 'Cormorant Garamond', data: 'DM Mono', note: 'DM Mono' },
     titleUppercase: true,
-    statsStyle: columns(54),
-    textColor: PAPER,
-    titleColor: '#facb8d',
-    route: { ...DEFAULT_ROUTE_LOOK, color: '#facb8d', coreWidth: 6, remainingVisible: false },
+    statsStyle: columns(30),
+    textColor: '#e4f0ff',
+    route: line('#e4f0ff', 4, ['#cfe6ff', 12, 0.12], { dashed: true }),
     frame: NO_FRAME,
-    gradient: gradient(INK, INK),
+    gradient: flat('#123a63', 'grid'),
     layoutKey: 'g1',
-    preview: { bg: INK, text: PAPER, line: '#facb8d', title: 'SARDYNIA', titleFont: "'Barlow Condensed', sans-serif", titleColor: '#facb8d', dash: false, width: 3.5 },
+    pointStyle: points('square'),
   },
   {
-    id: 'minimal',
-    name: 'Linia',
-    desc: 'Jost Light · cienka linia',
-    fonts: { title: 'Jost', data: 'Jost', note: 'Jost' },
+    id: 'topo',
+    name: 'Topo',
+    desc: 'kółko, obwódka',
+    fonts: { title: 'Cinzel', data: 'Lora', note: 'Lora' },
     titleUppercase: true,
-    statsStyle: columns(28),
-    textColor: PAPER,
-    route: { ...DEFAULT_ROUTE_LOOK, color: PAPER, coreWidth: 1.5, remainingVisible: false },
+    statsStyle: columns(32),
+    textColor: '#24351f',
+    route: line('#2f5d3a', 6, ['#2f5d3a', 12, 0.15]),
     frame: NO_FRAME,
-    gradient: gradient('#9b9797', '#444141', 180),
+    gradient: flat('#e9e4d3', 'contours'),
     layoutKey: 'g1',
-    preview: { bg: 'linear-gradient(180deg, #9b9797, #444141)', text: PAPER, line: PAPER, title: 'SARDYNIA', titleFont: "'Jost', sans-serif", dash: false, width: 1.2 },
+    pointStyle: points('circle'),
+  },
+  {
+    id: 'granat',
+    name: 'Granat',
+    desc: 'kwadrat, złoto',
+    fonts: { title: 'Cinzel', data: 'Lora', note: 'Lora' },
+    titleUppercase: true,
+    statsStyle: columns(32),
+    textColor: '#f1e6cf',
+    route: line('#f4c47a', 5, ['#e8a64a', 14, 0.35, 12]),
+    frame: NO_FRAME,
+    gradient: flat('#0f1a2b'),
+    layoutKey: 'g1',
+    pointStyle: points('square'),
   },
   {
     id: 'neon',
-    name: 'Noc',
-    desc: 'Syne + Space Mono · poświata',
-    fonts: { title: 'Syne', data: 'Space Mono', note: 'Space Mono' },
+    name: 'Neon',
+    desc: 'poświata',
+    fonts: { title: 'Cormorant Garamond', data: 'JetBrains Mono', note: 'JetBrains Mono' },
     titleUppercase: true,
     statsStyle: columns(30),
-    textColor: PAPER,
-    titleColor: '#ffe3bf',
-    route: { ...DEFAULT_ROUTE_LOOK, color: '#ffe3bf', coreWidth: 3.5, glowEnabled: true, glowWidth: 14, glowBlur: 25, remainingVisible: false },
+    textColor: '#e6fff8',
+    route: line('#d8fff3', 4, ['#5af0c8', 18, 0.5, 20]),
     frame: NO_FRAME,
-    gradient: gradient(INK, '#444141', 180),
+    gradient: flat('#0b0b0f'),
     layoutKey: 'g1',
-    preview: { bg: 'linear-gradient(180deg, #2d2b2b, #444141)', text: PAPER, line: '#ffe3bf', title: 'SARDYNIA', titleFont: "'Syne', sans-serif", titleColor: '#ffe3bf', dash: false, width: 2.5, glow: true },
+    pointStyle: points('circle'),
   },
   {
-    id: 'dziennik',
-    name: 'Dziennik',
-    desc: 'Caslon + Caveat · odręczne opisy',
-    fonts: { title: 'Libre Caslon Display', data: 'Libre Caslon Display', note: 'Caveat' },
-    statsStyle: columns(36),
-    textColor: PAPER,
-    route: { ...DEFAULT_ROUTE_LOOK, color: PAPER, coreWidth: 3.5, dashed: true, remainingVisible: false },
-    frame: frame(PAPER, 24, 'polaroid'),
-    gradient: gradient('#e8cfa0', '#7d7979'),
-    layoutKey: 'c1',
-    preview: { bg: 'linear-gradient(172deg, #d7d3d3, #e1ad66 50%, #7d7979)', text: PAPER, line: PAPER, title: 'Sardynia', titleFont: "'Libre Caslon Display', serif", dash: true, width: 2.5, frame: PAPER },
+    id: 'plakat',
+    name: 'Plakat',
+    desc: 'polaroid, kontrast',
+    fonts: { title: 'Cinzel', data: 'Lora', note: 'Lora' },
+    titleUppercase: true,
+    statsStyle: columns(44),
+    textColor: '#1c1b1a',
+    route: line('#1c1b1a', 9, ['#1c1b1a', 16, 0.12]),
+    frame: POLAROID,
+    gradient: flat('#e8a64a'),
+    layoutKey: 'g1',
+    pointStyle: points('polaroid'),
+  },
+  {
+    id: 'minimal',
+    name: 'Minimal',
+    desc: 'tylko etykieta',
+    fonts: { title: 'Cormorant Garamond', data: 'Lora', note: 'Lora' },
+    titleUppercase: false,
+    statsStyle: columns(28),
+    textColor: '#201f1d',
+    route: line('#201f1d', 4),
+    frame: NO_FRAME,
+    gradient: flat('#f3f2f2'),
+    layoutKey: 'g1',
+    pointStyle: points('label'),
+  },
+  {
+    id: 'film',
+    name: 'Film',
+    desc: 'klatka filmowa, podwójna linia',
+    fonts: { title: 'Cinzel', data: 'Lora', note: 'Lora' },
+    titleUppercase: true,
+    statsStyle: columns(32),
+    textColor: '#f3efe6',
+    route: line('#17251f', 6, ['#e8a64a', 16, 1]),
+    frame: NO_FRAME,
+    gradient: flat('#17251f'),
+    layoutKey: 'g1',
+    pointStyle: points('film'),
   },
 ]

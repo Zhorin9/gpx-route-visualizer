@@ -5,6 +5,8 @@ import { usePointAnimation } from '../core/animation/layers'
 import useInlineTextEditor from '../hooks/useInlineTextEditor'
 import { useAppStore } from '../store/useAppStore'
 import { konvaFontStyle } from '../utils/fonts'
+import { measureTextWidth } from '../utils/measureText'
+import PinnedPhoto from './PinnedPhoto'
 import SelectionOutline from './SelectionOutline'
 import type { Point2D } from '../utils/geometry'
 import type { Waypoint } from '../types'
@@ -24,6 +26,8 @@ export default function WaypointLabel({ waypoint, anchor }: WaypointLabelProps) 
   const isSelected = useAppStore((s) => s.selection?.kind === 'waypoint' && s.selection.id === waypoint.id)
   const select = useAppStore((s) => s.select)
   const updateWaypoint = useAppStore((s) => s.updateWaypoint)
+  const photo = useAppStore((s) => (waypoint.photoId == null ? undefined : s.photos.find((p) => p.id === waypoint.photoId)))
+  const pointStyle = useAppStore((s) => s.pointStyle)
   const { hidden, edit } = useInlineTextEditor()
   const textRef = useRef<Konva.Text>(null)
   const leaderRef = useRef<Konva.Line>(null)
@@ -63,31 +67,43 @@ export default function WaypointLabel({ waypoint, anchor }: WaypointLabelProps) 
           listening={false}
         />
       )}
-      <Text
-        ref={textRef}
-        text={waypoint.text}
+      <Group
         x={dx}
         y={dy}
-        fontFamily={waypoint.fontFamily}
-        fontStyle={konvaFontStyle(waypoint.fontFamily)}
-        fontSize={waypoint.fontSize}
-        fill={waypoint.color}
-        shadowColor="#000000"
-        shadowBlur={8}
-        shadowOpacity={0.6}
-        perfectDrawEnabled={false}
-        visible={!hidden}
         draggable
         onMouseDown={onSelect}
         onTouchStart={onSelect}
-        onDblClick={startEditing}
-        onDblTap={startEditing}
         onDragMove={(e) => {
           leaderRef.current?.points([0, 0, e.target.x(), e.target.y() + waypoint.fontSize / 2])
         }}
         onDragEnd={(e) => updateWaypoint(waypoint.id, { dx: e.target.x(), dy: e.target.y() })}
-      />
-      <SelectionOutline targetRef={textRef} visible={isSelected && !hidden} />
+      >
+        {photo && <PinnedPhoto photo={photo} style={pointStyle} color={waypoint.color} gap={waypoint.fontSize * 0.4} />}
+        {photo && pointStyle.marker === 'label' && (
+          <Line
+            points={[0, -8, measureTextWidth(waypoint.text.split('\n')[0], waypoint.fontFamily, waypoint.fontSize, konvaFontStyle(waypoint.fontFamily)), -8]}
+            stroke={waypoint.color}
+            strokeWidth={1.5}
+            listening={false}
+          />
+        )}
+        <Text
+          ref={textRef}
+          text={waypoint.text}
+          fontFamily={waypoint.fontFamily}
+          fontStyle={konvaFontStyle(waypoint.fontFamily)}
+          fontSize={waypoint.fontSize}
+          fill={waypoint.color}
+          shadowColor="#000000"
+          shadowBlur={8}
+          shadowOpacity={0.6}
+          perfectDrawEnabled={false}
+          visible={!hidden}
+          onDblClick={startEditing}
+          onDblTap={startEditing}
+        />
+        <SelectionOutline targetRef={textRef} visible={isSelected && !hidden} />
+      </Group>
     </Group>
   )
 }

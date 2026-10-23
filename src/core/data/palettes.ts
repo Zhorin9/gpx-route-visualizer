@@ -44,7 +44,10 @@ export function paletteBins(p: Palette, inverted: boolean, bins = COLOR_BINS): s
 
 // Maps a value to a colour of the palette over [min, max]; values outside are clamped.
 export function colorScale(p: Palette, domain: [number, number], inverted: boolean): (value: number) => string {
-  const bins = paletteBins(p, inverted)
+  return binScale(paletteBins(p, inverted), domain)
+}
+
+export function binScale(bins: readonly string[], domain: [number, number]): (value: number) => string {
   const [min, max] = domain
   const span = max - min || 1
   return (value) => {
@@ -53,6 +56,25 @@ export function colorScale(p: Palette, domain: [number, number], inverted: boole
     return bins[Math.max(0, Math.min(bins.length - 1, Math.floor(t * bins.length)))]
   }
 }
+
+// A colour at a place (0-1) along a gradient.
+export interface GradientStop {
+  at: number
+  color: string
+}
+
+export const paletteStops = (p: Palette): GradientStop[] => p.stops.map((color, i) => ({ at: i / (p.stops.length - 1), color }))
+
+// Colour at t of stops sorted by place.
+export function mixStops(stops: readonly GradientStop[], t: number): string {
+  const next = stops.findIndex((s) => s.at >= t)
+  if (next <= 0) return (next === 0 ? stops[0] : stops[stops.length - 1]).color
+  const a = stops[next - 1]
+  const b = stops[next]
+  return mix([a.color, b.color], (t - a.at) / (b.at - a.at || 1))
+}
+
+export const stopsCss = (stops: readonly GradientStop[]) => `linear-gradient(90deg, ${stops.map((s) => `${s.color} ${Math.round(s.at * 100)}%`).join(', ')})`
 
 // CSS gradient of a palette, for swatches in the panel.
 export function paletteCss(p: Palette, inverted = false, angle = 90): string {

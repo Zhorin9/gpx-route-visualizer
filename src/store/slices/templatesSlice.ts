@@ -48,6 +48,7 @@ export function createTemplatesSlice({ get, commit }: SliceContext): TemplatesSl
           waypoints,
           slides,
           ...(parts.route ? { routeStyle: { ...s.routeStyle, ...template.route } } : null),
+          ...(parts.points && template.pointStyle ? { pointStyle: { ...template.pointStyle } } : null),
         }
       }),
 
@@ -83,20 +84,7 @@ export function createTemplatesSlice({ get, commit }: SliceContext): TemplatesSl
         frame: s.collage.frame,
         gradient,
         layoutKey: s.slides[Math.min(s.activeSlide, s.slides.length - 1)].layoutKey,
-        preview: {
-          bg: `linear-gradient(${gradient.angle}deg, ${gradient.from}, ${gradient.to})`,
-          text: s.statsStyle.color,
-          line: s.routeStyle.color,
-          title: 'TRASA',
-          titleFont: `'${titleFont}', serif`,
-          titleColor,
-          italic: title?.italic,
-          dash: s.routeStyle.dashed,
-          dotted: s.routeStyle.dotted,
-          glow: s.routeStyle.glowEnabled,
-          width: Math.max(1.5, s.routeStyle.coreWidth * 0.55),
-          frame: s.collage.frame.enabled ? s.collage.frame.color : undefined,
-        },
+        pointStyle: s.pointStyle,
         custom: true,
       }
       commit('template:save', { customTemplates: [...s.customTemplates, template] })

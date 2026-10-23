@@ -44,6 +44,7 @@ export function createElementsSlice({ get, commit }: SliceContext): ElementsSlic
       commit(`waypoint:${id}:${Object.keys(patch).join()}`, (s) => ({
         waypoints: s.waypoints.map((w) => (w.id === id ? { ...w, ...patch } : w)),
       })),
+    updatePointStyle: (patch) => commit(`points:${Object.keys(patch).join()}`, (s) => ({ pointStyle: { ...s.pointStyle, ...patch } })),
     deleteWaypoint: (id) => {
       commit('waypoint:delete', (s) => ({
         waypoints: s.waypoints.filter((w) => w.id !== id),

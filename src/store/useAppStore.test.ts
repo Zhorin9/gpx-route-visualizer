@@ -198,18 +198,19 @@ describe('carousel', () => {
 })
 
 describe('style templates', () => {
-  const retro = BUILT_IN_TEMPLATES.find((t) => t.id === 'retro')!
-  const all = { fonts: true, route: true, frame: true, colors: true, layout: false }
+  const papier = BUILT_IN_TEMPLATES.find((t) => t.id === 'papier')!
+  const all = { fonts: true, route: true, frame: true, colors: true, layout: false, points: true }
 
   it('applies only the chosen parts and never touches texts content or photos', () => {
     useAppStore.setState({ photos: [fakePhoto(1)] })
     get().assignPhoto(0, 0, 1)
     get().addText()
     const before = get().texts[0].text
-    get().applyTemplate(retro, { ...all, layout: false, colors: false })
-    expect(get().routeStyle.dotted).toBe(true)
-    expect(get().statsStyle.fontFamily).toBe('DM Mono')
-    expect(get().texts[0].fontFamily).toBe('DM Serif Display')
+    get().applyTemplate(papier, { ...all, layout: false, colors: false })
+    expect(get().routeStyle).toMatchObject({ color: '#8a3b24', glowColor: '#8a3b24', glowOpacity: 0.18 })
+    expect(get().statsStyle.fontFamily).toBe('Lora')
+    expect(get().texts[0].fontFamily).toBe('Cinzel')
+    expect(get().pointStyle.marker).toBe('polaroid')
     expect(get().texts[0].text).toBe(before)
     expect(get().collage.frame.enabled).toBe(true)
     expect(get().collage.bgKind).toBe(initial.collage.bgKind)
@@ -219,11 +220,11 @@ describe('style templates', () => {
 
   it('changes the layout only when asked and can be undone', () => {
     vi.advanceTimersByTime(1000)
-    get().applyTemplate(retro, { ...all, layout: true })
+    get().applyTemplate(papier, { ...all, layout: true })
     expect(get().slides[0].layoutKey).toBe('c1')
     get().undo()
     expect(get().slides[0].layoutKey).toBe('g1')
-    expect(get().routeStyle.dotted).toBe(false)
+    expect(get().routeStyle.color).toBe(initial.routeStyle.color)
   })
 
   it('saves the current look as a custom template', () => {
@@ -378,13 +379,13 @@ describe('multi-day routes', () => {
 
   it('turns the track name into one centred title, styled by the template', async () => {
     vi.useRealTimers()
-    const gran = BUILT_IN_TEMPLATES.find((t) => t.id === 'plakat')!
-    get().applyTemplate(gran, { fonts: true, route: false, frame: false, colors: true, layout: false })
+    const plakat = BUILT_IN_TEMPLATES.find((t) => t.id === 'plakat')!
+    get().applyTemplate(plakat, { fonts: true, route: false, frame: false, colors: true, layout: false, points: false })
     await get().loadGpxFile(gpx(50, 'Sardynia'))
     await get().loadGpxFile(gpx(51, 'Dzień 2'), true)
     const titles = get().texts.filter((t) => t.role === 'title')
     expect(titles).toHaveLength(1)
-    expect(titles[0]).toMatchObject({ text: 'Sardynia', x: 0, fontFamily: 'Barlow Condensed', color: gran.titleColor, uppercase: true })
+    expect(titles[0]).toMatchObject({ text: 'Sardynia', x: 0, fontFamily: 'Cinzel', color: plakat.textColor, uppercase: true })
 
     await get().loadGpxFile(gpx(52, 'Korsyka'))
     expect(get().texts.filter((t) => t.role === 'title').map((t) => t.text)).toEqual(['Korsyka'])
@@ -472,10 +473,10 @@ describe('gradient background', () => {
   })
 
   it('applies a template background', () => {
-    const kartograf = BUILT_IN_TEMPLATES.find((t) => t.id === 'kartograf')!
-    get().applyTemplate(kartograf, { fonts: false, route: false, frame: false, colors: true, layout: false })
+    const topo = BUILT_IN_TEMPLATES.find((t) => t.id === 'topo')!
+    get().applyTemplate(topo, { fonts: false, route: false, frame: false, colors: true, layout: false, points: false })
     expect(get().collage.bgKind).toBe('gradient')
-    expect(get().collage.gradient.from).toBe(kartograf.gradient.from)
+    expect(get().collage.gradient).toMatchObject({ from: topo.gradient.from, pattern: 'contours' })
   })
 })
 
