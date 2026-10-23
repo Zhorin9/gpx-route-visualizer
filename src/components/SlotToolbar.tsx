@@ -2,7 +2,7 @@ import Button from './ui/Button'
 import { IconClose, IconMinus, IconPlus, IconReplace, IconTrash, IconType, IconFit } from './icons'
 import { usePanorama, useSlideSlots } from '../store/selectors'
 import { useAppStore } from '../store/useAppStore'
-import { ASPECTS } from '../utils/aspects'
+import { FORMATS } from '../core/formats/registry'
 
 const ZOOM_STEP = 0.1
 
@@ -33,7 +33,7 @@ export default function SlotToolbar({ previewScale }: { previewScale: number }) 
   const rad = (slot.rotation * Math.PI) / 180
   const bh = Math.abs(slot.w * Math.sin(rad)) + Math.abs(slot.h * Math.cos(rad))
   // Keep the bar inside the frame; its width is roughly 330px.
-  const frameW = ASPECTS[aspectKey].w * previewScale * (panorama ? slideCount : 1)
+  const frameW = FORMATS[aspectKey].w * previewScale * (panorama ? slideCount : 1)
   const localX = Math.min(Math.max((slot.x + slot.w / 2) * previewScale, 170), Math.max(170, frameW - 170))
   const cx = localX + selection.slide * frameW
   const top = (slot.y + slot.h / 2 - bh / 2) * previewScale

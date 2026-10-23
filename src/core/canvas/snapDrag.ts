@@ -1,6 +1,6 @@
 import Konva from 'konva'
 import { useAppStore } from '../../store/useAppStore'
-import { ASPECTS } from '../../utils/aspects'
+import { FORMATS } from '../formats/registry'
 import { UI_ONLY } from '../../utils/exportImage'
 import { CHROME_ACCENT } from './chrome'
 import { snapBox, type Box } from './snap'
@@ -30,7 +30,7 @@ export function snapDragMove(e: Konva.KonvaEventObject<DragEvent>) {
   clearGuides(stage)
   if (e.evt.altKey) return
   const { aspectKey, slides } = useAppStore.getState()
-  const { w, h } = ASPECTS[aspectKey]
+  const { w, h } = FORMATS[aspectKey]
   const box = boxOf(node)
   const slide = Math.min(slides.length - 1, Math.max(0, Math.floor((box.x + box.width / 2) / w)))
   const others = stage.find(`.${SNAP_TARGET}`).filter((n) => n !== node && n.isVisible()).map(boxOf)

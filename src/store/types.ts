@@ -61,6 +61,8 @@ export interface DocumentState {
   // How photos pinned to places look.
   pointStyle: PointStyle
   slides: Slide[]
+  // Slides after the first while a format without a carousel is open; they come back with one.
+  parkedSlides: Slide[]
   collage: CollageStyle
   carouselKind: CarouselKind
   kmInterval: KmInterval

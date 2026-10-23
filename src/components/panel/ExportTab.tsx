@@ -6,20 +6,18 @@ import Segmented from '../ui/Segmented'
 import { IconDownload } from '../icons'
 import { useHasBackground, useHasRoute, useManualFlags } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
-import { ASPECTS } from '../../utils/aspects'
+import { FORMATS, FORMAT_ORDER } from '../../core/formats/registry'
 import { exportFileNames } from '../../utils/exportImage'
 import { exportProject } from '../../utils/exportProject'
 import { canvasElements, type CanvasElementDefinition } from '../../core/canvas/registry'
 import SubTabs from '../../core/panel/SubTabs'
-import { FORMAT_ORDER, SOURCE_ASPECT, hasManualLayout } from '../../utils/reflow'
+import { SOURCE_ASPECT, hasManualLayout, slideCountIn } from '../../utils/reflow'
 import { selectTrack } from '../../store/derived'
 import type { AspectKey, ExportFormat, SelectOption } from '../../types'
 import './ExportTab.css'
 
 type Scale = '1' | '2'
 
-const FORMAT_NOTES: Record<AspectKey, string> = { '4:5': 'feed', '9:16': 'strefy bezpieczne', '1:1': 'siatka profilu' }
-const FORMAT_NAMES: Record<AspectKey, string> = { '4:5': 'Post 4:5', '9:16': 'Story / Reels 9:16', '1:1': 'Kwadrat 1:1' }
 const FORMAT_OPTIONS: SelectOption<ExportFormat>[] = [
   { value: 'png', label: 'PNG' },
   { value: 'jpg', label: 'JPG' },
@@ -30,16 +28,16 @@ function filesLabel(count: number) {
 }
 
 function FormatCard({ aspect, checked, onToggle }: { aspect: AspectKey; checked: boolean; onToggle: () => void }) {
-  const { w, h } = ASPECTS[aspect]
+  const { w, h, exportName, note } = FORMATS[aspect]
   const boxH = 56
   return (
     <label className={checked ? 'format-card active' : 'format-card'}>
       <input type="checkbox" checked={checked} onChange={onToggle} />
       <span className="format-card-frame" style={{ width: Math.round((boxH * w) / h), height: boxH }} />
       <span className="format-card-text">
-        <span className="format-card-name">{FORMAT_NAMES[aspect]}</span>
+        <span className="format-card-name">{exportName}</span>
         <span className="format-card-meta">
-          {w} × {h} px · {FORMAT_NOTES[aspect]}
+          {w} × {h} px · {note}
         </span>
       </span>
     </label>
@@ -76,7 +74,7 @@ function FormatLayoutSection() {
   return (
     <Section title={`Układ w formacie ${aspectKey}`}>
       <CheckboxField label="Synchronizuj z 4:5" checked={!manual} onChange={(on) => on && resetFormatLayout()} disabled={!manual} />
-      {aspectKey === '9:16' && <CheckboxField label="Strefy bezpieczne story" checked={showSafeZones} onChange={setShowSafeZones} />}
+      {FORMATS[aspectKey].safeZone && <CheckboxField label="Strefy bezpieczne" checked={showSafeZones} onChange={setShowSafeZones} />}
       <ul className="element-states">
         {canvasElements().map((def) => (
           <ElementStateRow key={def.kind} def={def} manual={Boolean(flags.elements[def.kind])} />
@@ -106,19 +104,20 @@ function ImageExport() {
   const hasBackground = useHasBackground()
   const aspectKey = useAppStore((s) => s.aspectKey)
   const trackName = useAppStore((s) => selectTrack(s)?.name ?? null)
-  const slideCount = useAppStore((s) => s.slides.length)
+  const slides = useAppStore((s) => s.slides)
+  const parkedSlides = useAppStore((s) => s.parkedSlides)
   const exporting = useAppStore((s) => s.exporting)
   const [chosenFormat, setFormat] = useState<ExportFormat>('png')
   const [scale, setScale] = useState<Scale>('1')
   const [picked, setPicked] = useState<AspectKey[]>([aspectKey])
 
-  const { w, h } = ASPECTS[aspectKey]
+  const { w, h } = FORMATS[aspectKey]
   // JPG has no transparency — only makes sense over a photo.
   const format: ExportFormat = hasBackground ? chosenFormat : 'png'
   const fileScale = scale === '2' ? 2 : 1
   const baseName = trackName ?? (hasRoute ? null : 'kolaz')
   const formats = FORMAT_ORDER.filter((f) => picked.includes(f))
-  const fileNames = formats.flatMap((f) => exportFileNames(format, fileScale, f, baseName, slideCount))
+  const fileNames = formats.flatMap((f) => exportFileNames(format, fileScale, f, baseName, slideCountIn({ slides, parkedSlides }, f)))
   const canExport = (hasRoute || hasBackground) && formats.length > 0 && !exporting
 
   const scaleOptions: SelectOption<Scale>[] = [

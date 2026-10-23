@@ -4,7 +4,7 @@ import type Konva from 'konva'
 import { hasVisiblePhotos, useActiveSlide, usePanorama } from '../store/selectors'
 import { CHROME_ACCENT as ACCENT } from '../core/canvas/chrome'
 import { useAppStore } from '../store/useAppStore'
-import { ASPECTS } from '../utils/aspects'
+import { FORMATS } from '../core/formats/registry'
 import { UI_ONLY } from '../utils/exportImage'
 import { blurredBackdrop, containLayout, coverLayout } from '../utils/image'
 import { computeSlots, frameInsets, layoutDef, ribbonSlot, type SlotRect } from '../utils/layouts'
@@ -214,7 +214,7 @@ export default function PhotoLayer() {
   const carouselKind = useAppStore((s) => s.carouselKind)
   const panorama = usePanorama()
   const activeSlide = useActiveSlide()
-  const { w, h } = ASPECTS[aspectKey]
+  const { w, h } = FORMATS[aspectKey]
 
   const photoById = new Map(photos.map((p) => [p.id, p]))
   const hasPhotos = hasVisiblePhotos(slides, carouselKind)

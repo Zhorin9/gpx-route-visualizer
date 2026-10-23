@@ -11,7 +11,8 @@ import useGpxImport from '../../hooks/useGpxImport'
 import { useActiveSlide, useHasPhotos, usePanorama } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { DEFAULT_COLLAGE } from '../../store/defaults'
-import { LAYOUTS, computeSlots, layoutDef, type LayoutDef } from '../../utils/layouts'
+import { FORMATS } from '../../core/formats/registry'
+import { LAYOUTS, computeSlots, layoutDef, layoutFits, type LayoutDef } from '../../utils/layouts'
 import { MAX_SLIDES, MIN_CAROUSEL_SLIDES } from '../../store/defaults'
 import type { CarouselKind, FrameKind, LayoutGroup, LayoutKey, Photo, SelectOption, Slide } from '../../types'
 
@@ -40,6 +41,7 @@ const FIT_OPTIONS: SelectOption<'cover' | 'contain'>[] = [
   { value: 'contain', label: 'Całe + rozmyte tło' },
 ]
 
+// Box a layout thumbnail fits in, in the frame's proportions.
 const THUMB_W = 76
 const THUMB_H = 96
 
@@ -48,17 +50,19 @@ function LayoutThumb({
   active,
   slide,
   photos,
+  size,
   onApply,
   onPreview,
 }: {
   def: LayoutDef
+  size: { w: number; h: number }
   active: boolean
   slide: Slide
   photos: Map<number, Photo>
   onApply: () => void
   onPreview: (on: boolean) => void
 }) {
-  const slots = computeSlots(def, THUMB_W, THUMB_H, 2, 3)
+  const slots = computeSlots(def, size.w, size.h, 2, 3)
   return (
     <button
       type="button"
@@ -70,7 +74,7 @@ function LayoutThumb({
       onFocus={() => onPreview(true)}
       onBlur={() => onPreview(false)}
     >
-      <span className="layout-thumb-box" style={{ width: THUMB_W, height: THUMB_H }}>
+      <span className="layout-thumb-box" style={{ width: size.w, height: size.h }}>
         {slots.map((slot) => {
           const photo = photos.get(slide.slots[slot.index]?.photoId ?? -1)
           return (
@@ -118,6 +122,9 @@ export default function MediaTab() {
   const [group, setGroup] = useState<LayoutGroup>(currentDef.group)
   const photoMap = new Map(photos.map((p) => [p.id, p]))
   const { frame } = collage
+  const format = useAppStore((s) => FORMATS[s.aspectKey])
+  const thumbW = Math.min(THUMB_W, Math.round((THUMB_H * format.w) / format.h))
+  const thumbSize = { w: thumbW, h: Math.round((thumbW * format.h) / format.w) }
   const isCreative = currentDef.group === 'creative'
   const showFrameControls = isCreative || frame.enabled
 
@@ -167,13 +174,14 @@ export default function MediaTab() {
         <Section collapseId="layout" title={slides.length > 1 ? `Układ — slajd ${activeSlide + 1}` : 'Układ'}>
           <Segmented label="Rodzaj układów" value={group} options={GROUP_OPTIONS} onChange={setGroup} />
           <div className="layout-grid" role="group" aria-label="Układy zdjęć">
-            {LAYOUTS.filter((l) => l.group === group).map((def) => (
+            {LAYOUTS.filter((l) => l.group === group && (layoutFits(l, format.w, format.h) || l.key === slide.layoutKey)).map((def) => (
               <LayoutThumb
                 key={def.key}
                 def={def}
                 active={def.key === slide.layoutKey}
                 slide={slide}
                 photos={photoMap}
+                size={thumbSize}
                 onApply={() => apply(def.key)}
                 onPreview={(on) => setPreviewLayout(on && def.key !== slide.layoutKey ? def.key : null)}
               />

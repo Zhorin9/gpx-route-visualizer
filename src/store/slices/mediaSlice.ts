@@ -1,4 +1,4 @@
-import { ASPECTS } from '../../utils/aspects'
+import { FORMATS } from '../../core/formats/registry'
 import { loadPhoto } from '../../utils/image'
 import { computeSlots, frameInsets, frameStyleFor, hasVisiblePhotos, isPanorama, layoutDef } from '../../utils/layouts'
 import { INK, PAPER, mixHex, toneOf, type Tone } from '../../utils/color'
@@ -145,7 +145,7 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
           ? [...s.slides, ...Array.from({ length: CAROUSEL_SLIDES - s.slides.length }, (): Slide => ({ layoutKey: 'g1', slots: {} }))]
           : s.slides.slice(0, 1),
         activeSlide: 0,
-        texts: on ? s.texts : keepInside(s.texts, ASPECTS[s.aspectKey].w),
+        texts: on ? s.texts : keepInside(s.texts, FORMATS[s.aspectKey].w),
       }))
     },
 
@@ -169,7 +169,7 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
         ).map((sl, i) => (i === 0 && sl.slots[0] ? { ...sl, slots: { ...sl.slots, 0: { ...sl.slots[0], ...DEFAULT_SLOT_CROP } } } : sl)),
         activeSlide: Math.min(s.activeSlide, next - 1),
         selection: s.selection?.kind === 'slot' && s.selection.slide >= next ? null : s.selection,
-        texts: keepInside(s.texts, ASPECTS[s.aspectKey].w * next),
+        texts: keepInside(s.texts, FORMATS[s.aspectKey].w * next),
       }))
     },
 
@@ -188,7 +188,7 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
         slides: s.slides.filter((_, i) => i !== index),
         activeSlide: Math.max(0, Math.min(s.activeSlide, s.slides.length - 2)),
         selection: s.selection?.kind === 'slot' ? null : s.selection,
-        texts: keepInside(s.texts, ASPECTS[s.aspectKey].w * (s.slides.length - 1)),
+        texts: keepInside(s.texts, FORMATS[s.aspectKey].w * (s.slides.length - 1)),
       }))
     },
 
@@ -219,7 +219,7 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
 
     addCaption: (slide, index) => {
       const s = get()
-      const { w, h } = ASPECTS[s.aspectKey]
+      const { w, h } = FORMATS[s.aspectKey]
       const slot = computeSlots(layoutDef(s.slides[slide]?.layoutKey ?? 'g1'), w, h, s.collage.gap, s.collage.margin)[index]
       if (!slot) return
       const { frame } = s.collage
@@ -252,7 +252,12 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
       })
     },
 
-    setAspectKey: (key) => commit('aspect', (s) => reflowTo(s, key)),
+    setAspectKey: (key) =>
+      commit('aspect', (s) => {
+        const next = reflowTo(s, key)
+        const slideGone = s.selection?.kind === 'slot' && next.slides && s.selection.slide >= next.slides.length
+        return slideGone ? { ...next, selection: null } : next
+      }),
     resetFormatLayout: () => commit('format:reset', (s) => resetToAuto(s)),
 
     setDimOpacity: (value) => commit('dim', { dimOpacity: value }),

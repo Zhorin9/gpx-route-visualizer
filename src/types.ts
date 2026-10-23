@@ -241,7 +241,7 @@ export interface StatChip {
   value: string
 }
 
-export type LayoutKey = 'g1' | 'g2h' | 'g2v' | 'g2v1h' | 'g22' | 'g1b2s' | 'g2s1b' | 'g3h' | 'g3v' | 'g4v' | 'g23' | 'g1b3s' | 'g3s1b' | 'c1' | 'c2' | 'c3' | 'c4'
+export type LayoutKey = 'g1' | 'g2h' | 'g2v' | 'g2v1h' | 'g22' | 'g1b2s' | 'g2s1b' | 'g3h' | 'g3v' | 'g4v' | 'g23' | 'g1b3s' | 'g3s1b' | 'w1b2s' | 'w1p' | 'c1' | 'c2' | 'c3' | 'c4'
 
 export type LayoutGroup = 'grid' | 'creative'
 
@@ -309,13 +309,7 @@ export interface CollageStyle {
   fit: 'cover' | 'contain'
 }
 
-export interface AspectOption {
-  w: number
-  h: number
-  label: string
-}
-
-export type AspectKey = '9:16' | '4:5' | '1:1'
+export type AspectKey = '9:16' | '4:5' | '1:1' | '16:9'
 
 // Positions of the elements whose placement differs between formats.
 export interface FormatLayout {

@@ -5,7 +5,7 @@ import { useLayerAnimation } from '../core/animation/layers'
 import { SNAP_TARGET, snapDragEnd, snapDragMove } from '../core/canvas/snapDrag'
 import useInlineTextEditor from '../hooks/useInlineTextEditor'
 import { useAppStore } from '../store/useAppStore'
-import { ASPECTS } from '../utils/aspects'
+import { textColumn } from '../core/formats/registry'
 import { konvaFontStyle } from '../utils/fonts'
 import { displayText, fittedTitleSize } from '../utils/title'
 import SelectionOutline from './SelectionOutline'
@@ -18,7 +18,7 @@ export default function EditableText({ node }: { node: TextNode }) {
   const { hidden, edit } = useInlineTextEditor()
   const shapeRef = useRef<Konva.Text>(null)
   const outlineRef = useRef<Konva.Text>(null)
-  const frameW = useAppStore((s) => ASPECTS[s.aspectKey].w)
+  const span = useAppStore((s) => textColumn(s.aspectKey).w)
   const isTitle = node.role === 'title'
   const fontsVersion = useAppStore((s) => s.fontsVersion)
   const animation = useLayerAnimation('header')
@@ -37,12 +37,12 @@ export default function EditableText({ node }: { node: TextNode }) {
 
   const shared = {
     text: displayText(node),
-    // A title spans the frame and centres itself, whatever its font or length.
-    ...(isTitle ? { width: frameW, align: 'center', wrap: 'none' } : null),
+    // A title spans the frame (or the side column) and centres itself, whatever its font or length.
+    ...(isTitle ? { width: span, align: 'center', wrap: 'none' } : null),
     x: node.x,
     y: node.y + animation.offsetY,
     rotation: node.rotation,
-    fontSize: isTitle ? fittedTitleSize(node, frameW) : node.fontSize,
+    fontSize: isTitle ? fittedTitleSize(node, span) : node.fontSize,
     fontFamily: node.fontFamily,
     fontStyle: konvaFontStyle(node.fontFamily, { bold: node.bold, italic: node.italic }),
     letterSpacing: node.letterSpacing,

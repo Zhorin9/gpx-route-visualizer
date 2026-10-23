@@ -4,7 +4,7 @@ import type Konva from 'konva'
 import useGpxImport from '../hooks/useGpxImport'
 import { useActiveSlide, useHasBackground, useHasRoute, usePanorama } from '../store/selectors'
 import { useAppStore } from '../store/useAppStore'
-import { ASPECTS, STORY_SAFE_ZONE } from '../utils/aspects'
+import { FORMATS } from '../core/formats/registry'
 import { computeSlots, layoutDef, ribbonSlot, slotAt } from '../utils/layouts'
 import { stageHandle } from '../utils/exportImage'
 import CanvasElements from '../core/canvas/CanvasElements'
@@ -34,7 +34,7 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
   const { importFiles } = useGpxImport()
   const [dragSlot, setDragSlot] = useState<{ slide: number; index: number } | null>(null)
 
-  const { w, h } = ASPECTS[aspectKey]
+  const { w, h, safeZone } = FORMATS[aspectKey]
   const slideCount = slides.length
   const slotsBySlide = panorama
     ? [[ribbonSlot(w, h, slideCount)]]
@@ -149,14 +149,16 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
           <span className="layout-preview-tag" style={{ left: (activeSlide + 0.5) * w * previewScale }}>Podgląd: {layoutDef(previewLayoutKey).label} — kliknij, aby zastosować</span>
         </>
       )}
-      {aspectKey === '9:16' && showSafeZones && (
+      {safeZone && showSafeZones && (
         <div className="safe-zones" aria-hidden="true">
-          <div className="safe-zone" style={{ height: STORY_SAFE_ZONE.top * previewScale }}>
-            <span>Pasek profilu Instagrama</span>
+          <div className="safe-zone" style={{ height: safeZone.top * previewScale }}>
+            <span>{safeZone.topLabel}</span>
           </div>
-          <div className="safe-zone bottom" style={{ height: STORY_SAFE_ZONE.bottom * previewScale }}>
-            <span>Pole odpowiedzi</span>
+          <div className="safe-zone bottom" style={{ height: safeZone.bottom * previewScale }}>
+            <span>{safeZone.bottomLabel}</span>
           </div>
+          {safeZone.left > 0 && <div className="safe-zone side" style={{ left: 0, width: safeZone.left * previewScale }} />}
+          {safeZone.right > 0 && <div className="safe-zone side right" style={{ right: 0, width: safeZone.right * previewScale }} />}
         </div>
       )}
     </div>

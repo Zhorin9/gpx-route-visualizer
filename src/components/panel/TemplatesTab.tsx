@@ -4,6 +4,7 @@ import Button from '../ui/Button'
 import Section from '../ui/Section'
 import { IconClose } from '../icons'
 import { useAppStore } from '../../store/useAppStore'
+import { FORMATS } from '../../core/formats/registry'
 import { BUILT_IN_TEMPLATES } from '../../utils/templates'
 import type { StyleTemplate, TemplateParts } from '../../types'
 import './TemplatesTab.css'
@@ -30,13 +31,15 @@ function thumbBackground({ gradient, textColor }: StyleTemplate) {
   return base
 }
 
+// Drawn in the open format's proportions; a landscape card puts the text in a side column.
 function TemplateThumb({ template }: { template: StyleTemplate }) {
+  const { w, h } = useAppStore((s) => FORMATS[s.aspectKey])
   const { route, textColor, fonts } = template
   const color = route.color ?? textColor
   const marker = template.pointStyle?.marker
   const width = (w = 0) => Math.max(1, w * THUMB_SCALE)
   return (
-    <span className="template-thumb" style={{ background: thumbBackground(template), color: textColor }}>
+    <span className={w > h ? 'template-thumb landscape' : 'template-thumb'} style={{ background: thumbBackground(template), color: textColor, aspectRatio: `${w} / ${h}` }}>
       {template.frame.enabled && <span className="template-thumb-frame" style={{ borderColor: template.frame.color }} />}
       <span className="template-thumb-title" style={{ fontFamily: `'${fonts.title}', serif`, color: template.titleColor ?? textColor, fontStyle: template.titleItalic ? 'italic' : 'normal' }}>
         {template.titleUppercase ? 'SARDYNIA' : 'Sardynia'}

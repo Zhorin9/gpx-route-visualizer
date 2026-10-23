@@ -79,3 +79,8 @@ const HEIGHTS: Record<ProfileLayout, number> = { low: 140, tall: 240, overlay: 2
 export const profileHeight = (settings: ProfileSettings) => HEIGHTS[settings.layout]
 
 export const PROFILE_KIND = 'elevationProfile'
+
+// Room the chart takes above the frame's bottom inset while it sits on its default place.
+export function profileBand(s: { profile: ProfileSettings; placements: Record<string, { y: number | null }> }): number {
+  return s.profile.enabled && s.placements[PROFILE_KIND]?.y == null ? profileHeight(s.profile) + 30 : 0
+}

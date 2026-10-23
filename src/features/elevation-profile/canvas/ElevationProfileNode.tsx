@@ -3,7 +3,7 @@ import type Konva from 'konva'
 import DraggableElement from '../../../core/canvas/DraggableElement'
 import { distanceToKm, formatDistance, formatGain, formatHeight, heightIn, heightUnit } from '../../../core/units'
 import { useAppStore } from '../../../store/useAppStore'
-import { ASPECTS, STORY_SAFE_ZONE } from '../../../utils/aspects'
+import { FORMATS, bottomInset } from '../../../core/formats/registry'
 import { formatNumber } from '../../../utils/format'
 import { konvaFontStyle } from '../../../utils/fonts'
 import { measureTextWidth } from '../../../utils/measureText'
@@ -21,9 +21,9 @@ const STEEP = { fill: 'rgba(229, 115, 122, 0.22)', edge: 'rgba(229, 115, 122, 0.
 const TICK_EVERY = 10
 
 function framePosition(settings: ProfileSettings, aspectKey: AspectKey, width: number, height: number) {
-  const { w, h } = ASPECTS[aspectKey]
+  const { w, h } = FORMATS[aspectKey]
   if (settings.layout === 'overlay') return { x: 0, y: h - height }
-  const bottom = aspectKey === '9:16' ? STORY_SAFE_ZONE.bottom + 20 : 60
+  const bottom = bottomInset(aspectKey)
   return { x: (w - width) / 2, y: h - bottom - height }
 }
 
@@ -42,7 +42,7 @@ export default function ElevationProfileNode() {
   useAppStore((s) => s.fontsVersion)
 
   const overlay = settings.layout === 'overlay'
-  const width = overlay ? ASPECTS[aspectKey].w : Math.round((ASPECTS[aspectKey].w * settings.widthPct) / 100)
+  const width = overlay ? FORMATS[aspectKey].w : Math.round((FORMATS[aspectKey].w * settings.widthPct) / 100)
   const height = profileHeight(settings)
   const data = useProfileData(sampleCount(settings.style, width))
   const colors = useProfileColors(data)
