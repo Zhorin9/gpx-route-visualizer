@@ -446,6 +446,12 @@ describe('tab switching on selection', () => {
     get().select({ kind: 'waypoint', id })
     expect(get().activeTab).toBe('route')
   })
+
+  it('stays on the open tab when a photo is picked or dragged', () => {
+    get().setActiveTab('route')
+    get().select({ kind: 'slot', slide: 0, index: 0 })
+    expect([get().activeTab, get().selection?.kind]).toEqual(['route', 'slot'])
+  })
 })
 
 describe('gradient background', () => {
@@ -531,5 +537,44 @@ describe('saving a template with a colour background', () => {
     get().updateBackground({ bgKind: 'color', bgColor: '#336699' })
     get().saveTemplate('Płaski')
     expect(get().customTemplates[0].gradient).toMatchObject({ from: '#336699', to: '#336699', grain: 0 })
+  })
+})
+
+describe('project modes', () => {
+  it('opens each mode on the tab it starts from', () => {
+    get().startProject('collage')
+    expect([get().mode, get().activeTab]).toEqual(['collage', 'media'])
+    get().startProject('map')
+    expect(get().activeTab).toBe('route')
+    get().startProject('map', 'travel')
+    expect(get().activeTab).toBe('travel')
+  })
+
+  it('crops one selected photo, or all of them, and filling centres the photo again', () => {
+    useAppStore.setState({ photos: [fakePhoto(1), fakePhoto(2)] })
+    get().setLayout(0, 'g2h')
+    get().assignPhoto(0, 0, 1)
+    get().assignPhoto(0, 1, 2)
+    get().updateSlot(0, 0, { zoom: 2, offsetX: 10 })
+    get().setCrop('fit', { slide: 0, index: 1 })
+    expect([get().slides[0].slots[0].crop, get().slides[0].slots[1].crop]).toEqual([undefined, 'fit'])
+    get().setCrop('fill', null)
+    expect(get().slides[0].slots[0]).toMatchObject({ crop: 'fill', zoom: 1, offsetX: 0 })
+    expect(get().slides[0].slots[1].crop).toBe('fill')
+  })
+})
+
+describe('changing the project type', () => {
+  const file = new File([`<gpx><trk><name>Pętla</name><trkseg>${[0, 1, 2].map((i) => `<trkpt lat="${50 + i * 0.01}" lon="19"><ele>10</ele></trkpt>`).join('')}</trkseg></trk></gpx>`], 'petla.gpx')
+
+  it('drops the route and its places in a collage, and one undo brings them back', async () => {
+    vi.useRealTimers()
+    get().startProject('map')
+    await get().loadGpxFile(file)
+    get().addWaypoint(1)
+    get().changeMode('collage')
+    expect([get().mode, get().activeTab, selectTrack(get()), get().waypoints]).toEqual(['collage', 'media', null, []])
+    get().undo()
+    expect([get().mode, selectTrack(get()) !== null, get().waypoints.length]).toEqual(['map', true, 1])
   })
 })

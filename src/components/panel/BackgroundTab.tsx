@@ -38,14 +38,17 @@ export default function BackgroundTab() {
   const setPreviewBackdrop = useAppStore((s) => s.setPreviewBackdrop)
   const photoBackground = usePhotoBackground()
   const setActiveTab = useAppStore((s) => s.setActiveTab)
+  // A collage has no map, and shows this under its layout rather than in a tab of its own.
+  const collageMode = useAppStore((s) => s.mode === 'collage')
   const { gradient, bgKind } = collage
   const backdropIsColor = previewBackdrop !== 'checkerboard'
   // Kinds added by features (the map) follow the built-in ones and bring their own settings.
-  const kindOptions = [...BACKGROUND_OPTIONS, ...backgroundKinds().map((k) => ({ value: k.kind, label: k.label }))]
+  const kindOptions = collageMode ? BACKGROUND_OPTIONS : [...BACKGROUND_OPTIONS, ...backgroundKinds().map((k) => ({ value: k.kind, label: k.label }))]
   const added = backgroundKind(bgKind)
 
   // A photo covers the whole frame: a colour or gradient underneath could never be seen.
   if (photoBackground) {
+    if (collageMode) return null
     return (
       <Section title="Tło">
         <p className="hint">Tłem jest zdjęcie wypełniające cały kadr, więc kolor ani gradient pod nim nie byłyby widoczne. Jasność zdjęcia zmienisz suwakiem „Przyciemnienie”.</p>
@@ -58,7 +61,7 @@ export default function BackgroundTab() {
 
   return (
     <>
-      <p className="hint">Tło to osobna warstwa pod zdjęciami: zmiana układu go nie rusza, a zmiana tła nie rusza zdjęć.</p>
+      {!collageMode && <p className="hint">Tło to osobna warstwa pod zdjęciami: zmiana układu go nie rusza, a zmiana tła nie rusza zdjęć.</p>}
 
       <Section title="Rodzaj tła">
         <Segmented label="Rodzaj tła" value={bgKind} options={kindOptions} onChange={(kind) => (backgroundKind(kind)?.select ?? (() => updateBackground({ bgKind: kind })))()} />

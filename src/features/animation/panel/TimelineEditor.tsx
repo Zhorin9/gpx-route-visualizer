@@ -1,9 +1,9 @@
 import { useRef, type KeyboardEvent, type PointerEvent } from 'react'
 import type { AnimationTrackId } from '../../../core/animation/layers'
 import { useAppStore } from '../../../store/useAppStore'
-import { totalDuration } from '../model/timeline'
+import { selectDuration } from '../model/timeline'
 import { usePlayback } from '../playback'
-import { TRACK_LABELS, TRACK_ORDER, type TrackClip } from '../types'
+import { TRACK_LABELS, tracksFor, type TrackClip } from '../types'
 import { formatTime } from '../ui/formatTime'
 import './TimelineEditor.css'
 
@@ -73,14 +73,14 @@ function TimelineTrack({ track, scale }: { track: AnimationTrackId; scale: numbe
   )
 }
 
-// Four bars, one per kind of content: when it starts and how long it takes to appear.
+// One bar per kind of content the mode has: when it starts and how long it takes to appear.
 export default function TimelineEditor() {
-  const settings = useAppStore((s) => s.animation)
   const t = usePlayback((s) => s.t)
   const previewing = usePlayback((s) => s.previewing)
   const seek = usePlayback((s) => s.seek)
   const pause = usePlayback((s) => s.pause)
-  const total = totalDuration(settings)
+  const total = useAppStore(selectDuration)
+  const tracks = tracksFor(useAppStore((s) => s.mode))
   // A little room after the end, so the last bar can still be stretched.
   const scale = Math.max(4, Math.ceil(total + 1))
   const ticks = Array.from({ length: Math.floor(scale / (scale > 20 ? 5 : scale > 8 ? 2 : 1)) + 1 }, (_, i) => i * (scale > 20 ? 5 : scale > 8 ? 2 : 1))
@@ -104,7 +104,7 @@ export default function TimelineEditor() {
           <span className="timeline-end" style={{ left: `${(total / scale) * 100}%` }} title={`Koniec: ${formatTime(total)}`} />
         </div>
       </div>
-      {TRACK_ORDER.map((track) => (
+      {tracks.map((track) => (
         <TimelineTrack key={track} track={track} scale={scale} />
       ))}
       {previewing && <span className="timeline-playhead" style={{ left: `calc(var(--timeline-label) + (100% - var(--timeline-label)) * ${Math.min(t, scale) / scale})` }} />}

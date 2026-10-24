@@ -1,5 +1,5 @@
 import type { AnimationTrackId } from '../../core/animation/layers'
-import type { VehicleId } from '../../types'
+import type { ProjectMode, VehicleId } from '../../types'
 
 export type PacingId = 'constant' | 'eased' | 'bySpeed'
 export type Entrance = 'fade' | 'slide'
@@ -39,6 +39,7 @@ export const DEFAULT_ANIMATION: AnimationSettings = {
     route: { start: 0.4, duration: 6 },
     waypoints: { start: 0.4, duration: 6 },
     stats: { start: 0.8, duration: 1 },
+    photos: { start: 0.4, duration: 3 },
   },
   entrance: 'fade',
   endHold: 1.5,
@@ -56,8 +57,11 @@ export const TRACK_LABELS: Record<AnimationTrackId, string> = {
   header: 'Nagłówek',
   waypoints: 'Punkty',
   stats: 'Statystyki',
+  photos: 'Zdjęcia',
 }
 
-export const TRACK_ORDER: AnimationTrackId[] = ['route', 'header', 'waypoints', 'stats']
+// A collage has no route: its photos come in one by one under the header.
+export const tracksFor = (mode: ProjectMode | null): AnimationTrackId[] =>
+  mode === 'collage' ? ['photos', 'header'] : ['route', 'header', 'waypoints', 'stats']
 
 export const MAX_DURATION_S = 60

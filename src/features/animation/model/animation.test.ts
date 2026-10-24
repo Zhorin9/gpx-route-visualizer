@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_ANIMATION } from '../types'
+import { DEFAULT_ANIMATION, tracksFor } from '../types'
 import { PACINGS, constantPacing, easedPacing, pacingFor, speedPacing, type PacingContext } from './pacing'
-import { clipProgress, entranceState, layerAt, totalDuration } from './timeline'
+import { clipProgress, entranceState, layerAt, photoAt, totalDuration } from './timeline'
 import type { GpxPoint } from '../../../types'
 
 // 101 points, 100 m apart; the first half ridden at 10 km/h, the second at 30 km/h, with a 1 h stop in between.
@@ -15,6 +15,20 @@ const ctx: PacingContext = { track: { name: null, points }, cumKm, range: { star
 describe('timeline', () => {
   it('lasts until the last bar ends, plus the still frames', () => {
     expect(totalDuration(DEFAULT_ANIMATION)).toBeCloseTo(0.4 + 6 + 1.5)
+  })
+
+  it('counts only the bars a collage has: photos and the header', () => {
+    expect(totalDuration(DEFAULT_ANIMATION, tracksFor('collage'))).toBeCloseTo(0.4 + 3 + 1.5)
+  })
+
+  it('brings collage photos in one after another, the last one ending with the bar', () => {
+    const at = (order: number, t: number) => photoAt(DEFAULT_ANIMATION, order, 3, t).opacity
+    expect([at(0, 0.4), at(1, 0.4), at(2, 0.4)]).toEqual([0, 0, 0])
+    expect(at(0, 1.9)).toBe(1)
+    expect(at(1, 1.9)).toBeGreaterThan(0)
+    expect(at(2, 1.9)).toBe(0)
+    expect(at(2, 3.4)).toBe(1)
+    expect(photoAt(DEFAULT_ANIMATION, 0, 1, 1.9).opacity).toBeLessThan(1)
   })
 
   it('measures progress along a bar', () => {

@@ -6,7 +6,7 @@ import { IconClose } from '../icons'
 import { useAppStore } from '../../store/useAppStore'
 import { FORMATS } from '../../core/formats/registry'
 import { BUILT_IN_TEMPLATES } from '../../utils/templates'
-import type { StyleTemplate, TemplateParts } from '../../types'
+import type { StyleTemplate, TemplateGroup, TemplateParts } from '../../types'
 import './TemplatesTab.css'
 
 const PART_LABELS: { key: keyof TemplateParts; label: string }[] = [
@@ -16,6 +16,17 @@ const PART_LABELS: { key: keyof TemplateParts; label: string }[] = [
   { key: 'colors', label: 'Kolory kadru' },
   { key: 'layout', label: 'Układ zdjęć' },
   { key: 'points', label: 'Zdjęcia w punktach' },
+]
+
+// A collage has no route and no places to pin photos to.
+const ROUTE_PARTS: (keyof TemplateParts)[] = ['route', 'points']
+
+const GROUPS: { key: TemplateGroup | 'custom'; label: string }[] = [
+  { key: 'basic', label: 'Podstawowe' },
+  { key: 'natural', label: 'Naturalne' },
+  { key: 'retro', label: 'Retro i papier' },
+  { key: 'dark', label: 'Ciemne i graficzne' },
+  { key: 'custom', label: 'Własne' },
 ]
 
 const ROUTE_PATH = 'M8 90 C14 60 32 70 38 46 S60 38 66 22 S86 14 92 8'
@@ -76,6 +87,7 @@ export default function TemplatesTab() {
   const deleteTemplate = useAppStore((s) => s.deleteTemplate)
   const [selectedId, setSelectedId] = useState(BUILT_IN_TEMPLATES[0].id)
   const [parts, setParts] = useState<TemplateParts>({ fonts: true, route: true, frame: true, colors: true, layout: false, points: true })
+  const collageMode = useAppStore((s) => s.mode === 'collage')
   const [naming, setNaming] = useState(false)
   const [name, setName] = useState('')
 
@@ -92,26 +104,35 @@ export default function TemplatesTab() {
   return (
     <>
       <Section title="Presety stylu">
-        <div className="template-grid" role="group" aria-label="Presety stylu">
-          {templates.map((template) => (
-            <div key={template.id} className={template.id === selected.id ? 'template-card active' : 'template-card'}>
-              <button type="button" className="template-card-body" aria-pressed={template.id === selected.id} onClick={() => setSelectedId(template.id)}>
-                <TemplateThumb template={template} />
-                <span className="template-card-name">{template.name}</span>
-                <span className="template-card-desc">{template.desc}</span>
-              </button>
-              {template.custom && (
-                <button type="button" className="template-card-remove" aria-label={`Usuń szablon ${template.name}`} onClick={() => deleteTemplate(template.id)}>
-                  <IconClose width={12} height={12} />
-                </button>
-              )}
+        {GROUPS.map(({ key, label }) => {
+          const group = templates.filter((t) => (t.custom ? 'custom' : (t.group ?? 'basic')) === key)
+          if (!group.length) return null
+          return (
+            <div key={key} className="template-group">
+              <h3 className="template-group-title">{label}</h3>
+              <div className="template-grid" role="group" aria-label={label}>
+                {group.map((template) => (
+                  <div key={template.id} className={template.id === selected.id ? 'template-card active' : 'template-card'}>
+                    <button type="button" className="template-card-body" aria-pressed={template.id === selected.id} onClick={() => setSelectedId(template.id)}>
+                      <TemplateThumb template={template} />
+                      <span className="template-card-name">{template.name}</span>
+                      <span className="template-card-desc">{template.desc}</span>
+                    </button>
+                    {template.custom && (
+                      <button type="button" className="template-card-remove" aria-label={`Usuń szablon ${template.name}`} onClick={() => deleteTemplate(template.id)}>
+                        <IconClose width={12} height={12} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}
-        </div>
+          )
+        })}
       </Section>
 
       <Section title="Zastosuj z szablonu">
-        {PART_LABELS.map(({ key, label }) => (
+        {PART_LABELS.filter(({ key }) => !collageMode || !ROUTE_PARTS.includes(key)).map(({ key, label }) => (
           <CheckboxField key={key} label={label} checked={parts[key]} onChange={(on) => setParts({ ...parts, [key]: on })} />
         ))}
         <div className="button-row">

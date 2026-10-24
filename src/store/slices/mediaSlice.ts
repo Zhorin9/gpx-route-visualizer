@@ -149,6 +149,20 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
 
     resetSlotCrop: (slide, index) => get().updateSlot(slide, index, DEFAULT_SLOT_CROP),
 
+    // Filling centres the photo again; a manual crop starts from where it is.
+    setCrop: (crop, target) =>
+      commit(`crop:${target ? `${target.slide}:${target.index}` : 'all'}`, (s) => ({
+        slides: s.slides.map((sl, i) => {
+          if (target && i !== target.slide) return sl
+          const slots = Object.fromEntries(
+            Object.entries(sl.slots).map(([index, a]) =>
+              !target || Number(index) === target.index ? [index, { ...a, crop, ...(crop === 'fill' ? DEFAULT_SLOT_CROP : null) }] : [index, a],
+            ),
+          )
+          return { ...sl, slots }
+        }),
+      })),
+
     // Photos stay in their slot numbers, so switching layouts reuses them.
     setLayout: (slide, key) =>
       commit('layout', (s) => ({

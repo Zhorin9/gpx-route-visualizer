@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { useAppStore } from '../../store/useAppStore'
-import { totalDuration } from './model/timeline'
+import { selectDuration } from './model/timeline'
 
 // The animation's clock. Not part of the document: playing never adds an undo step
 // and nothing of it is saved.
@@ -20,7 +20,7 @@ export interface PlaybackState {
 let frame = 0
 let lastTick = 0
 
-const duration = () => totalDuration(useAppStore.getState().animation)
+const duration = () => selectDuration(useAppStore.getState())
 
 function tick(now: number) {
   const s = usePlayback.getState()

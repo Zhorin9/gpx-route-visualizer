@@ -12,7 +12,8 @@ export interface OwnPage {
 // A tab split into pages: its own ones first, then those features registered for it.
 // The open page is remembered per tab, so leaving and coming back keeps it.
 export default function SubTabs({ tab, own }: { tab: TabKey; own: OwnPage[] }) {
-  const pages: OwnPage[] = [...own, ...panelSections(tab)]
+  const mode = useAppStore((s) => s.mode)
+  const pages: OwnPage[] = [...own, ...panelSections(tab, mode)]
   const chosen = useAppStore((s) => s.subTabs[tab])
   const setSubTab = useAppStore((s) => s.setSubTab)
   const active = pages.find((p) => p.id === chosen) ?? pages[0]

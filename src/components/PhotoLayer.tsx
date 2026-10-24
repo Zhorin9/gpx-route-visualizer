@@ -6,6 +6,7 @@ import { CHROME_ACCENT as ACCENT } from '../core/canvas/chrome'
 import { useAppStore } from '../store/useAppStore'
 import { FORMATS } from '../core/formats/registry'
 import { UI_ONLY } from '../utils/exportImage'
+import { usePhotoAnimation } from '../core/animation/layers'
 import { blurredBackdrop, containLayout, coverLayout } from '../utils/image'
 import { computeSlots, frameInsets, layoutDef, ribbonSlot, type SlotRect } from '../utils/layouts'
 import type { CollageStyle, Photo, SlotAssignment } from '../types'
@@ -29,13 +30,17 @@ interface SlotViewProps {
   photo?: Photo
   selected: boolean
   emptyLabel?: string
+  // Place among the slide's slots, for the order photos come in.
+  order: number
+  count: number
 }
 
 function PhotoImage({ photo, assignment, inner, fit, slide, index }: { photo: Photo; assignment: SlotAssignment; inner: Box; fit: 'cover' | 'contain'; slide: number; index: number }) {
   const updateSlot = useAppStore((s) => s.updateSlot)
   const img = photo.image
+  const crop = assignment.crop ?? (fit === 'contain' ? 'fit' : 'manual')
 
-  if (fit === 'contain') {
+  if (crop === 'fit') {
     const back = coverLayout(img.width, img.height, inner.w, inner.h, 1, 0, 0)
     const front = containLayout(img.width, img.height, inner.w, inner.h)
     return (
@@ -47,6 +52,7 @@ function PhotoImage({ photo, assignment, inner, fit, slide, index }: { photo: Ph
   }
 
   const layout = coverLayout(img.width, img.height, inner.w, inner.h, assignment.zoom, assignment.offsetX, assignment.offsetY)
+  if (crop === 'fill') return <KonvaImage image={img} x={inner.x + layout.x} y={inner.y + layout.y} width={layout.width} height={layout.height} />
 
   // Keeps the photo covering the whole slot while it's dragged.
   function clamp(node: Konva.Node) {
@@ -146,7 +152,8 @@ function EmptySlot({ inner, label, onPick }: { inner: Box; label: string; onPick
   )
 }
 
-function SlotView({ slot, slide, frameOffsetX, collage, assignment, photo, selected, emptyLabel }: SlotViewProps) {
+function SlotView({ slot, slide, frameOffsetX, collage, assignment, photo, selected, emptyLabel, order, count }: SlotViewProps) {
+  const animation = usePhotoAnimation(order, count)
   const select = useAppStore((s) => s.select)
   const requestPhoto = useAppStore((s) => s.requestPhoto)
   const { frame } = collage
@@ -163,7 +170,8 @@ function SlotView({ slot, slide, frameOffsetX, collage, assignment, photo, selec
   return (
     <Group
       x={slot.x + slot.w / 2 + frameOffsetX}
-      y={slot.y + slot.h / 2}
+      y={slot.y + slot.h / 2 + animation.offsetY}
+      opacity={animation.opacity}
       offsetX={slot.w / 2}
       offsetY={slot.h / 2}
       rotation={slot.rotation}
@@ -236,6 +244,8 @@ export default function PhotoLayer() {
           photo={assignment ? photoById.get(assignment.photoId) : undefined}
           selected={selection?.kind === 'slot'}
           emptyLabel="Dodaj zdjęcie na całą karuzelę"
+          order={0}
+          count={1}
         />
         {dimOpacity > 0 && <Rect width={w * slides.length} height={h} fill="#000000" opacity={dimOpacity} listening={false} />}
       </Layer>
@@ -249,7 +259,7 @@ export default function PhotoLayer() {
         const slots = computeSlots(def, w, h, collage.gap, collage.margin)
         return (
           <Group key={slideIndex}>
-            {slots.map((slot) => {
+            {slots.map((slot, order) => {
               const assignment = slide.slots[slot.index]
               return (
                 <SlotView
@@ -261,6 +271,8 @@ export default function PhotoLayer() {
                   assignment={assignment}
                   photo={assignment ? photoById.get(assignment.photoId) : undefined}
                   selected={selection?.kind === 'slot' && selection.slide === slideIndex && selection.index === slot.index}
+                  order={order}
+                  count={slots.length}
                 />
               )
             })}

@@ -1,11 +1,34 @@
 import { canvasElement } from '../../core/canvas/registry'
+import { INITIAL_DOCUMENT } from '../document'
+import { MODE_LABELS } from '../../utils/modeChange'
 import type { SliceContext, UiSlice } from '../types'
 import type { TabKey } from '../../types'
 
 let nextToastId = 1
 
-export function createUiSlice({ set }: SliceContext): UiSlice {
+export function createUiSlice({ set, get, commit }: SliceContext): UiSlice {
   return {
+    // A collage starts from its photos, a map project from Trasa unless asked otherwise.
+    startProject: (mode, tab) => set({ mode, activeTab: tab ?? (mode === 'collage' ? 'media' : 'route'), centerView: 'map' }),
+    // Photos, texts and the look always stay; a collage drops the route, its places and a map background.
+    changeMode: (mode) => {
+      const s = get()
+      if (!s.mode || s.mode === mode) return
+      const dropRoute =
+        mode === 'collage'
+          ? {
+              routeSource: INITIAL_DOCUMENT.routeSource,
+              range: INITIAL_DOCUMENT.range,
+              progress: INITIAL_DOCUMENT.progress,
+              routeTransform: INITIAL_DOCUMENT.routeTransform,
+              waypoints: [],
+              collage: s.collage.bgKind === 'map' ? { ...s.collage, bgKind: 'gradient' as const } : s.collage,
+            }
+          : null
+      commit('mode', { mode, ...dropRoute })
+      set({ activeTab: mode === 'collage' ? 'media' : 'route', centerView: 'map', selection: null, addingWaypoint: false, routeEditable: false })
+      get().showToast(`Projekt zmieniony na ${MODE_LABELS[mode]}. Zdjęcia i teksty zachowane.`, 'undo')
+    },
     activeTab: 'media',
     subTabs: {},
     // 'checkerboard' or a hex color
@@ -27,15 +50,16 @@ export function createUiSlice({ set }: SliceContext): UiSlice {
     setCenterView: (view) => set({ centerView: view }),
     setSubTab: (tab, page) => set((s) => ({ activeTab: tab, subTabs: { ...s.subTabs, [tab]: page } })),
     setPreviewBackdrop: (value) => set({ previewBackdrop: value }),
-    // Picking something on the canvas brings up its settings: photos live in the first tab, texts in
-    // Napisy, registered elements where they say (Trasa → Statystyki). A waypoint has settings in both
-    // Trasa (Linia) and Napisy, so it stays in whichever of the two is open.
+    // Picking something on the canvas brings up its settings: texts in Napisy, registered elements
+    // where they say (Trasa → Statystyki). A waypoint has settings in both Trasa (Linia) and Napisy, so
+    // it stays in whichever of the two is open. A photo is mostly grabbed to move it in its slot, so
+    // the open tab stays.
     select: (selection) =>
       set((s) => {
         if (!selection) return { selection: null }
         let tab: TabKey = 'texts'
         let page: string | undefined
-        if (selection.kind === 'slot') tab = 'media'
+        if (selection.kind === 'slot') tab = s.activeTab
         else if (selection.kind === 'waypoint') {
           tab = s.activeTab === 'texts' ? 'texts' : 'route'
           if (tab === 'route') page = 'line'

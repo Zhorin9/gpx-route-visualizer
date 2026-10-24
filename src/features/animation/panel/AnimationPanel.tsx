@@ -3,10 +3,10 @@ import SelectField from '../../../components/fields/SelectField'
 import SliderField from '../../../components/fields/SliderField'
 import Section from '../../../components/ui/Section'
 import Segmented from '../../../components/ui/Segmented'
-import { useHasRoute } from '../../../store/selectors'
+import { useCanAnimate } from '../hooks'
 import { useAppStore } from '../../../store/useAppStore'
 import { PACINGS } from '../model/pacing'
-import { totalDuration } from '../model/timeline'
+import { selectDuration } from '../model/timeline'
 import { DEFAULT_ANIMATION, type Entrance, type PacingId } from '../types'
 import { formatTime } from '../ui/formatTime'
 import TimelineEditor from './TimelineEditor'
@@ -49,19 +49,23 @@ function VehicleFields() {
 }
 
 export function AnimationTimingSection() {
-  const hasRoute = useHasRoute()
+  const canAnimate = useCanAnimate()
+  const collage = useAppStore((s) => s.mode === 'collage')
   const settings = useAppStore((s) => s.animation)
+  const duration = useAppStore(selectDuration)
   const track = useAppStore(selectTrack)
   const updateAnimation = useAppStore((s) => s.updateAnimation)
   const setDrawDuration = useAppStore((s) => s.setDrawDuration)
-  if (!hasRoute) return <p className="hint">Wgraj plik GPX albo zaplanuj podróż, aby animować trasę.</p>
+  const setClip = useAppStore((s) => s.setClip)
+  if (!canAnimate)
+    return <p className="hint">{collage ? 'Dodaj zdjęcia w zakładce Układ, aby je animować.' : 'Wgraj plik GPX albo zaplanuj podróż, aby animować trasę.'}</p>
 
   const pacingNote = track ? PACINGS.find((p) => p.id === settings.pacing)?.unavailable?.(track) : null
 
   return (
     <>
-      <Section title="Animacja trasy">
-        <CheckboxField label="Animuj rysowanie trasy" checked={settings.enabled} onChange={(enabled) => updateAnimation({ enabled })} />
+      <Section title={collage ? 'Animacja kolażu' : 'Animacja trasy'}>
+        <CheckboxField label={collage ? 'Animuj wejście zdjęć' : 'Animuj rysowanie trasy'} checked={settings.enabled} onChange={(enabled) => updateAnimation({ enabled })} />
         <p className="hint">
           {settings.enabled
             ? 'Pod kadrem jest pasek odtwarzania, a w podzakładce „Wideo” zapiszesz film.'
@@ -72,8 +76,23 @@ export function AnimationTimingSection() {
       <fieldset className="panel-fieldset" disabled={!settings.enabled}>
       <Section title="Oś czasu">
         <TimelineEditor />
-        <p className="hint">Długość całej animacji: {formatTime(totalDuration(settings))}. Przeciągnij pasek, aby zmienić początek, a uchwyt z prawej — długość.</p>
+        <p className="hint">Długość całej animacji: {formatTime(duration)}. Przeciągnij pasek, aby zmienić początek, a uchwyt z prawej — długość.</p>
       </Section>
+      {collage ? (
+        <Section title="Zdjęcia">
+          <SliderField
+            label="Czas wejścia wszystkich zdjęć"
+            unit="s"
+            min={0.5}
+            max={15}
+            step={0.5}
+            value={settings.clips.photos.duration}
+            defaultValue={DEFAULT_ANIMATION.clips.photos.duration}
+            onChange={(seconds) => setClip('photos', { ...settings.clips.photos, duration: seconds })}
+          />
+          <p className="hint">Zdjęcia pojawiają się po kolei, w kolejności slotów układu.</p>
+        </Section>
+      ) : (
       <Section title="Rysowanie trasy">
         <SliderField
           label="Czas rysowania"
@@ -97,10 +116,15 @@ export function AnimationTimingSection() {
           </>
         )}
       </Section>
+      )}
       <Section title="Pozostałe elementy">
         <Segmented label="Wejście elementów" showLabel value={settings.entrance} options={ENTRANCE_OPTIONS} onChange={(entrance) => updateAnimation({ entrance })} />
-        <CheckboxField label="Punkty pojawiają się, gdy dotrze do nich linia" checked={settings.syncWaypoints} onChange={(syncWaypoints) => updateAnimation({ syncWaypoints })} />
-        <CheckboxField label="Statystyki liczą się razem z trasą" checked={settings.countStats} onChange={(countStats) => updateAnimation({ countStats })} />
+        {!collage && (
+          <>
+            <CheckboxField label="Punkty pojawiają się, gdy dotrze do nich linia" checked={settings.syncWaypoints} onChange={(syncWaypoints) => updateAnimation({ syncWaypoints })} />
+            <CheckboxField label="Statystyki liczą się razem z trasą" checked={settings.countStats} onChange={(countStats) => updateAnimation({ countStats })} />
+          </>
+        )}
         <SliderField label="Pauza na końcu" unit="s" min={0} max={5} step={0.5} value={settings.endHold} defaultValue={DEFAULT_ANIMATION.endHold} onChange={(endHold) => updateAnimation({ endHold })} />
         <CheckboxField label="Zapętlaj podgląd" checked={settings.loop} onChange={(loop) => updateAnimation({ loop })} />
       </Section>
