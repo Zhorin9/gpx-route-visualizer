@@ -16,7 +16,7 @@ import PhotoPicker from './PhotoPicker'
 import PhotoTape from './PhotoTape'
 import SlideStrip from './SlideStrip'
 import Segmented from './ui/Segmented'
-import { IconMove, IconReset, IconRoute, IconSafeZone, IconUpload } from './icons'
+import { IconImage, IconMove, IconReset, IconRoute, IconSafeZone, IconUpload } from './icons'
 import Button from './ui/Button'
 import FileButton from './ui/FileButton'
 import StatusCard from './ui/StatusCard'
@@ -35,6 +35,7 @@ const MODE_OPTIONS: SelectOption<FrameMode>[] = [
 function CanvasToolbar() {
   const hasWorkspace = useAppStore((s) => workspaceFor(s.activeTab) != null)
   const hasRoute = useHasRoute()
+  const collage = useAppStore((s) => s.mode === 'collage')
   const aspectKey = useAppStore((s) => s.aspectKey)
   const routeEditable = useAppStore((s) => s.routeEditable)
   const setRouteEditable = useAppStore((s) => s.setRouteEditable)
@@ -64,17 +65,19 @@ function CanvasToolbar() {
           onChange={(mode) => setCarousel(mode === 'carousel')}
         />
       )}
-      <Button
-        size="sm"
-        variant="ghost"
-        icon={<IconMove />}
-        pressed={routeEditable}
-        disabled={!hasRoute}
-        onClick={() => setRouteEditable(!routeEditable)}
-        title="Przesuwaj, skaluj i obracaj trasę (Esc kończy)"
-      >
-        Edytuj trasę
-      </Button>
+      {!collage && (
+        <Button
+          size="sm"
+          variant="ghost"
+          icon={<IconMove />}
+          pressed={routeEditable}
+          disabled={!hasRoute}
+          onClick={() => setRouteEditable(!routeEditable)}
+          title="Przesuwaj, skaluj i obracaj trasę (Esc kończy)"
+        >
+          Edytuj trasę
+        </Button>
+      )}
       {isTransformed && (
         <Button size="sm" variant="ghost" icon={<IconReset />} onClick={resetRouteTransform}>
           Resetuj położenie
@@ -141,6 +144,22 @@ function FrameStatus() {
 }
 
 function EmptyState({ onFiles }: { onFiles: (files: FileList | null) => void }) {
+  const collage = useAppStore((s) => s.mode === 'collage')
+  if (collage) {
+    return (
+      <StatusCard
+        icon={<IconImage />}
+        title="Kolaż czeka na zdjęcia"
+        actions={
+          <FileButton accept="image/*" multiple onFiles={onFiles} variant="primary" icon={<IconUpload />}>
+            Dodaj zdjęcia
+          </FileButton>
+        }
+      >
+        Przeciągnij tutaj zdjęcia albo wybierz je z dysku. Podział kadru i przycinanie ustawisz w zakładce Układ.
+      </StatusCard>
+    )
+  }
   return (
     <StatusCard
       icon={<IconRoute />}
@@ -187,6 +206,7 @@ function FrameArea() {
   const { width, height } = useElementSize(viewportRef)
   const aspectKey = useAppStore((s) => s.aspectKey)
   const gpxError = useAppStore((s) => s.gpxError)
+  const collage = useAppStore((s) => s.mode === 'collage')
   const exporting = useAppStore((s) => s.exporting)
   const hasRoute = useHasRoute()
   const hasPhotos = useHasPhotos()
@@ -242,7 +262,7 @@ function FrameArea() {
         )}
         {dragging && (
           <div className="drop-indicator" aria-hidden="true">
-            Upuść plik GPX lub zdjęcie
+            {collage ? 'Upuść zdjęcia' : 'Upuść plik GPX lub zdjęcie'}
           </div>
         )}
       </div>

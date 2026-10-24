@@ -5,13 +5,14 @@ import Section from '../../../components/ui/Section'
 import Segmented from '../../../components/ui/Segmented'
 import { IconCheckCircle, IconDownload } from '../../../components/icons'
 import { useVideoEncoding, type EncodeQuality, type FormatSupport, type VideoFormat } from '../../../services/video-encoding'
-import { useHasBackground, useHasRoute } from '../../../store/selectors'
+import { useHasBackground } from '../../../store/selectors'
 import { useAppStore } from '../../../store/useAppStore'
 import { archiveBaseName, downloadFiles, type ExportFile } from '../../../utils/exportImage'
 import { formatNumber } from '../../../utils/format'
 import { FORMATS, FORMAT_ORDER } from '../../../core/formats/registry'
 import { slideCountIn } from '../../../utils/reflow'
-import { totalDuration } from '../../animation/model/timeline'
+import { selectDuration } from '../../animation/model/timeline'
+import { useCanAnimate } from '../../animation/hooks'
 import { formatTime } from '../../animation/ui/formatTime'
 import { frameCount, outputSize, renderThumbnails, renderVideo, type VideoJob, type VideoProgress } from '../exportVideo'
 import { selectTrack } from '../../../store/derived'
@@ -72,7 +73,7 @@ function Thumbnails({ job }: { job: VideoJob }) {
   }, [job.aspect, animation, track])
 
   if (!thumbs.length) return null
-  const total = totalDuration(animation)
+  const total = selectDuration(useAppStore.getState())
   return (
     <div className="video-thumbs" aria-label="Klatki animacji">
       {thumbs.map((src, i) => (
@@ -99,7 +100,8 @@ function AnimationOff() {
 
 export default function VideoExportPanel() {
   const service = useVideoEncoding()
-  const hasRoute = useHasRoute()
+  const canAnimate = useCanAnimate()
+  const collage = useAppStore((s) => s.mode === 'collage')
   const hasBackground = useHasBackground()
   const onMap = useAppStore((s) => s.collage.bgKind === 'map')
   const currentAspect = useAppStore((s) => s.aspectKey)
@@ -113,11 +115,11 @@ export default function VideoExportPanel() {
 
   const { width, height } = outputSize(job)
   const support = useFormatSupport(width, height, job.fps)
-  const duration = totalDuration(animation)
+  const duration = useAppStore(selectDuration)
   const tooLong = duration * (job.format === 'gif' ? 1 : job.repeat) > MAX_SECONDS
   const formatOk = support?.find((s) => s.format === job.format)?.supported ?? false
 
-  if (!hasRoute) return <p className="hint">Wgraj plik GPX, aby zapisać animację trasy.</p>
+  if (!canAnimate) return <p className="hint">{collage ? 'Dodaj zdjęcia, aby zapisać animację kolażu.' : 'Wgraj plik GPX, aby zapisać animację trasy.'}</p>
   if (!animation.enabled) return <AnimationOff />
 
   const update = (patch: Partial<VideoJob>) => {

@@ -14,7 +14,8 @@ import { DEFAULT_COLLAGE } from '../../store/defaults'
 import { FORMATS } from '../../core/formats/registry'
 import { LAYOUTS, computeSlots, layoutDef, layoutFits, type LayoutDef } from '../../utils/layouts'
 import { MAX_SLIDES, MIN_CAROUSEL_SLIDES } from '../../store/defaults'
-import type { CarouselKind, FrameKind, LayoutGroup, LayoutKey, Photo, SelectOption, Slide } from '../../types'
+import type { CarouselKind, FrameKind, LayoutGroup, LayoutKey, Photo, SelectOption, Slide, SlotCrop } from '../../types'
+import BackgroundTab from './BackgroundTab'
 
 const GROUP_OPTIONS: SelectOption<LayoutGroup>[] = [
   { value: 'grid', label: 'Siatki' },
@@ -39,6 +40,17 @@ const FRAME_OPTIONS: SelectOption<FrameKind>[] = [
 const FIT_OPTIONS: SelectOption<'cover' | 'contain'>[] = [
   { value: 'cover', label: 'Przytnij' },
   { value: 'contain', label: 'Całe + rozmyte tło' },
+]
+
+const CROP_OPTIONS: SelectOption<SlotCrop>[] = [
+  { value: 'fill', label: 'Wypełnij' },
+  { value: 'fit', label: 'Dopasuj' },
+  { value: 'manual', label: 'Ręcznie' },
+]
+
+const OUTPUT_OPTIONS: SelectOption<'single' | 'carousel'>[] = [
+  { value: 'single', label: 'Jeden kadr' },
+  { value: 'carousel', label: 'Karuzela' },
 ]
 
 // Box a layout thumbnail fits in, in the frame's proportions.
@@ -110,6 +122,9 @@ export default function MediaTab() {
   const dimOpacity = useAppStore((s) => s.dimOpacity)
   const setDimOpacity = useAppStore((s) => s.setDimOpacity)
   const setActiveTab = useAppStore((s) => s.setActiveTab)
+  const setCarousel = useAppStore((s) => s.setCarousel)
+  // A collage starts from photos: they are added here, and the background sits under the layout.
+  const collageMode = useAppStore((s) => s.mode === 'collage')
   const { importFiles } = useGpxImport()
 
   const carouselKind = useAppStore((s) => s.carouselKind)
@@ -133,9 +148,38 @@ export default function MediaTab() {
     setLayout(activeSlide, key)
   }
 
+  const carouselSection = slides.length > 1 && (
+    <Section title="Karuzela">
+      <Segmented label="Sposób podziału" showLabel value={carouselKind} options={CAROUSEL_KIND_OPTIONS} onChange={setCarouselKind} />
+      {panorama ? (
+        <>
+          <Segmented label="Liczba slajdów" showLabel value={String(slides.length)} options={SLIDE_COUNT_OPTIONS} onChange={(n) => setSlideCount(Number(n))} />
+          <p className="hint">
+            Wybierz jedno szerokie zdjęcie — zostanie podzielone równo na slajdy w miejscach linii przerywanych. Przeciągnij, aby przesunąć kadr, kółkiem myszy przybliżysz.
+          </p>
+        </>
+      ) : (
+        <p className="hint">Każdy slajd ma własny układ i zdjęcia. Wybierz slajd w pasku pod kadrem.</p>
+      )}
+    </Section>
+  )
+
   return (
     <>
-      {!hasPhotos && (
+      {collageMode && (
+        <Section title="Zdjęcia">
+          <FileButton accept="image/*" multiple onFiles={importFiles} variant={hasPhotos ? 'secondary' : 'primary'} block>
+            Dodaj zdjęcia
+          </FileButton>
+          <p className="hint">
+            {hasPhotos
+              ? `W bibliotece: ${photos.length}. Kliknij zdjęcie na pasku pod kadrem albo przeciągnij je do slotu.`
+              : 'Wybierz zdjęcia z dysku albo przeciągnij je na podgląd. Wypełnią sloty po kolei.'}
+          </p>
+          {hasPhotos && <SliderField label="Przyciemnienie" unit="%" value={Math.round(dimOpacity * 100)} defaultValue={0} onChange={(v) => setDimOpacity(v / 100)} />}
+        </Section>
+      )}
+      {!hasPhotos && !collageMode && (
         <StatusCard
           icon={<IconImage />}
           title="Kolaż czeka na zdjęcia"
@@ -148,30 +192,10 @@ export default function MediaTab() {
           Wybierz zdjęcia z dysku albo przeciągnij je na podgląd. Trasa działa też bez nich.
         </StatusCard>
       )}
-      {slides.length > 1 && (
-        <Section title="Karuzela">
-          <Segmented label="Sposób podziału" showLabel value={carouselKind} options={CAROUSEL_KIND_OPTIONS} onChange={setCarouselKind} />
-          {panorama ? (
-            <>
-              <Segmented
-                label="Liczba slajdów"
-                showLabel
-                value={String(slides.length)}
-                options={SLIDE_COUNT_OPTIONS}
-                onChange={(n) => setSlideCount(Number(n))}
-              />
-              <p className="hint">
-                Wybierz jedno szerokie zdjęcie — zostanie podzielone równo na slajdy w miejscach linii przerywanych. Przeciągnij, aby przesunąć kadr, kółkiem myszy przybliżysz.
-              </p>
-            </>
-          ) : (
-            <p className="hint">Każdy slajd ma własny układ i zdjęcia. Wybierz slajd w pasku pod kadrem.</p>
-          )}
-        </Section>
-      )}
+      {!collageMode && carouselSection}
 
       {!panorama && (
-        <Section collapseId="layout" title={slides.length > 1 ? `Układ — slajd ${activeSlide + 1}` : 'Układ'}>
+        <Section collapseId="layout" title={`${collageMode ? 'Podział kadru' : 'Układ'}${slides.length > 1 ? ` — slajd ${activeSlide + 1}` : ''}`}>
           <Segmented label="Rodzaj układów" value={group} options={GROUP_OPTIONS} onChange={setGroup} />
           <div className="layout-grid" role="group" aria-label="Układy zdjęć">
             {LAYOUTS.filter((l) => l.group === group && (layoutFits(l, format.w, format.h) || l.key === slide.layoutKey)).map((def) => (
@@ -191,7 +215,7 @@ export default function MediaTab() {
         </Section>
         )}
 
-      {hasPhotos && (
+      {hasPhotos && !collageMode && (
         <Section title="Zdjęcia">
           <SliderField label="Przyciemnienie" unit="%" value={Math.round(dimOpacity * 100)} defaultValue={0} onChange={(v) => setDimOpacity(v / 100)} />
         </Section>
@@ -220,13 +244,17 @@ export default function MediaTab() {
                   defaultValue={DEFAULT_COLLAGE.margin}
                   onChange={(margin) => updateCollage({ margin })}
                 />
-                <p className="hint">
-                  Kolor lub gradient pod zdjęciami ustawisz w zakładce{' '}
-                  <button type="button" className="link-btn" onClick={() => setActiveTab('background')}>
-                    Tło
-                  </button>
-                  .
-                </p>
+                {collageMode ? (
+                  <p className="hint">Kolor lub gradient pod zdjęciami ustawisz niżej, w sekcji Rodzaj tła.</p>
+                ) : (
+                  <p className="hint">
+                    Kolor lub gradient pod zdjęciami ustawisz w zakładce{' '}
+                    <button type="button" className="link-btn" onClick={() => setActiveTab('background')}>
+                      Tło
+                    </button>
+                    .
+                  </p>
+                )}
               </Section>
 
               <Section title="Ramka zdjęć">
@@ -252,12 +280,62 @@ export default function MediaTab() {
             </>
           )}
 
-          <Section title="Dopasowanie">
-            <Segmented label="Dopasowanie zdjęcia do slotu" value={collage.fit} options={FIT_OPTIONS} onChange={(fit) => updateCollage({ fit })} />
-            {collage.fit === 'contain' && <p className="hint">W tym trybie zdjęcie jest widoczne w całości, więc nie da się go przesuwać ani przybliżać.</p>}
+          {collageMode ? (
+            <CropSection />
+          ) : (
+            <Section title="Dopasowanie">
+              <Segmented label="Dopasowanie zdjęcia do slotu" value={collage.fit} options={FIT_OPTIONS} onChange={(fit) => updateCollage({ fit })} />
+              {collage.fit === 'contain' && <p className="hint">W tym trybie zdjęcie jest widoczne w całości, więc nie da się go przesuwać ani przybliżać.</p>}
+            </Section>
+          )}
+        </>
+      )}
+
+      {collageMode && (
+        <>
+          <Section title="Wyjście">
+            {format.carousel ? (
+              <Segmented label="Wyjście" value={slides.length > 1 ? 'carousel' : 'single'} options={OUTPUT_OPTIONS} onChange={(out) => {
+                  // A collage turned into a carousel keeps its layout on the first slide.
+                  if (out === 'carousel') setCarouselKind('slides')
+                  setCarousel(out === 'carousel')
+                }}
+              />
+            ) : (
+              <p className="hint">Ten format ma jeden kadr. Karuzelę zrobisz w formacie Instagrama.</p>
+            )}
           </Section>
+          {carouselSection}
+          <BackgroundTab />
         </>
       )}
     </>
+  )
+}
+
+// Wypełnij centres the photo over the slot, Dopasuj shows all of it, Ręcznie lets it be dragged
+// and zoomed. It applies to the selected photo, or to all of them when none is selected.
+function CropSection() {
+  const slides = useAppStore((s) => s.slides)
+  const fit = useAppStore((s) => s.collage.fit)
+  const selection = useAppStore((s) => s.selection)
+  const setCrop = useAppStore((s) => s.setCrop)
+  const target = selection?.kind === 'slot' && slides[selection.slide]?.slots[selection.index] ? { slide: selection.slide, index: selection.index } : null
+  const fallback: SlotCrop = fit === 'contain' ? 'fit' : 'manual'
+  const crops = target ? [slides[target.slide].slots[target.index]] : slides.flatMap((sl) => Object.values(sl.slots))
+  const current = crops.map((a) => a.crop ?? fallback)
+  const value = current.every((c) => c === current[0]) ? current[0] : undefined
+
+  return (
+    <Section title="Przycinanie">
+      <Segmented label={target ? 'Przytnij zaznaczone zdjęcie' : 'Przytnij wszystkie zdjęcia'} showLabel value={value ?? ('' as SlotCrop)} options={CROP_OPTIONS} onChange={(crop) => setCrop(crop, target)} />
+      <p className="hint">
+        {value === 'manual'
+          ? 'Przeciągnij zdjęcie w slocie, aby je przesunąć; kółkiem myszy przybliżysz.'
+          : target
+            ? 'Kliknij puste miejsce obok kadru, aby ustawić wszystkie zdjęcia naraz.'
+            : 'Kliknij zdjęcie na kadrze, aby przyciąć tylko je.'}
+      </p>
+    </Section>
   )
 }

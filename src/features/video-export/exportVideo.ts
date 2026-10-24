@@ -3,7 +3,7 @@ import type { EncodeQuality, EncodingSession, VideoEncodingService, VideoFormat 
 import { useAppStore } from '../../store/useAppStore'
 import { FORMATS } from '../../core/formats/registry'
 import { cropSlide, exportFileNames, type ExportFile } from '../../utils/exportImage'
-import { totalDuration } from '../animation/model/timeline'
+import { selectDuration } from '../animation/model/timeline'
 import type { AspectKey } from '../../types'
 
 export interface VideoJob {
@@ -31,7 +31,7 @@ export function outputSize(job: Pick<VideoJob, 'format' | 'aspect'>) {
 }
 
 export function animationLength(): number {
-  return totalDuration(useAppStore.getState().animation)
+  return selectDuration(useAppStore.getState())
 }
 
 export function frameCount(job: Pick<VideoJob, 'fps'>, duration = animationLength()): number {

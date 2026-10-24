@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react'
-import type { TabKey } from '../../types'
+import type { ProjectMode, TabKey } from '../../types'
 
 // A sub-tab a feature adds to a tab of the side panel (Trasa → Profil, Eksport → Wideo).
 // The tab's own pages come first; registered ones follow in `order`.
@@ -7,6 +7,8 @@ export interface PanelSection {
   id: string
   label: string
   tab: TabKey
+  // The project modes it shows in; every mode when unset.
+  modes?: ProjectMode[]
   order: number
   Component: ComponentType
 }
@@ -20,6 +22,6 @@ export function registerPanelSection(section: PanelSection): void {
   sections.sort((a, b) => a.order - b.order)
 }
 
-export function panelSections(tab: TabKey): readonly PanelSection[] {
-  return sections.filter((s) => s.tab === tab)
+export function panelSections(tab: TabKey, mode: ProjectMode | null): readonly PanelSection[] {
+  return sections.filter((s) => s.tab === tab && (!s.modes || !mode || s.modes.includes(mode)))
 }

@@ -88,6 +88,10 @@
   background: var(--track-waypoints);
 }
 
+.timeline-clip-photos {
+  background: var(--track-photos);
+}
+
 .timeline-clip-stats {
   background: var(--track-stats);
 }

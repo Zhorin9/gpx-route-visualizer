@@ -1,6 +1,6 @@
-import { useHasRoute } from '../../../store/selectors'
+import { useCanAnimate } from '../hooks'
 import { useAppStore } from '../../../store/useAppStore'
-import { totalDuration } from '../model/timeline'
+import { selectDuration } from '../model/timeline'
 import { usePlayback } from '../playback'
 import { formatTime } from './formatTime'
 import './PlaybackBar.css'
@@ -21,12 +21,12 @@ function PlayIcon({ playing }: { playing: boolean }) {
 // Under the frame: play/pause, a time slider and the clock. "Wróć do edycji" leaves the
 // animated preview and shows the static design again.
 export default function PlaybackBar() {
-  const hasRoute = useHasRoute()
+  const canAnimate = useCanAnimate()
   const settings = useAppStore((s) => s.animation)
   const exporting = useAppStore((s) => s.exporting)
+  const total = useAppStore(selectDuration)
   const { t, playing, previewing, play, pause, stop, seek } = usePlayback()
-  if (!hasRoute || !settings.enabled) return null
-  const total = totalDuration(settings)
+  if (!canAnimate || !settings.enabled) return null
 
   return (
     <div className="playback-bar" role="group" aria-label="Animacja">

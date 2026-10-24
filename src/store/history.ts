@@ -12,6 +12,7 @@ const STEP_LABELS: Record<string, string> = {
   'waypoint:delete': 'usunięcie miejscowości',
   'dataColor:palette': 'zmiana palety',
   'route:load': 'wczytanie trasy',
+  mode: 'zmiana typu projektu',
   'route:append': 'dodanie dnia trasy',
   'route:remove': 'usunięcie dnia trasy',
   'slide:add': 'dodanie slajdu',

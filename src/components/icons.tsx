@@ -305,3 +305,12 @@ export function IconSettings(props: SVGProps<SVGSVGElement>) {
     </svg>
   )
 }
+
+export function IconLayout(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...common} width="16" height="16" aria-hidden="true" {...props}>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="M12 3v18M12 12h9" />
+    </svg>
+  )
+}

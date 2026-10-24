@@ -192,3 +192,14 @@
   flex: 1;
   min-width: 0;
 }
+
+.template-group + .template-group {
+  margin-top: var(--space-4);
+}
+
+.template-group-title {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 16px;
+}

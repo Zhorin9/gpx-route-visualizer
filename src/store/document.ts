@@ -36,6 +36,7 @@ export const INITIAL_DOCUMENT: DocumentState = {
   animation: DEFAULT_ANIMATION,
   camera: DEFAULT_CAMERA,
   map: DEFAULT_MAP,
+  mode: null,
 }
 
 export const DOCUMENT_KEYS = Object.keys(INITIAL_DOCUMENT) as (keyof DocumentState)[]

@@ -1,9 +1,9 @@
 import { STATIC_LAYER, type AnimationTrackId, type LayerState } from '../../core/animation/layers'
-import { useDayBreaks, useTrackCumKm } from '../../store/selectors'
+import { useDayBreaks, useHasPhotos, useHasRoute, useTrackCumKm } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { headFor } from './model/pacing'
 import { tripSchedule } from './model/schedule'
-import { clamp01, clipProgress, layerAt } from './model/timeline'
+import { clamp01, clipProgress, layerAt, photoAt } from './model/timeline'
 import { usePlayback } from './playback'
 import { selectRouteParts, selectTrack } from '../../store/derived'
 
@@ -32,6 +32,22 @@ export function useAnimatedLayer(track: AnimationTrackId): LayerState {
   const t = useAnimationTime()
   const settings = useAppStore((s) => s.animation)
   return t == null ? STATIC_LAYER : layerAt(settings, track, t)
+}
+
+// Only a collage animates its photos; next to a route they stay put.
+export function useAnimatedPhoto(order: number, count: number): LayerState {
+  const t = useAnimationTime()
+  const settings = useAppStore((s) => s.animation)
+  const collage = useAppStore((s) => s.mode === 'collage')
+  return t == null || !collage ? STATIC_LAYER : photoAt(settings, order, count, t)
+}
+
+// Something to animate: a route, or the photos of a collage.
+export function useCanAnimate(): boolean {
+  const hasRoute = useHasRoute()
+  const hasPhotos = useHasPhotos()
+  const collage = useAppStore((s) => s.mode === 'collage')
+  return collage ? hasPhotos : hasRoute
 }
 
 // Share of the visible range a place takes to fade in once the line has reached it.

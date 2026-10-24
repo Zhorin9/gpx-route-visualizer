@@ -5,5 +5,5 @@ import { useCameraView } from './useCameraView'
 
 export function registerCamera() {
   provideWorldView(useCameraView)
-  registerPanelSection({ id: 'camera', label: 'Kamera', tab: 'export', order: 15, Component: CameraPanel })
+  registerPanelSection({ id: 'camera', label: 'Kamera', tab: 'export', modes: ['map'], order: 15, Component: CameraPanel })
 }

@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import { useAppStore } from '../store/useAppStore'
-import { IconRedo, IconSettings, IconUndo } from './icons'
+import { IconChevron, IconRedo, IconSettings, IconUndo } from './icons'
+import ChangeModeDialog from './ChangeModeDialog'
+import { MODE_LABELS } from '../utils/modeChange'
 import Button from './ui/Button'
 import type { Units } from '../core/units'
 
@@ -75,6 +77,66 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
   )
 }
 
+// A click elsewhere or Escape closes an open menu.
+function useDismiss(open: boolean, ref: RefObject<HTMLElement | null>, close: () => void) {
+  useEffect(() => {
+    if (!open) return
+    const away = (e: PointerEvent) => !ref.current?.contains(e.target as Node) && close()
+    const escape = (e: KeyboardEvent) => e.key === 'Escape' && close()
+    document.addEventListener('pointerdown', away)
+    document.addEventListener('keydown', escape)
+    return () => {
+      document.removeEventListener('pointerdown', away)
+      document.removeEventListener('keydown', escape)
+    }
+  }, [open, ref, close])
+}
+
+// The project's name opens what can be done to the project. Changing its type works; the rest is laid out for later.
+function ProjectMenu({ name }: { name: string }) {
+  const mode = useAppStore((s) => s.mode)
+  const [open, setOpen] = useState(false)
+  const [changing, setChanging] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const close = useCallback(() => setOpen(false), [])
+  const closeDialog = useCallback(() => setChanging(false), [])
+  useDismiss(open, ref, close)
+  const soon = (label: string) => (
+    <button key={label} type="button" role="menuitem" disabled title={SOON}>
+      {label}
+    </button>
+  )
+
+  return (
+    <div className="project-menu" ref={ref}>
+      <button type="button" className="top-bar-name" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)}>
+        {name}
+        <IconChevron width={14} height={14} />
+      </button>
+      {mode && <span className="tag tag-outline">{MODE_LABELS[mode]}</span>}
+      {open && (
+        <div className="project-menu-list" role="menu">
+          {soon('Zmień nazwę')}
+          {soon('Duplikuj projekt')}
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              setOpen(false)
+              setChanging(true)
+            }}
+          >
+            Zmień typ…
+          </button>
+          {soon('Historia wersji')}
+          {soon('Usuń projekt')}
+        </div>
+      )}
+      {changing && mode && <ChangeModeDialog from={mode} onClose={closeDialog} />}
+    </div>
+  )
+}
+
 // Across the editor: the project's name, undo and redo, versions, settings and the way to the files.
 export default function TopBar() {
   const name = useAppStore((s) => s.texts.find((t) => t.role === 'title')?.text || s.routeSource?.name || 'Nowy projekt')
@@ -85,23 +147,12 @@ export default function TopBar() {
   const setActiveTab = useAppStore((s) => s.setActiveTab)
   const [open, setOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
-
-  // A click elsewhere or Escape closes the settings.
-  useEffect(() => {
-    if (!open) return
-    const away = (e: PointerEvent) => !menuRef.current?.contains(e.target as Node) && setOpen(false)
-    const escape = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
-    document.addEventListener('pointerdown', away)
-    document.addEventListener('keydown', escape)
-    return () => {
-      document.removeEventListener('pointerdown', away)
-      document.removeEventListener('keydown', escape)
-    }
-  }, [open])
+  const closeSettings = useCallback(() => setOpen(false), [])
+  useDismiss(open, menuRef, closeSettings)
 
   return (
     <header className="top-bar">
-      <span className="top-bar-name">{name}</span>
+      <ProjectMenu name={name} />
       <div className="top-bar-actions">
         <Button size="icon" variant="ghost" title="Cofnij (Ctrl+Z)" aria-label="Cofnij" onClick={undo} disabled={!canUndo}>
           <IconUndo />

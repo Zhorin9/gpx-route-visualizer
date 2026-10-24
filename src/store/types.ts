@@ -9,8 +9,10 @@ import type {
   GradientStyle,
   LayoutKey,
   Photo,
+  ProjectMode,
   Slide,
   SlotAssignment,
+  SlotCrop,
   GpxPoint,
   Offset,
   KmInterval,
@@ -81,6 +83,8 @@ export interface DocumentState {
   camera: CameraSettings
   // The map background: its style and look.
   map: MapSettings
+  // Chosen on the start screen; null until then. It decides which tabs the editor has.
+  mode: ProjectMode | null
 }
 
 // undo and redo are the history's own; anything else brings its handler.
@@ -94,6 +98,10 @@ export interface Toast {
 }
 
 export interface UiSlice {
+  // A map project opens on the tab it was started from (Trasa for a GPX file, Podróż for places).
+  startProject: (mode: ProjectMode, tab?: TabKey) => void
+  // Switches the type of an open project as one undo step; a collage drops the route and its places.
+  changeMode: (mode: ProjectMode) => void
   activeTab: TabKey
   // Open page inside a tab that has sub-tabs (Trasa → Profil); the first page when unset.
   subTabs: Partial<Record<TabKey, string>>
@@ -159,6 +167,8 @@ export interface MediaSlice {
   clearSlot: (slide: number, index: number) => void
   updateSlot: (slide: number, index: number, patch: Partial<Omit<SlotAssignment, 'photoId'>>) => void
   resetSlotCrop: (slide: number, index: number) => void
+  // How one slot's photo is cropped, or with no target every placed photo's.
+  setCrop: (crop: SlotCrop, target: { slide: number; index: number } | null) => void
   setLayout: (slide: number, key: LayoutKey) => void
   setCarousel: (on: boolean) => void
   setCarouselKind: (kind: CarouselKind) => void

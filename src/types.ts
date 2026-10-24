@@ -212,8 +212,12 @@ export interface StyleTemplate {
   // On a map background: the base style, terrain shading and names. The map's colours come
   // from the template's background and text.
   map?: { styleId?: string; hillshade?: boolean; labels?: boolean }
+  // Where the card sits in the Styl tab; saved templates have a group of their own.
+  group?: TemplateGroup
   custom?: boolean
 }
+
+export type TemplateGroup = 'basic' | 'natural' | 'retro' | 'dark'
 
 export interface TemplateParts {
   fonts: boolean
@@ -303,12 +307,18 @@ export interface Photo {
   thumb: string
 }
 
+// fill: covers the slot, centred; fit: the whole photo over a blurred copy; manual: covers it,
+// dragged and zoomed by hand.
+export type SlotCrop = 'fill' | 'fit' | 'manual'
+
 // A photo placed in one slot of a layout, with its own crop.
 export interface SlotAssignment {
   photoId: number
   zoom: number
   offsetX: number
   offsetY: number
+  // Unset: the collage-wide fit decides.
+  crop?: SlotCrop
 }
 
 export interface Slide {
@@ -378,6 +388,10 @@ export interface FormatOverrides {
 export type ExportFormat = 'png' | 'jpg'
 
 export type TabKey = 'background' | 'media' | 'travel' | 'route' | 'texts' | 'style' | 'export'
+
+// A project with a map (GPX files and planned trips mix freely) or a collage of photos alone,
+// which never gets a route or a map.
+export type ProjectMode = 'map' | 'collage'
 
 export interface SelectOption<T extends string = string> {
   value: T
