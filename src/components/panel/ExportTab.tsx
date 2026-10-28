@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import CheckboxField from '../fields/CheckboxField'
 import Button from '../ui/Button'
 import Section from '../ui/Section'
 import Segmented from '../ui/Segmented'
-import { IconDownload } from '../icons'
+import { IconClose, IconDownload } from '../icons'
 import { useHasBackground, useHasRoute, useManualFlags } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { FORMATS, FORMAT_ORDER } from '../../core/formats/registry'
@@ -94,9 +94,29 @@ function FormatLayoutSection() {
   )
 }
 
-// Obraz is the tab's own page; Animacja and Wideo are added by their features.
-export default function ExportTab() {
-  return <SubTabs tab="export" own={[{ id: 'image', label: 'Obraz', Component: ImageExport }]} />
+// Pobierz opens this over the editor. Obraz is its own page; Wideo is added by its feature.
+export default function ExportDialog({ onClose }: { onClose: () => void }) {
+  useEffect(() => {
+    const escape = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    document.addEventListener('keydown', escape)
+    return () => document.removeEventListener('keydown', escape)
+  }, [onClose])
+
+  return (
+    <div className="dialog-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="dialog export-dialog" role="dialog" aria-modal="true" aria-labelledby="export-title">
+        <div className="export-dialog-head">
+          <h2 id="export-title" className="dialog-title">
+            Pobierz
+          </h2>
+          <Button size="icon" variant="ghost" aria-label="Zamknij" onClick={onClose}>
+            <IconClose />
+          </Button>
+        </div>
+        <SubTabs tab="export" own={[{ id: 'image', label: 'Obraz', Component: ImageExport }]} />
+      </div>
+    </div>
+  )
 }
 
 function ImageExport() {
@@ -168,7 +188,7 @@ function ImageExport() {
       <Button variant="primary" icon={<IconDownload />} block disabled={!canExport} onClick={() => exportProject(formats, fileScale, format, baseName)}>
         {exporting ? 'Przygotowuję pliki…' : fileNames.length > 1 ? `Pobierz ZIP (${filesLabel(fileNames.length)})` : `Pobierz ${format.toUpperCase()}`}
       </Button>
-      {!hasRoute && !hasBackground && <p className="hint">Dodaj zdjęcia (zakładka Zdjęcia) lub plik GPX (zakładka Trasa), aby móc pobrać grafikę.</p>}
+      {!hasRoute && !hasBackground && <p className="hint">Dodaj zdjęcia (zakładka Zdjęcia) lub plik GPX (zakładka Mapa), aby móc pobrać grafikę.</p>}
     </>
   )
 }

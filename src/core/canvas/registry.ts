@@ -1,6 +1,6 @@
 import type { ComponentType, ReactNode } from 'react'
 import type { AnimationTrackId } from '../animation/layers'
-import type { ElementKind, TabKey } from '../../types'
+import type { ElementKind, PanelTab } from '../../types'
 
 // Anything that sits on the frame as one selectable, draggable block: the stats header,
 // the elevation profile, the colour legend. Adding one is a registration, not an edit
@@ -19,8 +19,8 @@ export interface CanvasElementDefinition {
   Node: ComponentType
   // Settings shown in the side panel while the element is selected.
   Editor: ComponentType
-  // Tab (and page inside it) that opens when the element is picked on the frame; Napisy when not set.
-  tab?: TabKey
+  // Tab (and page inside it) that opens when the element is picked on the frame; Teksty when not set.
+  tab?: PanelTab
   subTab?: string
   // Timeline track the element appears with; 'stats' when not set.
   animationTrack?: AnimationTrackId

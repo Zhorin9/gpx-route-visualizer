@@ -28,6 +28,7 @@ import type {
   StylePreset,
   StyleTemplate,
   TemplateParts,
+  PanelTab,
   TabKey,
   TextNode,
   TrackPart,
@@ -98,12 +99,12 @@ export interface Toast {
 }
 
 export interface UiSlice {
-  // A map project opens on the tab it was started from (Trasa for a GPX file, Podróż for places).
-  startProject: (mode: ProjectMode, tab?: TabKey) => void
+  // A map project opens on Mapa, on the page it was started from (the trip planner for places).
+  startProject: (mode: ProjectMode, page?: string) => void
   // Switches the type of an open project as one undo step; a collage drops the route and its places.
   changeMode: (mode: ProjectMode) => void
-  activeTab: TabKey
-  // Open page inside a tab that has sub-tabs (Trasa → Profil); the first page when unset.
+  activeTab: PanelTab
+  // Open page inside a tab that has sub-tabs (Mapa → Profil); the first page when unset.
   subTabs: Partial<Record<TabKey, string>>
   previewBackdrop: string
   selection: Selection | null
@@ -125,7 +126,7 @@ export interface UiSlice {
   centerView: 'map' | 'frame'
   setCenterView: (view: 'map' | 'frame') => void
   setExporting: (value: boolean) => void
-  setActiveTab: (tab: TabKey) => void
+  setActiveTab: (tab: PanelTab) => void
   setSubTab: (tab: TabKey, page: string) => void
   setPreviewBackdrop: (value: string) => void
   select: (selection: Selection | null) => void

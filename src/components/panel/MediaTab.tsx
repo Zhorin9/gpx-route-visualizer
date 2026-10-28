@@ -15,7 +15,6 @@ import { FORMATS } from '../../core/formats/registry'
 import { LAYOUTS, computeSlots, layoutDef, layoutFits, type LayoutDef } from '../../utils/layouts'
 import { MAX_SLIDES, MIN_CAROUSEL_SLIDES } from '../../store/defaults'
 import type { CarouselKind, FrameKind, LayoutGroup, LayoutKey, Photo, SelectOption, Slide, SlotCrop } from '../../types'
-import BackgroundTab from './BackgroundTab'
 
 const GROUP_OPTIONS: SelectOption<LayoutGroup>[] = [
   { value: 'grid', label: 'Siatki' },
@@ -122,8 +121,9 @@ export default function MediaTab() {
   const dimOpacity = useAppStore((s) => s.dimOpacity)
   const setDimOpacity = useAppStore((s) => s.setDimOpacity)
   const setActiveTab = useAppStore((s) => s.setActiveTab)
+  const setSubTab = useAppStore((s) => s.setSubTab)
   const setCarousel = useAppStore((s) => s.setCarousel)
-  // A collage starts from photos: they are added here, and the background sits under the layout.
+  // A collage starts from photos: they are added here.
   const collageMode = useAppStore((s) => s.mode === 'collage')
   const { importFiles } = useGpxImport()
 
@@ -244,17 +244,20 @@ export default function MediaTab() {
                   defaultValue={DEFAULT_COLLAGE.margin}
                   onChange={(margin) => updateCollage({ margin })}
                 />
-                {collageMode ? (
-                  <p className="hint">Kolor lub gradient pod zdjęciami ustawisz niżej, w sekcji Rodzaj tła.</p>
-                ) : (
-                  <p className="hint">
-                    Kolor lub gradient pod zdjęciami ustawisz w zakładce{' '}
-                    <button type="button" className="link-btn" onClick={() => setActiveTab('background')}>
-                      Tło
-                    </button>
-                    .
-                  </p>
-                )}
+                <p className="hint">
+                  Kolor lub gradient pod zdjęciami ustawisz w zakładce{' '}
+                  <button
+                    type="button"
+                    className="link-btn"
+                    onClick={() => {
+                      setActiveTab('style')
+                      setSubTab('style', 'background')
+                    }}
+                  >
+                    Styl → Tło
+                  </button>
+                  .
+                </p>
               </Section>
 
               <Section title="Ramka zdjęć">
@@ -306,7 +309,6 @@ export default function MediaTab() {
             )}
           </Section>
           {carouselSection}
-          <BackgroundTab />
         </>
       )}
     </>

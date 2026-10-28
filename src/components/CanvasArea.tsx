@@ -33,7 +33,7 @@ const MODE_OPTIONS: SelectOption<FrameMode>[] = [
 ]
 
 function CanvasToolbar() {
-  const hasWorkspace = useAppStore((s) => workspaceFor(s.activeTab) != null)
+  const hasWorkspace = useAppStore((s) => workspaceFor(s) != null)
   const hasRoute = useHasRoute()
   const collage = useAppStore((s) => s.mode === 'collage')
   const aspectKey = useAppStore((s) => s.aspectKey)
@@ -189,7 +189,7 @@ function FramePreview({ width, height }: { width: number; height: number }) {
 }
 
 export default function CanvasArea() {
-  const workspace = useAppStore((s) => (s.centerView === 'map' ? workspaceFor(s.activeTab) : undefined))
+  const workspace = useAppStore((s) => (s.centerView === 'map' ? workspaceFor(s) : undefined))
   if (workspace) {
     return (
       <div className="canvas-area">

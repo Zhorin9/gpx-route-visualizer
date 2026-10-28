@@ -387,7 +387,10 @@ export interface FormatOverrides {
 
 export type ExportFormat = 'png' | 'jpg'
 
-export type TabKey = 'background' | 'media' | 'travel' | 'route' | 'texts' | 'style' | 'export'
+// The side panel's tabs; 'route' is Mapa.
+export type PanelTab = 'route' | 'media' | 'texts' | 'style' | 'animation'
+// Anything with sub-tabs features can add pages to: a tab, or the export window.
+export type TabKey = PanelTab | 'export'
 
 // A project with a map (GPX files and planned trips mix freely) or a collage of photos alone,
 // which never gets a route or a map.

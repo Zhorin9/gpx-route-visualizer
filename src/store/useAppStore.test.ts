@@ -546,8 +546,9 @@ describe('project modes', () => {
     expect([get().mode, get().activeTab]).toEqual(['collage', 'media'])
     get().startProject('map')
     expect(get().activeTab).toBe('route')
-    get().startProject('map', 'travel')
-    expect(get().activeTab).toBe('travel')
+    expect(get().subTabs.route).toBeUndefined()
+    get().startProject('map', 'stops')
+    expect([get().activeTab, get().subTabs.route]).toEqual(['route', 'stops'])
   })
 
   it('crops one selected photo, or all of them, and filling centres the photo again', () => {

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import { useAppStore } from '../store/useAppStore'
 import { IconChevron, IconRedo, IconSettings, IconUndo } from './icons'
 import ChangeModeDialog from './ChangeModeDialog'
+import ExportDialog from './panel/ExportTab'
 import { MODE_LABELS } from '../utils/modeChange'
 import Button from './ui/Button'
 import type { Units } from '../core/units'
@@ -144,10 +145,11 @@ export default function TopBar() {
   const canRedo = useAppStore((s) => s.future.length > 0)
   const undo = useAppStore((s) => s.undo)
   const redo = useAppStore((s) => s.redo)
-  const setActiveTab = useAppStore((s) => s.setActiveTab)
   const [open, setOpen] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const closeSettings = useCallback(() => setOpen(false), [])
+  const closeExport = useCallback(() => setExporting(false), [])
   useDismiss(open, menuRef, closeSettings)
 
   return (
@@ -169,10 +171,11 @@ export default function TopBar() {
           </button>
           {open && <SettingsMenu onClose={() => setOpen(false)} />}
         </div>
-        <Button variant="primary" onClick={() => setActiveTab('export')}>
+        <Button variant="primary" onClick={() => setExporting(true)}>
           Pobierz
         </Button>
       </div>
+      {exporting && <ExportDialog onClose={closeExport} />}
     </header>
   )
 }
