@@ -1,6 +1,7 @@
 import { FORMATS, bottomInset } from '../core/formats/registry'
 import { profileBand } from '../features/elevation-profile/types'
 import { manualFlags } from '../utils/reflow'
+import { slideBox } from '../utils/wrappers'
 import { computeSlots, hasVisiblePhotos, isPanorama, layoutDef, photoCoversFrame, ribbonSlot } from '../utils/layouts'
 import { dayBreaks, projectTrack, trackFit, rangeStats, selectRouteDays, selectRouteParts, selectTrack, trackCumKm, trackDays } from './derived'
 import { useShallow } from 'zustand/react/shallow'
@@ -96,6 +97,16 @@ export function useActiveSlide() {
 
 export function useHasRoute() {
   return useAppStore((s) => selectTrack(s) !== null)
+}
+
+// The slide a node on the ribbon belongs to, by its x.
+export function useSlideAt(x: number): number {
+  return useAppStore((s) => Math.min(s.slides.length - 1, Math.max(0, Math.floor(x / FORMATS[s.aspectKey].w))))
+}
+
+// The box a slide's content is drawn in under the project's wrapper; null when it fills the slide.
+export function useSlideBox(index: number) {
+  return useAppStore(useShallow((s) => slideBox(s, index, FORMATS[s.aspectKey].w, FORMATS[s.aspectKey].h)))
 }
 
 // Slot rectangles of a slide in frame pixels, for the layout actually applied (not a hover preview).

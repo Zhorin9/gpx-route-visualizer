@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 import { Group, Rect } from 'react-konva'
 import type Konva from 'konva'
+import SlideBox from '../../components/SlideBox'
+import { useSlideAt } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { UI_ONLY } from '../../utils/exportImage'
 import { useLayerAnimation } from '../animation/layers'
@@ -35,6 +37,7 @@ export default function DraggableElement({ kind, width, height, defaultX, defaul
 
   const x = placement?.x ?? defaultX
   const y = placement?.y ?? defaultY
+  const slide = useSlideAt(x)
   const onSelect = () => select({ kind: 'element', element: kind })
 
   function handleDragEnd(e: Konva.KonvaEventObject<DragEvent>) {
@@ -45,38 +48,40 @@ export default function DraggableElement({ kind, width, height, defaultX, defaul
   }
 
   return (
-    <Group
-      x={x + width / 2}
-      y={y + height / 2 + animation.offsetY}
-      opacity={animation.opacity}
-      offsetX={width / 2}
-      offsetY={height / 2}
-      rotation={rotation}
-      name={SNAP_TARGET}
-      draggable
-      onMouseDown={onSelect}
-      onTouchStart={onSelect}
-      onDragMove={snapDragMove}
-      onDragEnd={handleDragEnd}
-    >
-      <Rect x={-HIT_PADDING} y={-HIT_PADDING} width={width + HIT_PADDING * 2} height={height + HIT_PADDING * 2} fill="#000" opacity={0} />
-      <Rect name={SNAP_BOX} width={width} height={height} listening={false} />
-      {children}
-      {selected && (
-        <Rect
-          name={UI_ONLY}
-          x={-OUTLINE_PAD}
-          y={-OUTLINE_PAD}
-          width={width + OUTLINE_PAD * 2}
-          height={height + OUTLINE_PAD * 2}
-          stroke={CHROME_ACCENT}
-          strokeWidth={2.5}
-          strokeScaleEnabled={false}
-          dash={[8, 5]}
-          cornerRadius={4}
-          listening={false}
-        />
-      )}
-    </Group>
+    <SlideBox slide={slide}>
+      <Group
+        x={x + width / 2}
+        y={y + height / 2 + animation.offsetY}
+        opacity={animation.opacity}
+        offsetX={width / 2}
+        offsetY={height / 2}
+        rotation={rotation}
+        name={SNAP_TARGET}
+        draggable
+        onMouseDown={onSelect}
+        onTouchStart={onSelect}
+        onDragMove={snapDragMove}
+        onDragEnd={handleDragEnd}
+      >
+        <Rect x={-HIT_PADDING} y={-HIT_PADDING} width={width + HIT_PADDING * 2} height={height + HIT_PADDING * 2} fill="#000" opacity={0} />
+        <Rect name={SNAP_BOX} width={width} height={height} listening={false} />
+        {children}
+        {selected && (
+          <Rect
+            name={UI_ONLY}
+            x={-OUTLINE_PAD}
+            y={-OUTLINE_PAD}
+            width={width + OUTLINE_PAD * 2}
+            height={height + OUTLINE_PAD * 2}
+            stroke={CHROME_ACCENT}
+            strokeWidth={2.5}
+            strokeScaleEnabled={false}
+            dash={[8, 5]}
+            cornerRadius={4}
+            listening={false}
+          />
+        )}
+      </Group>
+    </SlideBox>
   )
 }

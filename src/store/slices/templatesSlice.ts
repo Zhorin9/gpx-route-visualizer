@@ -1,6 +1,8 @@
 import { paletteFrom } from '../../features/map/model/styles'
 import { frameStyleFor } from '../../utils/layouts'
-import type { GradientStyle, StyleTemplate } from '../../types'
+import { routeFields } from '../../utils/wrappers'
+import { joinTrack } from '../derived'
+import type { GradientStyle, StyleTemplate, WrapperField } from '../../types'
 import type { AppState, SliceContext, TemplatesSlice } from '../types'
 
 type Look = Pick<AppState, 'collage' | 'map' | 'statsStyle' | 'titleStyle' | 'texts' | 'waypoints'>
@@ -111,6 +113,18 @@ export function createTemplatesSlice({ get, commit }: SliceContext): TemplatesSl
         ...recolor(s, { ...s.collage.gradient, from: theme.bg, to: theme.bg }, theme.text),
         routeStyle: { ...s.routeStyle, color: theme.route, glowColor: theme.accent },
       })),
+
+    setWrapper: (id) =>
+      commit('wrapper:id', (s) => {
+        const joined = joinTrack(s.routeSource, s.trackCache)
+        const auto = routeFields(s.routeSource?.name ?? null, joined?.track.points ?? null, joined?.parts ?? [], s.waypoints)
+        const fields = { ...s.wrapper.fields }
+        for (const key of Object.keys(fields) as WrapperField[]) fields[key] ||= auto[key]
+        return { wrapper: { ...s.wrapper, id, fields } }
+      }),
+
+    updateWrapper: ({ fields, postmark }) =>
+      commit('wrapper', (s) => ({ wrapper: { ...s.wrapper, fields: { ...s.wrapper.fields, ...fields }, postmark: { ...s.wrapper.postmark, ...postmark } } })),
 
     deleteTemplate: (id) => commit('template:delete', (s) => ({ customTemplates: s.customTemplates.filter((t) => t.id !== id) })),
   }

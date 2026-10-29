@@ -36,6 +36,8 @@ import type {
   TitleStyle,
   Waypoint,
   PointStyle,
+  Wrapper,
+  WrapperId,
 } from '../types'
 
 import type { LoadedPhoto } from './slices/mediaSlice'
@@ -88,6 +90,8 @@ export interface DocumentState {
   camera: CameraSettings
   // The map background: its style and look.
   map: MapSettings
+  // The form every slide takes (Styl → Opakowanie).
+  wrapper: Wrapper
   // Chosen on the start screen; null until then. It decides which tabs the editor has.
   mode: ProjectMode | null
 }
@@ -247,6 +251,9 @@ export interface TemplatesSlice {
   applyTemplate: (template: StyleTemplate, parts: TemplateParts) => void
   // The colours proposed from the photos, as one undo step; afterwards they are plain style values.
   applyPhotoTheme: (theme: PhotoTheme) => void
+  // Picks a wrapper; its empty fields are filled from the route.
+  setWrapper: (id: WrapperId) => void
+  updateWrapper: (patch: { fields?: Partial<Wrapper['fields']>; postmark?: Partial<Wrapper['postmark']> }) => void
   saveTemplate: (name: string) => void
   deleteTemplate: (id: string) => void
 }

@@ -1,6 +1,7 @@
 import Button from './ui/Button'
 import { IconClose, IconMinus, IconPlus, IconReplace, IconTrash, IconType, IconFit } from './icons'
-import { usePanorama, useSlideSlots } from '../store/selectors'
+import { usePanorama, useSlideBox, useSlideSlots } from '../store/selectors'
+import { intoBox } from '../utils/wrappers'
 import { useAppStore } from '../store/useAppStore'
 import { FORMATS } from '../core/formats/registry'
 
@@ -24,10 +25,16 @@ export default function SlotToolbar({ previewScale }: { previewScale: number }) 
   const panorama = usePanorama()
   const slideCount = useAppStore((s) => s.slides.length)
   const slots = useSlideSlots(selection?.kind === 'slot' ? selection.slide : 0)
+  const box = useSlideBox(selection?.kind === 'slot' ? selection.slide : 0)
 
   if (selection?.kind !== 'slot') return null
-  const slot = slots[selection.index]
-  if (!slot) return null
+  const own = slots[selection.index]
+  if (!own) return null
+  // Under a wrapper the slot is drawn smaller, inside its slide's box.
+  const { w, h } = FORMATS[aspectKey]
+  const scale = box ? box.w / w : 1
+  const centre = box ? intoBox(box, w, h, own.x + own.w / 2, own.y + own.h / 2) : { x: own.x + own.w / 2, y: own.y + own.h / 2 }
+  const slot = { ...own, x: centre.x - (own.w * scale) / 2, y: centre.y - (own.h * scale) / 2, w: own.w * scale, h: own.h * scale }
 
   // Bounding box of the (possibly tilted) slot, in preview pixels.
   const rad = (slot.rotation * Math.PI) / 180

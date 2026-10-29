@@ -386,6 +386,22 @@ export interface Slide {
   figures?: SummaryFigure[]
   figureSize?: FigureSize
   question?: string
+  // An exception to the project's wrapper: this slide keeps its content full-bleed.
+  wrapperOff?: boolean
+}
+
+// A form round every slide's content (a postcard, a stamp, a ticket, an album page) that makes the
+// content smaller but never changes it; a postmark is stamped over the content instead.
+export type WrapperId = 'none' | 'postcard' | 'stamp' | 'postmark' | 'ticket' | 'album'
+
+export type WrapperField = 'title' | 'place' | 'from' | 'to' | 'date' | 'note'
+
+export interface Wrapper {
+  id: WrapperId
+  // Filled from the route when a wrapper is picked (only where empty), then edited in Teksty.
+  fields: Record<WrapperField, string>
+  // The postmark's centre in fractions of the slide, and whether it goes on every slide or the first.
+  postmark: { x: number; y: number; all: boolean }
 }
 
 // panorama: one photo stretched over the whole ribbon; slides: every slide has its own layout.

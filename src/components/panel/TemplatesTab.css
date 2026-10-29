@@ -244,3 +244,69 @@
   align-items: center;
   justify-content: space-between;
 }
+
+/* ---------- Wrappers ---------- */
+.wrapper-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.wrapper-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  font: inherit;
+  font-size: var(--text-sm);
+  color: inherit;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.wrapper-option:hover {
+  border-color: var(--text-muted);
+}
+
+.wrapper-option.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+/* Miniatures of each wrapper, a striped "photo" standing for the content. */
+.wrapper-thumb {
+  --photo: repeating-linear-gradient(135deg, #9fb09a 0 4px, #aab9a5 4px 8px);
+  width: 62%;
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  background: var(--photo);
+}
+
+.wrapper-thumb-postcard {
+  background: linear-gradient(#f7f1e3, #f7f1e3) bottom / 100% 26% no-repeat, var(--photo);
+  border: 4px solid #f7f1e3;
+  outline: 1px solid #8a3b24;
+}
+
+.wrapper-thumb-stamp {
+  border: 5px dotted #f7f1e3;
+  outline: 1px solid #dccdb2;
+}
+
+.wrapper-thumb-postmark {
+  background: radial-gradient(circle at 70% 25%, transparent 7px, rgba(58, 42, 28, 0.6) 8px 9px, transparent 10px), var(--photo);
+}
+
+.wrapper-thumb-ticket {
+  background: linear-gradient(#f7f1e3, #f7f1e3) bottom / 100% 25% no-repeat, var(--photo);
+  border-bottom: 2px dashed #8a3b24;
+}
+
+.wrapper-thumb-album {
+  border: 5px solid #efe6d2;
+  transform: rotate(-2deg);
+}
