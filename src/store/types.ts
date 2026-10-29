@@ -40,6 +40,7 @@ import type {
 
 import type { LoadedPhoto } from './slices/mediaSlice'
 import type { ApplyChoice } from '../utils/series'
+import type { PhotoTheme } from '../utils/photoPalette'
 import type { AnimationSlice } from '../features/animation/store'
 import type { AnimationSettings } from '../features/animation/types'
 import type { CameraSlice } from '../features/camera/store'
@@ -244,6 +245,8 @@ export interface ElementsSlice {
 export interface TemplatesSlice {
   customTemplates: StyleTemplate[]
   applyTemplate: (template: StyleTemplate, parts: TemplateParts) => void
+  // The colours proposed from the photos, as one undo step; afterwards they are plain style values.
+  applyPhotoTheme: (theme: PhotoTheme) => void
   saveTemplate: (name: string) => void
   deleteTemplate: (id: string) => void
 }

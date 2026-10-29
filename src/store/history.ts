@@ -55,6 +55,7 @@ const STEP_LABELS: Record<string, string> = {
   animation: 'zmiana animacji',
   globalFont: 'zmiana czcionki',
   template: 'zastosowanie szablonu',
+  photoTheme: 'zastosowanie kolorów ze zdjęć',
   travel: 'zmiana podróży',
   camera: 'zmiana kamery',
   map: 'zmiana mapy',

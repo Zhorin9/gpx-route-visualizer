@@ -252,6 +252,19 @@ describe('style templates', () => {
     expect(get().routeStyle.color).toBe(initial.routeStyle.color)
   })
 
+  it('applies the colours from the photos as one undo step', () => {
+    get().addText()
+    vi.advanceTimersByTime(1000)
+    get().applyPhotoTheme({ route: '#458137', bg: '#ebf5e9', text: '#161d14', accent: '#6ea0dc' })
+    expect(get().routeStyle).toMatchObject({ color: '#458137', glowColor: '#6ea0dc' })
+    expect(get().collage).toMatchObject({ bgKind: 'gradient', gradient: { from: '#ebf5e9', to: '#ebf5e9' } })
+    expect(get().statsStyle.color).toBe('#161d14')
+    expect(get().texts[0].color).toBe('#161d14')
+    get().undo()
+    expect(get().routeStyle.color).toBe(initial.routeStyle.color)
+    expect(get().collage.bgKind).toBe(initial.collage.bgKind)
+  })
+
   it('saves the current look as a custom template', () => {
     get().updateRouteStyle({ color: '#ff0000', dotted: true })
     get().saveTemplate('Mój')

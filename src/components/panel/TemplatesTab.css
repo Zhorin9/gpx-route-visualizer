@@ -203,3 +203,44 @@
   font-weight: 600;
   font-size: 16px;
 }
+
+/* ---------- Colours from the photos ---------- */
+.photo-palette {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.photo-palette-swatches {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.photo-palette-swatch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.photo-palette-swatch > span {
+  width: 100%;
+  aspect-ratio: 1;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.photo-palette-map {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.photo-palette-actions {
+  align-items: center;
+  justify-content: space-between;
+}

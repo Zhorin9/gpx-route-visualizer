@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { parseExif, parseExifDate } from './exif'
 import { exportFileNames } from './exportImage'
-import { applyToPhotoSlides, followSlides, insertIndex, mapDots, matchGeo, moveOrder, newSlide, roomForSlide, seriesWarnings, slideLabel, slideNumbers } from './series'
+import { applyToPhotoSlides, followSlides, insertIndex, mapDots, matchGeo, moveOrder, newSlide, projectLook, roomForSlide, seriesWarnings, slideLabel, slideNumbers } from './series'
+import { DEFAULT_COLLAGE, DEFAULT_ROUTE_STYLE, DEFAULT_TITLE_STYLE } from '../store/defaults'
+import { INK } from './color'
 import type { GpxPoint, Photo, Slide } from '../types'
 
 const photoSlide = (photoId?: number): Slide => ({ ...newSlide('photos'), slots: photoId ? { 0: { photoId, zoom: 1, offsetX: 0, offsetY: 0 } } : {} })
@@ -148,3 +150,16 @@ function jpegWithExif(): ArrayBuffer {
   return new Uint8Array(bytes).buffer
 }
 
+
+describe('project look', () => {
+  const look = (bgColor: string, color: string) =>
+    projectLook({ collage: { ...DEFAULT_COLLAGE, bgKind: 'color', bgColor }, titleStyle: DEFAULT_TITLE_STYLE, routeStyle: DEFAULT_ROUTE_STYLE, statsStyle: { color } })
+
+  it('writes the figures in the stats colour when it reads on the paper', () => {
+    expect(look('#ebf5e9', '#041b35').ink).toBe('#041b35')
+  })
+
+  it('falls back to ink when the stats colour would vanish', () => {
+    expect(look('#ebf5e9', '#ffffff').ink).toBe(INK)
+  })
+})

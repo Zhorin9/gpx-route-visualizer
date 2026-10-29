@@ -16,6 +16,12 @@ export function luminance(hex: string): number {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b
 }
 
+// WCAG contrast ratio, 1 to 21; text needs 4.5.
+export function contrastRatio(a: string, b: string): number {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x)
+  return (hi + 0.05) / (lo + 0.05)
+}
+
 // `t` of the way from a to b; halfway by default.
 export function mixHex(a: string, b: string, t = 0.5): string {
   const [ar, ag, ab] = channels(a)
