@@ -33,6 +33,27 @@ export default function useKeyboardShortcuts(): void {
         s.redo()
         return
       }
+      // In a series, with nothing selected on the frame: arrows walk the strip, Delete removes
+      // the slide, Ctrl+D duplicates it.
+      const series = s.carouselKind === 'slides' && s.slides.length > 1
+      const slide = Math.min(s.activeSlide, s.slides.length - 1)
+      if (series && !s.selection) {
+        if (mod && key === 'd') {
+          e.preventDefault()
+          s.duplicateSlide(slide)
+          return
+        }
+        if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !(e.target as HTMLElement).closest?.('[role="tablist"], [role="radiogroup"], input')) {
+          e.preventDefault()
+          s.setActiveSlide(Math.max(0, Math.min(s.slides.length - 1, slide + (e.key === 'ArrowLeft' ? -1 : 1))))
+          return
+        }
+        if (e.key === 'Delete' && slide > 0) {
+          e.preventDefault()
+          s.removeSlide(slide)
+          return
+        }
+      }
       if (e.key === 'Escape') {
         if (s.addingWaypoint) s.setAddingWaypoint(false)
         else if (s.routeEditable) s.setRouteEditable(false)

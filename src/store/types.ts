@@ -11,6 +11,7 @@ import type {
   Photo,
   ProjectMode,
   Slide,
+  SlideKind,
   SlotAssignment,
   SlotCrop,
   GpxPoint,
@@ -37,6 +38,8 @@ import type {
   PointStyle,
 } from '../types'
 
+import type { LoadedPhoto } from './slices/mediaSlice'
+import type { ApplyChoice } from '../utils/series'
 import type { AnimationSlice } from '../features/animation/store'
 import type { AnimationSettings } from '../features/animation/types'
 import type { CameraSlice } from '../features/camera/store'
@@ -174,13 +177,32 @@ export interface MediaSlice {
   setCarousel: (on: boolean) => void
   setCarouselKind: (kind: CarouselKind) => void
   setSlideCount: (count: number) => void
-  addSlide: () => void
-  removeSlide: (index: number) => void
   updateCollage: (patch: Partial<Omit<CollageStyle, 'frame'>>) => void
   updateFrame: (patch: Partial<CollageStyle['frame']>) => void
   updateBackground: (patch: Partial<Pick<CollageStyle, 'bgKind' | 'bgColor' | 'autoContrast'>> & { gradient?: Partial<GradientStyle> }) => void
   addCaption: (slide: number, index: number) => void
   setDimOpacity: (value: number) => void
+}
+
+// The carousel as a series: typed slides added, copied, moved, skipped and removed one by one.
+export interface SeriesSlice {
+  // Photos read for "Dodaj zdjęcia jako slajdy", waiting for the dialog's answer.
+  photoImport: LoadedPhoto[] | null
+  // After the selected slide (before a closing summary); switches to a carousel when needed.
+  addSeriesSlide: (kind: SlideKind | 'collage') => void
+  duplicateSlide: (index: number) => void
+  removeSlide: (index: number) => void
+  moveSlide: (from: number, to: number) => void
+  toggleSkipSlide: (index: number) => void
+  updateSlide: (index: number, patch: Partial<Slide>) => void
+  // Copies the chosen overlays (and crop) of one photo slide to the others, in one undo step.
+  applyToPhotoSlides: (from: number, choice: ApplyChoice) => void
+  // Gives the other slides of the same kind this slide's background; their own looks stay.
+  applyBackgroundToKind: (from: number) => void
+  importPhotoSlides: (files: File[]) => Promise<void>
+  // One slide per photo, ordered along the route, or as picked without matching.
+  confirmPhotoSlides: (byRoute: boolean) => void
+  cancelPhotoSlides: () => void
 }
 
 export interface RouteSlice {
@@ -242,6 +264,7 @@ export interface HistorySlice {
 export type AppState = DocumentState &
   UiSlice &
   MediaSlice &
+  SeriesSlice &
   RouteSourceSlice &
   RouteSlice &
   StatsSlice &

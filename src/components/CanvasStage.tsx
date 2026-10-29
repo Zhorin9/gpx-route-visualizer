@@ -5,15 +5,17 @@ import useGpxImport from '../hooks/useGpxImport'
 import { useActiveSlide, useHasBackground, useHasRoute, usePanorama } from '../store/selectors'
 import { useAppStore } from '../store/useAppStore'
 import { FORMATS } from '../core/formats/registry'
-import { computeSlots, layoutDef, ribbonSlot, slotAt } from '../utils/layouts'
+import { computeSlots, layoutDef, ribbonSlot, slotAt, slotCount } from '../utils/layouts'
 import { stageHandle } from '../utils/exportImage'
+import { slideNumbers } from '../utils/series'
 import CanvasElements from '../core/canvas/CanvasElements'
 import { stageUnderlays } from '../core/canvas/chrome'
 import BackgroundLayer from './BackgroundLayer'
 import EditableText from './EditableText'
 import RouteGroup from './RouteGroup'
 import PhotoLayer from './PhotoLayer'
-import { PHOTO_DRAG_TYPE } from './PhotoTape'
+import SeriesLayer from './SeriesLayer'
+import { PHOTO_DRAG_TYPE } from './panel/PhotoPool'
 import SlotToolbar from './SlotToolbar'
 
 export default function CanvasStage({ previewScale }: { previewScale: number }) {
@@ -32,20 +34,26 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
   const previewLayoutKey = useAppStore((s) => s.previewLayoutKey)
   const currentLayoutKey = slides[activeSlide].layoutKey
   const assignPhoto = useAppStore((s) => s.assignPhoto)
+  const setActiveSlide = useAppStore((s) => s.setActiveSlide)
   const { importFiles } = useGpxImport()
   const [dragSlot, setDragSlot] = useState<{ slide: number; index: number } | null>(null)
 
   const { w, h, safeZone } = FORMATS[aspectKey]
   const slideCount = slides.length
+  const numbers = slideNumbers(slides)
   const slotsBySlide = panorama
     ? [[ribbonSlot(w, h, slideCount)]]
-    : slides.map((slide) => computeSlots(layoutDef(slide.layoutKey), w, h, collage.gap, collage.margin))
+    : slides.map((slide) => (slotCount(slide) ? computeSlots(layoutDef(slide.layoutKey), w, h, collage.gap, collage.margin) : []))
   const isCheckerboard = !hasBackground && previewBackdrop === 'checkerboard'
   const classes = ['stage-wrapper', isCheckerboard && 'checkerboard', adding && 'is-adding'].filter(Boolean).join(' ')
 
+  // A click on empty space drops the selection and picks the slide under the pointer.
   function handlePointerDown(e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) {
-    const target = e.target
-    if (target === target.getStage()) select(null)
+    const stage = e.target.getStage()
+    if (e.target !== stage) return
+    select(null)
+    const x = stage?.getPointerPosition()?.x
+    if (x != null && !panorama && slideCount > 1) setActiveSlide(Math.min(slideCount - 1, Math.floor(x / previewScale / w)))
   }
 
   function slotUnderPointer(e: DragEvent<HTMLDivElement>) {
@@ -109,6 +117,7 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
       >
         <BackgroundLayer />
         <PhotoLayer />
+        <SeriesLayer />
         <Layer>{hasRoute && <RouteGroup />}</Layer>
         <Layer>
           <CanvasElements />
@@ -138,7 +147,7 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
         <div className="slide-dividers" aria-hidden="true">
           {slides.map((_, i) => (
             <div key={i} className={i === activeSlide ? 'slide-divider active' : 'slide-divider'} style={{ width: w * previewScale }}>
-              <span>Slajd {i + 1}</span>
+              <span>{numbers[i] == null ? 'Pominięty slajd' : `Slajd ${numbers[i]}`}</span>
             </div>
           ))}
         </div>

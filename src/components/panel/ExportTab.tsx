@@ -8,6 +8,7 @@ import { useHasBackground, useHasRoute, useManualFlags } from '../../store/selec
 import { useAppStore } from '../../store/useAppStore'
 import { FORMATS, FORMAT_ORDER } from '../../core/formats/registry'
 import { exportFileNames } from '../../utils/exportImage'
+import { seriesWarnings } from '../../utils/series'
 import { exportProject } from '../../utils/exportProject'
 import { canvasElements, type CanvasElementDefinition } from '../../core/canvas/registry'
 import SubTabs from '../../core/panel/SubTabs'
@@ -127,6 +128,8 @@ function ImageExport() {
   const slides = useAppStore((s) => s.slides)
   const parkedSlides = useAppStore((s) => s.parkedSlides)
   const exporting = useAppStore((s) => s.exporting)
+  const photos = useAppStore((s) => s.photos)
+  const points = useAppStore((s) => selectTrack(s)?.points ?? null)
   const [chosenFormat, setFormat] = useState<ExportFormat>('png')
   const [scale, setScale] = useState<Scale>('1')
   const [picked, setPicked] = useState<AspectKey[]>([aspectKey])
@@ -139,6 +142,7 @@ function ImageExport() {
   const formats = FORMAT_ORDER.filter((f) => picked.includes(f))
   const fileNames = formats.flatMap((f) => exportFileNames(format, fileScale, f, baseName, slideCountIn({ slides, parkedSlides }, f)))
   const canExport = (hasRoute || hasBackground) && formats.length > 0 && !exporting
+  const warnings = seriesWarnings(slides, new Map(photos.map((p) => [p.id, p])), points)
 
   const scaleOptions: SelectOption<Scale>[] = [
     { value: '1', label: `${w}×${h}` },
@@ -182,6 +186,17 @@ function ImageExport() {
               <li key={name}>{name}</li>
             ))}
           </ul>
+        </Section>
+      )}
+
+      {warnings.length > 0 && (
+        <Section title="Do sprawdzenia">
+          <ul className="export-files export-warnings">
+            {warnings.map((w) => (
+              <li key={w}>{w}</li>
+            ))}
+          </ul>
+          <p className="hint">To tylko ostrzeżenia: serię możesz pobrać i tak.</p>
         </Section>
       )}
 

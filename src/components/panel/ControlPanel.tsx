@@ -5,6 +5,7 @@ import MediaTab from './MediaTab'
 import RouteTab from './RouteTab'
 import ElementsTab from './ElementsTab'
 import TemplatesTab from './TemplatesTab'
+import { SlideStylePage } from './SlidePanel'
 import SubTabs from '../../core/panel/SubTabs'
 import { useAppStore } from '../../store/useAppStore'
 import { IconImage, IconRoute, IconType, IconPalette, IconPlay } from '../icons'
@@ -24,15 +25,16 @@ const MODE_TABS: Record<ProjectMode, TabDef<PanelTab>[]> = {
   collage: TABS.filter((t) => t.key !== 'route'),
 }
 
-const StylePanel = () => (
-  <SubTabs
-    tab="style"
-    own={[
-      { id: 'presets', label: 'Presety', Component: TemplatesTab },
-      { id: 'background', label: 'Tło', Component: BackgroundTab },
-    ]}
-  />
-)
+// The project's presets and background; in a series also the selected slide's own.
+function StylePanel() {
+  const series = useAppStore((s) => s.slides.length > 1 && s.carouselKind === 'slides')
+  const own = [
+    { id: 'presets', label: 'Presety', Component: TemplatesTab },
+    { id: 'background', label: 'Tło', Component: BackgroundTab },
+    ...(series ? [{ id: 'slide', label: 'Ten slajd', Component: SlideStylePage }] : []),
+  ]
+  return <SubTabs tab="style" own={own} />
+}
 
 // Animation and camera are features; they fill the tab through the panel registry.
 const AnimationPanel = () => <SubTabs tab="animation" own={[]} />

@@ -1,11 +1,54 @@
-/* ---------- Carousel slides ---------- */
+/* ---------- Slide series ---------- */
 .slide-strip {
   display: flex;
-  align-items: center;
-  gap: var(--space-4);
+  flex-direction: column;
+  gap: var(--space-2);
   padding: var(--space-3) var(--space-5);
   background: var(--bg);
   border-top: 1px solid var(--border);
+}
+
+.slide-strip-list {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  overflow-x: auto;
+  padding: 2px 0 var(--space-1);
+}
+
+/* Beside a tall frame: a rail down the left edge of the preview. */
+.slide-strip.vertical {
+  flex: none;
+  min-height: 0;
+  padding: var(--space-3);
+  border-top: none;
+  border-right: 1px solid var(--border);
+}
+
+.slide-strip.vertical .slide-strip-list {
+  flex-direction: column;
+  align-items: center;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 2px var(--space-1);
+}
+
+.slide-strip.vertical .slide-thumb.drop-before::before,
+.slide-strip.vertical .slide-thumb.drop-after::after {
+  left: 0;
+  right: 0;
+  width: auto;
+  height: 2px;
+  bottom: auto;
+}
+
+.slide-strip.vertical .slide-thumb.drop-before::before {
+  top: -7px;
+}
+
+.slide-strip.vertical .slide-thumb.drop-after::after {
+  top: auto;
+  bottom: -7px;
 }
 
 .slide-thumb {
@@ -18,10 +61,10 @@
   flex-direction: column;
   align-items: center;
   gap: var(--space-1);
-  padding: var(--space-1);
+  min-height: 44px;
+  padding: 0;
   background: none;
-  border: 1px solid transparent;
-  border-radius: var(--radius);
+  border: none;
   cursor: pointer;
 }
 
@@ -33,29 +76,71 @@
   border: 1px solid var(--border);
 }
 
+.slide-thumb.active .slide-thumb-frame {
+  border: 2px solid var(--accent);
+}
+
+.slide-thumb.skipped .slide-thumb-frame {
+  border-style: dashed;
+  opacity: 0.45;
+}
+
+.slide-thumb.drop-before::before,
+.slide-thumb.drop-after::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 18px;
+  width: 2px;
+  background: var(--accent);
+}
+
+.slide-thumb.drop-before::before {
+  left: -7px;
+}
+
+.slide-thumb.drop-after::after {
+  right: -7px;
+}
+
+.slide-thumb-number {
+  position: absolute;
+  left: 4px;
+  bottom: 2px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  text-shadow: 0 0 3px var(--bg);
+}
+
 .slide-thumb-label {
   font-size: var(--text-xs);
   color: var(--text-muted);
 }
 
-.slide-thumb-remove {
+.slide-thumb.active .slide-thumb-label {
+  color: var(--text);
+}
+
+.slide-thumb-more {
   position: absolute;
-  top: -4px;
-  right: -4px;
+  top: 2px;
+  right: 2px;
   display: none;
   place-items: center;
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   padding: 0;
   cursor: pointer;
   background: var(--bg);
   color: var(--text);
   border: 1px solid var(--border);
-  border-radius: 50%;
 }
 
-.slide-thumb:hover .slide-thumb-remove,
-.slide-thumb-remove:focus-visible {
+.slide-thumb:hover .slide-thumb-more,
+.slide-thumb.active .slide-thumb-more,
+.slide-thumb-more:focus-visible,
+.slide-thumb-more[aria-expanded='true'] {
   display: grid;
 }
 
@@ -63,7 +148,6 @@
   flex-shrink: 0;
   display: grid;
   place-items: center;
-  margin-bottom: 19px;
   cursor: pointer;
   background: none;
   color: var(--accent-text-strong);
@@ -72,4 +156,53 @@
 
 .slide-add:hover {
   background: var(--accent-soft);
+}
+
+.slide-add.full {
+  opacity: 0.45;
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+
+.slide-menu {
+  position: fixed;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+}
+
+.slide-menu button {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 36px;
+  padding: 8px 12px;
+  font-size: 13px;
+  text-align: left;
+  color: var(--text);
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.slide-menu button:last-child {
+  border-bottom: none;
+}
+
+.slide-menu button:hover:not(:disabled) {
+  background: var(--accent-soft);
+}
+
+.slide-menu button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.slide-menu button.danger {
+  color: var(--accent-text-strong);
 }

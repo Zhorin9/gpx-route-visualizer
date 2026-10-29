@@ -90,6 +90,7 @@ export const DEFAULT_POINT_STYLE: PointStyle = { marker: 'polaroid', size: 'M' }
 
 export const DEFAULT_SLIDES: Slide[] = [{ layoutKey: DEFAULT_LAYOUT, slots: {} }]
 
+// A panorama is cut into 2 to 5 slides; a series takes up to 20 (utils/series).
 export const MIN_CAROUSEL_SLIDES = 2
 export const CAROUSEL_SLIDES = 2
 export const MAX_SLIDES = 5

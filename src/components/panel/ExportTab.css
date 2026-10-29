@@ -117,3 +117,7 @@
   border: 1px solid var(--accent);
   border-radius: 3px;
 }
+
+.export-warnings {
+  color: var(--text);
+}

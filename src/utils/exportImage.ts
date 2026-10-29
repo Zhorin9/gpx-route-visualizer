@@ -24,7 +24,8 @@ export function exportFileNames(
   const base = slugify(trackName ?? '') || 'trasa'
   const suffix = `${aspectKey.replace(':', 'x')}${scale === 2 ? '@2x' : ''}.${format}`
   if (slideCount === 1) return [`${base}-${suffix}`]
-  return Array.from({ length: slideCount }, (_, i) => `${base}-slajd-${i + 1}-${suffix}`)
+  // Numbered in the strip's order, two digits so the files sort the same way: alpy-01-4x5.jpg.
+  return Array.from({ length: slideCount }, (_, i) => `${base}-${String(i + 1).padStart(2, '0')}-${suffix}`)
 }
 
 export function canvasToBlob(canvas: HTMLCanvasElement, mime: string, quality = 0.92): Promise<Blob> {
@@ -58,20 +59,20 @@ function onWhite(canvas: HTMLCanvasElement): HTMLCanvasElement {
   return out
 }
 
-// Cuts the ribbon of the current format into one image file per slide.
+// Cuts the ribbon of the current format into one image file per exported slide (by index).
 export async function ribbonToFiles(
   ribbon: HTMLCanvasElement,
   format: ExportFormat,
   scale: 1 | 2,
   aspectKey: AspectKey,
   trackName: string | null,
-  slideCount: number,
+  slides: number[],
 ): Promise<ExportFile[]> {
   const mime = format === 'jpg' ? 'image/jpeg' : 'image/png'
-  const names = exportFileNames(format, scale, aspectKey, trackName, slideCount)
+  const names = exportFileNames(format, scale, aspectKey, trackName, slides.length)
   const files: ExportFile[] = []
-  for (let i = 0; i < slideCount; i++) {
-    const slide = cropSlide(ribbon, i, aspectKey, scale)
+  for (let i = 0; i < slides.length; i++) {
+    const slide = cropSlide(ribbon, slides[i], aspectKey, scale)
     files.push({ name: names[i], blob: await canvasToBlob(format === 'jpg' ? onWhite(slide) : slide, mime) })
   }
   return files
