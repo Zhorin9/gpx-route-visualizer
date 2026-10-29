@@ -9,6 +9,7 @@ import { UI_ONLY } from '../utils/exportImage'
 import { usePhotoAnimation } from '../core/animation/layers'
 import { blurredBackdrop, containLayout, coverLayout } from '../utils/image'
 import { computeSlots, frameInsets, layoutDef, ribbonSlot, slotCount, type SlotRect } from '../utils/layouts'
+import SlideBox from './SlideBox'
 import type { CollageStyle, Photo, SlotAssignment } from '../types'
 
 const ZOOM_STEP = 0.1
@@ -259,7 +260,7 @@ export default function PhotoLayer() {
         const def = layoutDef(slideIndex === activeSlide && previewLayoutKey ? previewLayoutKey : slide.layoutKey)
         const slots = computeSlots(def, w, h, collage.gap, collage.margin)
         return (
-          <Group key={slideIndex}>
+          <SlideBox key={slideIndex} slide={slideIndex}>
             {slots.map((slot, order) => {
               const assignment = slide.slots[slot.index]
               return (
@@ -277,7 +278,7 @@ export default function PhotoLayer() {
                 />
               )
             })}
-          </Group>
+          </SlideBox>
         )
       })}
       {dimOpacity > 0 && <Rect width={w * slides.length} height={h} fill="#000000" opacity={dimOpacity} listening={false} />}

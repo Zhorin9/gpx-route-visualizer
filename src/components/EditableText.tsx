@@ -9,6 +9,8 @@ import { textColumn } from '../core/formats/registry'
 import { konvaFontStyle } from '../utils/fonts'
 import { displayText, fittedTitleSize } from '../utils/title'
 import SelectionOutline from './SelectionOutline'
+import { useSlideAt } from '../store/selectors'
+import SlideBox from './SlideBox'
 import type { TextNode } from '../types'
 
 export default function EditableText({ node }: { node: TextNode }) {
@@ -22,6 +24,7 @@ export default function EditableText({ node }: { node: TextNode }) {
   const isTitle = node.role === 'title'
   const fontsVersion = useAppStore((s) => s.fontsVersion)
   const animation = useLayerAnimation('header')
+  const slide = useSlideAt(node.x)
 
   // Konva lays text out once; widths measured with a fallback font would stay wrong after the real one loads.
   useEffect(() => {
@@ -51,7 +54,7 @@ export default function EditableText({ node }: { node: TextNode }) {
   }
 
   return (
-    <>
+    <SlideBox slide={slide}>
       {/* Stroke drawn on a copy underneath, so the outline doesn't eat into the glyphs. */}
       {node.outlineEnabled && (
         <Text
@@ -86,6 +89,6 @@ export default function EditableText({ node }: { node: TextNode }) {
         shadowOpacity={node.shadowEnabled ? 0.6 : 0}
       />
       <SelectionOutline targetRef={shapeRef} visible={isSelected && !hidden} />
-    </>
+    </SlideBox>
   )
 }

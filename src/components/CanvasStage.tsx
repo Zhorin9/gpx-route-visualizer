@@ -8,6 +8,7 @@ import { FORMATS } from '../core/formats/registry'
 import { computeSlots, layoutDef, ribbonSlot, slotAt, slotCount } from '../utils/layouts'
 import { stageHandle } from '../utils/exportImage'
 import { slideNumbers } from '../utils/series'
+import { fromBox, intoBox, slideBox } from '../utils/wrappers'
 import CanvasElements from '../core/canvas/CanvasElements'
 import { stageUnderlays } from '../core/canvas/chrome'
 import BackgroundLayer from './BackgroundLayer'
@@ -16,7 +17,10 @@ import RouteGroup from './RouteGroup'
 import PhotoLayer from './PhotoLayer'
 import SeriesLayer from './SeriesLayer'
 import { PHOTO_DRAG_TYPE } from './panel/PhotoPool'
+import SlideBox from './SlideBox'
 import SlotToolbar from './SlotToolbar'
+import WrapperLayer from './WrapperLayer'
+import type { SlotRect } from '../utils/layouts'
 
 export default function CanvasStage({ previewScale }: { previewScale: number }) {
   const aspectKey = useAppStore((s) => s.aspectKey)
@@ -29,6 +33,8 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
   const hasRoute = useHasRoute()
   const slides = useAppStore((s) => s.slides)
   const collage = useAppStore((s) => s.collage)
+  const wrapper = useAppStore((s) => s.wrapper)
+  const carouselKind = useAppStore((s) => s.carouselKind)
   const activeSlide = useActiveSlide()
   const panorama = usePanorama()
   const previewLayoutKey = useAppStore((s) => s.previewLayoutKey)
@@ -44,6 +50,9 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
   const slotsBySlide = panorama
     ? [[ribbonSlot(w, h, slideCount)]]
     : slides.map((slide) => (slotCount(slide) ? computeSlots(layoutDef(slide.layoutKey), w, h, collage.gap, collage.margin) : []))
+  // Where each slide's content sits under the wrapper; null where it fills the slide.
+  const boxes = slides.map((_, i) => slideBox({ wrapper, slides, carouselKind }, i, w, h))
+  const first = boxes[0]
   const isCheckerboard = !hasBackground && previewBackdrop === 'checkerboard'
   const classes = ['stage-wrapper', isCheckerboard && 'checkerboard', adding && 'is-adding'].filter(Boolean).join(' ')
 
@@ -59,9 +68,21 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
   function slotUnderPointer(e: DragEvent<HTMLDivElement>) {
     const rect = e.currentTarget.getBoundingClientRect()
     const x = (e.clientX - rect.left) / previewScale
+    const y = (e.clientY - rect.top) / previewScale
     const slide = panorama ? 0 : Math.min(slideCount - 1, Math.max(0, Math.floor(x / w)))
-    const slot = slotAt(slotsBySlide[slide], panorama ? x : x - slide * w, (e.clientY - rect.top) / previewScale)
+    const box = boxes[slide]
+    const at = box ? fromBox(box, w, h, x - slide * w, y) : { x: panorama ? x : x - slide * w, y }
+    const slot = slotAt(slotsBySlide[slide], at.x, at.y)
     return slot ? { slide, slot } : null
+  }
+
+  // A slot's rectangle on the ribbon, where its slide's box draws it.
+  function onRibbon(slot: SlotRect, slide: number) {
+    const box = boxes[slide]
+    if (!box) return { ...slot, x: slot.x + slide * w }
+    const scale = box.w / w
+    const c = intoBox(box, w, h, slot.x + slot.w / 2, slot.y + slot.h / 2)
+    return { x: slide * w + c.x - (slot.w * scale) / 2, y: c.y - (slot.h * scale) / 2, w: slot.w * scale, h: slot.h * scale, rotation: (slot.rotation ?? 0) + box.rotation }
   }
 
   function handleDragOver(e: DragEvent<HTMLDivElement>) {
@@ -85,7 +106,7 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
     else importFiles(images, place)
   }
 
-  const dragRect = dragSlot ? { ...slotsBySlide[dragSlot.slide][dragSlot.index], x: slotsBySlide[dragSlot.slide][dragSlot.index].x + dragSlot.slide * w } : null
+  const dragRect = dragSlot ? onRibbon(slotsBySlide[dragSlot.slide][dragSlot.index], dragSlot.slide) : null
 
   return (
     <div
@@ -99,9 +120,22 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
         ...(!hasBackground && !isCheckerboard ? { background: previewBackdrop } : null),
       }}
     >
-      {stageUnderlays().map((Underlay, i) => (
-        <Underlay key={i} previewScale={previewScale} />
-      ))}
+      {/* The map lies under the first slide's content, so it shrinks into the same box. */}
+      <div
+        className="stage-underlays"
+        style={
+          first
+            ? {
+                transformOrigin: `${(w / 2) * previewScale}px ${(h / 2) * previewScale}px`,
+                transform: `translate(${(first.x + first.w / 2 - w / 2) * previewScale}px, ${(first.y + first.h / 2 - h / 2) * previewScale}px) rotate(${first.rotation}deg) scale(${first.w / w})`,
+              }
+            : undefined
+        }
+      >
+        {stageUnderlays().map((Underlay, i) => (
+          <Underlay key={i} previewScale={previewScale} />
+        ))}
+      </div>
       {/* Sized to the preview, not the export: a full 1080×1920 canvas
           would be redrawn at every change only to be cropped by CSS. */}
       <Stage
@@ -118,13 +152,20 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
         <BackgroundLayer />
         <PhotoLayer />
         <SeriesLayer />
-        <Layer>{hasRoute && <RouteGroup />}</Layer>
+        <Layer>
+          {hasRoute && (
+            <SlideBox slide={0}>
+              <RouteGroup />
+            </SlideBox>
+          )}
+        </Layer>
         <Layer>
           <CanvasElements />
           {texts.map((node) => (
             <EditableText key={node.id} node={node} />
           ))}
         </Layer>
+        <WrapperLayer />
       </Stage>
 
       {/* HTML overlays, so they can never end up in an exported image. */}

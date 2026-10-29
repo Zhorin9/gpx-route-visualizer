@@ -3,6 +3,7 @@ import CheckboxField from '../fields/CheckboxField'
 import Button from '../ui/Button'
 import Section from '../ui/Section'
 import PhotoPaletteSection from './PhotoPaletteSection'
+import WrapperSection from './WrapperSection'
 import { IconClose } from '../icons'
 import { useAppStore } from '../../store/useAppStore'
 import { FORMATS } from '../../core/formats/registry'
@@ -105,6 +106,7 @@ export default function TemplatesTab() {
   return (
     <>
       <PhotoPaletteSection />
+      <WrapperSection />
       <Section title="Presety stylu">
         {GROUPS.map(({ key, label }) => {
           const group = templates.filter((t) => (t.custom ? 'custom' : (t.group ?? 'basic')) === key)
@@ -115,7 +117,15 @@ export default function TemplatesTab() {
               <div className="template-grid" role="group" aria-label={label}>
                 {group.map((template) => (
                   <div key={template.id} className={template.id === selected.id ? 'template-card active' : 'template-card'}>
-                    <button type="button" className="template-card-body" aria-pressed={template.id === selected.id} onClick={() => setSelectedId(template.id)}>
+                    {/* A double click applies it straight away, with the parts ticked below. */}
+                    <button
+                      type="button"
+                      className="template-card-body"
+                      aria-pressed={template.id === selected.id}
+                      title="Dwuklik: zastosuj"
+                      onClick={() => setSelectedId(template.id)}
+                      onDoubleClick={() => anyPart && applyTemplate(template, parts)}
+                    >
                       <TemplateThumb template={template} />
                       <span className="template-card-name">{template.name}</span>
                       <span className="template-card-desc">{template.desc}</span>
@@ -162,7 +172,7 @@ export default function TemplatesTab() {
             </Button>
           </form>
         )}
-        <p className="hint">Szablon nie rusza zdjęć, tras ani treści napisów — tylko wygląd.</p>
+        <p className="hint">Szablon nie rusza zdjęć, tras ani treści napisów — tylko wygląd. Dwuklik na presecie od razu go stosuje.</p>
       </Section>
     </>
   )

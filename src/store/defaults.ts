@@ -15,6 +15,7 @@ import type {
   TextNode,
   TitleStyle,
   Waypoint,
+  Wrapper,
 } from '../types'
 
 export const DEFAULT_ROUTE_STYLE: RouteStyle = {
@@ -89,6 +90,12 @@ export const DEFAULT_COLLAGE: CollageStyle = {
 export const DEFAULT_POINT_STYLE: PointStyle = { marker: 'polaroid', size: 'M' }
 
 export const DEFAULT_SLIDES: Slide[] = [{ layoutKey: DEFAULT_LAYOUT, slots: {} }]
+
+export const DEFAULT_WRAPPER: Wrapper = {
+  id: 'none',
+  fields: { title: '', place: '', from: '', to: '', date: '', note: '' },
+  postmark: { x: 0.74, y: 0.2, all: false },
+}
 
 // A panorama is cut into 2 to 5 slides; a series takes up to 20 (utils/series).
 export const MIN_CAROUSEL_SLIDES = 2

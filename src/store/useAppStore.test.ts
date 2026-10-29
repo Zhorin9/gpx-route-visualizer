@@ -265,6 +265,16 @@ describe('style templates', () => {
     expect(get().collage.bgKind).toBe(initial.collage.bgKind)
   })
 
+  it('picks a wrapper in one undo step and keeps the fields typed before', () => {
+    get().updateWrapper({ fields: { note: 'Tu złapał nas deszcz.' } })
+    vi.advanceTimersByTime(1000)
+    get().setWrapper('postcard')
+    expect(get().wrapper.id).toBe('postcard')
+    expect(get().wrapper.fields.note).toBe('Tu złapał nas deszcz.')
+    get().undo()
+    expect(get().wrapper.id).toBe('none')
+  })
+
   it('saves the current look as a custom template', () => {
     get().updateRouteStyle({ color: '#ff0000', dotted: true })
     get().saveTemplate('Mój')
