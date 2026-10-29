@@ -2,6 +2,7 @@ import { useState } from 'react'
 import CheckboxField from '../fields/CheckboxField'
 import Button from '../ui/Button'
 import Section from '../ui/Section'
+import PhotoPaletteSection from './PhotoPaletteSection'
 import { IconClose } from '../icons'
 import { useAppStore } from '../../store/useAppStore'
 import { FORMATS } from '../../core/formats/registry'
@@ -103,6 +104,7 @@ export default function TemplatesTab() {
 
   return (
     <>
+      <PhotoPaletteSection />
       <Section title="Presety stylu">
         {GROUPS.map(({ key, label }) => {
           const group = templates.filter((t) => (t.custom ? 'custom' : (t.group ?? 'basic')) === key)

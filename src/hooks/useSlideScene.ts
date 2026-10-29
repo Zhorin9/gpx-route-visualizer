@@ -14,6 +14,7 @@ export default function useSlideScene(): Omit<SlideScene, 'look'> & { projectLoo
   const collage = useAppStore((s) => s.collage)
   const titleStyle = useAppStore((s) => s.titleStyle)
   const routeStyle = useAppStore((s) => s.routeStyle)
+  const statsStyle = useAppStore((s) => s.statsStyle)
   const route = seriesRoute(useAppStore((s) => selectTrack(s)?.points ?? null), useDayBreaks())
   const stats = useRangeStats()
   const days = useTrackDays().length
@@ -29,6 +30,6 @@ export default function useSlideScene(): Omit<SlideScene, 'look'> & { projectLoo
     durationMs: stats?.durationMs ?? null,
     gainM: stats?.elevationGainM ?? null,
     days,
-    projectLook: projectLook({ collage, titleStyle, routeStyle }),
+    projectLook: projectLook({ collage, titleStyle, routeStyle, statsStyle }),
   }
 }

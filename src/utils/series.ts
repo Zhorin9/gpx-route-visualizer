@@ -1,10 +1,10 @@
 import { detectClimbs, type Climb } from '../features/elevation-profile/model/climbs'
 import { windowMean } from '../core/data/smoothing'
-import { INK, PAPER, toneOf } from './color'
+import { INK, PAPER, contrastRatio, toneOf } from './color'
 import { cumulativeDistanceKm } from './gpx'
 import { layoutDef } from './layouts'
 import { memoOne } from './memo'
-import type { CollageStyle, GpxPoint, Photo, PhotoGeo, ProjectMode, RouteStyle, Slide, SlideBackground, SlideKind, SlideLook, SlideOverlays, SummaryFigure, TitleStyle } from '../types'
+import type { CollageStyle, GpxPoint, Photo, PhotoGeo, ProjectMode, RouteStyle, Slide, SlideBackground, SlideKind, SlideLook, SlideOverlays, StatsStyle, SummaryFigure, TitleStyle } from '../types'
 
 // A series is the carousel of the editor: its first slide is the frame itself, the others are
 // photos, an elevation profile or a summary. Instagram takes at most 20 slides in one post.
@@ -208,11 +208,13 @@ export function mapDots(slides: Slide[], photos: Map<number, Photo>, points: Gpx
 
 // ---------- Look ----------
 
-// The paper, ink and accent of slides drawn from data follow the project's own colours.
-export function projectLook(s: { collage: CollageStyle; titleStyle: TitleStyle; routeStyle: RouteStyle }): SlideLook {
+// The paper, ink and accent of slides drawn from data follow the project's own colours. The ink is
+// the stats' colour where it reads on the paper (white figures made for photos don't).
+export function projectLook(s: { collage: CollageStyle; titleStyle: TitleStyle; routeStyle: RouteStyle; statsStyle: Pick<StatsStyle, 'color'> }): SlideLook {
   const { collage } = s
   const paper = collage.bgKind === 'color' ? collage.bgColor : collage.bgKind === 'gradient' ? collage.gradient.from : '#ede6d6'
-  return { paper, ink: toneOf(paper) === 'dark' ? PAPER : INK, accent: s.routeStyle.color, font: s.titleStyle.fontFamily }
+  const ink = contrastRatio(s.statsStyle.color, paper) >= 4.5 ? s.statsStyle.color : toneOf(paper) === 'dark' ? PAPER : INK
+  return { paper, ink, accent: s.routeStyle.color, font: s.titleStyle.fontFamily }
 }
 
 // What may come out wrong in the files; none of it stops the export.
