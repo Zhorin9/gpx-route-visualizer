@@ -11,6 +11,12 @@ export function formatNumber(value: number, fractionDigits = 0): string {
   return fmt.format(value)
 }
 
+// Polish plural: 1 zdjęcie, 2 zdjęcia, 5 zdjęć.
+export function plural(n: number, one: string, few: string, many: string): string {
+  if (n === 1) return one
+  return n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? few : many
+}
+
 export function formatKm(km: number, precision: number): string {
   return `${formatNumber(km, precision)} km`
 }

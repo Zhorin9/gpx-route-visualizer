@@ -27,7 +27,8 @@ export function registerMap() {
     useIsAvailable: useMapShown,
     Node: MapCreditNode,
     Editor: MapCreditFields,
-    tab: 'background',
+    tab: 'style',
+    subTab: 'background',
   })
 
   // Files get the map drawn again at their own resolution, fully loaded, under the frame.

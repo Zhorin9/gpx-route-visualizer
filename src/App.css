@@ -302,7 +302,6 @@
   border-bottom-color: var(--accent);
 }
 
-
 .canvas-area {
   position: relative;
   flex: 1;
@@ -314,6 +313,17 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;
+}
+
+.canvas-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.canvas-body.rail {
+  flex-direction: row;
 }
 
 .canvas-viewport {
@@ -337,21 +347,29 @@
   border-bottom: 1px solid var(--border);
 }
 
+.toolbar-select {
+  height: 32px;
+  padding: 0 var(--space-2);
+  font-size: 13px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+
+/* Toggles that sit on the preview itself, in its top-right corner. */
+.canvas-corner-btn {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  z-index: 9;
+  background: var(--bg);
+}
+
 .toolbar-hint {
   margin-left: auto;
   font-size: var(--text-sm);
   color: var(--accent-text);
-}
-
-.frame-status {
-  margin-left: auto;
-  font-size: var(--text-sm);
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-
-.toolbar-hint + .frame-status {
-  margin-left: var(--space-3);
 }
 
 .link-btn {
@@ -371,6 +389,37 @@
   border: 1px solid var(--border);
   overflow: hidden;
   background: var(--bg);
+}
+
+.photo-slides-summary {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.photo-slides-summary li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 9px 12px;
+}
+
+.photo-slides-summary li + li {
+  border-top: 1px solid var(--border);
+}
+
+/* A series shows one slide of the ribbon at a time. */
+.slide-window {
+  position: relative;
+  flex: none;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.slide-window .stage-wrapper {
+  box-shadow: none;
 }
 
 .stage-wrapper.checkerboard {
@@ -682,12 +731,13 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: var(--text-sm);
+  /* Labels stay readable at 13 px and up. */
+  font-size: 13px;
   color: var(--text-muted);
 }
 
 .field.is-disabled {
-  opacity: 0.5;
+  opacity: 0.45;
 }
 
 .field-label {
@@ -1030,7 +1080,7 @@
 
 .segment:disabled {
   cursor: not-allowed;
-  opacity: 0.6;
+  opacity: 0.45;
 }
 
 /* ---------- Buttons ---------- */
@@ -1241,52 +1291,22 @@
   border-radius: 3px;
 }
 
-.photo-tape {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  min-height: 92px;
-  padding: var(--space-3) var(--space-5);
-  background: var(--bg);
-  border-top: 1px solid var(--border);
-}
-
-.photo-tape-title {
-  flex-shrink: 0;
-  width: 70px;
-  font-family: var(--font-heading);
-  font-size: var(--text-md);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  line-height: 1.2;
-}
-
-.photo-tape-list {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
+.photo-pool {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
   gap: var(--space-2);
-  overflow-x: auto;
 }
 
-.photo-tape-empty {
-  font-size: var(--text-md);
-  font-style: italic;
-  color: var(--text-muted);
-}
-
-.photo-tape-thumb {
-  flex-shrink: 0;
-  width: 56px;
-  height: 56px;
+.photo-pool-thumb {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
   object-fit: cover;
   cursor: grab;
   border: 1px solid var(--border);
 }
 
-.photo-tape-thumb.used {
+.photo-pool-thumb.used {
   border: 2px solid var(--accent);
 }
 
@@ -1538,13 +1558,13 @@
   transform: rotate(-90deg);
 }
 
-.photo-tape-item {
+.photo-pool-item {
   position: relative;
   flex-shrink: 0;
   display: block;
 }
 
-.photo-tape-remove {
+.photo-pool-remove {
   position: absolute;
   top: -5px;
   right: -5px;
@@ -1560,8 +1580,8 @@
   border-radius: 50%;
 }
 
-.photo-tape-item:hover .photo-tape-remove,
-.photo-tape-remove:focus-visible {
+.photo-pool-item:hover .photo-pool-remove,
+.photo-pool-remove:focus-visible {
   display: grid;
 }
 
@@ -1654,4 +1674,23 @@
 .tag-outline {
   color: var(--accent);
   border-color: var(--accent);
+}
+
+.slide-photo-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 10px 12px;
+  font-size: 13px;
+  border: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
+
+.inline-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  font-size: 13px;
+  border: 1px solid var(--accent);
 }

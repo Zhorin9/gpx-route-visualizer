@@ -1,7 +1,10 @@
-import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
+import { useCallback, useRef, useState } from 'react'
+import useDismiss from '../hooks/useDismiss'
 import { useAppStore } from '../store/useAppStore'
 import { IconChevron, IconRedo, IconSettings, IconUndo } from './icons'
 import ChangeModeDialog from './ChangeModeDialog'
+import ExportDialog from './panel/ExportTab'
+import { exportedSlides } from '../utils/series'
 import { MODE_LABELS } from '../utils/modeChange'
 import Button from './ui/Button'
 import type { Units } from '../core/units'
@@ -77,21 +80,6 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
   )
 }
 
-// A click elsewhere or Escape closes an open menu.
-function useDismiss(open: boolean, ref: RefObject<HTMLElement | null>, close: () => void) {
-  useEffect(() => {
-    if (!open) return
-    const away = (e: PointerEvent) => !ref.current?.contains(e.target as Node) && close()
-    const escape = (e: KeyboardEvent) => e.key === 'Escape' && close()
-    document.addEventListener('pointerdown', away)
-    document.addEventListener('keydown', escape)
-    return () => {
-      document.removeEventListener('pointerdown', away)
-      document.removeEventListener('keydown', escape)
-    }
-  }, [open, ref, close])
-}
-
 // The project's name opens what can be done to the project. Changing its type works; the rest is laid out for later.
 function ProjectMenu({ name }: { name: string }) {
   const mode = useAppStore((s) => s.mode)
@@ -144,10 +132,13 @@ export default function TopBar() {
   const canRedo = useAppStore((s) => s.future.length > 0)
   const undo = useAppStore((s) => s.undo)
   const redo = useAppStore((s) => s.redo)
-  const setActiveTab = useAppStore((s) => s.setActiveTab)
+  // A series names how many slides go to the files.
+  const seriesCount = useAppStore((s) => (s.carouselKind === 'slides' && s.slides.length > 1 ? exportedSlides(s.slides).length : 0))
   const [open, setOpen] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const closeSettings = useCallback(() => setOpen(false), [])
+  const closeExport = useCallback(() => setExporting(false), [])
   useDismiss(open, menuRef, closeSettings)
 
   return (
@@ -169,10 +160,11 @@ export default function TopBar() {
           </button>
           {open && <SettingsMenu onClose={() => setOpen(false)} />}
         </div>
-        <Button variant="primary" onClick={() => setActiveTab('export')}>
-          Pobierz
+        <Button variant="primary" onClick={() => setExporting(true)}>
+          {seriesCount ? `Eksportuj serię (${seriesCount})` : 'Pobierz'}
         </Button>
       </div>
+      {exporting && <ExportDialog onClose={closeExport} />}
     </header>
   )
 }

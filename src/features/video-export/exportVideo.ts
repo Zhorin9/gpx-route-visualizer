@@ -3,6 +3,7 @@ import type { EncodeQuality, EncodingSession, VideoEncodingService, VideoFormat 
 import { useAppStore } from '../../store/useAppStore'
 import { FORMATS } from '../../core/formats/registry'
 import { cropSlide, exportFileNames, type ExportFile } from '../../utils/exportImage'
+import { exportedSlides } from '../../utils/series'
 import { selectDuration } from '../animation/model/timeline'
 import type { AspectKey } from '../../types'
 
@@ -87,8 +88,9 @@ export async function renderVideo(
   try {
     await frames.useFormat(job.aspect)
     throwIfAborted(signal)
-    const slideCount = useAppStore.getState().slides.length
-    for (let slide = 0; slide < slideCount; slide++) {
+    // One file per exported slide; skipped ones aren't rendered.
+    const slides = exportedSlides(useAppStore.getState().slides)
+    for (const slide of slides) {
       const paletteSamples =
         job.format === 'gif' ? await sampleFrames(frames, job.aspect, slide, [0.2, 0.45, 0.7, 0.95].map((k) => duration * k), Math.round(height / 2)) : undefined
       sessions.push(
@@ -103,7 +105,7 @@ export async function renderVideo(
       const ribbon = await frames.render(scale)
       const timestamp = Math.round((f * 1_000_000) / job.fps)
       for (let slide = 0; slide < sessions.length; slide++) {
-        await sessions[slide].addFrame(cropSlide(ribbon, slide, job.aspect, scale, scratch[slide]), timestamp)
+        await sessions[slide].addFrame(cropSlide(ribbon, slides[slide], job.aspect, scale, scratch[slide]), timestamp)
       }
       onProgress({ done: f + 1, total })
       // Lets the progress bar paint and the Cancel button respond.

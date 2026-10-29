@@ -1,11 +1,12 @@
 import { FORMATS } from '../../core/formats/registry'
 import { loadPhoto } from '../../utils/image'
-import { computeSlots, frameInsets, frameStyleFor, hasVisiblePhotos, isPanorama, layoutDef } from '../../utils/layouts'
+import { computeSlots, frameInsets, frameStyleFor, hasVisiblePhotos, isPanorama, layoutDef, slotCount } from '../../utils/layouts'
 import { INK, PAPER, mixHex, toneOf, type Tone } from '../../utils/color'
 import { measureTextWidth } from '../../utils/measureText'
 import { reflowTo, resetToAuto } from '../../utils/reflow'
+import { readExif } from '../../utils/exif'
 import { CAROUSEL_SLIDES, DEFAULT_SLOT_CROP, MAX_SLIDES, MIN_CAROUSEL_SLIDES, makeText, nextId } from '../defaults'
-import type { CarouselKind, CollageStyle, Slide } from '../../types'
+import type { CarouselKind, CollageStyle, Photo, Slide } from '../../types'
 import type { AppState, MediaSlice, SliceContext } from '../types'
 
 // Texts left beyond the right edge after the ribbon shrinks would be unreachable.
@@ -15,6 +16,30 @@ function keepInside<T extends { x: number }>(texts: T[], width: number): T[] {
 
 // Ids are never reused, so undoing a removal can't pick up a photo uploaded later.
 let lastPhotoId = 0
+
+// The first of `count` fresh photo ids.
+export function takePhotoIds(photos: { id: number }[], count: number): number {
+  const first = Math.max(nextId(photos), lastPhotoId + 1)
+  lastPhotoId = first + count - 1
+  return first
+}
+
+export type LoadedPhoto = Omit<Photo, 'id'>
+
+// Decodes the files and reads where each photo was taken; files that can't be read are counted.
+export async function readPhotoFiles(files: File[]): Promise<{ loaded: LoadedPhoto[]; failed: boolean }> {
+  const loaded: LoadedPhoto[] = []
+  let failed = false
+  for (const file of files) {
+    try {
+      const [image, geo] = await Promise.all([loadPhoto(file), readExif(file)])
+      loaded.push({ name: file.name, ...image, geo })
+    } catch {
+      failed = true
+    }
+  }
+  return { loaded, failed }
+}
 
 // Whether a colour or gradient background is light or dark; null for the other kinds.
 export const collageTone = (c: CollageStyle): Tone | null =>
@@ -45,29 +70,15 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
     photoError: '',
 
     loadPhotoFiles: async (files, target) => {
-      const loaded: { name: string; image: HTMLCanvasElement; thumb: string }[] = []
-      let failed = false
-      for (const file of files) {
-        try {
-          loaded.push({ name: file.name, ...(await loadPhoto(file)) })
-        } catch {
-          failed = true
-        }
-      }
+      const { loaded, failed } = await readPhotoFiles(files)
       set({ photoError: failed ? 'Nie udało się wczytać części zdjęć' : '' })
       if (!loaded.length) return
 
       commit('photos:add', (s) => {
-        let id = Math.max(nextId(s.photos), lastPhotoId + 1)
-        const photos = [...s.photos]
+        const first = takePhotoIds(s.photos, loaded.length)
+        const photos = [...s.photos, ...loaded.map((item, i) => ({ id: first + i, ...item }))]
         let slides = s.slides
-        const queue: number[] = []
-        for (const item of loaded) {
-          photos.push({ id, ...item })
-          queue.push(id++)
-        }
-
-        lastPhotoId = id - 1
+        const queue = loaded.map((_, i) => first + i)
         if (target && 'waypoint' in target) {
           const photoId = queue[0]
           return { photos, waypoints: s.waypoints.map((w) => (w.id === target.waypoint ? { ...w, photoId } : w)) }
@@ -85,7 +96,7 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
         slides = slides.map((slide, slideIndex) => {
           if (panorama && slideIndex > 0) return slide
           const slots = { ...slide.slots }
-          const count = panorama ? 1 : layoutDef(slide.layoutKey).cells.length
+          const count = panorama ? 1 : slotCount(slide)
           for (let i = 0; i < count && queue.length; i++) {
             if (!slots[i]) slots[i] = { photoId: queue.shift()!, ...DEFAULT_SLOT_CROP }
           }
@@ -109,7 +120,7 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
       else {
         const order = [Math.min(s.activeSlide, s.slides.length - 1), ...s.slides.map((_, i) => i)]
         for (const slide of order) {
-          const index = Array.from({ length: layoutDef(s.slides[slide].layoutKey).cells.length }, (_, i) => i).find((i) => !s.slides[slide].slots[i])
+          const index = Array.from({ length: slotCount(s.slides[slide]) }, (_, i) => i).find((i) => !s.slides[slide].slots[i])
           if (index !== undefined) {
             target = { slide, index }
             break
@@ -182,16 +193,7 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
       }))
     },
 
-    setCarouselKind: (kind: CarouselKind) => {
-      if (get().carouselKind === kind) return
-      commit('carousel:kind', (s) => ({
-        carouselKind: kind,
-        activeSlide: 0,
-        selection: s.selection?.kind === 'slot' ? null : s.selection,
-        slides: withSlide(s.slides, 0, (sl) => (sl.slots[0] ? { ...sl, slots: { ...sl.slots, 0: { ...sl.slots[0], ...DEFAULT_SLOT_CROP } } } : sl)),
-      }))
-    },
-
+    // How many slides a panorama is cut into; a series grows slide by slide instead.
     setSlideCount: (count) => {
       const next = Math.max(MIN_CAROUSEL_SLIDES, Math.min(MAX_SLIDES, count))
       if (get().slides.length === next) return
@@ -206,22 +208,13 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
       }))
     },
 
-    addSlide: () => {
-      if (get().slides.length >= MAX_SLIDES) return
-      commit('slide:add', (s) => ({
-        slides: [...s.slides, { layoutKey: 'g1', slots: {} }],
-        activeSlide: s.slides.length,
-      }))
-    },
-
-    removeSlide: (index) => {
-      const count = get().slides.length
-      if (count <= MIN_CAROUSEL_SLIDES || index < 0 || index >= count) return
-      commit('slide:remove', (s) => ({
-        slides: s.slides.filter((_, i) => i !== index),
-        activeSlide: Math.max(0, Math.min(s.activeSlide, s.slides.length - 2)),
+    setCarouselKind: (kind: CarouselKind) => {
+      if (get().carouselKind === kind) return
+      commit('carousel:kind', (s) => ({
+        carouselKind: kind,
+        activeSlide: 0,
         selection: s.selection?.kind === 'slot' ? null : s.selection,
-        texts: keepInside(s.texts, FORMATS[s.aspectKey].w * (s.slides.length - 1)),
+        slides: withSlide(s.slides, 0, (sl) => (sl.slots[0] ? { ...sl, slots: { ...sl.slots, 0: { ...sl.slots[0], ...DEFAULT_SLOT_CROP } } } : sl)),
       }))
     },
 

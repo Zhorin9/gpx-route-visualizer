@@ -5,16 +5,16 @@ import { computeSlots, hasVisiblePhotos, isPanorama, layoutDef, photoCoversFrame
 import { dayBreaks, projectTrack, trackFit, rangeStats, selectRouteDays, selectRouteParts, selectTrack, trackCumKm, trackDays } from './derived'
 import { useShallow } from 'zustand/react/shallow'
 import { useAppStore } from './useAppStore'
-import type { AspectKey } from '../types'
+import type { AspectKey, CarouselKind, Slide } from '../types'
 
 // The projection's padding lets the route come this close to what sits under it.
 const ROUTE_PAD_OVERLAP = 50
 
-// Box the route is fitted to: the whole ribbon, so it can cross slide borders, or in a
-// landscape format the area left of the side column and above the profile.
-function routeBox(s: Parameters<typeof profileBand>[0] & { aspectKey: AspectKey; slides: unknown[] }): [number, number] {
+// Box the route is fitted to: the first slide (a panorama's whole ribbon, so it can cross slide
+// borders), or in a landscape format the area left of the side column and above the profile.
+function routeBox(s: Parameters<typeof profileBand>[0] & { aspectKey: AspectKey; slides: Slide[]; carouselKind: CarouselKind }): [number, number] {
   const { w, h, columns } = FORMATS[s.aspectKey]
-  if (!columns) return [w * s.slides.length, h]
+  if (!columns) return [isPanorama(s.slides, s.carouselKind) ? w * s.slides.length : w, h]
   return [columns.routeW, h - bottomInset(s.aspectKey) + ROUTE_PAD_OVERLAP - profileBand(s)]
 }
 

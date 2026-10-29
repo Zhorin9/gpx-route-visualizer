@@ -38,7 +38,7 @@ export default function BackgroundTab() {
   const setPreviewBackdrop = useAppStore((s) => s.setPreviewBackdrop)
   const photoBackground = usePhotoBackground()
   const setActiveTab = useAppStore((s) => s.setActiveTab)
-  // A collage has no map, and shows this under its layout rather than in a tab of its own.
+  // A collage has no map.
   const collageMode = useAppStore((s) => s.mode === 'collage')
   const { gradient, bgKind } = collage
   const backdropIsColor = previewBackdrop !== 'checkerboard'
@@ -48,7 +48,6 @@ export default function BackgroundTab() {
 
   // A photo covers the whole frame: a colour or gradient underneath could never be seen.
   if (photoBackground) {
-    if (collageMode) return null
     return (
       <Section title="Tło">
         <p className="hint">Tłem jest zdjęcie wypełniające cały kadr, więc kolor ani gradient pod nim nie byłyby widoczne. Jasność zdjęcia zmienisz suwakiem „Przyciemnienie”.</p>

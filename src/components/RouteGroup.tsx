@@ -15,6 +15,7 @@ import { UI_ONLY } from '../utils/exportImage'
 import { applyTransform, nearestPointOnPolyline, pointAt } from '../utils/geometry'
 import { flatBounds } from '../utils/gpx'
 import KmMarkers from './KmMarkers'
+import SlideDots from './SlideDots'
 import WaypointLabel from './WaypointLabel'
 import type { RouteTransform } from '../types'
 
@@ -130,6 +131,7 @@ export default function RouteGroup() {
         ))}
 
       <KmMarkers />
+      {projected && <SlideDots projected={projected} transform={transform} />}
 
       {editable && (
         <Transformer
