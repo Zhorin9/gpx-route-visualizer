@@ -148,14 +148,24 @@ function repaint(layer: LayerJson, p: MapPalette): LayerJson | null {
   return { ...layer, paint }
 }
 
-// The style to draw: repainted in the palette, labels and terrain shading as set.
+// OpenFreeMap styles label in English (name_en); the tiles also carry Polish names, so places read
+// as on a Polish map (Morze Bałtyckie, Kolonia), falling back to the local name. Road numbers stay.
+const POLISH_NAME = ['coalesce', ['get', 'name:pl'], ['get', 'name:latin'], ['get', 'name']]
+
+function inPolish(layer: LayerJson): LayerJson {
+  const field = layer.layout?.['text-field']
+  if (!field || !JSON.stringify(field).includes('name')) return layer
+  return { ...layer, layout: { ...layer.layout, 'text-field': POLISH_NAME } }
+}
+
+// The style to draw: repainted in the palette, labels in Polish and terrain shading as set.
 export async function buildStyle(settings: Pick<MapSettings, 'styleId' | 'palette' | 'labels' | 'hillshade'>): Promise<StyleJson> {
   const { url } = mapStyle(settings.styleId)
   const base = typeof url === 'string' ? await fetchStyle(url) : url
   // A photo of the ground has no layers to repaint.
   const palette = typeof url === 'string' ? settings.palette : null
   let layers = palette ? base.layers.flatMap((l) => repaint(l, palette) ?? []) : base.layers
-  if (!settings.labels) layers = layers.filter((l) => l.type !== 'symbol')
+  layers = settings.labels ? layers.map(inPolish) : layers.filter((l) => l.type !== 'symbol')
   const sources: Record<string, unknown> = { ...base.sources }
   if (settings.hillshade) {
     sources.terrain = { type: 'raster-dem', tiles: [TERRARIUM], encoding: 'terrarium', tileSize: 256, maxzoom: 14 }

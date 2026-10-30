@@ -36,7 +36,7 @@ export interface MapSettings {
 export const DEFAULT_MAP: MapSettings = {
   kind: 'tiles',
   sketch: { water: 'hatch', roughness: 1 },
-  styleId: 'positron',
+  styleId: 'liberty',
   palette: null,
   dim: 0,
   saturation: 1,
