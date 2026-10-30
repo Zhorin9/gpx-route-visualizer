@@ -1,5 +1,6 @@
 import { computeRangeStats, cumulativeDistanceKm, fitMercator, projectWithFit, splitIntoDays, type Span } from '../utils/gpx'
 import { memoOne } from '../utils/memo'
+import { routeSeed, wobble } from '../features/map/sketch/pen'
 import type { GpxPoint, GpxTrack, RoutePart, RouteRange, RouteSource, TrackDay } from '../types'
 
 // Pure, memoized derivations shared by the canvas and the panel. Kept out of
@@ -53,9 +54,12 @@ export const trackDays = memoOne((track: GpxTrack | null): TrackDay[] => (track 
 // Fitted to a box at the frame's top-left corner (the whole carousel ribbon, or the route area).
 export const trackFit = memoOne((track: GpxTrack | null, boxW: number, boxH: number) => (track ? fitMercator(track.points, boxW, boxH) : null))
 
-export const projectTrack = memoOne((track: GpxTrack | null, boxW: number, boxH: number) => {
+// `tremble` (pixels) draws the line by hand, as on the sketch map; it keeps every point's index.
+export const projectTrack = memoOne((track: GpxTrack | null, boxW: number, boxH: number, tremble: number) => {
   const fit = trackFit(track, boxW, boxH)
-  return track && fit ? projectWithFit(track.points, fit) : null
+  if (!track || !fit) return null
+  const flat = projectWithFit(track.points, fit)
+  return tremble ? wobble(flat, routeSeed(track.points) + 5000, tremble, tremble * 150) : flat
 })
 
 // Whether the range has any ground heights; a flight alone has none, so it shows no elevation profile.

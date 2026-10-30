@@ -18,7 +18,7 @@ export interface MapStyleDef {
 }
 
 const OFM_CREDIT = '© OpenFreeMap © OpenMapTiles, dane © OpenStreetMap'
-const OFM_TERMS = 'OpenFreeMap: bez klucza i bez limitu, także komercyjnie; wymaga oznaczenia źródła.'
+export const OFM_TERMS = 'OpenFreeMap: bez klucza i bez limitu, także komercyjnie; wymaga oznaczenia źródła.'
 
 const styles: MapStyleDef[] = []
 
@@ -178,7 +178,9 @@ export async function buildStyle(settings: Pick<MapSettings, 'styleId' | 'palett
 }
 
 // The credit the frame must show for these settings.
-export function creditFor(settings: Pick<MapSettings, 'styleId' | 'hillshade'>): string {
+export function creditFor(settings: Pick<MapSettings, 'styleId' | 'hillshade'> & Partial<Pick<MapSettings, 'kind'>>): string {
+  // The sketch is drawn from OpenFreeMap's tiles too.
+  if (settings.kind === 'sketch') return OFM_CREDIT
   const credit = mapStyle(settings.styleId).credit
   return settings.hillshade ? `${credit}, ${HILLSHADE_CREDIT}` : credit
 }
