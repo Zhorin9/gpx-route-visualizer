@@ -153,6 +153,9 @@ export interface Waypoint {
   color: string
   // Shown at the label, the way the document's point style says.
   photoId?: number
+  // How that photo is framed, as in a slot, but with offsets as fractions of the photo's box
+  // so the crop survives a change of marker or size. Unset: centred.
+  photoCrop?: Pick<SlotAssignment, 'zoom' | 'offsetX' | 'offsetY'>
   // The planner's stop this label names; it follows the stop when the trip changes.
   stopId?: number
 }

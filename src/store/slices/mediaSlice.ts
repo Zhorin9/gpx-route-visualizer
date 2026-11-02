@@ -70,7 +70,7 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
         lastPhotoId = id - 1
         if (target && 'waypoint' in target) {
           const photoId = queue[0]
-          return { photos, waypoints: s.waypoints.map((w) => (w.id === target.waypoint ? { ...w, photoId } : w)) }
+          return { photos, waypoints: s.waypoints.map((w) => (w.id === target.waypoint ? { ...w, photoId, photoCrop: undefined } : w)) }
         }
         if (target) {
           const photoId = queue.shift()!

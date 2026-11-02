@@ -78,7 +78,9 @@ export default function WaypointLabel({ waypoint, anchor }: WaypointLabelProps) 
         }}
         onDragEnd={(e) => updateWaypoint(waypoint.id, { dx: e.target.x(), dy: e.target.y() })}
       >
-        {photo && <PinnedPhoto photo={photo} style={pointStyle} color={waypoint.color} gap={waypoint.fontSize * 0.4} />}
+        {photo && (
+          <PinnedPhoto photo={photo} style={pointStyle} color={waypoint.color} gap={waypoint.fontSize * 0.4} crop={waypoint.photoCrop} onCrop={(photoCrop) => updateWaypoint(waypoint.id, { photoCrop })} />
+        )}
         {photo && pointStyle.marker === 'label' && (
           <Line
             points={[0, -8, measureTextWidth(waypoint.text.split('\n')[0], waypoint.fontFamily, waypoint.fontSize, konvaFontStyle(waypoint.fontFamily)), -8]}
