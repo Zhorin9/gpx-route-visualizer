@@ -3,6 +3,7 @@ import { Circle, Group, Line, Text } from 'react-konva'
 import type Konva from 'konva'
 import { usePointAnimation } from '../core/animation/layers'
 import useInlineTextEditor from '../hooks/useInlineTextEditor'
+import { sketchPalette } from '../features/map/sketch/draw'
 import { useAppStore } from '../store/useAppStore'
 import { konvaFontStyle } from '../utils/fonts'
 import { measureTextWidth } from '../utils/measureText'
@@ -28,6 +29,8 @@ export default function WaypointLabel({ waypoint, anchor }: WaypointLabelProps) 
   const updateWaypoint = useAppStore((s) => s.updateWaypoint)
   const photo = useAppStore((s) => (waypoint.photoId == null ? undefined : s.photos.find((p) => p.id === waypoint.photoId)))
   const pointStyle = useAppStore((s) => s.pointStyle)
+  // On the sketch map a photo is outlined in the paper's colour, cut out of the drawing.
+  const outline = useAppStore((s) => (s.collage.bgKind === 'map' && s.map.kind === 'sketch' ? sketchPalette(s.map).paper : waypoint.color))
   const { hidden, edit } = useInlineTextEditor()
   const textRef = useRef<Konva.Text>(null)
   const leaderRef = useRef<Konva.Line>(null)
@@ -78,7 +81,7 @@ export default function WaypointLabel({ waypoint, anchor }: WaypointLabelProps) 
         }}
         onDragEnd={(e) => updateWaypoint(waypoint.id, { dx: e.target.x(), dy: e.target.y() })}
       >
-        {photo && <PinnedPhoto photo={photo} style={pointStyle} color={waypoint.color} gap={waypoint.fontSize * 0.4} />}
+        {photo && <PinnedPhoto photo={photo} style={pointStyle} color={outline} gap={waypoint.fontSize * 0.4} />}
         {photo && pointStyle.marker === 'label' && (
           <Line
             points={[0, -8, measureTextWidth(waypoint.text.split('\n')[0], waypoint.fontFamily, waypoint.fontSize, konvaFontStyle(waypoint.fontFamily)), -8]}

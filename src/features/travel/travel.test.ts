@@ -6,7 +6,7 @@ import { registerTravel } from '.'
 import { addStop, journeyOf, legPlans, removeStop, type Journey } from './model/journey'
 import { greatCircle } from './model/lines'
 import { parseBRouter } from './providers/brouter'
-import { parsePhoton } from './providers/geocoding'
+import { parsePhoton, placeAt, searchPlaces } from './providers/geocoding'
 import type { Stop } from '../../types'
 
 const GDANSK = { lat: 54.352, lon: 18.6466 }
@@ -94,6 +94,15 @@ describe('providers', () => {
       features: [{ geometry: { coordinates: [18.654, 54.348] }, properties: { name: 'Gdańsk', state: 'województwo pomorskie', country: 'Polska' } }],
     })
     expect(places).toEqual([{ name: 'Gdańsk', detail: 'województwo pomorskie, Polska', lat: 54.348, lon: 18.654 }])
+  })
+
+  it('asks Photon for names as they are on the spot, whatever the browser language', async () => {
+    const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response(JSON.stringify({ features: [] })))
+    const signal = new AbortController().signal
+    await searchPlaces('Warszawa', null, signal)
+    await placeAt({ lat: 52.23, lon: 21.01 }, signal)
+    expect(fetch.mock.calls.map(([url]) => String(url))).toEqual([expect.stringContaining('&lang=default'), expect.stringContaining('&lang=default')])
+    fetch.mockRestore()
   })
 })
 

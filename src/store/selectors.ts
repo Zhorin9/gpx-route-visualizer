@@ -27,7 +27,12 @@ export function useRouteBox() {
 export function useProjectedTrack() {
   const track = useAppStore(selectTrack)
   const [boxW, boxH] = useAppStore(useShallow(routeBox))
-  return projectTrack(track, boxW, boxH)
+  // On the sketch map the route trembles like its pen: 0.32% of the shorter side at roughness 1.
+  const tremble = useAppStore((s) => {
+    const { w, h } = FORMATS[s.aspectKey]
+    return s.collage.bgKind === 'map' && s.map.kind === 'sketch' ? Math.min(w, h) * 0.0032 * s.map.sketch.roughness : 0
+  })
+  return projectTrack(track, boxW, boxH, tremble)
 }
 
 // Where the projection placed the route, in Web Mercator: the map and the camera follow it.

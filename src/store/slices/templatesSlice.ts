@@ -107,12 +107,16 @@ export function createTemplatesSlice({ get, commit }: SliceContext): TemplatesSl
       commit('template:save', { customTemplates: [...s.customTemplates, template] })
     },
 
-    // The accent outlines the route; the glow decides whether the outline shows.
+    // The accent outlines the route (the glow decides whether the outline shows) and is the map's water.
     applyPhotoTheme: (theme) =>
-      commit('photoTheme', (s) => ({
-        ...recolor(s, { ...s.collage.gradient, from: theme.bg, to: theme.bg }, theme.text),
-        routeStyle: { ...s.routeStyle, color: theme.route, glowColor: theme.accent },
-      })),
+      commit('photoTheme', (s) => {
+        const look = recolor(s, { ...s.collage.gradient, from: theme.bg, to: theme.bg }, theme.text)
+        return {
+          ...look,
+          map: { ...look.map, palette: look.map.palette && { ...look.map.palette, water: theme.accent } },
+          routeStyle: { ...s.routeStyle, color: theme.route, glowColor: theme.accent },
+        }
+      }),
 
     setWrapper: (id) =>
       commit('wrapper:id', (s) => {

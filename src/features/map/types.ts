@@ -7,7 +7,16 @@ export interface MapPalette {
   label: string
 }
 
+// The hand-drawn map: water hatched or washed in, and how much the pen trembles (0.5–2).
+export interface SketchSettings {
+  water: 'hatch' | 'wash'
+  roughness: number
+}
+
 export interface MapSettings {
+  // Tiles from a map service, or a sketch we draw ourselves from a few OSM features.
+  kind: 'tiles' | 'sketch'
+  sketch: SketchSettings
   styleId: string
   // Repaints the style; null keeps the style's own colours.
   palette: MapPalette | null
@@ -25,7 +34,9 @@ export interface MapSettings {
 }
 
 export const DEFAULT_MAP: MapSettings = {
-  styleId: 'positron',
+  kind: 'tiles',
+  sketch: { water: 'hatch', roughness: 1 },
+  styleId: 'liberty',
   palette: null,
   dim: 0,
   saturation: 1,
