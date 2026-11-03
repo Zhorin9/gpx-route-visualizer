@@ -8,6 +8,7 @@ import StatusCard from '../ui/StatusCard'
 import GpxErrorCard from '../GpxErrorCard'
 import { IconClose, IconEye, IconEyeOff, IconMapPin, IconMountain, IconPlus, IconUpload } from '../icons'
 import SubTabs from '../../core/panel/SubTabs'
+import { panelSections } from '../../core/panel/registry'
 import RangeTab from './RangeTab'
 import StyleTab from './StyleTab'
 import WaypointEditor from './PlacesTab'
@@ -18,6 +19,9 @@ import { formatKm } from '../../utils/format'
 import { selectTrack, selectRouteDays } from '../../store/derived'
 import type { KmInterval, RoutePart, SelectOption, WaypointKind } from '../../types'
 import './RouteTab.css'
+
+// The trip planner's page, added by the travel feature.
+const TRIP_PAGE = 'stops'
 
 const KM_OPTIONS: SelectOption<string>[] = [
   { value: '10', label: 'Co 10' },
@@ -38,7 +42,7 @@ function KindIcon({ kind }: { kind: WaypointKind }) {
 // Before there is a route the tab is only this; a file that failed to load says why instead.
 function RouteEmpty() {
   const gpxError = useAppStore((s) => s.gpxError)
-  const setActiveTab = useAppStore((s) => s.setActiveTab)
+  const setSubTab = useAppStore((s) => s.setSubTab)
   const { importFiles } = useGpxImport()
   if (gpxError) return <GpxErrorCard />
   return (
@@ -50,7 +54,7 @@ function RouteEmpty() {
           <FileButton accept=".gpx,application/gpx+xml" onFiles={importFiles} variant="primary">
             Wgraj plik
           </FileButton>
-          <Button onClick={() => setActiveTab('travel')}>Zaplanuj podróż</Button>
+          <Button onClick={() => setSubTab('route', TRIP_PAGE)}>Zaplanuj podróż</Button>
         </>
       }
     >
@@ -220,6 +224,12 @@ function RouteLinePage() {
 // Kolor, Profil and Statystyki are added by their features.
 export default function RouteTab() {
   const hasRoute = useHasRoute()
-  if (!hasRoute) return <RouteEmpty />
+  const mode = useAppStore((s) => s.mode)
+  const planning = useAppStore((s) => s.subTabs.route === TRIP_PAGE)
+  // Without a route only the trip planner works, so it is shown alone.
+  if (!hasRoute) {
+    const trip = planning && panelSections('route', mode).find((p) => p.id === TRIP_PAGE)
+    return trip ? <trip.Component /> : <RouteEmpty />
+  }
   return <SubTabs tab="route" own={[{ id: 'line', label: 'Linia', Component: RouteLinePage }]} />
 }

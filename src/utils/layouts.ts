@@ -282,6 +282,9 @@ export function frameStyleFor(key: LayoutKey): FrameKind {
   return layoutDef(key).group === 'creative' ? 'polaroid' : 'equal'
 }
 
+// Slides drawn from data (profile, summary) have no places for photos.
+export const slotCount = (slide: Slide) => ((slide.kind ?? 'photos') === 'photos' ? layoutDef(slide.layoutKey).cells.length : 0)
+
 export function isPanorama(slides: Slide[], kind: CarouselKind) {
   return kind === 'panorama' && slides.length > 1
 }
@@ -293,12 +296,12 @@ export function hasVisiblePhotos(slides: Slide[], kind: CarouselKind) {
 }
 
 // Every slide is fully covered by a photo (one photo over the whole frame, a backdrop
-// behind framed photos, a panorama): the background colour or gradient can't be seen.
+// behind framed photos, a panorama, a slide drawn from data): the background colour or gradient can't be seen.
 export function photoCoversFrame(slides: Slide[], kind: CarouselKind, W: number, H: number, gap: number, margin: number): boolean {
   if (isPanorama(slides, kind)) return Boolean(slides[0].slots[0])
-  return slides.every((slide) =>
+  const covered = (slide: Slide) =>
     computeSlots(layoutDef(slide.layoutKey), W, H, gap, margin).some(
       (slot) => slide.slots[slot.index] && (slot.kind === 'backdrop' || (slot.rotation === 0 && slot.x <= 0.5 && slot.y <= 0.5 && slot.w >= W - 1 && slot.h >= H - 1)),
-    ),
-  )
+    )
+  return slides.every((slide) => !slotCount(slide) || covered(slide))
 }

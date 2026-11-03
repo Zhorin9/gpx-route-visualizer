@@ -5,47 +5,52 @@ import MediaTab from './MediaTab'
 import RouteTab from './RouteTab'
 import ElementsTab from './ElementsTab'
 import TemplatesTab from './TemplatesTab'
-import ExportTab from './ExportTab'
+import { SlideStylePage } from './SlidePanel'
 import SubTabs from '../../core/panel/SubTabs'
 import { useAppStore } from '../../store/useAppStore'
-import { IconDroplet, IconImage, IconRoute, IconType, IconPalette, IconDownload, IconPlane, IconLayout } from '../icons'
-import type { ProjectMode, TabKey } from '../../types'
+import { IconImage, IconRoute, IconType, IconPalette, IconPlay } from '../icons'
+import type { PanelTab, ProjectMode } from '../../types'
 
-const TEXTS: TabDef<TabKey> = { key: 'texts', label: 'Napisy', icon: <IconType /> }
-const STYLE: TabDef<TabKey> = { key: 'style', label: 'Styl', icon: <IconPalette /> }
-const EXPORT: TabDef<TabKey> = { key: 'export', label: 'Eksport', icon: <IconDownload /> }
+const TABS: TabDef<PanelTab>[] = [
+  { key: 'route', label: 'Mapa', icon: <IconRoute /> },
+  { key: 'media', label: 'Zdjęcia', icon: <IconImage /> },
+  { key: 'texts', label: 'Teksty', icon: <IconType /> },
+  { key: 'style', label: 'Styl', icon: <IconPalette /> },
+  { key: 'animation', label: 'Animacja', icon: <IconPlay /> },
+]
 
-// A collage has no route or map: photos are added in Układ, so there is no separate Zdjęcia tab.
-const MODE_TABS: Record<ProjectMode, TabDef<TabKey>[]> = {
-  map: [
-    { key: 'background', label: 'Tło', icon: <IconDroplet /> },
-    { key: 'media', label: 'Zdjęcia i układ', shortLabel: 'Zdjęcia', icon: <IconImage /> },
-    { key: 'travel', label: 'Podróż', icon: <IconPlane /> },
-    { key: 'route', label: 'Trasa', icon: <IconRoute /> },
-    TEXTS,
-    STYLE,
-    EXPORT,
-  ],
-  collage: [{ key: 'media', label: 'Układ', icon: <IconLayout /> }, { ...TEXTS, label: 'Teksty' }, STYLE, EXPORT],
+// A collage has no route or map.
+const MODE_TABS: Record<ProjectMode, TabDef<PanelTab>[]> = {
+  map: TABS,
+  collage: TABS.filter((t) => t.key !== 'route'),
 }
 
-// The travel planner is a feature; it fills its tab through the panel registry.
-const TravelTab = () => <SubTabs tab="travel" own={[]} />
+// The project's presets and background; in a series also the selected slide's own.
+function StylePanel() {
+  const series = useAppStore((s) => s.slides.length > 1 && s.carouselKind === 'slides')
+  const own = [
+    { id: 'presets', label: 'Presety', Component: TemplatesTab },
+    { id: 'background', label: 'Tło', Component: BackgroundTab },
+    ...(series ? [{ id: 'slide', label: 'Ten slajd', Component: SlideStylePage }] : []),
+  ]
+  return <SubTabs tab="style" own={own} />
+}
 
-const PANELS: Record<TabKey, () => React.JSX.Element | null> = {
-  background: BackgroundTab,
-  media: MediaTab,
-  travel: TravelTab,
+// Animation and camera are features; they fill the tab through the panel registry.
+const AnimationPanel = () => <SubTabs tab="animation" own={[]} />
+
+const PANELS: Record<PanelTab, () => React.JSX.Element | null> = {
   route: RouteTab,
+  media: MediaTab,
   texts: ElementsTab,
-  style: TemplatesTab,
-  export: ExportTab,
+  style: StylePanel,
+  animation: AnimationPanel,
 }
 
 export default function ControlPanel() {
   const tabs = MODE_TABS[useAppStore((s) => s.mode ?? 'map')]
   // Picking something whose settings live in a tab a collage lacks opens its first tab instead.
-  const activeTab = useAppStore((s) => (tabs.some((t) => t.key === s.activeTab) ? s.activeTab : tabs[0].key))
+  const activeTab = useAppStore((s) => tabs.find((t) => t.key === s.activeTab)?.key ?? tabs[0].key)
   const setActiveTab = useAppStore((s) => s.setActiveTab)
 
   const Panel = PANELS[activeTab]

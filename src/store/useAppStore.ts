@@ -11,6 +11,7 @@ import { INITIAL_DOCUMENT } from './document'
 import { createHistory } from './history'
 import { createElementsSlice } from './slices/elementsSlice'
 import { createMediaSlice } from './slices/mediaSlice'
+import { createSeriesSlice } from './slices/seriesSlice'
 import { createRouteSlice } from './slices/routeSlice'
 import { createRouteSourceSlice } from './slices/routeSourceSlice'
 import { createStatsSlice } from './slices/statsSlice'
@@ -102,6 +103,7 @@ export const useAppStore = create<AppState>()(
         ...INITIAL_DOCUMENT,
         ...createUiSlice(ctx),
         ...createMediaSlice(ctx),
+        ...createSeriesSlice(ctx),
         ...createRouteSourceSlice(ctx),
         ...createRouteSlice(ctx),
         ...createStatsSlice(ctx),

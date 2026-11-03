@@ -1,3 +1,15 @@
+.export-dialog {
+  width: min(560px, 100%);
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+}
+
+.export-dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 /* ---------- Multi-format export ---------- */
 .format-card-meta {
   font-size: var(--text-xs);
@@ -104,4 +116,8 @@
   background: var(--accent-soft);
   border: 1px solid var(--accent);
   border-radius: 3px;
+}
+
+.export-warnings {
+  color: var(--text);
 }

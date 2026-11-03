@@ -2,14 +2,15 @@ import { canvasElement } from '../../core/canvas/registry'
 import { INITIAL_DOCUMENT } from '../document'
 import { MODE_LABELS } from '../../utils/modeChange'
 import type { SliceContext, UiSlice } from '../types'
-import type { TabKey } from '../../types'
+import type { PanelTab } from '../../types'
 
 let nextToastId = 1
 
 export function createUiSlice({ set, get, commit }: SliceContext): UiSlice {
   return {
-    // A collage starts from its photos, a map project from Trasa unless asked otherwise.
-    startProject: (mode, tab) => set({ mode, activeTab: tab ?? (mode === 'collage' ? 'media' : 'route'), centerView: 'map' }),
+    // A collage starts from its photos, a map project from Mapa (on its first page unless asked otherwise).
+    startProject: (mode, page) =>
+      set({ mode, activeTab: mode === 'collage' ? 'media' : 'route', subTabs: page ? { route: page } : {}, centerView: 'map' }),
     // Photos, texts and the look always stay; a collage drops the route, its places and a map background.
     changeMode: (mode) => {
       const s = get()
@@ -45,10 +46,10 @@ export function createUiSlice({ set, get, commit }: SliceContext): UiSlice {
     exporting: false,
     centerView: 'map',
 
-    // A tab with its own workspace (Podróż → the map) opens on it; the frame is one click away.
+    // A page with its own workspace (Mapa → Przystanki → the map) opens on it; the frame is one click away.
     setActiveTab: (tab) => set({ activeTab: tab, centerView: 'map' }),
     setCenterView: (view) => set({ centerView: view }),
-    setSubTab: (tab, page) => set((s) => ({ activeTab: tab, subTabs: { ...s.subTabs, [tab]: page } })),
+    setSubTab: (tab, page) => set((s) => ({ subTabs: { ...s.subTabs, [tab]: page }, centerView: 'map' })),
     setPreviewBackdrop: (value) => set({ previewBackdrop: value }),
     // Picking something on the canvas brings up its settings: texts in Napisy, registered elements
     // where they say (Trasa → Statystyki). A waypoint has settings in both Trasa (Linia) and Napisy, so
@@ -57,7 +58,7 @@ export function createUiSlice({ set, get, commit }: SliceContext): UiSlice {
     select: (selection) =>
       set((s) => {
         if (!selection) return { selection: null }
-        let tab: TabKey = 'texts'
+        let tab: PanelTab = 'texts'
         let page: string | undefined
         if (selection.kind === 'slot') tab = s.activeTab
         else if (selection.kind === 'waypoint') {

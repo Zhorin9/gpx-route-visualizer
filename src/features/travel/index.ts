@@ -9,6 +9,6 @@ import { registerRoutingProvider } from './providers/routing'
 export function registerTravel() {
   for (const mode of BUILT_IN_MODES) registerTravelMode(mode)
   registerRoutingProvider(brouter)
-  addWorkspace({ tab: 'travel', Component: TravelWorkspace })
-  registerPanelSection({ id: 'stops', label: 'Przystanki', tab: 'travel', order: 0, Component: TravelPanel })
+  addWorkspace({ tab: 'route', page: 'stops', Component: TravelWorkspace })
+  registerPanelSection({ id: 'stops', label: 'Przystanki', tab: 'route', order: 40, Component: TravelPanel })
 }

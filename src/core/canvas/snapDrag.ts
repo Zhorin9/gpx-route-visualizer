@@ -2,6 +2,7 @@ import Konva from 'konva'
 import { useAppStore } from '../../store/useAppStore'
 import { FORMATS } from '../formats/registry'
 import { UI_ONLY } from '../../utils/exportImage'
+import { slideBox } from '../../utils/wrappers'
 import { CHROME_ACCENT } from './chrome'
 import { snapBox, type Box } from './snap'
 
@@ -29,13 +30,16 @@ export function snapDragMove(e: Konva.KonvaEventObject<DragEvent>) {
   if (node !== e.currentTarget || !stage || !layer) return
   clearGuides(stage)
   if (e.evt.altKey) return
-  const { aspectKey, slides } = useAppStore.getState()
-  const { w, h } = FORMATS[aspectKey]
+  const state = useAppStore.getState()
+  const { w, h } = FORMATS[state.aspectKey]
   const box = boxOf(node)
-  const slide = Math.min(slides.length - 1, Math.max(0, Math.floor((box.x + box.width / 2) / w)))
+  const slide = Math.min(state.slides.length - 1, Math.max(0, Math.floor((box.x + box.width / 2) / w)))
+  // Under a wrapper the frame to line up with is the content's box, and the node moves at its scale.
+  const frame = slideBox(state, slide, w, h) ?? { x: 0, y: 0, w, h }
+  const scale = (node.getParent()?.getAbsoluteScale().x ?? stage.scaleX()) / stage.scaleX()
   const others = stage.find(`.${SNAP_TARGET}`).filter((n) => n !== node && n.isVisible()).map(boxOf)
-  const snap = snapBox(box, [{ x: slide * w, y: 0, width: w, height: h }, ...others], SNAP_PX / stage.scaleX())
-  node.position({ x: node.x() + snap.dx, y: node.y() + snap.dy })
+  const snap = snapBox(box, [{ x: slide * w + frame.x, y: frame.y, width: frame.w, height: frame.h }, ...others], SNAP_PX / stage.scaleX())
+  node.position({ x: node.x() + snap.dx / scale, y: node.y() + snap.dy / scale })
   for (const points of snap.guides) {
     layer.add(new Konva.Line({ name: `${GUIDE} ${UI_ONLY}`, points, stroke: CHROME_ACCENT, strokeWidth: 1.5, strokeScaleEnabled: false, dash: [6, 4], listening: false }))
   }

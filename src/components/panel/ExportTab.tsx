@@ -1,13 +1,14 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import CheckboxField from '../fields/CheckboxField'
 import Button from '../ui/Button'
 import Section from '../ui/Section'
 import Segmented from '../ui/Segmented'
-import { IconDownload } from '../icons'
+import { IconClose, IconDownload } from '../icons'
 import { useHasBackground, useHasRoute, useManualFlags } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { FORMATS, FORMAT_ORDER } from '../../core/formats/registry'
 import { exportFileNames } from '../../utils/exportImage'
+import { seriesWarnings } from '../../utils/series'
 import { exportProject } from '../../utils/exportProject'
 import { canvasElements, type CanvasElementDefinition } from '../../core/canvas/registry'
 import SubTabs from '../../core/panel/SubTabs'
@@ -94,9 +95,29 @@ function FormatLayoutSection() {
   )
 }
 
-// Obraz is the tab's own page; Animacja and Wideo are added by their features.
-export default function ExportTab() {
-  return <SubTabs tab="export" own={[{ id: 'image', label: 'Obraz', Component: ImageExport }]} />
+// Pobierz opens this over the editor. Obraz is its own page; Wideo is added by its feature.
+export default function ExportDialog({ onClose }: { onClose: () => void }) {
+  useEffect(() => {
+    const escape = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    document.addEventListener('keydown', escape)
+    return () => document.removeEventListener('keydown', escape)
+  }, [onClose])
+
+  return (
+    <div className="dialog-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="dialog export-dialog" role="dialog" aria-modal="true" aria-labelledby="export-title">
+        <div className="export-dialog-head">
+          <h2 id="export-title" className="dialog-title">
+            Pobierz
+          </h2>
+          <Button size="icon" variant="ghost" aria-label="Zamknij" onClick={onClose}>
+            <IconClose />
+          </Button>
+        </div>
+        <SubTabs tab="export" own={[{ id: 'image', label: 'Obraz', Component: ImageExport }]} />
+      </div>
+    </div>
+  )
 }
 
 function ImageExport() {
@@ -107,6 +128,8 @@ function ImageExport() {
   const slides = useAppStore((s) => s.slides)
   const parkedSlides = useAppStore((s) => s.parkedSlides)
   const exporting = useAppStore((s) => s.exporting)
+  const photos = useAppStore((s) => s.photos)
+  const points = useAppStore((s) => selectTrack(s)?.points ?? null)
   const [chosenFormat, setFormat] = useState<ExportFormat>('png')
   const [scale, setScale] = useState<Scale>('1')
   const [picked, setPicked] = useState<AspectKey[]>([aspectKey])
@@ -119,6 +142,7 @@ function ImageExport() {
   const formats = FORMAT_ORDER.filter((f) => picked.includes(f))
   const fileNames = formats.flatMap((f) => exportFileNames(format, fileScale, f, baseName, slideCountIn({ slides, parkedSlides }, f)))
   const canExport = (hasRoute || hasBackground) && formats.length > 0 && !exporting
+  const warnings = seriesWarnings(slides, new Map(photos.map((p) => [p.id, p])), points)
 
   const scaleOptions: SelectOption<Scale>[] = [
     { value: '1', label: `${w}×${h}` },
@@ -165,10 +189,21 @@ function ImageExport() {
         </Section>
       )}
 
+      {warnings.length > 0 && (
+        <Section title="Do sprawdzenia">
+          <ul className="export-files export-warnings">
+            {warnings.map((w) => (
+              <li key={w}>{w}</li>
+            ))}
+          </ul>
+          <p className="hint">To tylko ostrzeżenia: serię możesz pobrać i tak.</p>
+        </Section>
+      )}
+
       <Button variant="primary" icon={<IconDownload />} block disabled={!canExport} onClick={() => exportProject(formats, fileScale, format, baseName)}>
         {exporting ? 'Przygotowuję pliki…' : fileNames.length > 1 ? `Pobierz ZIP (${filesLabel(fileNames.length)})` : `Pobierz ${format.toUpperCase()}`}
       </Button>
-      {!hasRoute && !hasBackground && <p className="hint">Dodaj zdjęcia (zakładka Zdjęcia) lub plik GPX (zakładka Trasa), aby móc pobrać grafikę.</p>}
+      {!hasRoute && !hasBackground && <p className="hint">Dodaj zdjęcia (zakładka Zdjęcia) lub plik GPX (zakładka Mapa), aby móc pobrać grafikę.</p>}
     </>
   )
 }

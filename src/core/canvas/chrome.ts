@@ -1,5 +1,5 @@
 import type { ComponentType, ReactNode } from 'react'
-import type { TabKey } from '../../types'
+import type { PanelTab, TabKey } from '../../types'
 
 // Colour of the editor's own marks on the canvas (selection, handles, empty slots); never exported.
 export const CHROME_ACCENT = '#b68235'
@@ -30,16 +30,18 @@ export function stageUnderlays(): readonly ComponentType<{ previewScale: number 
 // A workspace a tab shows in the middle of the editor instead of the frame (Podróż → a large map).
 // It gets the frame itself, small, to show as a live preview.
 export interface Workspace {
-  tab: TabKey
+  tab: PanelTab
+  page: string
   Component: ComponentType<{ preview: (box: { width: number; height: number }) => ReactNode }>
 }
 
 const workspaces: Workspace[] = []
 
 export function addWorkspace(workspace: Workspace) {
-  if (!workspaces.some((w) => w.tab === workspace.tab)) workspaces.push(workspace)
+  if (!workspaces.some((w) => w.tab === workspace.tab && w.page === workspace.page)) workspaces.push(workspace)
 }
 
-export function workspaceFor(tab: TabKey): Workspace | undefined {
-  return workspaces.find((w) => w.tab === tab)
+// The workspace of the open page; a page left unchosen never has one.
+export function workspaceFor(s: { activeTab: PanelTab; subTabs: Partial<Record<TabKey, string>> }): Workspace | undefined {
+  return workspaces.find((w) => w.tab === s.activeTab && w.page === s.subTabs[s.activeTab])
 }

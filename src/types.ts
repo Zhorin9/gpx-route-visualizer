@@ -310,6 +310,15 @@ export interface Photo {
   image: HTMLCanvasElement
   // Small data URL for the photo tape and layout thumbnails.
   thumb: string
+  // Where and when it was taken, from its EXIF; matches it to a place on the route.
+  geo?: PhotoGeo
+}
+
+export interface PhotoGeo {
+  lat?: number
+  lon?: number
+  // Epoch ms. EXIF keeps the camera's wall clock; without an offset tag it is read as local time.
+  time?: number
 }
 
 // fill: covers the slot, centred; fit: the whole photo over a blurred copy; manual: covers it,
@@ -326,9 +335,78 @@ export interface SlotAssignment {
   crop?: SlotCrop
 }
 
+// photos: a layout of photos (one photo is Zdjęcie, more a Kolaż); profile and summary are drawn
+// from the route. The first slide is always the editor's own frame, whatever its kind.
+export type SlideKind = 'photos' | 'profile' | 'summary'
+
+export type MiniMap = 'off' | 'corner' | 'large'
+
+export interface SlideOverlays {
+  miniMap: MiniMap
+  // "km 62 · 1 840 m" from the photo's place on the route.
+  marker: boolean
+}
+
+export type SummaryFigure = 'distance' | 'moving' | 'duration' | 'gain' | 'avgSpeed' | 'highest' | 'climb' | 'days'
+
+// How large a summary's figures are; many of them shrink further to fit.
+export type FigureSize = 'small' | 'medium' | 'large'
+
+// style: the project's paper; photo: this or another slide's photo, blurred and darkened.
+export interface SlideBackground {
+  source: 'style' | 'color' | 'photo'
+  color: string
+  // Whose photo: this slide's own (null) or another slide's, by index.
+  fromSlide: number | null
+  // 0-100: 0 is a sharp photo.
+  blur: number
+  // 0-100: how much the photo is darkened.
+  dim: number
+}
+
+// Colours and fonts a slide drawn from data uses: the project's, or its own as a style exception.
+export interface SlideLook {
+  paper: string
+  ink: string
+  accent: string
+  font: string
+}
+
+// Fields past the layout belong to a series; a slide without them is a plain photo slide.
 export interface Slide {
   layoutKey: LayoutKey
   slots: Record<number, SlotAssignment>
+  kind?: SlideKind
+  // Left out of the export and of the numbers on the map.
+  skipped?: boolean
+  overlays?: SlideOverlays
+  // A place on the route set by hand (track index); otherwise the first photo's EXIF decides.
+  place?: number
+  background?: SlideBackground
+  // A style exception: the project's look doesn't reach this slide.
+  ownLook?: SlideLook
+  // Profile: the steepest climb drawn over the line.
+  climb?: boolean
+  // Summary: the figures shown and the question to the audience.
+  figures?: SummaryFigure[]
+  figureSize?: FigureSize
+  question?: string
+  // An exception to the project's wrapper: this slide keeps its content full-bleed.
+  wrapperOff?: boolean
+}
+
+// A form round every slide's content (a postcard, a stamp, a ticket, an album page) that makes the
+// content smaller but never changes it; a postmark is stamped over the content instead.
+export type WrapperId = 'none' | 'postcard' | 'stamp' | 'postmark' | 'ticket' | 'album'
+
+export type WrapperField = 'title' | 'place' | 'from' | 'to' | 'date' | 'note'
+
+export interface Wrapper {
+  id: WrapperId
+  // Filled from the route when a wrapper is picked (only where empty), then edited in Teksty.
+  fields: Record<WrapperField, string>
+  // The postmark's centre in fractions of the slide, and whether it goes on every slide or the first.
+  postmark: { x: number; y: number; all: boolean }
 }
 
 // panorama: one photo stretched over the whole ribbon; slides: every slide has its own layout.
@@ -392,7 +470,10 @@ export interface FormatOverrides {
 
 export type ExportFormat = 'png' | 'jpg'
 
-export type TabKey = 'background' | 'media' | 'travel' | 'route' | 'texts' | 'style' | 'export'
+// The side panel's tabs; 'route' is Mapa.
+export type PanelTab = 'route' | 'media' | 'texts' | 'style' | 'animation'
+// Anything with sub-tabs features can add pages to: a tab, or the export window.
+export type TabKey = PanelTab | 'export'
 
 // A project with a map (GPX files and planned trips mix freely) or a collage of photos alone,
 // which never gets a route or a map.

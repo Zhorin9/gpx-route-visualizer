@@ -1,7 +1,23 @@
 import { paletteFrom } from '../../features/map/model/styles'
 import { frameStyleFor } from '../../utils/layouts'
-import type { StyleTemplate } from '../../types'
-import type { SliceContext, TemplatesSlice } from '../types'
+import { routeFields } from '../../utils/wrappers'
+import { joinTrack } from '../derived'
+import type { GradientStyle, StyleTemplate, WrapperField } from '../../types'
+import type { AppState, SliceContext, TemplatesSlice } from '../types'
+
+type Look = Pick<AppState, 'collage' | 'map' | 'statsStyle' | 'titleStyle' | 'texts' | 'waypoints'>
+
+// A map stays the background, repainted in these colours; otherwise the gradient. Titles take `title`, the rest `text`.
+function recolor(s: Look, gradient: GradientStyle, text: string, title = text): Look {
+  return {
+    collage: { ...s.collage, bgKind: s.collage.bgKind === 'map' ? 'map' : 'gradient', gradient },
+    map: { ...s.map, palette: paletteFrom(gradient, text) },
+    statsStyle: { ...s.statsStyle, color: text },
+    titleStyle: { ...s.titleStyle, color: title },
+    texts: s.texts.map((t) => ({ ...t, color: title })),
+    waypoints: s.waypoints.map((w) => ({ ...w, color: text })),
+  }
+}
 
 export function createTemplatesSlice({ get, commit }: SliceContext): TemplatesSlice {
   return {
@@ -29,14 +45,8 @@ export function createTemplatesSlice({ get, commit }: SliceContext): TemplatesSl
           waypoints = waypoints.map((w) => ({ ...w, fontFamily: template.fonts.note }))
         }
         if (parts.colors) {
-          // A map stays the background, repainted in the template's colours; otherwise the template's gradient.
-          const onMap = collage.bgKind === 'map'
-          collage = { ...collage, bgKind: onMap ? 'map' : 'gradient', gradient: { ...template.gradient } }
-          map = { ...map, labels: true, hillshade: false, ...template.map, palette: paletteFrom(template.gradient, template.textColor) }
-          statsStyle = { ...statsStyle, color: template.textColor }
-          titleStyle = { ...titleStyle, color: template.titleColor ?? template.textColor }
-          texts = texts.map((t) => ({ ...t, color: template.titleColor ?? template.textColor }))
-          waypoints = waypoints.map((w) => ({ ...w, color: template.textColor }))
+          const look = { collage, map: { ...map, labels: true, hillshade: false, ...template.map }, statsStyle, titleStyle, texts, waypoints }
+          ;({ collage, map, statsStyle, titleStyle, texts, waypoints } = recolor(look, { ...template.gradient }, template.textColor, template.titleColor))
         }
         if (parts.layout) {
           const active = Math.min(s.activeSlide, slides.length - 1)
@@ -96,6 +106,29 @@ export function createTemplatesSlice({ get, commit }: SliceContext): TemplatesSl
       }
       commit('template:save', { customTemplates: [...s.customTemplates, template] })
     },
+
+    // The accent outlines the route (the glow decides whether the outline shows) and is the map's water.
+    applyPhotoTheme: (theme) =>
+      commit('photoTheme', (s) => {
+        const look = recolor(s, { ...s.collage.gradient, from: theme.bg, to: theme.bg }, theme.text)
+        return {
+          ...look,
+          map: { ...look.map, palette: look.map.palette && { ...look.map.palette, water: theme.accent } },
+          routeStyle: { ...s.routeStyle, color: theme.route, glowColor: theme.accent },
+        }
+      }),
+
+    setWrapper: (id) =>
+      commit('wrapper:id', (s) => {
+        const joined = joinTrack(s.routeSource, s.trackCache)
+        const auto = routeFields(s.routeSource?.name ?? null, joined?.track.points ?? null, joined?.parts ?? [], s.waypoints)
+        const fields = { ...s.wrapper.fields }
+        for (const key of Object.keys(fields) as WrapperField[]) fields[key] ||= auto[key]
+        return { wrapper: { ...s.wrapper, id, fields } }
+      }),
+
+    updateWrapper: ({ fields, postmark }) =>
+      commit('wrapper', (s) => ({ wrapper: { ...s.wrapper, fields: { ...s.wrapper.fields, ...fields }, postmark: { ...s.wrapper.postmark, ...postmark } } })),
 
     deleteTemplate: (id) => commit('template:delete', (s) => ({ customTemplates: s.customTemplates.filter((t) => t.id !== id) })),
   }

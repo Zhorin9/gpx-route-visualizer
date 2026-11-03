@@ -65,6 +65,7 @@ describe('map style', () => {
       { id: 'road', type: 'line', 'source-layer': 'transportation', paint: { 'line-color': ['get', 'c'] } },
       { id: 'poi', type: 'symbol', 'source-layer': 'poi', layout: { 'icon-image': 'x', 'text-field': '{name}' } },
       { id: 'city', type: 'symbol', 'source-layer': 'place', layout: { 'text-field': '{name}' }, paint: { 'text-color': '#000' } },
+      { id: 'shield', type: 'symbol', 'source-layer': 'transportation_name', layout: { 'text-field': ['to-string', ['get', 'ref']] } },
     ],
   }
   const palette = paletteFrom({ from: '#123a63', to: '#123a63' }, '#e4f0ff')
@@ -78,6 +79,9 @@ describe('map style', () => {
     expect(byId.water.paint?.['fill-color']).toBe(palette.water)
     expect(byId.road.paint?.['line-color']).toBe(palette.road)
     expect(byId.city.paint?.['text-color']).toBe('#e4f0ff')
+    // Names in Polish where the tiles have them; road numbers as they are.
+    expect(byId.city.layout?.['text-field']).toEqual(['coalesce', ['get', 'name:pl'], ['get', 'name:latin'], ['get', 'name']])
+    expect(byId.shield.layout?.['text-field']).toEqual(['to-string', ['get', 'ref']])
     expect(byId.relief).toBeUndefined()
     expect(byId.poi).toBeUndefined()
     // Terrain shading sits under the water.

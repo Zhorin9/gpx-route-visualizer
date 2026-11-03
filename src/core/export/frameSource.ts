@@ -3,6 +3,7 @@ import { useAppStore } from '../../store/useAppStore'
 import { FORMATS } from '../formats/registry'
 import { UI_ONLY, stageHandle } from '../../utils/exportImage'
 import { reflowTo } from '../../utils/reflow'
+import { slideBox } from '../../utils/wrappers'
 import type { AspectKey } from '../../types'
 
 // Renders the frame for files: still images and video frames. It owns the "export mode"
@@ -81,8 +82,27 @@ export async function beginStageFrames(): Promise<FrameSource> {
       uiNodes.forEach((n) => n.show())
       stage.batchDraw()
       if (!below) return canvas
-      below.getContext('2d')?.drawImage(canvas, 0, 0, below.width, below.height)
-      return below
+      // Under a wrapper the map shrinks into the first slide's box, as the route on it does.
+      const { w, h } = FORMATS[aspectKey]
+      const box = slideBox(store.getState(), 0, w, h)
+      if (!box) {
+        below.getContext('2d')?.drawImage(canvas, 0, 0, below.width, below.height)
+        return below
+      }
+      const out = document.createElement('canvas')
+      out.width = below.width
+      out.height = below.height
+      const ctx = out.getContext('2d')
+      if (!ctx) return canvas
+      ctx.scale(scale, scale)
+      ctx.translate(box.x + box.w / 2, box.y + box.h / 2)
+      ctx.rotate((box.rotation * Math.PI) / 180)
+      ctx.scale(box.w / w, box.w / w)
+      ctx.translate(-w / 2, -h / 2)
+      ctx.drawImage(below, 0, 0, below.width / scale, below.height / scale)
+      ctx.setTransform(1, 0, 0, 1, 0, 0)
+      ctx.drawImage(canvas, 0, 0, out.width, out.height)
+      return out
     },
     end: () => {
       clock?.release()

@@ -164,14 +164,39 @@ describe('carousel', () => {
     expect(get().carouselKind).toBe('slides')
   })
 
-  it('adds slides up to the limit and keeps at least two when removing', () => {
-    get().setCarousel(true)
-    get().setCarouselKind('slides')
-    for (let i = 0; i < 6; i++) get().addSlide()
-    expect(get().slides).toHaveLength(5)
-    expect(get().activeSlide).toBe(4)
-    for (let i = 0; i < 5; i++) get().removeSlide(0)
-    expect(get().slides).toHaveLength(2)
+  it('grows a series slide by slide, in 4:5, up to 20 exported slides', () => {
+    get().setAspectKey('16:9')
+    get().addSeriesSlide('photos')
+    expect([get().aspectKey, get().carouselKind, get().slides.length, get().activeSlide]).toEqual(['4:5', 'slides', 2, 1])
+    get().addSeriesSlide('summary')
+    get().setActiveSlide(2)
+    get().addSeriesSlide('collage')
+    expect(get().slides.map((s) => s.kind)).toEqual([undefined, 'photos', 'photos', 'summary'])
+    for (let i = 0; i < 20; i++) get().addSeriesSlide('photos')
+    expect(get().slides).toHaveLength(20)
+    get().toggleSkipSlide(5)
+    get().addSeriesSlide('photos')
+    expect(get().slides).toHaveLength(21)
+    get().toggleSkipSlide(5)
+    expect(get().slides[5].skipped).toBe(true)
+  })
+
+  it('moves, copies and removes slides with their texts; the first slide stays', () => {
+    get().addSeriesSlide('photos')
+    get().addSeriesSlide('profile')
+    get().addText()
+    get().updateText(get().texts[0].id, { x: 1080 + 50 })
+    get().moveSlide(1, 2)
+    expect(get().slides.map((s) => s.kind)).toEqual([undefined, 'profile', 'photos'])
+    expect(get().texts[0].x).toBe(2160 + 50)
+    get().removeSlide(0)
+    expect(get().slides).toHaveLength(3)
+    get().duplicateSlide(2)
+    get().removeSlide(2)
+    expect(get().slides).toHaveLength(3)
+    expect(get().texts).toHaveLength(0)
+    get().undo()
+    expect(get().texts[0].x).toBe(2160 + 50)
   })
 
   it('gives each slide its own layout and photos', () => {
@@ -225,6 +250,29 @@ describe('style templates', () => {
     get().undo()
     expect(get().slides[0].layoutKey).toBe('g1')
     expect(get().routeStyle.color).toBe(initial.routeStyle.color)
+  })
+
+  it('applies the colours from the photos as one undo step', () => {
+    get().addText()
+    vi.advanceTimersByTime(1000)
+    get().applyPhotoTheme({ route: '#458137', bg: '#ebf5e9', text: '#161d14', accent: '#6ea0dc' })
+    expect(get().routeStyle).toMatchObject({ color: '#458137', glowColor: '#6ea0dc' })
+    expect(get().collage).toMatchObject({ bgKind: 'gradient', gradient: { from: '#ebf5e9', to: '#ebf5e9' } })
+    expect(get().statsStyle.color).toBe('#161d14')
+    expect(get().texts[0].color).toBe('#161d14')
+    get().undo()
+    expect(get().routeStyle.color).toBe(initial.routeStyle.color)
+    expect(get().collage.bgKind).toBe(initial.collage.bgKind)
+  })
+
+  it('picks a wrapper in one undo step and keeps the fields typed before', () => {
+    get().updateWrapper({ fields: { note: 'Tu złapał nas deszcz.' } })
+    vi.advanceTimersByTime(1000)
+    get().setWrapper('postcard')
+    expect(get().wrapper.id).toBe('postcard')
+    expect(get().wrapper.fields.note).toBe('Tu złapał nas deszcz.')
+    get().undo()
+    expect(get().wrapper.id).toBe('none')
   })
 
   it('saves the current look as a custom template', () => {
@@ -546,8 +594,9 @@ describe('project modes', () => {
     expect([get().mode, get().activeTab]).toEqual(['collage', 'media'])
     get().startProject('map')
     expect(get().activeTab).toBe('route')
-    get().startProject('map', 'travel')
-    expect(get().activeTab).toBe('travel')
+    expect(get().subTabs.route).toBeUndefined()
+    get().startProject('map', 'stops')
+    expect([get().activeTab, get().subTabs.route]).toEqual(['route', 'stops'])
   })
 
   it('crops one selected photo, or all of them, and filling centres the photo again', () => {

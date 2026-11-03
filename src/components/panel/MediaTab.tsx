@@ -4,18 +4,15 @@ import ColorField from '../fields/ColorField'
 import CheckboxField from '../fields/CheckboxField'
 import Section from '../ui/Section'
 import Segmented from '../ui/Segmented'
-import FileButton from '../ui/FileButton'
-import StatusCard from '../ui/StatusCard'
-import { IconImage } from '../icons'
-import useGpxImport from '../../hooks/useGpxImport'
 import { useActiveSlide, useHasPhotos, usePanorama } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { DEFAULT_COLLAGE } from '../../store/defaults'
 import { FORMATS } from '../../core/formats/registry'
-import { LAYOUTS, computeSlots, layoutDef, layoutFits, type LayoutDef } from '../../utils/layouts'
+import { LAYOUTS, computeSlots, layoutDef, layoutFits, slotCount, type LayoutDef } from '../../utils/layouts'
+import { ThisSlideSection } from './SlidePanel'
+import PhotoPool from './PhotoPool'
 import { MAX_SLIDES, MIN_CAROUSEL_SLIDES } from '../../store/defaults'
 import type { CarouselKind, FrameKind, LayoutGroup, LayoutKey, Photo, SelectOption, Slide, SlotCrop } from '../../types'
-import BackgroundTab from './BackgroundTab'
 
 const GROUP_OPTIONS: SelectOption<LayoutGroup>[] = [
   { value: 'grid', label: 'Siatki' },
@@ -119,13 +116,11 @@ export default function MediaTab() {
   const setPreviewLayout = useAppStore((s) => s.setPreviewLayout)
   const updateCollage = useAppStore((s) => s.updateCollage)
   const updateFrame = useAppStore((s) => s.updateFrame)
-  const dimOpacity = useAppStore((s) => s.dimOpacity)
-  const setDimOpacity = useAppStore((s) => s.setDimOpacity)
   const setActiveTab = useAppStore((s) => s.setActiveTab)
+  const setSubTab = useAppStore((s) => s.setSubTab)
   const setCarousel = useAppStore((s) => s.setCarousel)
-  // A collage starts from photos: they are added here, and the background sits under the layout.
+  // A collage frame has no route: its layout section is named after the frame.
   const collageMode = useAppStore((s) => s.mode === 'collage')
-  const { importFiles } = useGpxImport()
 
   const carouselKind = useAppStore((s) => s.carouselKind)
   const setCarouselKind = useAppStore((s) => s.setCarouselKind)
@@ -159,39 +154,19 @@ export default function MediaTab() {
           </p>
         </>
       ) : (
-        <p className="hint">Każdy slajd ma własny układ i zdjęcia. Wybierz slajd w pasku pod kadrem.</p>
+        <p className="hint">Każdy slajd ma własny układ i zdjęcia. Wybierz slajd na pasku slajdów.</p>
       )}
     </Section>
   )
 
+  // A profile or summary has no photos: the tab shows only its own options.
+  const seriesSlide = !panorama && activeSlide > 0 && <ThisSlideSection />
+  if (!panorama && !slotCount(slide)) return seriesSlide || null
+
   return (
     <>
-      {collageMode && (
-        <Section title="Zdjęcia">
-          <FileButton accept="image/*" multiple onFiles={importFiles} variant={hasPhotos ? 'secondary' : 'primary'} block>
-            Dodaj zdjęcia
-          </FileButton>
-          <p className="hint">
-            {hasPhotos
-              ? `W bibliotece: ${photos.length}. Kliknij zdjęcie na pasku pod kadrem albo przeciągnij je do slotu.`
-              : 'Wybierz zdjęcia z dysku albo przeciągnij je na podgląd. Wypełnią sloty po kolei.'}
-          </p>
-          {hasPhotos && <SliderField label="Przyciemnienie" unit="%" value={Math.round(dimOpacity * 100)} defaultValue={0} onChange={(v) => setDimOpacity(v / 100)} />}
-        </Section>
-      )}
-      {!hasPhotos && !collageMode && (
-        <StatusCard
-          icon={<IconImage />}
-          title="Kolaż czeka na zdjęcia"
-          actions={
-            <FileButton accept="image/*" multiple onFiles={importFiles} variant="primary">
-              Dodaj zdjęcia
-            </FileButton>
-          }
-        >
-          Wybierz zdjęcia z dysku albo przeciągnij je na podgląd. Trasa działa też bez nich.
-        </StatusCard>
-      )}
+      {seriesSlide}
+      <PhotoPool />
       {!collageMode && carouselSection}
 
       {!panorama && (
@@ -214,12 +189,6 @@ export default function MediaTab() {
           <p className="hint">Najedź na układ, aby zobaczyć go na kadrze. Zmiana układu zachowuje zdjęcia.</p>
         </Section>
         )}
-
-      {hasPhotos && !collageMode && (
-        <Section title="Zdjęcia">
-          <SliderField label="Przyciemnienie" unit="%" value={Math.round(dimOpacity * 100)} defaultValue={0} onChange={(v) => setDimOpacity(v / 100)} />
-        </Section>
-      )}
 
       {hasPhotos && (
         <>
@@ -244,17 +213,20 @@ export default function MediaTab() {
                   defaultValue={DEFAULT_COLLAGE.margin}
                   onChange={(margin) => updateCollage({ margin })}
                 />
-                {collageMode ? (
-                  <p className="hint">Kolor lub gradient pod zdjęciami ustawisz niżej, w sekcji Rodzaj tła.</p>
-                ) : (
-                  <p className="hint">
-                    Kolor lub gradient pod zdjęciami ustawisz w zakładce{' '}
-                    <button type="button" className="link-btn" onClick={() => setActiveTab('background')}>
-                      Tło
-                    </button>
-                    .
-                  </p>
-                )}
+                <p className="hint">
+                  Kolor lub gradient pod zdjęciami ustawisz w zakładce{' '}
+                  <button
+                    type="button"
+                    className="link-btn"
+                    onClick={() => {
+                      setActiveTab('style')
+                      setSubTab('style', 'background')
+                    }}
+                  >
+                    Styl → Tło
+                  </button>
+                  .
+                </p>
               </Section>
 
               <Section title="Ramka zdjęć">
@@ -306,7 +278,6 @@ export default function MediaTab() {
             )}
           </Section>
           {carouselSection}
-          <BackgroundTab />
         </>
       )}
     </>

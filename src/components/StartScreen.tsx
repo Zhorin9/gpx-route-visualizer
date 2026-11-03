@@ -5,7 +5,7 @@ import { FORMATS } from '../core/formats/registry'
 import { LAYOUTS, layoutFits } from '../utils/layouts'
 import Button from './ui/Button'
 import FileButton from './ui/FileButton'
-import type { ProjectMode, TabKey } from '../types'
+import type { ProjectMode } from '../types'
 import './StartScreen.css'
 
 function ModeCard({ kicker, title, body, art, action, note, onDropFiles }: { kicker: string; title: string; body: string; art: ReactNode; action: ReactNode; note: string; onDropFiles?: (files: FileList) => void }) {
@@ -47,9 +47,9 @@ export default function StartScreen() {
   const setLayout = useAppStore((s) => s.setLayout)
   const format = useAppStore((s) => FORMATS[s.aspectKey])
 
-  const start = (mode: ProjectMode, tab?: TabKey) => (files?: FileList | null) => {
+  const start = (mode: ProjectMode, page?: string) => (files?: FileList | null) => {
     if (files && !files.length) return
-    startProject(mode, tab)
+    startProject(mode, page)
     // A collage opens on a grid with a slot for every photo, when there is one.
     const photos = Array.from(files ?? []).filter((f) => f.type.startsWith('image/')).length
     const grid = LAYOUTS.find((l) => l.group === 'grid' && l.cells.length === photos && layoutFits(l, format.w, format.h))
@@ -95,7 +95,7 @@ export default function StartScreen() {
             </>
           }
           action={
-            <Button variant="primary" onClick={() => start('map', 'travel')()}>
+            <Button variant="primary" onClick={() => start('map', 'stops')()}>
               Otwórz mapę
             </Button>
           }

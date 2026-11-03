@@ -1,7 +1,7 @@
 import { useRef, useState, type DragEvent } from 'react'
 import useElementSize from '../hooks/useElementSize'
 import useGpxImport from '../hooks/useGpxImport'
-import { useHasPhotos, useHasRoute, useManualFlags, usePhotoBackground } from '../store/selectors'
+import { useActiveSlide, useHasPhotos, useHasRoute, useManualFlags, usePanorama, usePhotoBackground } from '../store/selectors'
 import { useAppStore } from '../store/useAppStore'
 import { FORMATS, FORMAT_ORDER } from '../core/formats/registry'
 import { gradientPresetName } from '../utils/gradients'
@@ -13,8 +13,8 @@ import CanvasStage from './CanvasStage'
 import CenterViewSwitch from './CenterViewSwitch'
 import GpxErrorCard from './GpxErrorCard'
 import PhotoPicker from './PhotoPicker'
-import PhotoTape from './PhotoTape'
 import SlideStrip from './SlideStrip'
+import PhotoSlidesDialog from './PhotoSlidesDialog'
 import Segmented from './ui/Segmented'
 import { IconImage, IconMove, IconReset, IconRoute, IconSafeZone, IconUpload } from './icons'
 import Button from './ui/Button'
@@ -33,7 +33,7 @@ const MODE_OPTIONS: SelectOption<FrameMode>[] = [
 ]
 
 function CanvasToolbar() {
-  const hasWorkspace = useAppStore((s) => workspaceFor(s.activeTab) != null)
+  const hasWorkspace = useAppStore((s) => workspaceFor(s) != null)
   const hasRoute = useHasRoute()
   const collage = useAppStore((s) => s.mode === 'collage')
   const aspectKey = useAppStore((s) => s.aspectKey)
@@ -41,8 +41,6 @@ function CanvasToolbar() {
   const setRouteEditable = useAppStore((s) => s.setRouteEditable)
   const transform = useAppStore((s) => s.routeTransform)
   const resetRouteTransform = useAppStore((s) => s.resetRouteTransform)
-  const showSafeZones = useAppStore((s) => s.showSafeZones)
-  const setShowSafeZones = useAppStore((s) => s.setShowSafeZones)
   const adding = useAppStore((s) => s.addingWaypoint)
   const slideCount = useAppStore((s) => s.slides.length)
   const parkedSlides = useAppStore((s) => s.parkedSlides.length)
@@ -83,24 +81,18 @@ function CanvasToolbar() {
           Resetuj położenie
         </Button>
       )}
-      <Segmented label="Format kadru" value={aspectKey} options={FORMAT_OPTIONS} onChange={setAspectKey} />
+      <select className="toolbar-select" aria-label="Format kadru" title={useFrameSummary()} value={aspectKey} onChange={(e) => setAspectKey(e.target.value as AspectKey)}>
+        {FORMAT_OPTIONS.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
       {customLayout && <span className="tag-custom">własny układ</span>}
       {parkedSlides > 0 && (
         <span className="toolbar-hint" role="status">
           Ten format ma jeden kadr. Pozostałe slajdy ({parkedSlides}) wrócą po przejściu na format Instagrama.
         </span>
-      )}
-      {FORMATS[aspectKey].safeZone && (
-        <Button
-          size="sm"
-          variant="ghost"
-          icon={<IconSafeZone />}
-          pressed={showSafeZones}
-          onClick={() => setShowSafeZones(!showSafeZones)}
-          title="Pokaż obszary zasłaniane przez interfejs platformy (nie trafiają do eksportu)"
-        >
-          Strefy bezpieczne
-        </Button>
       )}
       {adding && (
         <span className="toolbar-hint" role="status">
@@ -110,14 +102,13 @@ function CanvasToolbar() {
           </button>
         </span>
       )}
-      <FrameStatus />
     </div>
   )
 }
 
 
-// Read-only summary of what gets exported: mode, format, background and pixel size.
-function FrameStatus() {
+// What gets exported, for the format picker's tooltip: mode, format, background and pixel size.
+function useFrameSummary() {
   const aspectKey = useAppStore((s) => s.aspectKey)
   const slideCount = useAppStore((s) => s.slides.length)
   const collage = useAppStore((s) => s.collage)
@@ -136,10 +127,24 @@ function FrameStatus() {
         ? `kolor ${collage.bgColor.toUpperCase()}`
         : 'przezroczyste'
 
+  return `${mode} · tło: ${background} · ${w}×${h} px`
+}
+
+// Platform UI overlays, toggled from a corner of the preview; they never reach the export.
+function SafeZoneToggle() {
+  const shown = useAppStore((s) => s.showSafeZones)
+  const setShown = useAppStore((s) => s.setShowSafeZones)
   return (
-    <span className="frame-status" role="status">
-      {mode} · tło: {background} · {w}×{h} px
-    </span>
+    <Button
+      size="icon"
+      variant="ghost"
+      className="canvas-corner-btn"
+      icon={<IconSafeZone />}
+      pressed={shown}
+      aria-label="Strefy bezpieczne"
+      title="Strefy bezpieczne: obszary zasłaniane przez interfejs platformy (nie trafiają do eksportu)"
+      onClick={() => setShown(!shown)}
+    />
   )
 }
 
@@ -189,7 +194,7 @@ function FramePreview({ width, height }: { width: number; height: number }) {
 }
 
 export default function CanvasArea() {
-  const workspace = useAppStore((s) => (s.centerView === 'map' ? workspaceFor(s.activeTab) : undefined))
+  const workspace = useAppStore((s) => (s.centerView === 'map' ? workspaceFor(s) : undefined))
   if (workspace) {
     return (
       <div className="canvas-area">
@@ -211,15 +216,22 @@ function FrameArea() {
   const hasRoute = useHasRoute()
   const hasPhotos = useHasPhotos()
   const slideCount = useAppStore((s) => s.slides.length)
-  const carouselKind = useAppStore((s) => s.carouselKind)
+  const panorama = usePanorama()
+  const activeSlide = useActiveSlide()
   const cellCount = useAppStore((s) => layoutDef(s.slides[0].layoutKey).cells.length)
   const select = useAppStore((s) => s.select)
   const { importFiles } = useGpxImport()
   const [dragging, setDragging] = useState(false)
 
-  const { w, h } = FORMATS[aspectKey]
+  const { w, h, safeZone } = FORMATS[aspectKey]
+  // A tall frame leaves room at its side: the slides go on a rail there instead of under it.
+  const rail = h > w
+  // A series shows the selected slide; a panorama is one picture, so it shows whole.
+  const series = !panorama && slideCount > 1
+  const shown = series ? 1 : slideCount
   const previewScale =
-    width > 0 && height > 0 ? Math.min((width - VIEWPORT_PADDING * 2) / (w * slideCount), (height - VIEWPORT_PADDING * 2) / h, 1) : 0
+    width > 0 && height > 0 ? Math.min((width - VIEWPORT_PADDING * 2) / (w * shown), (height - VIEWPORT_PADDING * 2) / h, 1) : 0
+  const stage = previewScale > 0 && <CanvasStage previewScale={previewScale} />
 
   function handleDrop(e: DragEvent) {
     e.preventDefault()
@@ -232,7 +244,7 @@ function FrameArea() {
       className="canvas-area"
       onDragOver={(e) => {
         e.preventDefault()
-        // Only files from outside get the drop hint; a photo dragged from the tape doesn't.
+        // Only files from outside get the drop hint; a photo dragged from the pool doesn't.
         setDragging(e.dataTransfer.types.includes('Files'))
       }}
       onDragLeave={(e) => {
@@ -242,35 +254,45 @@ function FrameArea() {
       onDrop={handleDrop}
     >
       <CanvasToolbar />
-      <div
-        className="canvas-viewport"
-        ref={viewportRef}
-        onMouseDown={(e) => {
-          if (e.target === e.currentTarget) select(null)
-        }}
-      >
-        {previewScale > 0 && <CanvasStage previewScale={previewScale} />}
-        {!hasRoute && !hasPhotos && cellCount <= 1 && slideCount === 1 && (
-          <div className="canvas-overlay">
-            {gpxError ? <GpxErrorCard /> : <EmptyState onFiles={importFiles} />}
-          </div>
-        )}
-        {exporting && (
-          <div className="export-cover" role="status">
-            Przygotowuję pliki…
-          </div>
-        )}
-        {dragging && (
-          <div className="drop-indicator" aria-hidden="true">
-            {collage ? 'Upuść zdjęcia' : 'Upuść plik GPX lub zdjęcie'}
-          </div>
-        )}
+      <div className={rail ? 'canvas-body rail' : 'canvas-body'}>
+        {rail && !panorama && <SlideStrip vertical />}
+        <div
+          className="canvas-viewport"
+          ref={viewportRef}
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) select(null)
+          }}
+        >
+          {series ? (
+            <div className="slide-window" style={{ width: w * previewScale, height: h * previewScale }}>
+              <div style={{ transform: `translateX(${-activeSlide * w * previewScale}px)` }}>{stage}</div>
+            </div>
+          ) : (
+            stage
+          )}
+          {!hasRoute && !hasPhotos && cellCount <= 1 && slideCount === 1 && (
+            <div className="canvas-overlay">
+              {gpxError ? <GpxErrorCard /> : <EmptyState onFiles={importFiles} />}
+            </div>
+          )}
+          {exporting && (
+            <div className="export-cover" role="status">
+              Przygotowuję pliki…
+            </div>
+          )}
+          {dragging && (
+            <div className="drop-indicator" aria-hidden="true">
+              {collage ? 'Upuść zdjęcia' : 'Upuść plik GPX lub zdjęcie'}
+            </div>
+          )}
+          {safeZone && <SafeZoneToggle />}
+        </div>
       </div>
       {canvasControls().map((Controls, i) => (
         <Controls key={i} />
       ))}
-      {slideCount > 1 && carouselKind === 'slides' && <SlideStrip />}
-      <PhotoTape />
+      {!rail && !panorama && <SlideStrip vertical={false} />}
+      <PhotoSlidesDialog />
       <PhotoPicker />
       <Toast />
     </div>

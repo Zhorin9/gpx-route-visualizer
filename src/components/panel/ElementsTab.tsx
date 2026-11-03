@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import SelectField from '../fields/SelectField'
+import TextField from '../fields/TextField'
 import Button from '../ui/Button'
 import Section from '../ui/Section'
 import { IconMapPin, IconPlus, IconType } from '../icons'
@@ -9,6 +10,7 @@ import { canvasElement, canvasElements, type CanvasElementDefinition } from '../
 import { useHasRoute } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { FONT_OPTIONS } from '../../utils/fonts'
+import { FIELD_LABELS, wrapperFieldsOf } from '../../utils/wrappers'
 
 function ElementRow({
   icon,
@@ -49,6 +51,21 @@ function RegisteredElementRow({ def }: { def: CanvasElementDefinition }) {
 function SelectedElementEditor({ kind }: { kind: string }) {
   const def = canvasElement(kind)
   return def ? <def.Editor /> : null
+}
+
+// What the wrapper prints (Styl → Opakowanie), filled from the route when it was picked.
+function WrapperFields() {
+  const wrapper = useAppStore((s) => s.wrapper)
+  const updateWrapper = useAppStore((s) => s.updateWrapper)
+  const fields = wrapperFieldsOf(wrapper.id)
+  if (!fields.length) return null
+  return (
+    <Section title="Opakowanie">
+      {fields.map((field) => (
+        <TextField key={field} label={FIELD_LABELS[field]} value={wrapper.fields[field]} multiline={field === 'note'} onChange={(value) => updateWrapper({ fields: { [field]: value } })} />
+      ))}
+    </Section>
+  )
 }
 
 function GlobalFontPicker() {
@@ -122,6 +139,7 @@ export default function ElementsTab() {
       {selection?.kind === 'text' && <TextEditor id={selection.id} />}
       {selection?.kind === 'waypoint' && <WaypointEditor id={selection.id} />}
 
+      <WrapperFields />
       <GlobalFontPicker />
     </>
   )

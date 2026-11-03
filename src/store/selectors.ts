@@ -1,20 +1,21 @@
 import { FORMATS, bottomInset } from '../core/formats/registry'
 import { profileBand } from '../features/elevation-profile/types'
 import { manualFlags } from '../utils/reflow'
+import { slideBox } from '../utils/wrappers'
 import { computeSlots, hasVisiblePhotos, isPanorama, layoutDef, photoCoversFrame, ribbonSlot } from '../utils/layouts'
 import { dayBreaks, projectTrack, trackFit, rangeStats, selectRouteDays, selectRouteParts, selectTrack, trackCumKm, trackDays } from './derived'
 import { useShallow } from 'zustand/react/shallow'
 import { useAppStore } from './useAppStore'
-import type { AspectKey } from '../types'
+import type { AspectKey, CarouselKind, Slide } from '../types'
 
 // The projection's padding lets the route come this close to what sits under it.
 const ROUTE_PAD_OVERLAP = 50
 
-// Box the route is fitted to: the whole ribbon, so it can cross slide borders, or in a
-// landscape format the area left of the side column and above the profile.
-function routeBox(s: Parameters<typeof profileBand>[0] & { aspectKey: AspectKey; slides: unknown[] }): [number, number] {
+// Box the route is fitted to: the first slide (a panorama's whole ribbon, so it can cross slide
+// borders), or in a landscape format the area left of the side column and above the profile.
+function routeBox(s: Parameters<typeof profileBand>[0] & { aspectKey: AspectKey; slides: Slide[]; carouselKind: CarouselKind }): [number, number] {
   const { w, h, columns } = FORMATS[s.aspectKey]
-  if (!columns) return [w * s.slides.length, h]
+  if (!columns) return [isPanorama(s.slides, s.carouselKind) ? w * s.slides.length : w, h]
   return [columns.routeW, h - bottomInset(s.aspectKey) + ROUTE_PAD_OVERLAP - profileBand(s)]
 }
 
@@ -26,7 +27,12 @@ export function useRouteBox() {
 export function useProjectedTrack() {
   const track = useAppStore(selectTrack)
   const [boxW, boxH] = useAppStore(useShallow(routeBox))
-  return projectTrack(track, boxW, boxH)
+  // On the sketch map the route trembles like its pen: 0.32% of the shorter side at roughness 1.
+  const tremble = useAppStore((s) => {
+    const { w, h } = FORMATS[s.aspectKey]
+    return s.collage.bgKind === 'map' && s.map.kind === 'sketch' ? Math.min(w, h) * 0.0032 * s.map.sketch.roughness : 0
+  })
+  return projectTrack(track, boxW, boxH, tremble)
 }
 
 // Where the projection placed the route, in Web Mercator: the map and the camera follow it.
@@ -96,6 +102,16 @@ export function useActiveSlide() {
 
 export function useHasRoute() {
   return useAppStore((s) => selectTrack(s) !== null)
+}
+
+// The slide a node on the ribbon belongs to, by its x.
+export function useSlideAt(x: number): number {
+  return useAppStore((s) => Math.min(s.slides.length - 1, Math.max(0, Math.floor(x / FORMATS[s.aspectKey].w))))
+}
+
+// The box a slide's content is drawn in under the project's wrapper; null when it fills the slide.
+export function useSlideBox(index: number) {
+  return useAppStore(useShallow((s) => slideBox(s, index, FORMATS[s.aspectKey].w, FORMATS[s.aspectKey].h)))
 }
 
 // Slot rectangles of a slide in frame pixels, for the layout actually applied (not a hover preview).

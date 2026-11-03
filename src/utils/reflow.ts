@@ -128,9 +128,9 @@ function carouselSlides(slides: Slide[], parked: Slide[], carousel: boolean): Pi
   return carousel ? { slides: [...slides, ...parked], parkedSlides: [] } : { slides: slides.slice(0, 1), parkedSlides: [...slides.slice(1), ...parked] }
 }
 
-// Slides the given format exports, whichever format is open now.
+// Slides the given format exports, whichever format is open now; skipped ones stay out.
 export function slideCountIn(s: Pick<DocumentState, 'slides' | 'parkedSlides'>, key: AspectKey): number {
-  return FORMATS[key].carousel ? s.slides.length + s.parkedSlides.length : 1
+  return FORMATS[key].carousel ? [...s.slides, ...s.parkedSlides].filter((slide) => !slide.skipped).length : 1
 }
 
 // Drops every hand-placed element of the current format and follows the source again.
