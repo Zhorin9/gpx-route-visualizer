@@ -15,6 +15,8 @@ export interface VideoJob {
   // GIF: loops forever, or plays once.
   loopForever: boolean
   quality: EncodeQuality
+  // MP4/WebM: 2 doubles the frame, to 4K (2160 px on the short side).
+  scale: 1 | 2
 }
 
 export interface VideoProgress {
@@ -23,10 +25,10 @@ export interface VideoProgress {
 }
 
 // GIFs are written at half size: a full-size GIF is huge and gains little on a phone.
-export const outputScale = (format: VideoFormat) => (format === 'gif' ? 0.5 : 1)
+export const outputScale = (job: Pick<VideoJob, 'format' | 'scale'>) => (job.format === 'gif' ? 0.5 : job.scale)
 
-export function outputSize(job: Pick<VideoJob, 'format' | 'aspect'>) {
-  const scale = outputScale(job.format)
+export function outputSize(job: Pick<VideoJob, 'format' | 'aspect' | 'scale'>) {
+  const scale = outputScale(job)
   return { width: Math.round(FORMATS[job.aspect].w * scale), height: Math.round(FORMATS[job.aspect].h * scale) }
 }
 
@@ -80,7 +82,7 @@ export async function renderVideo(
   const duration = animationLength()
   const count = frameCount(job, duration)
   const total = count * (job.format === 'gif' ? 1 : Math.max(1, job.repeat))
-  const scale = outputScale(job.format)
+  const scale = outputScale(job)
   const { width, height } = outputSize(job)
   const frames = await beginStageFrames()
   const sessions: EncodingSession[] = []
@@ -111,7 +113,7 @@ export async function renderVideo(
     }
 
     const blobs = await Promise.all(sessions.map((s) => s.finish()))
-    const names = exportFileNames(job.format, 1, job.aspect, trackName, sessions.length)
+    const names = exportFileNames(job.format, job.format === 'gif' ? 1 : job.scale, job.aspect, trackName, sessions.length)
     return blobs.map((blob, i) => ({ name: names[i], blob }))
   } catch (e) {
     sessions.forEach((s) => s.abort())

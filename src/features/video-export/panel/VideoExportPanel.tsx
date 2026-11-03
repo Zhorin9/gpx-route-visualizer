@@ -108,7 +108,7 @@ export default function VideoExportPanel() {
   const animation = useAppStore((s) => s.animation)
   const trackName = useAppStore((s) => selectTrack(s)?.name ?? null)
   const showToast = useAppStore((s) => s.showToast)
-  const [job, setJob] = useState<VideoJob>({ format: 'mp4', aspect: currentAspect, fps: 30, repeat: 1, loopForever: true, quality: 'medium' })
+  const [job, setJob] = useState<VideoJob>({ format: 'mp4', aspect: currentAspect, fps: 30, repeat: 1, loopForever: true, quality: 'medium', scale: 1 })
   const [phase, setPhase] = useState<Phase>({ kind: 'idle' })
   const slideCount = useAppStore((s) => slideCountIn(s, job.aspect))
   const abortRef = useRef<AbortController | null>(null)
@@ -191,6 +191,14 @@ export default function VideoExportPanel() {
           <CheckboxField label="Zapętlaj bez końca" checked={job.loopForever} onChange={(loopForever) => update({ loopForever })} disabled={rendering} />
         ) : (
           <>
+            <Segmented
+              label="Rozdzielczość"
+              showLabel
+              value={String(job.scale)}
+              options={[1, 2].map((s) => ({ value: String(s), label: `${FORMATS[job.aspect].w * s}×${FORMATS[job.aspect].h * s}${s === 2 ? ' (4K)' : ''}` }))}
+              onChange={(v) => update({ scale: v === '2' ? 2 : 1 })}
+              disabled={rendering}
+            />
             <Segmented label="Jakość" showLabel value={job.quality} options={QUALITY_OPTIONS} onChange={(quality) => update({ quality })} disabled={rendering} />
             <Segmented label="Powtórz w pliku" showLabel value={String(job.repeat)} options={REPEAT_OPTIONS} onChange={(v) => update({ repeat: Number(v) })} disabled={rendering} />
           </>
