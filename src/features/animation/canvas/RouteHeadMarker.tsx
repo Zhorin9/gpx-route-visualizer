@@ -12,6 +12,8 @@ import { headingAt, vehicleFor, vehiclePose } from '../vehicles'
 const UNITS_PER_SIZE = 5
 // An illustrated vehicle is this many head sizes long (about 60 px at the default size).
 const ART_PER_SIZE = 7
+// Fill of a black-and-white marker; its edge stays white.
+const MONO = '#111111'
 
 // Illustrations decoded once and kept; the marker shows once its picture has loaded.
 const pictures = new Map<string, HTMLImageElement>()
@@ -44,6 +46,7 @@ function VehiclePicture({ art, x, y, rotation, length }: { art: string; x: numbe
 export default function RouteHeadMarker({ geometry }: { geometry: RouteGeometry }) {
   const enabled = useAppStore((s) => s.animation.headDot)
   const fallback = useAppStore((s) => s.animation.vehicle)
+  const look = useAppStore((s) => s.animation.vehicleLook)
   const routeColor = useAppStore((s) => s.routeStyle.color)
   const glowBlur = useAppStore((s) => s.routeStyle.glowBlur)
   const turn = useAppStore((s) => s.routeTransform.rotation)
@@ -56,10 +59,11 @@ export default function RouteHeadMarker({ geometry }: { geometry: RouteGeometry 
   if (!enabled || !head || !projected) return null
 
   const part = parts.find((p) => head.pos >= p.startIdx && head.pos < p.endIdx + 1)
-  const color = coloring?.kind === 'perPoint' ? coloring.at(head.pos) : parts.length > 1 && part ? part.color : routeColor
+  const color =
+    look === 'mono' ? MONO : coloring?.kind === 'perPoint' ? coloring.at(head.pos) : parts.length > 1 && part ? part.color : routeColor
   const vehicle = vehicleFor(part?.vehicle ?? fallback)
 
-  if (vehicle.art) return <VehiclePicture art={vehicle.art} x={head.x} y={head.y} rotation={headingAt(projected, head.pos)} length={size * ART_PER_SIZE} />
+  if (vehicle.art && (look ?? 'art') === 'art') return <VehiclePicture art={vehicle.art} x={head.x} y={head.y} rotation={headingAt(projected, head.pos)} length={size * ART_PER_SIZE} />
 
   if (!vehicle.path) {
     return (

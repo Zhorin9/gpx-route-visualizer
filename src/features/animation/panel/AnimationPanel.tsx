@@ -7,7 +7,7 @@ import { useCanAnimate } from '../hooks'
 import { useAppStore } from '../../../store/useAppStore'
 import { PACINGS } from '../model/pacing'
 import { selectDuration } from '../model/timeline'
-import { DEFAULT_ANIMATION, type Entrance, type PacingId } from '../types'
+import { DEFAULT_ANIMATION, type Entrance, type PacingId, type VehicleLook } from '../types'
 import { formatTime } from '../ui/formatTime'
 import TimelineEditor from './TimelineEditor'
 import { selectRouteParts, selectTrack } from '../../../store/derived'
@@ -21,13 +21,20 @@ const ENTRANCE_OPTIONS: SelectOption<Entrance>[] = [
   { value: 'slide', label: 'Wysunięcie' },
 ]
 
-const vehicleOptions = (): SelectOption<VehicleId>[] => vehicleList().map((v) => ({ value: v.id, label: v.label }))
+const LOOK_OPTIONS: SelectOption<VehicleLook>[] = [
+  { value: 'art', label: 'Kolorowy' },
+  { value: 'route', label: 'Kolor trasy' },
+  { value: 'mono', label: 'Czarno-biały' },
+]
+
+const vehicleOptions = ():SelectOption<VehicleId>[] => vehicleList().map((v) => ({ value: v.id, label: v.label }))
 
 // The marker of the whole animation, and of each part (days, legs of a trip) that may show its own.
 // A route of one planned leg has the leg's marker (a plane for a flight), so that is the one set here.
 function VehicleFields() {
   const parts = useAppStore(selectRouteParts)
   const fallback = useAppStore((s) => s.animation.vehicle)
+  const look = useAppStore((s) => s.animation.vehicleLook)
   const updatePart = useAppStore((s) => s.updatePart)
   const updateAnimation = useAppStore((s) => s.updateAnimation)
   const only = parts.length === 1 && parts[0].vehicle ? parts[0] : null
@@ -40,6 +47,7 @@ function VehicleFields() {
         options={vehicleOptions()}
         onChange={(vehicle) => (only ? updatePart(only.id, { vehicle }) : updateAnimation({ vehicle }))}
       />
+      <Segmented label="Wygląd znacznika" showLabel value={look ?? 'art'} options={LOOK_OPTIONS} onChange={(vehicleLook) => updateAnimation({ vehicleLook })} />
       {parts.length > 1 &&
         parts.map((part) => (
           <SelectField key={part.id} label={part.name} value={part.vehicle ?? ''} options={options} onChange={(v) => updatePart(part.id, { vehicle: v || undefined })} />

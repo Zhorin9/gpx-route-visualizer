@@ -35,6 +35,27 @@ function config(codec: VideoCodecId, options: EncodeOptions): VideoEncoderConfig
   }
 }
 
+// Firefox hands out a broken avcC (each parameter set with its header byte doubled), so other
+// players can't decode its MP4s. Its key frames carry the SPS and PPS as well: the avcC is
+// built from those instead. Browsers that keep them out of the frames (Chrome) are left alone.
+export function inBandAvcDescription(chunk: Pick<EncodedVideoChunk, 'byteLength' | 'copyTo'>): Uint8Array | undefined {
+  const data = new Uint8Array(chunk.byteLength)
+  chunk.copyTo(data)
+  const view = new DataView(data.buffer)
+  const sets: Partial<Record<number, Uint8Array>> = {}
+  for (let at = 0; at + 4 < data.length; ) {
+    const nal = data.subarray(at + 4, at + 4 + view.getUint32(at))
+    sets[nal[0] & 0x1f] ??= nal
+    at += 4 + nal.length
+  }
+  const sps = sets[7]
+  const pps = sets[8]
+  if (!sps || !pps) return undefined
+  // High profiles and above also state the chroma format and bit depth: 4:2:0, 8-bit.
+  const highExtension = sps[1] >= 100 ? [0xfd, 0xf8, 0xf8, 0] : []
+  return new Uint8Array([1, sps[1], sps[2], sps[3], 0xff, 0xe1, sps.length >> 8, sps.length & 0xff, ...sps, 1, pps.length >> 8, pps.length & 0xff, ...pps, ...highExtension])
+}
+
 export class WebCodecsFrameEncoder implements FrameEncoder {
   private encoder: VideoEncoder | null = null
 
@@ -51,7 +72,11 @@ export class WebCodecsFrameEncoder implements FrameEncoder {
 
   async configure(options: EncodeOptions, onSample: (sample: EncodedSample) => void, onError: (error: Error) => void) {
     this.encoder = new VideoEncoder({
-      output: (chunk, meta) => onSample({ chunk, meta }),
+      output: (chunk, meta) => {
+        const decoderConfig = meta?.decoderConfig
+        const description = this.codec === 'avc' && decoderConfig ? inBandAvcDescription(chunk) : undefined
+        onSample({ chunk, meta: decoderConfig && description ? { ...meta, decoderConfig: { ...decoderConfig, description } } : meta })
+      },
       error: (e) => onError(e instanceof Error ? e : new Error(String(e))),
     })
     this.encoder.configure(config(this.codec, options))

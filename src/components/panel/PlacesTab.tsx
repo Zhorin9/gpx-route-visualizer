@@ -1,13 +1,15 @@
 import SliderField from '../fields/SliderField'
 import SelectField from '../fields/SelectField'
 import ColorField from '../fields/ColorField'
+import CheckboxField from '../fields/CheckboxField'
 import TextField from '../fields/TextField'
 import Button from '../ui/Button'
 import Section from '../ui/Section'
 import Segmented from '../ui/Segmented'
 import FileButton from '../ui/FileButton'
-import { IconImage, IconTrash } from '../icons'
+import { IconFit, IconImage, IconTrash } from '../icons'
 import { FONT_OPTIONS } from '../../utils/fonts'
+import { DEFAULT_SLOT_CROP } from '../../store/defaults'
 import { useAppStore } from '../../store/useAppStore'
 import type { PhotoMarker, PointStyle, SelectOption, Waypoint, WaypointKind } from '../../types'
 
@@ -40,10 +42,11 @@ function PointPhoto({ waypoint }: { waypoint: Waypoint }) {
   const loadPhotoFiles = useAppStore((s) => s.loadPhotoFiles)
   const options: SelectOption[] = [{ value: '', label: 'Bez zdjęcia' }, ...photos.map((p) => ({ value: String(p.id), label: p.name }))]
   const has = photos.some((p) => p.id === waypoint.photoId)
+  const crop = waypoint.photoCrop ?? DEFAULT_SLOT_CROP
   return (
     <>
       {photos.length > 0 && (
-        <SelectField label="Zdjęcie" value={has ? String(waypoint.photoId) : ''} options={options} onChange={(v) => updateWaypoint(waypoint.id, { photoId: v ? Number(v) : undefined })} />
+        <SelectField label="Zdjęcie" value={has ? String(waypoint.photoId) : ''} options={options} onChange={(v) => updateWaypoint(waypoint.id, { photoId: v ? Number(v) : undefined, photoCrop: undefined })} />
       )}
       <FileButton accept="image/*" icon={<IconImage />} onFiles={(files) => files?.length && void loadPhotoFiles([files[0]], { waypoint: waypoint.id })}>
         {has ? 'Zmień zdjęcie z dysku' : 'Dodaj zdjęcie z dysku'}
@@ -51,7 +54,25 @@ function PointPhoto({ waypoint }: { waypoint: Waypoint }) {
       {has && (
         <>
           <Segmented label="Kształt" showLabel value={pointStyle.marker} options={MARKER_OPTIONS} onChange={(marker) => updatePointStyle({ marker })} />
-          {pointStyle.marker !== 'label' && <Segmented label="Rozmiar zdjęcia" showLabel value={pointStyle.size} options={SIZE_OPTIONS} onChange={(size) => updatePointStyle({ size })} />}
+          {pointStyle.marker !== 'label' && (
+            <>
+              <Segmented label="Rozmiar zdjęcia" showLabel value={pointStyle.size} options={SIZE_OPTIONS} onChange={(size) => updatePointStyle({ size })} />
+              <SliderField
+                label="Przybliżenie kadru"
+                unit="%"
+                min={100}
+                max={400}
+                step={10}
+                value={Math.round(crop.zoom * 100)}
+                defaultValue={100}
+                onChange={(zoom) => updateWaypoint(waypoint.id, { photoCrop: { ...crop, zoom: zoom / 100 } })}
+              />
+              <p className="hint">Przeciągnij zdjęcie na podglądzie, żeby przesunąć kadr; kółko myszy przybliża.</p>
+              <Button size="sm" variant="ghost" icon={<IconFit />} disabled={!waypoint.photoCrop} onClick={() => updateWaypoint(waypoint.id, { photoCrop: undefined })}>
+                Wyśrodkuj kadr
+              </Button>
+            </>
+          )}
         </>
       )}
     </>
@@ -86,6 +107,7 @@ export default function WaypointEditor({ id }: { id: number }) {
           onChange={(fontSize) => updateWaypoint(selected.id, { fontSize })}
         />
         <ColorField label="Kolor" value={selected.color} onChange={(color) => updateWaypoint(selected.id, { color })} />
+        <CheckboxField label="Cień" checked={selected.shadowEnabled ?? true} onChange={(shadowEnabled) => updateWaypoint(selected.id, { shadowEnabled })} />
       </Section>
       <Section title="Zdjęcie w punkcie">
         <PointPhoto waypoint={selected} />
