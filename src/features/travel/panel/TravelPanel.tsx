@@ -12,6 +12,7 @@ import { downloadBlob } from '../../../utils/exportImage'
 import { formatKm } from '../../../utils/format'
 import { toGpxText } from '../../../utils/gpx'
 import { DEFAULT_LEG_S, DEFAULT_PAUSE_S } from '../../animation/model/schedule'
+import { vehicleFor } from '../../animation/vehicles'
 import { legName, legPlans, moveStop, named, removeStop, setLeg, updateStop, type Journey } from '../model/journey'
 import { LINE_LABELS, lineOf, travelMode, travelModes } from '../model/modes'
 import { stopLetter, useTravelActions } from '../useTravel'
@@ -69,6 +70,10 @@ function LegBox({ index, journey, change }: { index: number; journey: Journey; c
   const mode = travelMode(leg.mode)
   const line = lineOf(leg)
   const vias = plan ? plan.stops.length - 2 : 0
+  // The leg's part on the route, found by its end stops: it holds the marker the animation draws.
+  const ends = (stops: Stop[]) => `${stops[0]?.id}-${stops[stops.length - 1]?.id}`
+  const part = useAppStore((s) => (plan ? selectRouteParts(s).find((p) => p.plan && ends(p.plan.stops) === ends(plan.stops)) : undefined))
+  const updatePart = useAppStore((s) => s.updatePart)
   return (
     <div className="leg-box">
       <h6>
@@ -95,6 +100,18 @@ function LegBox({ index, journey, change }: { index: number; journey: Journey; c
           )
         })}
       </div>
+      {part && mode.vehicle !== 'dot' && (
+        <Segmented
+          label="Znacznik"
+          showLabel
+          value={part.vehicle === 'dot' ? 'dot' : 'mode'}
+          options={[
+            { value: 'mode', label: vehicleFor(mode.vehicle).label },
+            { value: 'dot', label: 'Kropka' },
+          ]}
+          onChange={(v) => updatePart(part.id, { vehicle: v === 'dot' ? 'dot' : mode.vehicle })}
+        />
+      )}
       <SecondsField label="Czas w animacji" value={leg.duration ?? DEFAULT_LEG_S} min={0.5} max={30} onChange={(duration) => change(setLeg(journey, index, { ...leg, duration }), `time:${index}`)} />
       {vias > 0 && plan && (
         <div className="leg-vias">
