@@ -3,6 +3,9 @@ import type { ProjectMode, VehicleId } from '../../types'
 
 export type PacingId = 'constant' | 'eased' | 'bySpeed'
 export type Entrance = 'fade' | 'slide'
+// art: colour illustrations where a vehicle has one; route: every marker in the line's colour;
+// mono: black with a white edge.
+export type VehicleLook = 'art' | 'route' | 'mono'
 
 // One bar of the timeline, in seconds.
 export interface TrackClip {
@@ -27,6 +30,8 @@ export interface AnimationSettings {
   headDot: boolean
   // Marker at the head of the line; a part of the route may choose its own.
   vehicle: VehicleId
+  // Unset in documents saved before it existed: art.
+  vehicleLook?: VehicleLook
   headSize: number
   loop: boolean
 }
