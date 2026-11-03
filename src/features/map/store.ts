@@ -1,6 +1,6 @@
 import { collageTone, withContrast } from '../../store/slices/mediaSlice'
 import { selectTrack } from '../../store/derived'
-import { toneOf, type Tone } from '../../utils/color'
+import { mixHex, toneOf, type Tone } from '../../utils/color'
 import type { SliceContext } from '../../store/types'
 import { mapStyle } from './model/styles'
 import { sketchPalette } from './sketch/draw'
@@ -20,12 +20,19 @@ export interface MapSlice {
 }
 
 // Light or dark, as the map will look: its palette or style, unless dimmed or lightened a lot.
-export function mapTone(map: MapSettings): Tone {
+export function drawnTone(map: MapSettings): Tone {
   if (map.kind === 'sketch') return toneOf(sketchPalette(map).paper)
   if (map.dim >= 0.35) return 'dark'
   if (map.dim <= -0.35) return 'light'
   const style = mapStyle(map.styleId)
   return map.palette && typeof style.url === 'string' ? toneOf(map.palette.land) : style.tone
+}
+
+// What texts and the route stand on: a faded map takes on the colour under it.
+export function mapTone(map: MapSettings): Tone {
+  const tone = drawnTone(map)
+  if (map.opacity >= 1) return tone
+  return toneOf(mixHex(tone === 'dark' ? '#2b2c30' : '#ecebe7', map.ground, 1 - map.opacity))
 }
 
 const loading = new Set<number>()

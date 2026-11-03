@@ -26,6 +26,14 @@ export interface MapSettings {
   saturation: number
   // Softens the map behind the route, in frame pixels.
   blur: number
+  // How much of the map shows over the ground colour; the route and texts stay at full strength.
+  opacity: number
+  ground: string
+  // Edges of each slide darkened towards the ground colour, 0-1.
+  vignette: number
+  sepia: number
+  // Film grain over the map, 0-1.
+  grain: number
   labels: boolean
   hillshade: boolean
   // The source credit on the frame: its text size and colour (null = the stats colour).
@@ -41,6 +49,11 @@ export const DEFAULT_MAP: MapSettings = {
   dim: 0,
   saturation: 1,
   blur: 0,
+  opacity: 1,
+  ground: '#1f1a14',
+  vignette: 0,
+  sepia: 0,
+  grain: 0,
   labels: true,
   hillshade: false,
   creditSize: 12,

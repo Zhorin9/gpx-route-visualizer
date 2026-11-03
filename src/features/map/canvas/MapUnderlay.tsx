@@ -8,10 +8,11 @@ import { useAppStore } from '../../../store/useAppStore'
 import { ensureFontLoaded } from '../../../utils/fonts'
 import { asStyle, loadMapLibre, publishMapScene, styleKey } from '../maplibre'
 import { mapCamera } from '../model/placement'
+import { grainCss, vignetteCss } from '../model/mood'
 import { buildStyle, mapFilter } from '../model/styles'
 import { drawSketch } from '../sketch/draw'
 import { sketchFrame } from '../sketch/frame'
-import { mapTone } from '../store'
+import { drawnTone } from '../store'
 
 // The live map under the frame in the editor. It follows the route as drawn (moved, turned,
 // scaled, and the camera of the animation) and tells the export what it shows.
@@ -78,7 +79,7 @@ function LiveMap({ previewScale }: { previewScale: number }) {
     map?.jumpTo({ center: [lon, lat], zoom, bearing })
   }, [map, lon, lat, zoom, bearing])
 
-  const dark = mapTone(settings) === 'dark'
+  const dark = drawnTone(settings) === 'dark'
   const status = failed === key || failed === 'maplibre' ? 'error' : shown === key ? 'ready' : 'loading'
   return (
     <div
@@ -128,7 +129,21 @@ function SketchMap({ previewScale }: { previewScale: number }) {
 
 export default function MapUnderlay({ previewScale }: { previewScale: number }) {
   const on = useAppStore((s) => s.collage.bgKind === 'map')
-  const sketch = useAppStore((s) => s.map.kind === 'sketch')
+  const map = useAppStore((s) => s.map)
+  const aspectKey = useAppStore((s) => s.aspectKey)
+  const slideCount = useAppStore((s) => s.slides.length)
   if (!on) return null
-  return sketch ? <SketchMap previewScale={previewScale} /> : <LiveMap previewScale={previewScale} />
+  const { w, h } = FORMATS[aspectKey]
+  const vignette = vignetteCss(map, w * previewScale)
+  const grain = grainCss(map, previewScale)
+  // The mood wraps the map always, so turning it on doesn't rebuild the map under it.
+  return (
+    <div className="map-underlay" style={{ width: w * slideCount * previewScale, height: h * previewScale, background: map.ground }} aria-hidden="true">
+      <div className="map-mood" style={{ opacity: map.opacity, filter: map.sepia > 0 ? `sepia(${map.sepia})` : undefined }}>
+        {map.kind === 'sketch' ? <SketchMap previewScale={previewScale} /> : <LiveMap previewScale={previewScale} />}
+      </div>
+      {vignette && <div className="map-mood" style={vignette} />}
+      {grain && <div className="map-mood" style={grain} />}
+    </div>
+  )
 }
