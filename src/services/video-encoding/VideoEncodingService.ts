@@ -2,7 +2,8 @@
 // no encoding package (or its types) is visible outside this folder, so a package can be
 // replaced without touching the UI or the export loop.
 
-export type VideoFormat = 'mp4' | 'webm' | 'gif'
+// png: numbered frames with transparency, packed in a ZIP, for editing software.
+export type VideoFormat = 'mp4' | 'webm' | 'gif' | 'png'
 export type EncodeQuality = 'low' | 'medium' | 'high'
 
 export interface EncodeOptions {
@@ -58,4 +59,5 @@ export const MIME_TYPES: Record<VideoFormat, string> = {
   mp4: 'video/mp4',
   webm: 'video/webm',
   gif: 'image/gif',
+  png: 'application/zip',
 }

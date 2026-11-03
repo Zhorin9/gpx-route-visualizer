@@ -7,7 +7,7 @@ export class FakeVideoEncodingService implements VideoEncodingService {
   constructor(private readonly unsupported: VideoFormat[] = []) {}
 
   async capabilities(): Promise<FormatSupport[]> {
-    return (['mp4', 'webm', 'gif'] as const).map((format) =>
+    return (['mp4', 'webm', 'gif', 'png'] as const).map((format) =>
       this.unsupported.includes(format) ? { format, supported: false, reason: 'wyłączone w teście' } : { format, supported: true },
     )
   }

@@ -6,6 +6,7 @@ import { cropSlide, exportFileNames, type ExportFile } from '../../utils/exportI
 import { exportedSlides } from '../../utils/series'
 import { selectDuration } from '../animation/model/timeline'
 import type { AspectKey } from '../../types'
+import { cardRect, drawCardInset, type CardInset } from './cardInset'
 
 export interface VideoJob {
   format: VideoFormat
@@ -16,7 +17,12 @@ export interface VideoJob {
   // GIF: loops forever, or plays once.
   loopForever: boolean
   quality: EncodeQuality
+  // PNG only: the design as a card in a corner of the footage's frame, instead of the whole frame.
+  inset?: CardInset | null
 }
+
+// How many times the animation is written in a row; only video files repeat it.
+export const playsInFile = (job: Pick<VideoJob, 'format' | 'repeat'>) => (job.format === 'mp4' || job.format === 'webm' ? Math.max(1, job.repeat) : 1)
 
 export interface VideoProgress {
   done: number
@@ -26,9 +32,30 @@ export interface VideoProgress {
 // GIFs are written at half size: a full-size GIF is huge and gains little on a phone.
 export const outputScale = (format: VideoFormat) => (format === 'gif' ? 0.5 : 1)
 
-export function outputSize(job: Pick<VideoJob, 'format' | 'aspect'>) {
+// The file's frame: the design's own, or the footage's that the card is laid on.
+const frameOf = (job: Pick<VideoJob, 'aspect' | 'inset'>) => FORMATS[job.inset?.frame ?? job.aspect]
+
+export function outputSize(job: Pick<VideoJob, 'format' | 'aspect' | 'inset'>) {
   const scale = outputScale(job.format)
-  return { width: Math.round(FORMATS[job.aspect].w * scale), height: Math.round(FORMATS[job.aspect].h * scale) }
+  return { width: Math.round(frameOf(job).w * scale), height: Math.round(frameOf(job).h * scale) }
+}
+
+// Pixels of the rendered design per pixel of its format, for a file `k` times its full size.
+function designScale(job: VideoJob, k: number): number {
+  return job.inset ? (k * cardRect(job.inset, job.aspect).w) / FORMATS[job.aspect].w : k
+}
+
+// One slide out of the rendered ribbon as the file shows it: the whole frame, or the card on the footage's frame.
+function slideFrame(ribbon: HTMLCanvasElement, job: VideoJob, slide: number, k: number, t: number, duration: number, target: { card?: HTMLCanvasElement; out?: HTMLCanvasElement } = {}) {
+  const card = cropSlide(ribbon, slide, job.aspect, designScale(job, k), target.card)
+  if (!job.inset) return card
+  const out = target.out ?? document.createElement('canvas')
+  const width = Math.round(frameOf(job).w * k)
+  const height = Math.round(frameOf(job).h * k)
+  if (out.width !== width) out.width = width
+  if (out.height !== height) out.height = height
+  drawCardInset(out, card, job.inset, job.aspect, t, duration)
+  return out
 }
 
 export function animationLength(): number {
@@ -46,24 +73,25 @@ function throwIfAborted(signal?: AbortSignal) {
 }
 
 // Frames of one slide at given moments, at a given output height; for palettes and previews.
-async function sampleFrames(frames: FrameSource, aspect: AspectKey, slide: number, times: number[], height: number): Promise<HTMLCanvasElement[]> {
-  const scale = height / FORMATS[aspect].h
+async function sampleFrames(frames: FrameSource, job: VideoJob, slide: number, times: number[], height: number, duration: number): Promise<HTMLCanvasElement[]> {
+  const k = height / frameOf(job).h
   const out: HTMLCanvasElement[] = []
   for (const t of times) {
     await frames.seek(t)
-    out.push(cropSlide(await frames.render(scale), slide, aspect, scale))
+    out.push(slideFrame(await frames.render(designScale(job, k)), job, slide, k, t, duration))
   }
   return out
 }
 
 // Small previews of the animation (first slide), evenly spread over its length.
-export async function renderThumbnails(aspect: AspectKey, count: number, height: number): Promise<string[]> {
+export async function renderThumbnails(job: VideoJob, count: number, height: number): Promise<string[]> {
   const duration = animationLength()
   const frames = await beginStageFrames()
   try {
-    if (useAppStore.getState().aspectKey !== aspect) await frames.useFormat(aspect)
+    if (useAppStore.getState().aspectKey !== job.aspect) await frames.useFormat(job.aspect)
     const times = Array.from({ length: count }, (_, i) => (duration * (i + 1)) / count - 0.001)
-    return (await sampleFrames(frames, aspect, 0, times, height)).map((c) => c.toDataURL('image/jpeg', 0.8))
+    // A card keeps the see-through frame round it.
+    return (await sampleFrames(frames, job, 0, times, height, duration)).map((c) => (job.inset ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', 0.8)))
   } finally {
     frames.end()
   }
@@ -80,7 +108,7 @@ export async function renderVideo(
 ): Promise<ExportFile[]> {
   const duration = animationLength()
   const count = frameCount(job, duration)
-  const total = count * (job.format === 'gif' ? 1 : Math.max(1, job.repeat))
+  const total = count * playsInFile(job)
   const scale = outputScale(job.format)
   const { width, height } = outputSize(job)
   const frames = await beginStageFrames()
@@ -92,20 +120,21 @@ export async function renderVideo(
     const slides = exportedSlides(useAppStore.getState().slides)
     for (const slide of slides) {
       const paletteSamples =
-        job.format === 'gif' ? await sampleFrames(frames, job.aspect, slide, [0.2, 0.45, 0.7, 0.95].map((k) => duration * k), Math.round(height / 2)) : undefined
+        job.format === 'gif' ? await sampleFrames(frames, job, slide, [0.2, 0.45, 0.7, 0.95].map((k) => duration * k), Math.round(height / 2), duration) : undefined
       sessions.push(
         await service.createSession({ format: job.format, width, height, fps: job.fps, loopCount: job.loopForever ? 0 : 1, quality: job.quality, paletteSamples }),
       )
     }
 
-    const scratch = sessions.map(() => document.createElement('canvas'))
+    const scratch = sessions.map(() => ({ card: document.createElement('canvas'), out: document.createElement('canvas') }))
     for (let f = 0; f < total; f++) {
       throwIfAborted(signal)
-      await frames.seek((f % count) / job.fps)
-      const ribbon = await frames.render(scale)
+      const t = (f % count) / job.fps
+      await frames.seek(t)
+      const ribbon = await frames.render(designScale(job, scale))
       const timestamp = Math.round((f * 1_000_000) / job.fps)
       for (let slide = 0; slide < sessions.length; slide++) {
-        await sessions[slide].addFrame(cropSlide(ribbon, slides[slide], job.aspect, scale, scratch[slide]), timestamp)
+        await sessions[slide].addFrame(slideFrame(ribbon, job, slides[slide], scale, t, duration, scratch[slide]), timestamp)
       }
       onProgress({ done: f + 1, total })
       // Lets the progress bar paint and the Cancel button respond.
@@ -113,7 +142,8 @@ export async function renderVideo(
     }
 
     const blobs = await Promise.all(sessions.map((s) => s.finish()))
-    const names = exportFileNames(job.format, 1, job.aspect, trackName, sessions.length)
+    // PNG frames come packed in a ZIP.
+    const names = exportFileNames(job.format === 'png' ? 'zip' : job.format, 1, job.inset?.frame ?? job.aspect, trackName, sessions.length)
     return blobs.map((blob, i) => ({ name: names[i], blob }))
   } catch (e) {
     sessions.forEach((s) => s.abort())
