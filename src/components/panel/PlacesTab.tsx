@@ -1,6 +1,7 @@
 import SliderField from '../fields/SliderField'
 import SelectField from '../fields/SelectField'
 import ColorField from '../fields/ColorField'
+import CheckboxField from '../fields/CheckboxField'
 import TextField from '../fields/TextField'
 import Button from '../ui/Button'
 import Section from '../ui/Section'
@@ -106,6 +107,7 @@ export default function WaypointEditor({ id }: { id: number }) {
           onChange={(fontSize) => updateWaypoint(selected.id, { fontSize })}
         />
         <ColorField label="Kolor" value={selected.color} onChange={(color) => updateWaypoint(selected.id, { color })} />
+        <CheckboxField label="Cień" checked={selected.shadowEnabled ?? true} onChange={(shadowEnabled) => updateWaypoint(selected.id, { shadowEnabled })} />
       </Section>
       <Section title="Zdjęcie w punkcie">
         <PointPhoto waypoint={selected} />

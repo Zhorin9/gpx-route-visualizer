@@ -32,6 +32,7 @@ export default function WaypointLabel({ waypoint, anchor }: WaypointLabelProps) 
   const textRef = useRef<Konva.Text>(null)
   const leaderRef = useRef<Konva.Line>(null)
   const { dx, dy } = waypoint
+  const shadow = waypoint.shadowEnabled ?? true
   const animation = usePointAnimation(waypoint.trackPos)
 
   function startEditing(e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) {
@@ -51,6 +52,7 @@ export default function WaypointLabel({ waypoint, anchor }: WaypointLabelProps) 
         shadowColor="#000000"
         shadowBlur={4}
         shadowOpacity={0.5}
+        shadowEnabled={shadow}
         listening={false}
       />
       {waypoint.kind === 'point' ? (
@@ -99,6 +101,7 @@ export default function WaypointLabel({ waypoint, anchor }: WaypointLabelProps) 
           shadowColor="#000000"
           shadowBlur={8}
           shadowOpacity={0.6}
+          shadowEnabled={shadow}
           perfectDrawEnabled={false}
           visible={!hidden}
           onDblClick={startEditing}

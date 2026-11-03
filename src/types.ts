@@ -151,6 +151,8 @@ export interface Waypoint {
   fontFamily: string
   fontSize: number
   color: string
+  // Under the name and its leader line. Unset: on.
+  shadowEnabled?: boolean
   // Shown at the label, the way the document's point style says.
   photoId?: number
   // How that photo is framed, as in a slot, but with offsets as fractions of the photo's box
