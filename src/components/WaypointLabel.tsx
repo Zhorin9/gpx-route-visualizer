@@ -35,6 +35,7 @@ export default function WaypointLabel({ waypoint, anchor }: WaypointLabelProps) 
   const textRef = useRef<Konva.Text>(null)
   const leaderRef = useRef<Konva.Line>(null)
   const { dx, dy } = waypoint
+  const shadow = waypoint.shadowEnabled ?? true
   const animation = usePointAnimation(waypoint.trackPos)
 
   function startEditing(e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) {
@@ -54,6 +55,7 @@ export default function WaypointLabel({ waypoint, anchor }: WaypointLabelProps) 
         shadowColor="#000000"
         shadowBlur={4}
         shadowOpacity={0.5}
+        shadowEnabled={shadow}
         listening={false}
       />
       {waypoint.kind === 'point' ? (
@@ -81,7 +83,9 @@ export default function WaypointLabel({ waypoint, anchor }: WaypointLabelProps) 
         }}
         onDragEnd={(e) => updateWaypoint(waypoint.id, { dx: e.target.x(), dy: e.target.y() })}
       >
-        {photo && <PinnedPhoto photo={photo} style={pointStyle} color={outline} gap={waypoint.fontSize * 0.4} />}
+        {photo && (
+          <PinnedPhoto photo={photo} style={pointStyle} color={outline} gap={waypoint.fontSize * 0.4} crop={waypoint.photoCrop} onCrop={(photoCrop) => updateWaypoint(waypoint.id, { photoCrop })} />
+        )}
         {photo && pointStyle.marker === 'label' && (
           <Line
             points={[0, -8, measureTextWidth(waypoint.text.split('\n')[0], waypoint.fontFamily, waypoint.fontSize, konvaFontStyle(waypoint.fontFamily)), -8]}
@@ -100,6 +104,7 @@ export default function WaypointLabel({ waypoint, anchor }: WaypointLabelProps) 
           shadowColor="#000000"
           shadowBlur={8}
           shadowOpacity={0.6}
+          shadowEnabled={shadow}
           perfectDrawEnabled={false}
           visible={!hidden}
           onDblClick={startEditing}

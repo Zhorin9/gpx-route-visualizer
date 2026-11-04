@@ -6,7 +6,7 @@ import { stageHandle } from '../../utils/exportImage'
 import { frameCount, renderVideo, type VideoJob } from './exportVideo'
 
 const initial = useAppStore.getState()
-const job: VideoJob = { format: 'mp4', aspect: '9:16', fps: 2, repeat: 1, loopForever: true, quality: 'medium' }
+const job: VideoJob = { format: 'mp4', aspect: '9:16', fps: 2, repeat: 1, loopForever: true, quality: 'medium', scale: 1 }
 
 beforeEach(() => {
   useAppStore.setState(initial, true)

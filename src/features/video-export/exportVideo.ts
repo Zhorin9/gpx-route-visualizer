@@ -17,6 +17,8 @@ export interface VideoJob {
   // GIF: loops forever, or plays once.
   loopForever: boolean
   quality: EncodeQuality
+  // MP4/WebM: 2 doubles the frame, to 4K (2160 px on the short side).
+  scale: 1 | 2
   // PNG only: the design as a card in a corner of the footage's frame, instead of the whole frame.
   inset?: CardInset | null
 }
@@ -30,13 +32,13 @@ export interface VideoProgress {
 }
 
 // GIFs are written at half size: a full-size GIF is huge and gains little on a phone.
-export const outputScale = (format: VideoFormat) => (format === 'gif' ? 0.5 : 1)
+export const outputScale = (job: Pick<VideoJob, 'format' | 'scale'>) => (job.format === 'gif' ? 0.5 : job.scale)
 
 // The file's frame: the design's own, or the footage's that the card is laid on.
 const frameOf = (job: Pick<VideoJob, 'aspect' | 'inset'>) => FORMATS[job.inset?.frame ?? job.aspect]
 
-export function outputSize(job: Pick<VideoJob, 'format' | 'aspect' | 'inset'>) {
-  const scale = outputScale(job.format)
+export function outputSize(job: Pick<VideoJob, 'format' | 'aspect' | 'scale' | 'inset'>) {
+  const scale = outputScale(job)
   return { width: Math.round(frameOf(job).w * scale), height: Math.round(frameOf(job).h * scale) }
 }
 
@@ -109,7 +111,7 @@ export async function renderVideo(
   const duration = animationLength()
   const count = frameCount(job, duration)
   const total = count * playsInFile(job)
-  const scale = outputScale(job.format)
+  const scale = outputScale(job)
   const { width, height } = outputSize(job)
   const frames = await beginStageFrames()
   const sessions: EncodingSession[] = []
@@ -143,7 +145,7 @@ export async function renderVideo(
 
     const blobs = await Promise.all(sessions.map((s) => s.finish()))
     // PNG frames come packed in a ZIP.
-    const names = exportFileNames(job.format === 'png' ? 'zip' : job.format, 1, job.inset?.frame ?? job.aspect, trackName, sessions.length)
+    const names = exportFileNames(job.format === 'png' ? 'zip' : job.format, job.format === 'gif' ? 1 : job.scale, job.inset?.frame ?? job.aspect, trackName, sessions.length)
     return blobs.map((blob, i) => ({ name: names[i], blob }))
   } catch (e) {
     sessions.forEach((s) => s.abort())
