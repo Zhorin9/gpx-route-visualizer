@@ -13,6 +13,7 @@ describe('encoding service contract', () => {
       ['mp4', true, 'ok'],
       ['webm', true, 'ok'],
       ['gif', true, 'ok'],
+      ['png', true, 'ok'],
     ])
   })
 

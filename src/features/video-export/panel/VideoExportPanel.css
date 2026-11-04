@@ -28,6 +28,11 @@
   border: 1px solid var(--border);
 }
 
+/* A card's frame is see-through: shown over a checkerboard, as the editor shows it. */
+.video-thumb.see-through img {
+  background: repeating-conic-gradient(var(--checker-a) 0 25%, var(--checker-b) 0 50%) 0 0 / 8px 8px;
+}
+
 .video-thumb figcaption {
   font-size: 10px;
   text-align: center;

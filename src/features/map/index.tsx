@@ -9,6 +9,8 @@ import MapUnderlay from './canvas/MapUnderlay'
 import { ensureFontLoaded } from '../../utils/fonts'
 import type { AppState } from '../../store/types'
 import { currentMapScene, renderMapImage, type MapScene } from './maplibre'
+import { finishMap } from './model/mood'
+import { FORMATS } from '../../core/formats/registry'
 import { drawSketch } from './sketch/draw'
 import { sketchFrame } from './sketch/frame'
 import { BUILT_IN_STYLES, registerMapStyle } from './model/styles'
@@ -53,9 +55,10 @@ export function registerMap() {
     const scene = currentMapScene()
     const state = useAppStore.getState()
     if (state.collage.bgKind !== 'map' || !scene) return null
-    if (scene.settings.kind === 'sketch') return renderSketchImage(state, scene, scale)
+    const finish = (map: HTMLCanvasElement) => finishMap(map, scene.settings, FORMATS[state.aspectKey].w, scale)
+    if (scene.settings.kind === 'sketch') return finish(await renderSketchImage(state, scene, scale))
     try {
-      return await renderMapImage(scene, width, height, scale)
+      return finish(await renderMapImage(scene, width, height, scale))
     } catch {
       if (window.confirm('Mapa się nie wczytała (brak połączenia?). Zapisać grafikę bez mapy?')) return null
       throw new Error('Mapa się nie wczytała. Sprawdź połączenie i spróbuj ponownie.')

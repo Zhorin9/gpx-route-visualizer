@@ -5,6 +5,7 @@ import SliderField from '../../../components/fields/SliderField'
 import Section from '../../../components/ui/Section'
 import Button from '../../../components/ui/Button'
 import { useAppStore } from '../../../store/useAppStore'
+import { MOODS, moodOf } from '../model/mood'
 import { creditFor, mapStyles, mapStyle, OFM_TERMS, paletteFrom } from '../model/styles'
 import Segmented from '../../../components/ui/Segmented'
 import { selectTrack } from '../../../store/derived'
@@ -96,6 +97,7 @@ export default function MapPanel() {
         )}
         <p className="hint">Mapa leży pod trasą i podąża za jej przesunięciem, obrotem i skalą. Napisy i trasa same dobierają kontrast do mapy.</p>
       </Section>
+      <MoodSection />
       {!sketch && <MapLookSection />}
       <Section title="Źródło mapy">
         <p className="hint">
@@ -104,6 +106,32 @@ export default function MapPanel() {
         <MapCreditFields />
       </Section>
     </>
+  )
+}
+
+// The board's moods in one click, then each part on its own; only the map changes, never the route.
+function MoodSection() {
+  const map = useAppStore((s) => s.map)
+  const updateMap = useAppStore((s) => s.updateMap)
+  const current = moodOf(map)
+  return (
+    <Section title="Nastrój">
+      <Segmented
+        label="Nastrój"
+        value={current ?? ''}
+        options={MOODS.map(({ id, label }) => ({ value: id, label }))}
+        onChange={(id) => {
+          const mood = MOODS.find((m) => m.id === id)?.mood
+          if (mood) updateMap(mood)
+        }}
+      />
+      <SliderField label="Krycie mapy" unit="%" min={10} max={100} step={5} value={Math.round(map.opacity * 100)} defaultValue={100} onChange={(v) => updateMap({ opacity: v / 100 })} />
+      <ColorField label="Kolor pod mapą" value={map.ground} onChange={(ground) => updateMap({ ground })} />
+      <SliderField label="Winieta" unit="%" min={0} max={100} value={Math.round(map.vignette * 100)} defaultValue={0} onChange={(v) => updateMap({ vignette: v / 100 })} />
+      <SliderField label="Sepia" unit="%" min={0} max={100} value={Math.round(map.sepia * 100)} defaultValue={0} onChange={(v) => updateMap({ sepia: v / 100 })} />
+      <SliderField label="Ziarno filmowe" unit="%" min={0} max={40} value={Math.round(map.grain * 100)} defaultValue={0} onChange={(v) => updateMap({ grain: v / 100 })} />
+      <p className="hint">Zmienia tylko mapę: trasa, kropka i napisy zostają w pełnym kolorze. Winieta przyciemnia brzegi do koloru pod mapą.</p>
+    </Section>
   )
 }
 
