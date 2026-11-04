@@ -41,15 +41,17 @@ export function grainCss(s: MapMood, pixel: number): CSSProperties | null {
 }
 
 // The map of a file, as the preview shows it: `slideWidth` in frame pixels, the canvas at `scale`.
-export function finishMap(map: HTMLCanvasElement, s: MapMood, slideWidth: number, scale: number): HTMLCanvasElement {
+export function finishMap(map: HTMLCanvasElement, s: MapMood, slideWidth: number, scale: number, ground = true): HTMLCanvasElement {
   if (s.opacity >= 1 && s.vignette <= 0 && s.sepia <= 0 && s.grain <= 0) return map
   const out = document.createElement('canvas')
   out.width = map.width
   out.height = map.height
   const ctx = out.getContext('2d')
   if (!ctx) return map
-  ctx.fillStyle = s.ground
-  ctx.fillRect(0, 0, out.width, out.height)
+  if (ground) {
+    ctx.fillStyle = s.ground
+    ctx.fillRect(0, 0, out.width, out.height)
+  }
   ctx.globalAlpha = s.opacity
   ctx.filter = s.sepia > 0 ? `sepia(${s.sepia})` : 'none'
   ctx.drawImage(map, 0, 0)

@@ -146,13 +146,15 @@ export function drawSketch(ctx: CanvasRenderingContext2D, f: SketchFrame, scale:
 
   ctx.save()
   ctx.setTransform(scale, 0, 0, scale, 0, 0)
-  ctx.fillStyle = palette.paper
-  ctx.fillRect(0, 0, width, height)
-  // Stains: large, soft, a few per cent.
   ctx.imageSmoothingEnabled = true
   ctx.imageSmoothingQuality = 'high'
-  for (const [cells, alpha] of [[3, 0.06], [10, 0.035]] as const) {
-    ctx.drawImage(noiseTile(seed + cells, palette.ink, Math.ceil((cells * width) / short), Math.ceil((cells * height) / short), alpha), 0, 0, width, height)
+  if (settings.paper) {
+    ctx.fillStyle = palette.paper
+    ctx.fillRect(0, 0, width, height)
+    // Stains: large, soft, a few per cent.
+    for (const [cells, alpha] of [[3, 0.06], [10, 0.035]] as const) {
+      ctx.drawImage(noiseTile(seed + cells, palette.ink, Math.ceil((cells * width) / short), Math.ceil((cells * height) / short), alpha), 0, 0, width, height)
+    }
   }
 
   const strokes = (list: Stroke[]) => {
@@ -239,10 +241,11 @@ export function drawSketch(ctx: CanvasRenderingContext2D, f: SketchFrame, scale:
     ctx.fillText(label.name, x + (right ? 1 : -1) * size * 0.4, y - size * 0.25)
   }
 
-  // Grain over everything, at the canvas's own pixels.
+  // Grain over everything, at the canvas's own pixels; without paper only over the ink.
   ctx.setTransform(1, 0, 0, 1, 0, 0)
   const grain = ctx.createPattern(noiseTile(seed, palette.ink, 256, 256, 0.08), 'repeat')
   if (grain) {
+    if (!settings.paper) ctx.globalCompositeOperation = 'source-atop'
     ctx.fillStyle = grain
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
   }

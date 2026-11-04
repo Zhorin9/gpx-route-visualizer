@@ -56,6 +56,8 @@ export default function MapPanel() {
         <Segmented label="Styl mapy" showLabel value={map.kind} options={KINDS} onChange={(kind) => updateMap({ kind })} />
         {sketch ? (
           <>
+            <CheckboxField label="Papier pod szkicem" checked={map.sketch.paper} onChange={(paper) => updateMap({ sketch: { ...map.sketch, paper } })} />
+            {!map.sketch.paper && <p className="hint">Bez papieru zostają same kreski i nazwy na przezroczystym tle: na przebitkę wybierz w eksporcie wideo „PNG + alfa”.</p>}
             <Segmented label="Woda" showLabel value={map.sketch.water} options={WATERS} onChange={(water) => updateMap({ sketch: { ...map.sketch, water } })} />
             <SliderField
               label="Drżenie"

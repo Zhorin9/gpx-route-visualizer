@@ -11,6 +11,8 @@ export interface MapPalette {
 export interface SketchSettings {
   water: 'hatch' | 'wash'
   roughness: number
+  // Off: only the lines and names, on a see-through frame (for cutaways over footage).
+  paper: boolean
 }
 
 export interface MapSettings {
@@ -43,7 +45,7 @@ export interface MapSettings {
 
 export const DEFAULT_MAP: MapSettings = {
   kind: 'tiles',
-  sketch: { water: 'hatch', roughness: 1 },
+  sketch: { water: 'hatch', roughness: 1, paper: true },
   styleId: 'liberty',
   palette: null,
   dim: 0,
@@ -59,5 +61,8 @@ export const DEFAULT_MAP: MapSettings = {
   creditSize: 12,
   creditColor: null,
 }
+
+// A sketch without its paper lets whatever is under the frame show through.
+export const mapIsSeeThrough = (map: MapSettings) => map.kind === 'sketch' && !map.sketch.paper
 
 export const MAP_CREDIT_KIND = 'mapCredit'
