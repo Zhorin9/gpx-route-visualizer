@@ -58,6 +58,8 @@ export default function MapPanel() {
           <>
             <CheckboxField label="Papier pod szkicem" checked={map.sketch.paper} onChange={(paper) => updateMap({ sketch: { ...map.sketch, paper } })} />
             {!map.sketch.paper && <p className="hint">Bez papieru zostają same kreski i nazwy na przezroczystym tle: na przebitkę wybierz w eksporcie wideo „PNG + alfa”.</p>}
+            <CheckboxField label="Drogi i rzeki" checked={map.sketch.lines} onChange={(lines) => updateMap({ sketch: { ...map.sketch, lines } })} />
+            {!map.sketch.lines && <p className="hint">Zostają miejscowości z kropkami, jeziora i morze.</p>}
             <Segmented label="Woda" showLabel value={map.sketch.water} options={WATERS} onChange={(water) => updateMap({ sketch: { ...map.sketch, water } })} />
             <SliderField
               label="Drżenie"

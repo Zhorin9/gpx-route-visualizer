@@ -17,7 +17,7 @@ export interface VideoJob {
   // GIF: loops forever, or plays once.
   loopForever: boolean
   quality: EncodeQuality
-  // MP4/WebM: 2 doubles the frame, to 4K (2160 px on the short side).
+  // MP4, WebM and PNG: 2 doubles the frame, to 4K (2160 px on the short side).
   scale: 1 | 2
   // PNG only: the design as a card in a corner of the footage's frame, instead of the whole frame.
   inset?: CardInset | null
@@ -92,8 +92,8 @@ export async function renderThumbnails(job: VideoJob, count: number, height: num
   try {
     if (useAppStore.getState().aspectKey !== job.aspect) await frames.useFormat(job.aspect)
     const times = Array.from({ length: count }, (_, i) => (duration * (i + 1)) / count - 0.001)
-    // A card keeps the see-through frame round it.
-    return (await sampleFrames(frames, job, 0, times, height, duration)).map((c) => (job.inset ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', 0.8)))
+    // PNG frames keep their see-through background.
+    return (await sampleFrames(frames, job, 0, times, height, duration)).map((c) => (job.format === 'png' ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', 0.8)))
   } finally {
     frames.end()
   }

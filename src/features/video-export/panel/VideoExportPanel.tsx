@@ -87,7 +87,7 @@ function Thumbnails({ job }: { job: VideoJob }) {
   return (
     <div className="video-thumbs" aria-label="Klatki animacji">
       {thumbs.map((src, i) => (
-        <figure key={i} className={job.inset ? 'video-thumb see-through' : 'video-thumb'}>
+        <figure key={i} className={job.format === 'png' ? 'video-thumb see-through' : 'video-thumb'}>
           <img src={src} alt="" />
           <figcaption>{formatTime((total * (i + 1)) / THUMBS)}</figcaption>
         </figure>
@@ -172,8 +172,6 @@ export default function VideoExportPanel() {
       const next = { ...j, ...patch }
       if (!FPS[next.format].includes(next.fps)) next.fps = FPS[next.format][1]
       if (next.format !== 'png') next.inset = null
-      // 4K is offered for MP4 and WebM only; PNG frames that size would weigh gigabytes.
-      if (next.format === 'png') next.scale = 1
       return next
     })
     setPhase({ kind: 'idle' })
@@ -235,6 +233,19 @@ export default function VideoExportPanel() {
           onChange={(v) => update({ fps: Number(v) })}
           disabled={rendering}
         />
+        {job.format !== 'gif' && (
+          <Segmented
+            label="Rozdzielczość"
+            showLabel
+            value={String(job.scale)}
+            options={([1, 2] as const).map((s) => {
+              const frame = FORMATS[job.inset?.frame ?? job.aspect]
+              return { value: String(s), label: `${frame.w * s}×${frame.h * s}${s === 2 ? ' (4K)' : ''}` }
+            })}
+            onChange={(v) => update({ scale: v === '2' ? 2 : 1 })}
+            disabled={rendering}
+          />
+        )}
         {job.format === 'gif' ? (
           <CheckboxField label="Zapętlaj bez końca" checked={job.loopForever} onChange={(loopForever) => update({ loopForever })} disabled={rendering} />
         ) : job.format === 'png' ? (
@@ -262,14 +273,6 @@ export default function VideoExportPanel() {
           </>
         ) : (
           <>
-            <Segmented
-              label="Rozdzielczość"
-              showLabel
-              value={String(job.scale)}
-              options={[1, 2].map((s) => ({ value: String(s), label: `${FORMATS[job.aspect].w * s}×${FORMATS[job.aspect].h * s}${s === 2 ? ' (4K)' : ''}` }))}
-              onChange={(v) => update({ scale: v === '2' ? 2 : 1 })}
-              disabled={rendering}
-            />
             <Segmented label="Jakość" showLabel value={job.quality} options={QUALITY_OPTIONS} onChange={(quality) => update({ quality })} disabled={rendering} />
             <Segmented label="Powtórz w pliku" showLabel value={String(job.repeat)} options={REPEAT_OPTIONS} onChange={(v) => update({ repeat: Number(v) })} disabled={rendering} />
           </>
