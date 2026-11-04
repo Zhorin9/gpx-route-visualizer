@@ -13,6 +13,8 @@ export interface SketchSettings {
   roughness: number
   // Off: only the lines and names, on a see-through frame (for cutaways over footage).
   paper: boolean
+  // Off: no roads or rivers; lakes, the sea and the places stay.
+  lines: boolean
 }
 
 export interface MapSettings {
@@ -45,7 +47,7 @@ export interface MapSettings {
 
 export const DEFAULT_MAP: MapSettings = {
   kind: 'tiles',
-  sketch: { water: 'hatch', roughness: 1, paper: true },
+  sketch: { water: 'hatch', roughness: 1, paper: true, lines: true },
   styleId: 'liberty',
   palette: null,
   dim: 0,

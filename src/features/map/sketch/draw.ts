@@ -47,7 +47,7 @@ interface Stroke {
 
 // D3: every line as pen strokes, in the route's pixels. Each object's seed is its own
 // (seed + layer × 1000 + index), so one changed feature leaves the others as they were.
-const inked = memoOne((shape: SketchShape | null, ends: [Pt, Pt] | null, seed: number, roughness: number, short: number) => {
+const inked = memoOne((shape: SketchShape | null, ends: [Pt, Pt] | null, seed: number, roughness: number, short: number, lines: boolean) => {
   const amp = short * 0.004 * roughness
   const step = short * 0.006
   const S = (layer: number, i: number) => seed + layer * 1000 + i
@@ -73,8 +73,10 @@ const inked = memoOne((shape: SketchShape | null, ends: [Pt, Pt] | null, seed: n
   const ripples: Stroke[] = []
   const washed: Pt[][] = []
   if (shape) {
-    shape.roads.forEach((l, i) => pen(l, S(4, i), amp, short * 0.003, 'ink', 0.55, true))
-    shape.rivers.forEach((l, i) => pen(l, S(2, i), amp, short * 0.0035, 'water'))
+    if (lines) {
+      shape.roads.forEach((l, i) => pen(l, S(4, i), amp, short * 0.003, 'ink', 0.55, true))
+      shape.rivers.forEach((l, i) => pen(l, S(2, i), amp, short * 0.0035, 'water'))
+    }
     shape.shores.forEach((l, i) => {
       pen(l, S(1, i), amp, short * 0.0045, 'ink')
       ;[0.02, 0.04].forEach((o, k) =>
@@ -139,7 +141,7 @@ function trace(ctx: CanvasRenderingContext2D, pts: Pt[], close = false) {
 // D4: the whole sketch on a canvas `scale` times the frame's pixels.
 export function drawSketch(ctx: CanvasRenderingContext2D, f: SketchFrame, scale: number) {
   const { shape, transform: t, width, height, short, palette, settings, seed } = f
-  const ink = inked(shape, f.ends, seed, settings.roughness, short)
+  const ink = inked(shape, f.ends, seed, settings.roughness, short, settings.lines)
   const colorOf = (c: Stroke['color']) => (c === 'ink' ? palette.ink : palette.water)
   // Widths are on the page; the view's scale is taken back out of them.
   const k = Math.abs(t.scaleX) || 1
