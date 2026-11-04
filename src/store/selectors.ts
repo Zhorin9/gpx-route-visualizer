@@ -1,5 +1,6 @@
 import { FORMATS, bottomInset } from '../core/formats/registry'
 import { profileBand } from '../features/elevation-profile/types'
+import { mapIsSeeThrough } from '../features/map/types'
 import { manualFlags } from '../utils/reflow'
 import { slideBox } from '../utils/wrappers'
 import { computeSlots, hasVisiblePhotos, isPanorama, layoutDef, photoCoversFrame, ribbonSlot } from '../utils/layouts'
@@ -73,9 +74,9 @@ export function usePhotoBackground() {
   })
 }
 
-// Anything opaque under the route: photos or a gradient. Otherwise the export is transparent.
+// Anything opaque under the route: photos, a gradient or a map. Otherwise the export is transparent.
 export function useHasBackground() {
-  return useAppStore((s) => s.collage.bgKind !== 'transparent' || hasVisiblePhotos(s.slides, s.carouselKind))
+  return useAppStore((s) => (s.collage.bgKind !== 'transparent' && !(s.collage.bgKind === 'map' && mapIsSeeThrough(s.map))) || hasVisiblePhotos(s.slides, s.carouselKind))
 }
 
 // What was placed by hand in the current format (nothing in the source format).

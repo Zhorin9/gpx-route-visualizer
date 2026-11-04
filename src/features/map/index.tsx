@@ -15,7 +15,7 @@ import { drawSketch } from './sketch/draw'
 import { sketchFrame } from './sketch/frame'
 import { BUILT_IN_STYLES, registerMapStyle } from './model/styles'
 import MapPanel, { MapCreditFields } from './panel/MapPanel'
-import { MAP_CREDIT_KIND } from './types'
+import { MAP_CREDIT_KIND, mapIsSeeThrough } from './types'
 import './map.css'
 
 const useMapShown = () => useAppStore((s) => s.collage.bgKind === 'map')
@@ -55,7 +55,7 @@ export function registerMap() {
     const scene = currentMapScene()
     const state = useAppStore.getState()
     if (state.collage.bgKind !== 'map' || !scene) return null
-    const finish = (map: HTMLCanvasElement) => finishMap(map, scene.settings, FORMATS[state.aspectKey].w, scale)
+    const finish = (map: HTMLCanvasElement) => finishMap(map, scene.settings, FORMATS[state.aspectKey].w, scale, !mapIsSeeThrough(scene.settings))
     if (scene.settings.kind === 'sketch') return finish(await renderSketchImage(state, scene, scale))
     try {
       return finish(await renderMapImage(scene, width, height, scale))

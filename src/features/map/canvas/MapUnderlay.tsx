@@ -13,6 +13,7 @@ import { buildStyle, mapFilter } from '../model/styles'
 import { drawSketch } from '../sketch/draw'
 import { sketchFrame } from '../sketch/frame'
 import { drawnTone } from '../store'
+import { mapIsSeeThrough } from '../types'
 
 // The live map under the frame in the editor. It follows the route as drawn (moved, turned,
 // scaled, and the camera of the animation) and tells the export what it shows.
@@ -138,7 +139,7 @@ export default function MapUnderlay({ previewScale }: { previewScale: number }) 
   const grain = grainCss(map, previewScale)
   // The mood wraps the map always, so turning it on doesn't rebuild the map under it.
   return (
-    <div className="map-underlay" style={{ width: w * slideCount * previewScale, height: h * previewScale, background: map.ground }} aria-hidden="true">
+    <div className="map-underlay" style={{ width: w * slideCount * previewScale, height: h * previewScale, background: mapIsSeeThrough(map) ? undefined : map.ground }} aria-hidden="true">
       <div className="map-mood" style={{ opacity: map.opacity, filter: map.sepia > 0 ? `sepia(${map.sepia})` : undefined }}>
         {map.kind === 'sketch' ? <SketchMap previewScale={previewScale} /> : <LiveMap previewScale={previewScale} />}
       </div>
