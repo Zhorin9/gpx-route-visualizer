@@ -3,7 +3,7 @@ import { useDayBreaks, useHasPhotos, useHasRoute, useTrackCumKm } from '../../st
 import { useAppStore } from '../../store/useAppStore'
 import { headFor } from './model/pacing'
 import { tripSchedule } from './model/schedule'
-import { clamp01, clipProgress, layerAt, photoAt } from './model/timeline'
+import { clipProgress, layerAt, photoAt, pointOpacity } from './model/timeline'
 import { usePlayback } from './playback'
 import { selectRouteParts, selectTrack } from '../../store/derived'
 
@@ -60,8 +60,7 @@ export function useAnimatedPoint(trackPos: number): LayerState {
   const layer = useAnimatedLayer('waypoints')
   if (head == null) return STATIC_LAYER
   if (!sync) return layer
-  const fade = Math.max(1, (range.end - range.start) * POINT_FADE_SHARE)
-  const opacity = clamp01((head - trackPos) / fade)
+  const opacity = pointOpacity(head, trackPos, range, POINT_FADE_SHARE)
   return opacity >= 1 ? STATIC_LAYER : { opacity, offsetY: 0 }
 }
 
