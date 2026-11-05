@@ -7,27 +7,23 @@ export interface BuildContext {
   profile?: string
   options?: readonly RouteOption[]
   signal: AbortSignal
-  // Id of the chosen route service; the default when absent.
+  // Absent: the default service.
   router?: string
 }
 
-// A way of travelling a leg: how its line is made and how it looks by default.
 export interface TravelMode {
   id: TravelModeId
   label: string
-  // Default marker at the head of the animated line.
   vehicle: VehicleId
   line: { dashed: boolean }
-  // The shapes a leg can take, the default first.
+  // The default first.
   lines: LineKind[]
   // For estimated times when the line comes without them.
   avgSpeedKmh: number
   // Heights in the points are the ground's, so climbing counts.
   groundElevation: boolean
   profiles?: { id: RouteProfile; label: string }[]
-  // What a leg of this mode can keep away from (motorways, tolls), as switches in the panel.
   options?: { id: RouteOption; label: string }[]
-  // Needs the route service, so the network.
   online: boolean
   build: (stops: Stop[], ctx: BuildContext) => Promise<GpxPoint[]>
 }
@@ -46,8 +42,7 @@ const routed =
     }
   }
 
-// Rails, from the station nearest each stop (a town's centre is rarely on the tracks). The rail
-// profile's own times are a cyclist's, so the train's are estimated from its average speed.
+// From the stations nearest the stops; the rail profile's times are a cyclist's, so the train's are estimated.
 async function byRail(stops: Stop[], ctx: BuildContext): Promise<GpxPoint[]> {
   const stations = await Promise.all(
     stops.map(async (stop) => {
@@ -148,11 +143,8 @@ export const LINE_LABELS: Record<LineKind, string> = { road: 'po drodze', straig
 
 export const lineOf = (plan: Pick<TravelPlan, 'mode' | 'line'>): LineKind => plan.line ?? travelMode(plan.mode).lines[0]
 
-// Heights come from the ground only for a line along roads or rails.
 export const onGround = (plan: Pick<TravelPlan, 'mode' | 'line'>) => travelMode(plan.mode).groundElevation && lineOf(plan) === 'road'
 
-// The leg's line with times from `start`: the service's own estimate, else an even speed for the mode.
-// A straight line or an arc needs no network; only a line along roads asks the mode's service.
 export async function buildLeg(plan: TravelPlan, ctx: BuildContext, start: number): Promise<GpxPoint[]> {
   const mode = travelMode(plan.mode)
   const line = lineOf(plan)

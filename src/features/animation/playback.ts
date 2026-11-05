@@ -3,17 +3,14 @@ import { useAppStore } from '../../store/useAppStore'
 import { selectDuration } from './model/timeline'
 import { clamp } from '../../utils/math'
 
-// The animation's clock. Not part of the document: playing never adds an undo step
-// and nothing of it is saved.
+// Not part of the document: playing adds no undo step and nothing of it is saved.
 export interface PlaybackState {
   t: number
   playing: boolean
-  // The frame shows the animation at `t` (playing, paused or scrubbed);
-  // false = the ordinary static editor view.
+  // false: the static editor view.
   previewing: boolean
   play: () => void
   pause: () => void
-  // Back to the static view.
   stop: () => void
   seek: (t: number) => void
 }

@@ -35,7 +35,6 @@ export function MapCreditFields() {
   )
 }
 
-// Settings of the map background, under the "Rodzaj tła" switch.
 export default function MapPanel() {
   const map = useAppStore((s) => s.map)
   const gradient = useAppStore((s) => s.collage.gradient)
@@ -113,7 +112,6 @@ export default function MapPanel() {
   )
 }
 
-// The board's moods in one click, then each part on its own; only the map changes, never the route.
 function MoodSection() {
   const map = useAppStore((s) => s.map)
   const updateMap = useAppStore((s) => s.updateMap)

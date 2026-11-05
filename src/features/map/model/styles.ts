@@ -2,16 +2,12 @@ import { mixHex, toneOf, type Tone } from '../../../utils/color'
 import type { GradientStyle } from '../../../types'
 import type { MapPalette, MapSettings } from '../types'
 
-// A map style the background can use. A new source is a new entry and a registration.
 export interface MapStyleDef {
   id: string
   label: string
-  // Style JSON in the OpenMapTiles layout, so a template's palette can repaint it; or for an image map
-  // (satellite) the style itself, which no palette repaints.
+  // A URL of an OpenMapTiles style a palette repaints, or an image style (satellite) none does.
   url: string | StyleJson
-  // Whether the style is light or dark, for the contrast of text and route on it.
   tone: Tone
-  // Credit that must stay on the exported image.
   credit: string
   // Terms of use, reviewed if the app ever stops being free.
   terms: string
@@ -68,10 +64,8 @@ export const BUILT_IN_STYLES: MapStyleDef[] = [
 
 // Terrain shading from elevation tiles in the Terrarium encoding (AWS open data, no key).
 const TERRARIUM = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'
-export const HILLSHADE_CREDIT = 'teren: Mapzen Terrarium'
+const HILLSHADE_CREDIT = 'teren: Mapzen Terrarium'
 
-// A palette from the template's own colours: the background becomes the land, the text the labels,
-// water and greenery are the land tinted towards blue and green.
 export function paletteFrom(gradient: Pick<GradientStyle, 'from' | 'to'>, textColor: string): MapPalette {
   const land = mixHex(gradient.from, gradient.to)
   const dark = toneOf(land) === 'dark'
@@ -84,7 +78,6 @@ export function paletteFrom(gradient: Pick<GradientStyle, 'from' | 'to'>, textCo
   }
 }
 
-// Style JSON as MapLibre takes it; kept loose, it is only read and repainted here.
 export interface StyleJson {
   version: 8
   sources: Record<string, unknown>
@@ -116,7 +109,6 @@ function fetchStyle(url: string): Promise<StyleJson> {
   return style
 }
 
-// Which palette colour each kind of feature takes, by OpenMapTiles layer.
 function repaint(layer: LayerJson, p: MapPalette): LayerJson | null {
   const from = layer['source-layer'] ?? ''
   const paint = { ...layer.paint }
@@ -148,8 +140,7 @@ function repaint(layer: LayerJson, p: MapPalette): LayerJson | null {
   return { ...layer, paint }
 }
 
-// OpenFreeMap styles label in English (name_en); the tiles also carry Polish names, so places read
-// as on a Polish map (Morze Bałtyckie, Kolonia), falling back to the local name. Road numbers stay.
+// OpenFreeMap labels in English; the tiles also carry Polish names, so prefer those, then the local name.
 const POLISH_NAME = ['coalesce', ['get', 'name:pl'], ['get', 'name:latin'], ['get', 'name']]
 
 function inPolish(layer: LayerJson): LayerJson {
@@ -158,7 +149,6 @@ function inPolish(layer: LayerJson): LayerJson {
   return { ...layer, layout: { ...layer.layout, 'text-field': POLISH_NAME } }
 }
 
-// The style to draw: repainted in the palette, labels in Polish and terrain shading as set.
 export async function buildStyle(settings: Pick<MapSettings, 'styleId' | 'palette' | 'labels' | 'hillshade'>): Promise<StyleJson> {
   const { url } = mapStyle(settings.styleId)
   const base = typeof url === 'string' ? await fetchStyle(url) : url
@@ -187,7 +177,6 @@ export async function buildStyle(settings: Pick<MapSettings, 'styleId' | 'palett
   return { ...base, sources, layers }
 }
 
-// The credit the frame must show for these settings.
 export function creditFor(settings: Pick<MapSettings, 'styleId' | 'hillshade'> & Partial<Pick<MapSettings, 'kind'>>): string {
   // The sketch is drawn from OpenFreeMap's tiles too.
   if (settings.kind === 'sketch') return OFM_CREDIT
@@ -195,10 +184,9 @@ export function creditFor(settings: Pick<MapSettings, 'styleId' | 'hillshade'> &
   return settings.hillshade ? `${credit}, ${HILLSHADE_CREDIT}` : credit
 }
 
-// CSS filter for the settings' dimming, saturation and blur; `pixel` turns frame pixels into the target's.
-export function mapFilter(settings: Pick<MapSettings, 'dim' | 'saturation' | 'blur'>, pixel = 1): string {
+export function mapFilter(settings: Pick<MapSettings, 'dim' | 'saturation' | 'blur'>, pixelScale = 1): string {
   const parts: string[] = []
   if (settings.saturation !== 1) parts.push(`saturate(${settings.saturation})`)
-  if (settings.blur > 0) parts.push(`blur(${settings.blur * pixel}px)`)
+  if (settings.blur > 0) parts.push(`blur(${settings.blur * pixelScale}px)`)
   return parts.join(' ') || 'none'
 }

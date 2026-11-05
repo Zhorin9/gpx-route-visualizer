@@ -4,8 +4,6 @@ import { mercatorX, mercatorY } from '../../../utils/gpx'
 import type { GpxPoint } from '../../../types'
 import { clamp } from '../../../utils/math'
 
-// What the sketch is drawn from, fetched once per route from the same vector tiles as the
-// ordinary map (OpenFreeMap): plain features in longitude/latitude.
 export type LonLat = [number, number]
 
 export interface SketchPlace {
@@ -20,8 +18,7 @@ export interface SketchPlace {
 export interface SketchLayers {
   // South, west, north, east: the route's area.
   bbox: [number, number, number, number]
-  // Sea, lakes and wide rivers. Rings turn as in the tiles (holes the other way), so they fill
-  // under the nonzero rule; `shores` are their edges without the seams where tiles are cut.
+  // Rings wind as in the tiles, so they fill under nonzero; `shores` skip the seams where tiles are cut.
   water: { ring: LonLat[]; shores: LonLat[][] }[]
   rivers: LonLat[][]
   roads: LonLat[][]
@@ -40,7 +37,6 @@ const PLACES = new Set(['city', 'town', 'village'])
 const toLat = (y: number) => (Math.atan(Math.sinh(Math.PI * (1 - 2 * y))) * 180) / Math.PI
 const toLon = (x: number) => x * 360 - 180
 
-// The route's area with a margin, widened to a slide's proportions.
 export function sketchBbox(points: GpxPoint[]): [number, number, number, number] {
   let x0 = Infinity
   let x1 = -Infinity
@@ -63,8 +59,7 @@ export function sketchBbox(points: GpxPoint[]): [number, number, number, number]
   return [toLat(cy + h / 2), toLon(cx - w / 2), toLat(cy - h / 2), toLon(cx + w / 2)]
 }
 
-// The tiles covering the area at a zoom where a tile is about half its size: at most 3 × 3,
-// detailed enough for villages on a day's ride and for cities across a country.
+// Zoom where a tile is about half the area (at most 3 × 3): villages on a day's ride, cities across a country.
 export function sketchTiles([s, w, n, e]: SketchLayers['bbox']): { z: number; x: number; y: number }[] {
   const x0 = mercatorX(w)
   const x1 = mercatorX(e)
@@ -87,7 +82,6 @@ export interface TileLayers {
   layers: Record<string, { length: number; extent: number; feature: (i: number) => { type: number; properties: Record<string, unknown>; loadGeometry: () => TilePoint[][] } }>
 }
 
-// Adds a tile's features to the layers. Places on two tiles are kept once.
 export function readTile(tile: TileLayers, { z, x, y }: { z: number; x: number; y: number }, into: SketchLayers) {
   const each = (name: string, fn: (props: Record<string, unknown>, geometry: TilePoint[][], extent: number) => void) => {
     const layer = tile.layers[name]
@@ -139,7 +133,6 @@ export function readTile(tile: TileLayers, { z, x, y }: { z: number; x: number; 
 
 let tileUrl: Promise<string> | null = null
 
-// Once per route. Throws when the tiles can't be loaded (no network).
 export async function fetchSketchLayers(points: GpxPoint[]): Promise<SketchLayers> {
   const bbox = sketchBbox(points)
   tileUrl ??= fetch(TILEJSON)

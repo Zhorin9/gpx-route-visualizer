@@ -15,8 +15,7 @@ export interface WaypointLabelProps {
   anchor: Point2D
 }
 
-// Lives outside the route group on purpose: rotating or scaling the route
-// moves the label with it, but the text itself stays upright and legible.
+// Outside the route group, so the label moves with the route but its text stays upright.
 export default function WaypointLabel({ waypoint, anchor }: WaypointLabelProps) {
   const photo = useAppStore((s) => s.photos.find((p) => p.id === waypoint.photoId))
   const pointStyle = useAppStore((s) => s.pointStyle)

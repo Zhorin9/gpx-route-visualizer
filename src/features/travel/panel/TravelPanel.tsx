@@ -33,7 +33,6 @@ function formatSpan(ms: number): string {
 
 const seconds = (value: number) => `${String(value).replace('.', ',')} s`
 
-// Seconds in half steps between the given limits.
 function SecondsField({ label, value, min, max, onChange }: { label: string; value: number; min: number; max: number; onChange: (v: number) => void }) {
   return (
     <div className="seconds-field">
@@ -63,7 +62,6 @@ function ModeGrid({ value, onChange }: { value: TravelModeId; onChange: (id: Tra
   )
 }
 
-// The leg's way of travelling, the shape of its line and the time it takes to draw.
 function LegBox({ index, journey, change }: { index: number; journey: Journey; change: (j: Journey, label: string) => void }) {
   const leg = journey.legs[index]
   const plan = legPlans(journey)[index]
@@ -125,7 +123,6 @@ function LegBox({ index, journey, change }: { index: number; journey: Journey; c
   )
 }
 
-// A stop's name, its rest in the animation and its removal.
 function StopBox({ stop, index, last, journey, change }: { stop: Stop; index: number; last: boolean; journey: Journey; change: (j: Journey, label: string) => void }) {
   const pause = stop.pause ?? (last ? 0 : DEFAULT_PAUSE_S)
   return (
@@ -140,7 +137,6 @@ function StopBox({ stop, index, last, journey, change }: { stop: Stop; index: nu
   )
 }
 
-// While the trip has one stop: how the leg to the next one will be travelled.
 function NextLegBox() {
   const nextMode = useAppStore((s) => s.nextMode)
   const setNextMode = useAppStore((s) => s.setNextMode)
@@ -152,7 +148,6 @@ function NextLegBox() {
   )
 }
 
-// Route options of the selected leg (tolls, the bike's kind), where the trip sits next to GPX files, the file.
 function Advanced({ journey, change, legIndex, planned, cum }: { journey: Journey; change: (j: Journey, label: string) => void; legIndex: number | null; planned: RoutePart[]; cum: Float64Array | null }) {
   const setJourney = useAppStore((s) => s.setJourney)
   const parts = useAppStore(selectRouteParts)

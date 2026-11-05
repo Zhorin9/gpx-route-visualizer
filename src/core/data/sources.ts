@@ -4,8 +4,7 @@ import { windowMean, windowSlope } from './smoothing'
 import type { GpxTrack } from '../../types'
 import { clamp } from '../../utils/math'
 
-// A value along the route, one per track point: what the route can be coloured by and
-// what the elevation chart draws. Consumers get a plain array and never see how it was made.
+// One value per track point, for route colouring and the elevation chart.
 export interface DataSource {
   id: DataSourceId
   label: string
@@ -29,7 +28,7 @@ const MAX_GRADE = 40
 const hasElevation = (t: GpxTrack) => t.points.some((p) => p.ele !== 0)
 const hasTime = (t: GpxTrack) => t.points.filter((p) => p.time != null).length >= 2
 
-export function smoothedElevation(track: GpxTrack, cumKm: Float64Array): Float32Array {
+function smoothedElevation(track: GpxTrack, cumKm: Float64Array): Float32Array {
   return windowMean(
     track.points.map((p) => p.ele),
     cumKm,
@@ -50,7 +49,7 @@ function timeAxis(track: GpxTrack): Float64Array {
   return axis
 }
 
-export const elevationSource: DataSource = {
+const elevationSource: DataSource = {
   id: 'elevation',
   label: 'Wysokość',
   unit: heightUnit,
@@ -88,7 +87,7 @@ export const speedSource: DataSource = {
   },
 }
 
-export const heartRateSource: DataSource = {
+const heartRateSource: DataSource = {
   id: 'heartRate',
   label: 'Tętno',
   unit: () => 'bpm',

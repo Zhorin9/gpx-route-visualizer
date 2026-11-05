@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { computeRangeStats, cumulativeDistanceKm, elevationGain, flatBounds, movingDurationMs, parseGpxText, projectPointsToCanvas, splitIntoDays } from './gpx'
+import { computeRangeStats, cumulativeDistanceKm, elevationGain, flatBounds, fitMercator, movingDurationMs, parseGpxText, projectWithFit, splitIntoDays } from './gpx'
 import type { GpxPoint } from '../types'
 
 const gpx = (body: string) => `<?xml version="1.0"?><gpx xmlns="http://www.topografix.com/GPX/1/1">${body}</gpx>`
@@ -124,7 +124,7 @@ describe('splitIntoDays', () => {
 describe('projection', () => {
   it('fits the track inside the padded box without overflowing on large tracks', () => {
     const points = Array.from({ length: 200_000 }, (_, i) => pt(0, null, 50 + i * 1e-6, 15 + i * 1e-6))
-    const flat = projectPointsToCanvas(points, 1080, 1920, 80)
+    const flat = projectWithFit(points, fitMercator(points, 1080, 1920, 80))
     const b = flatBounds(flat)
     expect(b.minX).toBeGreaterThanOrEqual(80 - 1e-6)
     expect(b.maxX).toBeLessThanOrEqual(1000 + 1e-6)

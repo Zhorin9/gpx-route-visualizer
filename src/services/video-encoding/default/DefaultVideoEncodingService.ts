@@ -2,9 +2,7 @@ import { EncodingUnsupportedError, type EncodeOptions, type EncodingSession, typ
 import type { VideoCodecId } from '../ports'
 import { WebCodecsFrameEncoder, targetBitrate } from './WebCodecsFrameEncoder'
 
-// Browser encoding: WebCodecs for MP4 (H.264) and WebM (VP9) packed by Mediabunny, gifenc for GIF,
-// the canvas's own PNG for frame sequences.
-// The packages are loaded on first use, so they don't weigh on the editor's start-up.
+// Packages load on first use, so they don't weigh on the editor's start-up.
 
 const CODECS: Record<Exclude<VideoFormat, 'gif' | 'png'>, VideoCodecId> = { mp4: 'avc', webm: 'vp9' }
 

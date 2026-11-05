@@ -22,8 +22,6 @@ function arrangeInColumn(input: ArrangeInput) {
   return overflow > 1 ? arrange({ ...input, style: { ...input.style, fontSize: Math.floor(input.style.fontSize / overflow) } }) : box
 }
 
-// Draws whatever box the chosen arrangement computes; dragging the box moves the
-// whole header, dragging a chip in the one-line arrangement stores its own offset.
 export default function StatsHeaderNode() {
   const chips = useStatsChips()
   const style = useAppStore((s) => s.statsStyle)

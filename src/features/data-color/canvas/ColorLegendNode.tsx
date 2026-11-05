@@ -15,7 +15,6 @@ const BAR_H = 16
 const LABEL = 22
 const GAP = 10
 
-// Gradient bar with what the colours mean, in the stats header's font and colour.
 export default function ColorLegendNode() {
   const active = useActiveDataColor()
   const aspectKey = useAppStore((s) => s.aspectKey)

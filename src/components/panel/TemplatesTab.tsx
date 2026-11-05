@@ -35,7 +35,6 @@ const ROUTE_PATH = 'M8 90 C14 60 32 70 38 46 S60 38 66 22 S86 14 92 8'
 // Route widths are set for a 1080 px frame; the card is a fifth of that.
 const THUMB_SCALE = 0.45
 
-// The background as CSS, with its pattern in the text colour.
 function thumbBackground({ gradient, textColor }: StyleTemplate) {
   const base = `linear-gradient(${gradient.angle}deg, ${gradient.from}, ${gradient.to})`
   const ink = (share: number) => `color-mix(in srgb, ${textColor} ${share}%, transparent)`
@@ -44,7 +43,6 @@ function thumbBackground({ gradient, textColor }: StyleTemplate) {
   return base
 }
 
-// Drawn in the open format's proportions; a landscape card puts the text in a side column.
 function TemplateThumb({ template }: { template: StyleTemplate }) {
   const { w, h } = useAppStore((s) => FORMATS[s.aspectKey])
   const { route, textColor, fonts } = template

@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 
-// A system state (empty, error, done): an icon, a title, one sentence and the action that moves on.
 export default function StatusCard({
   icon,
   title,

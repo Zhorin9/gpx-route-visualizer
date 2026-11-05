@@ -6,9 +6,7 @@ export interface EditOptions {
   onCommit: (value: string) => void
 }
 
-// Double-click a Konva.Text to edit it in place: overlays a <textarea>
-// matching the node's font, position and rotation. Enter starts a new line,
-// Ctrl+Enter or clicking away commits, Escape cancels.
+// Enter starts a new line, Ctrl+Enter or clicking away commits, Escape cancels.
 export default function useInlineTextEditor() {
   const [hidden, setHidden] = useState(false)
 

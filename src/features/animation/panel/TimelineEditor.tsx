@@ -73,7 +73,6 @@ function TimelineTrack({ track, scale }: { track: AnimationTrackId; scale: numbe
   )
 }
 
-// One bar per kind of content the mode has: when it starts and how long it takes to appear.
 export default function TimelineEditor() {
   const t = usePlayback((s) => s.t)
   const previewing = usePlayback((s) => s.previewing)

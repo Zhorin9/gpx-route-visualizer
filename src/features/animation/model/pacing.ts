@@ -16,11 +16,9 @@ export interface PacingContext {
   schedule?: ScheduleStep[] | null
 }
 
-// How the line's progress (0-1 of its time) maps to a place on the track.
 export interface PacingStrategy {
   id: PacingId
   label: string
-  // Fractional track index the line has reached.
   headAt: (progress: number, ctx: PacingContext) => number
   // Why the strategy falls back to even pacing for this track, if it does.
   unavailable?: (track: GpxTrack) => string | null
@@ -41,7 +39,7 @@ export const easedPacing: PacingStrategy = {
   headAt: (p, ctx) => byDistance(easeInOut(p), ctx),
 }
 
-// Moving time elapsed at each point of the range: stops and nights add nothing.
+// Stops and nights add nothing.
 const movingClock = memoOne((track: GpxTrack, cumKm: Float64Array, range: RouteRange, breaks: readonly number[]): Float64Array | null => {
   const n = range.end - range.start + 1
   const clock = new Float64Array(n)
@@ -78,8 +76,7 @@ export function pacingFor(id: PacingId): PacingStrategy {
   return PACINGS.find((s) => s.id === id) ?? easedPacing
 }
 
-// Where the head is at `progress` of the line's bar. A planned trip over its whole length follows its
-// legs' own times and rests, eased leg by leg with the eased pacing; anything else, the pacing alone.
+// A planned trip over its whole length follows its legs' own times and rests; anything else, the pacing alone.
 export function headFor(id: PacingId, progress: number, ctx: PacingContext): number {
   const whole = ctx.range.start === 0 && ctx.range.end === ctx.track.points.length - 1
   if (ctx.schedule && whole) return scheduleHead(ctx.schedule, progress, ctx.cumKm, id === 'eased' ? easeInOut : (f) => f)

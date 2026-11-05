@@ -5,7 +5,6 @@ export interface TextFieldProps {
   value: string
   onChange: (value: string) => void
   placeholder?: string
-  // Lets Enter start a new line.
   multiline?: boolean
 }
 

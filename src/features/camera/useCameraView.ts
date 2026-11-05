@@ -9,8 +9,7 @@ import { tripSchedule } from '../animation/model/schedule'
 import { clipProgress } from '../animation/model/timeline'
 import { cameraFor } from './model/camera'
 
-// What the camera shows at the current moment of the animation; null in the static view,
-// while the editor shows no animation, and in a carousel, where the route crosses slide borders.
+// Also null in a carousel, where the route crosses slide borders.
 export function useCameraView(): CameraView | null {
   const settings = useAppStore((s) => s.camera)
   const animation = useAppStore((s) => s.animation)

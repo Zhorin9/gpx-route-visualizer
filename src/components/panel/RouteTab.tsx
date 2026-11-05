@@ -13,7 +13,8 @@ import { panelSections } from '../../core/panel/registry'
 import RangeTab from './RangeTab'
 import StyleTab from './StyleTab'
 import PlaceEditor from './PlaceEditor'
-import useGpxImport from '../../hooks/useGpxImport'
+import ElementRow from './ElementRow'
+import useGpxImport, { GPX_ACCEPT } from '../../hooks/useGpxImport'
 import { useHasRoute, useTrackCumKm } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { formatKm } from '../../utils/format'
@@ -36,7 +37,6 @@ const LINE_OPTIONS: SelectOption<'solid' | 'dashed'>[] = [
   { value: 'dashed', label: 'Kreskowana' },
 ]
 
-// Before there is a route the tab is only this; a file that failed to load says why instead.
 function RouteEmpty() {
   const gpxError = useAppStore((s) => s.gpxError)
   const setSubTab = useAppStore((s) => s.setSubTab)
@@ -48,7 +48,7 @@ function RouteEmpty() {
       title="Dodaj trasę"
       actions={
         <>
-          <FileButton accept=".gpx,application/gpx+xml" onFiles={importFiles} variant="primary">
+          <FileButton accept={GPX_ACCEPT} onFiles={importFiles} variant="primary">
             Wgraj plik
           </FileButton>
           <Button onClick={() => setSubTab('route', TRIP_PAGE)}>Zaplanuj podróż</Button>
@@ -60,13 +60,12 @@ function RouteEmpty() {
   )
 }
 
-// Loads a GPX file in place of the current route (or the first one).
 function GpxFileButton() {
   const gpxError = useAppStore((s) => s.gpxError)
   const { importFiles } = useGpxImport()
   return (
     <>
-      <FileButton accept=".gpx,application/gpx+xml" onFiles={importFiles} icon={<IconUpload />} block>
+      <FileButton accept={GPX_ACCEPT} onFiles={importFiles} icon={<IconUpload />} block>
         Zmień plik GPX
       </FileButton>
       {gpxError && (
@@ -129,7 +128,7 @@ function RoutesSection() {
       </div>
       <GpxFileButton />
       <FileButton
-        accept=".gpx,application/gpx+xml"
+        accept={GPX_ACCEPT}
         multiple
         icon={<IconUpload />}
         block
@@ -181,18 +180,14 @@ function PoiSection() {
       {waypoints.length > 0 && (
         <div className="item-list" role="listbox" aria-label="Punkty zainteresowania">
           {waypoints.map((w) => (
-            <button
+            <ElementRow
               key={w.id}
-              type="button"
-              role="option"
-              aria-selected={w.id === selected?.id}
-              className={w.id === selected?.id ? 'item-list-item element-row active' : 'item-list-item element-row'}
+              icon={<KindIcon kind={w.kind} />}
+              label={w.text || '(pusty)'}
+              meta={cum ? `km ${Math.round(cum[Math.min(cum.length - 1, Math.round(w.trackPos))])}` : ''}
+              active={w.id === selected?.id}
               onClick={() => select({ kind: 'waypoint', id: w.id })}
-            >
-              <KindIcon kind={w.kind} />
-              <span className="element-row-label">{w.text || '(pusty)'}</span>
-              <span className="element-row-meta">{cum ? `km ${Math.round(cum[Math.min(cum.length - 1, Math.round(w.trackPos))])}` : ''}</span>
-            </button>
+            />
           ))}
         </div>
       )}
@@ -203,7 +198,6 @@ function PoiSection() {
   )
 }
 
-// Trasa → Linia: the route itself — files and days, markers, places, range and line style.
 function RouteLinePage() {
   const selection = useAppStore((s) => s.selection)
   return (

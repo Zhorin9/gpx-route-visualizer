@@ -6,7 +6,7 @@ import { slideKind, slidePlace } from '../utils/series'
 import SlideBox from './SlideBox'
 import type { Slide } from '../types'
 
-// Draws a slide straight on the stage's canvas, so files at 2× stay sharp.
+// Drawn straight on the stage's canvas, so files at 2× stay sharp.
 function SlideShape({ index, x, draw }: { index: number; x: number; draw: (ctx: CanvasRenderingContext2D) => void }) {
   return (
     <SlideBox slide={index}>
@@ -17,7 +17,6 @@ function SlideShape({ index, x, draw }: { index: number; x: number; draw: (ctx: 
   )
 }
 
-// Profile and summary slides, and the mini-map and marker over photo slides.
 export default function SeriesLayer() {
   const panorama = usePanorama()
   const { projectLook: look, ...scene } = useSlideScene()

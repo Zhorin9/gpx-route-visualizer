@@ -8,7 +8,6 @@ import type { GpxPoint, GpxTrack, RoutePart, RouteRange, RouteSource, TrackDay }
 
 export interface JoinedTrack {
   track: GpxTrack
-  // Every part with the slice of points it covers, in route order.
   parts: RoutePart[]
 }
 
@@ -34,7 +33,6 @@ const NO_PARTS: RoutePart[] = []
 // Usable directly as zustand selectors: the result keeps its identity while the source doesn't change.
 export const selectTrack = (s: SourceState): GpxTrack | null => joinTrack(s.routeSource, s.trackCache)?.track ?? null
 
-// Every part, a single file too.
 export const selectRouteParts = (s: SourceState): RoutePart[] => joinTrack(s.routeSource, s.trackCache)?.parts ?? NO_PARTS
 
 // Empty for a single file: one part is drawn in the route's own style, not as a day.

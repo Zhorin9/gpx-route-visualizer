@@ -11,8 +11,6 @@ export interface NearestHit extends Point2D {
   pos: number
 }
 
-// Closest point on the polyline (flat [x0, y0, ...]) between point indices
-// fromIdx..toIdx, in the same coordinate space.
 export function nearestPointOnPolyline(
   flat: ArrayLike<number>,
   x: number,
@@ -60,8 +58,6 @@ export interface IndexedLine {
   positions: number[]
 }
 
-// Drops points closer than minDist to the previously kept one. Keeps the
-// shape at display resolution while cutting 100k-point tracks down to size.
 export function decimateIndexed(flat: ArrayLike<number>, fromIdx: number, toIdx: number, minDist = 1.5): IndexedLine {
   const points: number[] = []
   const positions: number[] = []
@@ -88,7 +84,6 @@ export function decimateIndexed(flat: ArrayLike<number>, fromIdx: number, toIdx:
   return { points, positions }
 }
 
-// Fractional index where the cumulative distance reaches `target`.
 export function posAtDistance(cum: ArrayLike<number>, fromIdx: number, toIdx: number, target: number): number {
   if (target <= cum[fromIdx]) return fromIdx
   if (target >= cum[toIdx]) return toIdx
@@ -103,12 +98,15 @@ export function posAtDistance(cum: ArrayLike<number>, fromIdx: number, toIdx: nu
   return lo + (span > 0 ? (target - cum[lo]) / span : 0)
 }
 
-// Same transform Konva applies to a Group: translate, rotate, then scale.
+// Konva's Group order: translate, rotate, then scale.
 export function applyTransform(p: Point2D, t: RouteTransform): Point2D {
-  const rad = (t.rotation * Math.PI) / 180
+  const r = rotate(p.x * t.scaleX, p.y * t.scaleY, t.rotation)
+  return { x: t.x + r.x, y: t.y + r.y }
+}
+
+export function rotate(x: number, y: number, deg: number): Point2D {
+  const rad = (deg * Math.PI) / 180
   const cos = Math.cos(rad)
   const sin = Math.sin(rad)
-  const sx = p.x * t.scaleX
-  const sy = p.y * t.scaleY
-  return { x: t.x + sx * cos - sy * sin, y: t.y + sx * sin + sy * cos }
+  return { x: x * cos - y * sin, y: x * sin + y * cos }
 }

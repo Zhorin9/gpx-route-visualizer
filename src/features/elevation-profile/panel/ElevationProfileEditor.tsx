@@ -3,18 +3,18 @@ import ColorField from '../../../components/fields/ColorField'
 import SliderField from '../../../components/fields/SliderField'
 import Section from '../../../components/ui/Section'
 import Segmented from '../../../components/ui/Segmented'
-import { PALETTES, paletteCss, paletteStops } from '../../../core/data/palettes'
+import { paletteStops } from '../../../core/data/palettes'
 import { dataSource, type DataSourceId } from '../../../core/data/sources'
 import { distanceUnit, formatGain, type Units } from '../../../core/units'
-import { formatNumber } from '../../../utils/format'
+import { formatNumber, plural } from '../../../utils/format'
 import { selectGroundInRange, selectTrack } from '../../../store/derived'
 import { useHasRoute } from '../../../store/selectors'
 import { useAppStore } from '../../../store/useAppStore'
 import { DEFAULT_PROFILE, PROFILE_KIND, type ProfileChartStyle, type ProfileColorMode, type ProfileLayout, type ProfileSettings } from '../types'
 import { paletteSource, sampledSource, sourceDomain, useProfileData } from '../useProfile'
 import GradientStopsEditor from './GradientStopsEditor'
+import PalettePicker from '../../data-color/panel/PalettePicker'
 import type { SelectOption } from '../../../types'
-import '../../data-color/panel/DataColorEditor.css'
 import './ElevationProfileEditor.css'
 
 const COLOR_MODE_OPTIONS: SelectOption<ProfileColorMode>[] = [
@@ -48,11 +48,6 @@ const UNIT_OPTIONS: SelectOption<Units>[] = [
   { value: 'imperial', label: 'ft / mi' },
 ]
 
-function climbsLabel(count: number) {
-  if (count === 1) return '1 podjazd'
-  return `${count} ${count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 12 || count % 100 > 14) ? 'podjazdy' : 'podjazdów'}`
-}
-
 function ClimbSummary() {
   const units = useAppStore((s) => s.statsContent.units)
   const data = useProfileData(64)
@@ -60,12 +55,11 @@ function ClimbSummary() {
   if (!data.climbs.length) return <p className="hint">Brak podjazdów: żaden odcinek nie ma co najmniej 30 m wzniosu przy nachyleniu od 3%.</p>
   return (
     <p className="hint">
-      {climbsLabel(data.climbs.length)}: {data.climbs.map((c) => `${formatGain(c.gainM, units, 5)} (${formatNumber(c.avgGrade, 1)}%)`).join(', ')}
+      {data.climbs.length} {plural(data.climbs.length, 'podjazd', 'podjazdy', 'podjazdów')}:{data.climbs.map((c) => `${formatGain(c.gainM, units, 5)} (${formatNumber(c.avgGrade, 1)}%)`).join(', ')}
     </p>
   )
 }
 
-// A shortcut to colour by data with the grade as source (full settings in "Kolor według danych").
 function GradeColoringToggle() {
   const source = useAppStore((s) => s.dataColor.source)
   const updateDataColor = useAppStore((s) => s.updateDataColor)
@@ -78,7 +72,6 @@ function GradeColoringToggle() {
   )
 }
 
-// The profile's own colour scale: what it follows, a palette to start from and its movable colours.
 function OwnPalette() {
   const settings = useAppStore((s) => s.profile)
   const units = useAppStore((s) => s.statsContent.units)
@@ -96,28 +89,14 @@ function OwnPalette() {
   return (
     <>
       <Segmented label="Kolor według" showLabel value={source} options={options} onChange={(colorBy) => updateProfile({ colorBy })} />
-      <div className="field">
-        <span className="field-label">Paleta</span>
-        <div className="palette-picker" role="radiogroup" aria-label="Paleta profilu">
-          {PALETTES.map((p) => {
-            const active = JSON.stringify(paletteStops(p)) === stopsKey
-            return (
-              <button key={p.id} type="button" role="radio" aria-checked={active} className={active ? 'palette-option active' : 'palette-option'} onClick={() => updateProfile({ stops: paletteStops(p) })}>
-                <span className="palette-swatch" style={{ background: paletteCss(p) }} />
-                <span>{p.label}</span>
-              </button>
-            )
-          })}
-        </div>
-      </div>
+      <PalettePicker ariaLabel="Paleta profilu" isActive={(p) => JSON.stringify(paletteStops(p)) === stopsKey} onPick={(p) => updateProfile({ stops: paletteStops(p) })} />
       <span className="field-label">Własny gradient</span>
       <GradientStopsEditor stops={settings.stops} onChange={(stops) => updateProfile({ stops })} scale={[format(lo), format((lo + hi) / 2), format(hi)]} />
     </>
   )
 }
 
-// Everything about the chart; shown in Trasa and, while the chart is selected, in Napisy.
-export function ElevationProfileSettings() {
+function ElevationProfileSettings() {
   const settings = useAppStore((s) => s.profile)
   const units = useAppStore((s) => s.statsContent.units)
   const routeByData = useAppStore((s) => s.dataColor.source !== 'none')
@@ -185,7 +164,6 @@ export function ElevationProfileSettings() {
   )
 }
 
-// Folded under the main settings: scale, smoothing, grid, width and units.
 function ElevationProfileAdvanced() {
   const settings = useAppStore((s) => s.profile)
   const units = useAppStore((s) => s.statsContent.units)
@@ -214,7 +192,6 @@ function ElevationProfileAdvanced() {
   )
 }
 
-// Section in Trasa: switching the chart on and its settings.
 export function ElevationProfileSection() {
   const hasRoute = useHasRoute()
   const enabled = useAppStore((s) => s.profile.enabled)

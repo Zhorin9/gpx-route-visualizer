@@ -1,5 +1,7 @@
 import { useAppStore } from '../store/useAppStore'
 
+export const GPX_ACCEPT = '.gpx,application/gpx+xml'
+
 function isGpx(file: File): boolean {
   return file.name.toLowerCase().endsWith('.gpx') || file.type === 'application/gpx+xml'
 }

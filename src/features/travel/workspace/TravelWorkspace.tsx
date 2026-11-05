@@ -36,7 +36,6 @@ type LookId = (typeof LOOKS)[number]['id']
 // Remembered while the app is open, so leaving the tab and coming back keeps the look.
 let rememberedLook: LookId = 'topo'
 
-// Brings every stop into view; a single stop is shown close up.
 function showPlaces(map: MapLibreMap, places: { lat: number; lon: number }[]) {
   if (!places.length) return
   if (places.length === 1) return void map.easeTo({ center: lngLat(places[0]), zoom: Math.max(map.getZoom(), 6) })
@@ -68,8 +67,6 @@ function pinElement(stop: Stop, letter: string, selected: boolean): HTMLElement 
   return element
 }
 
-// The leg's vehicle in a ring at the middle of its line, pointing the way it goes.
-// An illustrated vehicle shows its picture; the others their outline.
 function vehicleElement(vehicle: VehicleDef, angle: number, flip: boolean): HTMLElement {
   const element = document.createElement('div')
   element.className = vehicle.art ? 'trip-vehicle art' : 'trip-vehicle'
@@ -80,8 +77,6 @@ function vehicleElement(vehicle: VehicleDef, angle: number, flip: boolean): HTML
   return element
 }
 
-// The Podróż tab's workspace: a large map with the trip, the frame of the graphic laid on it and
-// a live preview of the graphic in the corner.
 export default function TravelWorkspace({ preview }: { preview: (box: { width: number; height: number }) => ReactNode }) {
   const { journey, change, addAt } = useTravelActions()
   const parts = useAppStore(selectRouteParts)
@@ -203,7 +198,6 @@ export default function TravelWorkspace({ preview }: { preview: (box: { width: n
         })
         return marker
       })
-      // Each leg's vehicle at the middle of its line.
       planned.forEach((part) => {
         const points = cache[part.sourceKey] ?? []
         if (points.length < 3) return

@@ -16,7 +16,6 @@ const ROLES: { key: keyof PhotoTheme; label: string }[] = [
 // The last result, kept while the tab is closed: the library only changes when photos are added or removed.
 let cached: { photos: Photo[]; palette: PhotoPalette } | null = null
 
-// A small map in the proposed colours: land, water and roads as the map background would get them.
 function MapThumb({ theme }: { theme: PhotoTheme }) {
   const map = paletteFrom({ from: theme.bg, to: theme.bg }, theme.text)
   const route = 'M10 58 C22 40 34 50 44 34 S66 30 74 20 S98 22 110 10'
@@ -35,7 +34,6 @@ function MapThumb({ theme }: { theme: PhotoTheme }) {
   )
 }
 
-// Colours worked out from the photo library, proposed as a look; nothing changes until "Zastosuj".
 export default function PhotoPaletteSection() {
   const photos = useAppStore((s) => s.photos)
   const applyPhotoTheme = useAppStore((s) => s.applyPhotoTheme)

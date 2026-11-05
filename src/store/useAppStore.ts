@@ -67,7 +67,7 @@ function withoutRotation(style: AppState['statsStyle']): PersistedState['statsSt
 }
 
 // Saved before a stat existed: keep the user's order and add the newcomers at the end.
-export function completeOrder(order: StatKey[] | undefined): StatKey[] {
+function completeOrder(order: StatKey[] | undefined): StatKey[] {
   const known = (order ?? []).filter((k) => STAT_ORDER.includes(k))
   return [...new Set([...known, ...STAT_ORDER])]
 }

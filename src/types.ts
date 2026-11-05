@@ -16,7 +16,6 @@ export interface GpxTrack {
   points: GpxPoint[]
 }
 
-// A place the trip goes through, picked in the travel planner.
 export interface Stop {
   id: number
   name: string
@@ -30,13 +29,11 @@ export interface Stop {
 
 export type TravelModeId = 'plane' | 'train' | 'car' | 'bike' | 'foot'
 
-// The shape of a leg's line: along roads or rails, a straight line on the map, or a great-circle arc.
 export type LineKind = 'road' | 'straight' | 'arc'
 
-// What a routed leg keeps away from.
 export type RouteOption = 'avoid_toll' | 'avoid_motorways' | 'avoid_unpaved'
 
-// How a leg of the trip was planned: its stops (the first and last are its ends) and the way it is travelled.
+// The first and last stops are the leg's ends.
 export interface TravelPlan {
   mode: TravelModeId
   // Variant of the mode, e.g. the bike's road / trekking / mtb.
@@ -49,37 +46,32 @@ export interface TravelPlan {
   stops: Stop[]
 }
 
-// One GPX file of the route (a day of a multi-day trip) or one leg from the travel planner.
-// Its points live in the track cache, outside the history.
+// A GPX file (a day) or a planned leg. Its points live in the track cache, outside the history.
 export interface TrackPart {
   id: number
   name: string
   color: string
   dashed: boolean
   visible: boolean
-  // Key of the part's points in the track cache.
   sourceKey: string
-  // Set for a leg from the planner; absent for a GPX file.
+  // Absent for a GPX file.
   plan?: TravelPlan
   // false: the heights aren't the ground's (a flight, a straight line), so climbing doesn't count.
   groundElevation?: false
-  // The points' times are an estimate, not a recording.
   estimatedTime?: true
-  // Marker at the head of the animated line; the animation's own one when absent.
+  // The animation's own marker when absent.
   vehicle?: VehicleId
 }
 
 export type VehicleId = 'dot' | 'plane' | 'train' | 'car' | 'bike' | 'walker' | 'boat'
 
-// What the route is made of. Part of the document, so undo covers loading and removing files;
-// the joined track is derived from it (store/derived.ts).
+// In the document so undo covers loading and removing files; the joined track is derived (store/derived.ts).
 export interface RouteSource {
-  // The trip's name: the first file's track name.
+  // The first file's track name.
   name: string | null
   parts: TrackPart[]
 }
 
-// A part placed on the joined track: the slice of points it covers.
 export interface RoutePart extends TrackPart {
   startIdx: number
   endIdx: number
@@ -95,9 +87,9 @@ export interface RangeStats {
   durationMs: number
   // Elapsed time minus stops.
   movingMs: number
-  // Highest point of the range; null when the file has no elevation.
+  // null when the file has no elevation.
   maxElevationM: number | null
-  // Some of the range's times are estimated (a planned leg), so the time figures are approximate.
+  // A planned leg's times are estimated, so the time figures are approximate.
   estimatedTime?: boolean
 }
 
@@ -129,7 +121,6 @@ export interface TextNode {
   uppercase?: boolean
 }
 
-// How a track title is set: templates write it, a newly loaded GPX reads it.
 export interface TitleStyle {
   fontFamily: string
   color: string
@@ -152,21 +143,18 @@ export interface Waypoint {
   fontFamily: string
   fontSize: number
   color: string
-  // Under the name and its leader line. Unset: on.
+  // Unset: on.
   shadowEnabled?: boolean
   // Unset: on.
   leaderEnabled?: boolean
-  // Shown at the label, the way the document's point style says.
   photoId?: number
-  // How that photo is framed, as in a slot, but with offsets as fractions of the photo's box
-  // so the crop survives a change of marker or size. Unset: centred.
+  // Offsets are fractions of the photo's box, so the crop survives a change of marker or size. Unset: centred.
   photoCrop?: Pick<SlotAssignment, 'zoom' | 'offsetX' | 'offsetY'>
   // The planner's stop this label names; it follows the stop when the trip changes.
   stopId?: number
 }
 
-// How a photo pinned to a place is shown: framed like a print, cut round, in a thin frame,
-// as a film frame, or not at all (the name alone, over a rule).
+// 'label': no photo, the name alone over a rule.
 export type PhotoMarker = 'polaroid' | 'circle' | 'square' | 'film' | 'label'
 
 export interface PointStyle {
@@ -217,10 +205,9 @@ export interface StyleTemplate {
   layoutKey: LayoutKey
   // Absent from templates saved before photos could sit on the route.
   pointStyle?: PointStyle
-  // On a map background: the base style, terrain shading and names. The map's colours come
-  // from the template's background and text.
+  // The map's colours come from the template's background and text.
   map?: { styleId?: string; hillshade?: boolean; labels?: boolean }
-  // Where the card sits in the Styl tab; saved templates have a group of their own.
+  // Saved templates have a group of their own.
   group?: TemplateGroup
   custom?: boolean
 }
@@ -262,7 +249,7 @@ export interface StatsStyle {
   spacing: number
   rotation: number
   shadow: boolean
-  // Hero arrangement: the figure shown large, and whether the others stay under it.
+  // Hero arrangement only.
   heroKey: StatKey
   heroSecondary: boolean
 }
@@ -270,7 +257,7 @@ export interface StatsStyle {
 export interface StatsContent {
   dayLabel: string
   visible: Record<StatKey, boolean>
-  // Display order of the stats; every key appears once.
+  // Every key appears once.
   order: StatKey[]
   units: Units
   overrides: Record<Exclude<StatKey, 'day'>, string>
@@ -314,7 +301,7 @@ export interface Photo {
   image: HTMLCanvasElement
   // Small data URL for the photo tape and layout thumbnails.
   thumb: string
-  // Where and when it was taken, from its EXIF; matches it to a place on the route.
+  // From EXIF; matches the photo to a place on the route.
   geo?: PhotoGeo
 }
 
@@ -329,7 +316,6 @@ export interface PhotoGeo {
 // dragged and zoomed by hand.
 export type SlotCrop = 'fill' | 'fit' | 'manual'
 
-// A photo placed in one slot of a layout, with its own crop.
 export interface SlotAssignment {
   photoId: number
   zoom: number
@@ -368,7 +354,6 @@ export interface SlideBackground {
   dim: number
 }
 
-// Colours and fonts a slide drawn from data uses: the project's, or its own as a style exception.
 export interface SlideLook {
   paper: string
   ink: string
@@ -399,8 +384,7 @@ export interface Slide {
   wrapperOff?: boolean
 }
 
-// A form round every slide's content (a postcard, a stamp, a ticket, an album page) that makes the
-// content smaller but never changes it; a postmark is stamped over the content instead.
+// Shrinks every slide's content without changing it; a postmark is stamped over the content instead.
 export type WrapperId = 'none' | 'postcard' | 'stamp' | 'postmark' | 'ticket' | 'album'
 
 export type WrapperField = 'title' | 'place' | 'from' | 'to' | 'date' | 'note'
@@ -458,7 +442,6 @@ export interface CollageStyle {
 
 export type AspectKey = '9:16' | '4:5' | '1:1' | '16:9'
 
-// Positions of the elements whose placement differs between formats.
 export interface FormatLayout {
   texts: Record<number, { x: number; y: number }>
   elements: Record<ElementKind, ElementPlacement>

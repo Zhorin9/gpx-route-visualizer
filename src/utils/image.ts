@@ -3,15 +3,28 @@ import { clamp } from './math'
 const MAX_SIDE = 4096
 const THUMB_SIDE = 160
 
-// Decodes once and downsizes huge phone photos (48 MP+) so dragging a photo
-// doesn't redraw a 200 MB bitmap every frame.
+export function newCanvas(width: number, height: number, settings?: CanvasRenderingContext2DSettings) {
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+  return { canvas, ctx: canvas.getContext('2d', settings) }
+}
+
+function scaledToLongerSide(image: HTMLCanvasElement, side: number): HTMLCanvasElement {
+  const scale = side / Math.max(image.width, image.height)
+  const { canvas, ctx } = newCanvas(Math.max(1, Math.round(image.width * scale)), Math.max(1, Math.round(image.height * scale)))
+  if (ctx) {
+    ctx.imageSmoothingQuality = 'high'
+    ctx.drawImage(image, 0, 0, canvas.width, canvas.height)
+  }
+  return canvas
+}
+
+// So dragging a 48 MP photo doesn't redraw a 200 MB bitmap every frame.
 async function decodeDownsized(file: Blob): Promise<HTMLCanvasElement> {
   const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' })
   const scale = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height))
-  const canvas = document.createElement('canvas')
-  canvas.width = Math.round(bitmap.width * scale)
-  canvas.height = Math.round(bitmap.height * scale)
-  const ctx = canvas.getContext('2d')
+  const { canvas, ctx } = newCanvas(Math.round(bitmap.width * scale), Math.round(bitmap.height * scale))
   if (!ctx) throw new Error('Canvas 2D niedostępny')
   ctx.imageSmoothingQuality = 'high'
   ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
@@ -21,29 +34,16 @@ async function decodeDownsized(file: Blob): Promise<HTMLCanvasElement> {
 
 export async function loadPhoto(file: Blob): Promise<{ image: HTMLCanvasElement; thumb: string }> {
   const image = await decodeDownsized(file)
-  const scale = THUMB_SIDE / Math.max(image.width, image.height)
-  const thumb = document.createElement('canvas')
-  thumb.width = Math.max(1, Math.round(image.width * scale))
-  thumb.height = Math.max(1, Math.round(image.height * scale))
-  thumb.getContext('2d')?.drawImage(image, 0, 0, thumb.width, thumb.height)
-  return { image, thumb: thumb.toDataURL('image/jpeg', 0.75) }
+  return { image, thumb: scaledToLongerSide(image, THUMB_SIDE).toDataURL('image/jpeg', 0.75) }
 }
 
 const blurCache = new WeakMap<HTMLCanvasElement, HTMLCanvasElement>()
 
-// A cheap blur: shrink hard, let smoothing spread the pixels when it's scaled back up.
+// Cheap blur: shrink hard and let smoothing spread the pixels on the way back up.
 export function blurredBackdrop(image: HTMLCanvasElement): HTMLCanvasElement {
   const cached = blurCache.get(image)
   if (cached) return cached
-  const scale = 40 / Math.max(image.width, image.height)
-  const small = document.createElement('canvas')
-  small.width = Math.max(1, Math.round(image.width * scale))
-  small.height = Math.max(1, Math.round(image.height * scale))
-  const ctx = small.getContext('2d')
-  if (ctx) {
-    ctx.imageSmoothingQuality = 'high'
-    ctx.drawImage(image, 0, 0, small.width, small.height)
-  }
+  const small = scaledToLongerSide(image, 40)
   blurCache.set(image, small)
   return small
 }
@@ -77,7 +77,6 @@ export function coveringPosition(at: { x: number; y: number }, box: Area, photo:
   return { x: clamp(at.x, box.x + box.w - photo.width, box.x), y: clamp(at.y, box.y + box.h - photo.height, box.y) }
 }
 
-// Whole photo inside the box, centred, never cropped.
 export function containLayout(imgW: number, imgH: number, boxW: number, boxH: number) {
   const scale = Math.min(boxW / imgW, boxH / imgH)
   const width = imgW * scale
@@ -87,14 +86,10 @@ export function containLayout(imgW: number, imgH: number, boxW: number, boxH: nu
 
 let noise: HTMLCanvasElement | null = null
 
-// Grey static on a transparent tile, laid over a gradient as film grain.
 export function noiseTile(): HTMLCanvasElement {
   if (noise) return noise
   const size = 256
-  const canvas = document.createElement('canvas')
-  canvas.width = size
-  canvas.height = size
-  const ctx = canvas.getContext('2d')
+  const { canvas, ctx } = newCanvas(size, size)
   if (ctx) {
     const data = ctx.createImageData(size, size)
     for (let i = 0; i < data.data.length; i += 4) {

@@ -29,8 +29,7 @@ const LOOK_OPTIONS: SelectOption<VehicleLook>[] = [
 
 const vehicleOptions = ():SelectOption<VehicleId>[] => vehicleList().map((v) => ({ value: v.id, label: v.label }))
 
-// The marker of the whole animation, and of each part (days, legs of a trip) that may show its own.
-// A route of one planned leg has the leg's marker (a plane for a flight), so that is the one set here.
+// A route of one planned leg shows the leg's marker (a plane for a flight), so that is the one set here.
 function VehicleFields() {
   const parts = useAppStore(selectRouteParts)
   const fallback = useAppStore((s) => s.animation.vehicle)

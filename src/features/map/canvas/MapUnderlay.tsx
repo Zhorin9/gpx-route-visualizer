@@ -15,8 +15,6 @@ import { sketchFrame } from '../sketch/frame'
 import { drawnTone } from '../store'
 import { mapIsSeeThrough } from '../types'
 
-// The live map under the frame in the editor. It follows the route as drawn (moved, turned,
-// scaled, and the camera of the animation) and tells the export what it shows.
 function LiveMap({ previewScale }: { previewScale: number }) {
   const settings = useAppStore((s) => s.map)
   const aspectKey = useAppStore((s) => s.aspectKey)
@@ -96,7 +94,6 @@ function LiveMap({ previewScale }: { previewScale: number }) {
   )
 }
 
-// The sketch, drawn by us: the route's OSM features fetched once, then the same pixels every time.
 function SketchMap({ previewScale }: { previewScale: number }) {
   const state = useAppStore(
     useShallow((s) => ({ routeSource: s.routeSource, trackCache: s.trackCache, aspectKey: s.aspectKey, slides: s.slides, map: s.map, sketchLayers: s.sketchLayers })),

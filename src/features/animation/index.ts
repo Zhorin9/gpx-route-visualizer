@@ -37,8 +37,7 @@ export function registerAnimation() {
       usePlayback.setState({ t, previewing: true })
       await waitForCommit((c) => c.previewing && c.t === t)
     },
-    // Back to what the editor showed: a playing preview carries on playing, it isn't left
-    // paused on whatever frame was on screen when the export started.
+    // A playing preview carries on playing rather than staying paused where the export started.
     release: () => {
       if (!before) return
       const { t, previewing, playing } = before

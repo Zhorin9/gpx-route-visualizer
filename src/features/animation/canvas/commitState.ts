@@ -1,4 +1,3 @@
-// Which moment of the animation has actually reached the Konva nodes (see CommitProbe).
 export interface Committed {
   t: number
   previewing: boolean
@@ -17,8 +16,7 @@ export function reportCommit(state: Committed) {
   }
 }
 
-// Resolves once the frame shows a state that passes `test`; gives up after `timeoutMs`
-// (no route on the frame means nothing animated to wait for).
+// Gives up after `timeoutMs`: no route on the frame means nothing animated to wait for.
 export function waitForCommit(test: (c: Committed) => boolean, timeoutMs = 1000): Promise<void> {
   if (test(committed)) return Promise.resolve()
   return new Promise((resolve) => {

@@ -11,8 +11,7 @@ export interface FileButtonProps {
   multiple?: boolean
 }
 
-// Styled replacement for the native file input. Resets the value after each
-// pick so choosing the same file again still fires.
+// Resets the value after each pick, so choosing the same file again still fires.
 export default function FileButton({ accept, onFiles, children, icon, variant = 'secondary', block, multiple }: FileButtonProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   return (

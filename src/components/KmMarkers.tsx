@@ -18,7 +18,6 @@ interface Mark {
 }
 
 function KmMark({ mark, label, fontFamily }: { mark: Mark; label: string; fontFamily: string }) {
-  // Appears when the animated line reaches it.
   const animation = usePointAnimation(mark.pos)
   return (
     <Group x={mark.x} y={mark.y + animation.offsetY} opacity={animation.opacity} listening={false}>
@@ -31,8 +30,7 @@ function KmMark({ mark, label, fontFamily }: { mark: Mark; label: string; fontFa
   )
 }
 
-// Distance marks (km or mi) along the visible route. Outside the route group, like waypoint labels,
-// so rotating the route or moving the camera carries them along but the text stays upright and its size.
+// Outside the route group, so turning the route carries the marks but the text stays upright.
 export default function KmMarkers() {
   const interval = useAppStore((s) => s.kmInterval)
   const range = useAppStore((s) => s.range)

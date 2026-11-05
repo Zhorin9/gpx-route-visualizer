@@ -28,6 +28,8 @@ const QUALITY_OPTIONS: SelectOption<EncodeQuality>[] = [
   { value: 'medium', label: 'Średnia' },
   { value: 'high', label: 'Wysoka' },
 ]
+const FORMAT_OPTIONS: SelectOption<VideoFormat>[] = (['mp4', 'webm', 'gif', 'png'] as const).map((f) => ({ value: f, label: FORMAT_LABELS[f] }))
+const ASPECT_OPTIONS = FORMAT_ORDER.map((a) => ({ value: a, label: FORMATS[a].exportName }))
 const REPEAT_OPTIONS: SelectOption<string>[] = ['1', '2', '3'].map((v) => ({ value: v, label: `${v}×` }))
 const CORNER_OPTIONS: SelectOption<InsetCorner>[] = [
   { value: 'tl', label: 'Lewy górny' },
@@ -96,7 +98,6 @@ function Thumbnails({ job }: { job: VideoJob }) {
   )
 }
 
-// The card's place on the footage: which frame it is made for, the corner and its size.
 function InsetFields({ inset, onChange, disabled }: { inset: CardInset; onChange: (inset: CardInset) => void; disabled: boolean }) {
   const noWrapper = useAppStore((s) => s.wrapper.id === 'none')
   const setWrapper = useAppStore((s) => s.setWrapper)
@@ -106,7 +107,7 @@ function InsetFields({ inset, onChange, disabled }: { inset: CardInset; onChange
         label="Kadr nagrania"
         showLabel
         value={inset.frame}
-        options={FORMAT_ORDER.map((a) => ({ value: a, label: FORMATS[a].exportName }))}
+        options={ASPECT_OPTIONS}
         onChange={(frame) => onChange({ ...inset, frame })}
         disabled={disabled}
       />
@@ -177,7 +178,6 @@ export default function VideoExportPanel() {
     setPhase({ kind: 'idle' })
   }
 
-  const formatOptions: SelectOption<VideoFormat>[] = (['mp4', 'webm', 'gif', 'png'] as const).map((f) => ({ value: f, label: FORMAT_LABELS[f] }))
   const unsupported = support?.filter((s) => !s.supported) ?? []
   const estimate = service.estimateBytes({ format: job.format, width, height, fps: job.fps, loopCount: 0, quality: job.quality }, length) * slideCount
 
@@ -211,7 +211,7 @@ export default function VideoExportPanel() {
   return (
     <>
       <Section title="Plik wideo">
-        <Segmented label="Format" showLabel value={job.format} options={formatOptions} onChange={(format) => update({ format })} disabled={rendering} />
+        <Segmented label="Format" showLabel value={job.format} options={FORMAT_OPTIONS} onChange={(format) => update({ format })} disabled={rendering} />
         {unsupported.map((s) => (
           <p key={s.format} className="hint">
             {FORMAT_LABELS[s.format]}: {s.reason}.
@@ -221,7 +221,7 @@ export default function VideoExportPanel() {
           label={job.inset ? 'Proporcje karty' : 'Proporcje'}
           showLabel
           value={job.aspect}
-          options={FORMAT_ORDER.map((a) => ({ value: a, label: FORMATS[a].exportName }))}
+          options={ASPECT_OPTIONS}
           onChange={(aspect) => update({ aspect })}
           disabled={rendering}
         />

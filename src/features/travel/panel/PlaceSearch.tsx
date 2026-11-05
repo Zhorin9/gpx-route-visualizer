@@ -77,7 +77,6 @@ export default function PlaceSearch({ label, near, onPick, inputId }: { label: s
   }, [text, isPoint, exact])
 
   const options = point ? [point] : text.length < 2 ? [] : found
-  // The last row asks the precise search, when it hasn't been asked yet.
   const offerExact = !point && text.length >= 2 && !exact
   const rows = options.length + (offerExact ? 1 : 0)
 

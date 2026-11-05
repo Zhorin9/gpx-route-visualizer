@@ -28,7 +28,6 @@ function explain(status: number, text: string): string {
   return 'Serwis tras nie odpowiedział.'
 }
 
-// Parses a GeoJSON answer: elevation from the route, a time for every point counted from `start`.
 export function parseBRouter(answer: BRouterAnswer, start: number): GpxPoint[] {
   const feature = answer.features?.[0]
   if (!feature || feature.geometry.coordinates.length < 2) throw new RouteError('Nie ma drogi między tymi miejscami.')

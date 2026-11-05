@@ -16,7 +16,6 @@ import type { ProfileColorMode } from './types'
 
 export interface ProfileData {
   track: GpxTrack
-  // Smoothed as set in the panel.
   samples: ProfileSamples
   climbs: Climb[]
   gainM: number
@@ -56,13 +55,13 @@ export function useProfileData(columns: number): ProfileData | null {
   return profileData(track, cumKm, range, days, parts, columns, smoothing)
 }
 
-// Each sample's value of a source; elevation is the chart itself.
+// Elevation is the chart itself.
 export function sampledSource(data: ProfileData, id: DataSourceId): Float32Array {
   if (id === 'elevation') return data.samples.values
   return sampleAt(dataSeries(data.track, data.cumKm, id), data.samples)
 }
 
-// What the profile's own palette is coloured by: the chosen source, or the heights when the file lacks it.
+// Falls back to the heights when the file lacks the chosen source.
 export const paletteSource = (track: GpxTrack, id: DataSourceId): DataSourceId => (dataSource(id).unavailable(track) ? 'elevation' : id)
 
 // Heights span lowest to highest; the other sources 5th to 95th percentile, as on the route.
@@ -88,7 +87,6 @@ const profileColors = memoOne(
   },
 )
 
-// One colour for the whole chart, or one per sample.
 export function useProfileColors(data: ProfileData | null): string | string[] {
   const mode = useAppStore((s) => s.profile.colorMode)
   const colorBy = useAppStore((s) => s.profile.colorBy)
@@ -100,7 +98,6 @@ export function useProfileColors(data: ProfileData | null): string | string[] {
   return profileColors(data, mode, colorBy, stops, color, routeColor, active)
 }
 
-// Track position of the marker: the animation head while it plays, otherwise the panel slider.
 export function useProfileMarkerPos(): number | null {
   const marker = useAppStore((s) => s.profile.marker)
   const markerAt = useAppStore((s) => s.profile.markerAt)

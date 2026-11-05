@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { Rect } from 'react-konva'
 import type Konva from 'konva'
 import type { RefObject } from 'react'
-import { CHROME_ACCENT } from '../core/canvas/chrome'
+import { CHROME_ACCENT, SELECTION_OUTLINE } from '../core/canvas/chrome'
 import { UI_ONLY } from '../utils/exportImage'
 
 export interface SelectionOutlineProps {
@@ -11,8 +11,7 @@ export interface SelectionOutlineProps {
   color?: string
 }
 
-// Dashed border around the selected node. Copies the target's own
-// x/y/rotation, so it must sit in the same parent as the target.
+// Copies the target's x/y/rotation, so it must sit in the target's parent.
 export default function SelectionOutline({ targetRef, visible, color = CHROME_ACCENT }: SelectionOutlineProps) {
   const rectRef = useRef<Konva.Rect>(null)
 
@@ -44,11 +43,7 @@ export default function SelectionOutline({ targetRef, visible, color = CHROME_AC
       ref={rectRef}
       name={UI_ONLY}
       stroke={color}
-      strokeWidth={2.5}
-      strokeScaleEnabled={false}
-      dash={[8, 5]}
-      cornerRadius={4}
-      listening={false}
+      {...SELECTION_OUTLINE}
       visible={false}
     />
   )

@@ -4,13 +4,12 @@
   overflow-y: auto;
 }
 
-.export-dialog-head {
+.dialog-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-/* ---------- Multi-format export ---------- */
 .format-card-meta {
   font-size: var(--text-xs);
   color: var(--text-muted);

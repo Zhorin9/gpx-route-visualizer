@@ -12,7 +12,7 @@ export interface ClimbThresholds {
   minGradePct: number
 }
 
-export const DEFAULT_CLIMB_THRESHOLDS: ClimbThresholds = { minGainM: 30, minGradePct: 3 }
+const DEFAULT_CLIMB_THRESHOLDS: ClimbThresholds = { minGainM: 30, minGradePct: 3 }
 
 // A climb survives a dip of this much (or a tenth of what it has gained so far, if more):
 // a short descent in the middle of a pass doesn't split it in two.
@@ -34,7 +34,6 @@ function trimApproach(ele: ArrayLike<number>, cumKm: ArrayLike<number>, start: n
   return s
 }
 
-// Climbs in [from, to] of a smoothed elevation series, low point to summit.
 export function detectClimbs(
   ele: ArrayLike<number>,
   cumKm: ArrayLike<number>,

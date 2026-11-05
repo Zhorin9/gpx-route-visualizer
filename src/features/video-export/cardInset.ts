@@ -28,7 +28,7 @@ export interface CardRect {
   h: number
 }
 
-// Where the card rests, in pixels of the footage's frame; it never outgrows the frame.
+// In pixels of the footage's frame; never larger than it.
 export function cardRect(inset: CardInset, card: AspectKey): CardRect {
   const frame = FORMATS[inset.frame]
   const { w: cw, h: ch } = FORMATS[card]
@@ -48,7 +48,6 @@ export function cardPresence(t: number, duration: number): number {
   return easeInOut(clamp01(Math.min(t, duration - t) / slide))
 }
 
-// Lays the card on a cleared frame of the output size; it slides in from its own side.
 export function drawCardInset(out: HTMLCanvasElement, card: HTMLCanvasElement, inset: CardInset, cardAspect: AspectKey, t: number, duration: number) {
   const ctx = out.getContext('2d')
   if (!ctx) return

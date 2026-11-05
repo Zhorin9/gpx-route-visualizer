@@ -1,8 +1,6 @@
 import type { ComponentType } from 'react'
 import type { BackgroundKind } from '../../types'
 
-// A kind of background a feature adds (the map): its place in the "Rodzaj tła" switch,
-// what choosing it does and its own settings in the panel.
 export interface BackgroundKindDef {
   kind: BackgroundKind
   label: string

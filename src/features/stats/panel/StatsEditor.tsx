@@ -141,7 +141,6 @@ function StatsList() {
   )
 }
 
-// A planned leg has no recording: its times come from the route service or an average speed.
 function EstimatedNote() {
   const estimated = useRangeStats()?.estimatedTime
   return estimated ? <p className="hint">Czas jest szacowany dla odcinków z planera podróży, dlatego na grafice stoi przed nim „~”.</p> : null

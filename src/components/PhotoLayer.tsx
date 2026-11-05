@@ -7,7 +7,8 @@ import { useAppStore } from '../store/useAppStore'
 import { FORMATS } from '../core/formats/registry'
 import { UI_ONLY } from '../utils/exportImage'
 import { usePhotoAnimation } from '../core/animation/layers'
-import { blurredBackdrop, containLayout, coverLayout, coveringPosition, wheelSteps, zoomedBy } from '../utils/image'
+import { blurredBackdrop, containLayout, coverLayout } from '../utils/image'
+import PannableCover from './PannableCover'
 import { computeSlots, frameInsets, layoutDef, ribbonSlot, slotCount, type SlotRect } from '../utils/layouts'
 import SlideBox from './SlideBox'
 import type { CollageStyle, Photo, SlotAssignment } from '../types'
@@ -29,7 +30,6 @@ interface SlotViewProps {
   photo?: Photo
   selected: boolean
   emptyLabel?: string
-  // Place among the slide's slots, for the order photos come in.
   order: number
   count: number
 }
@@ -50,30 +50,20 @@ function PhotoImage({ photo, assignment, inner, fit, slide, index }: { photo: Ph
     )
   }
 
-  const layout = coverLayout(img.width, img.height, inner.w, inner.h, assignment.zoom, assignment.offsetX, assignment.offsetY)
-  if (crop === 'fill') return <KonvaImage image={img} x={inner.x + layout.x} y={inner.y + layout.y} width={layout.width} height={layout.height} />
+  if (crop === 'fill') {
+    const layout = coverLayout(img.width, img.height, inner.w, inner.h, assignment.zoom, assignment.offsetX, assignment.offsetY)
+    return <KonvaImage image={img} x={inner.x + layout.x} y={inner.y + layout.y} width={layout.width} height={layout.height} />
+  }
 
   return (
-    <KonvaImage
+    <PannableCover
       image={img}
-      x={inner.x + layout.x}
-      y={inner.y + layout.y}
-      width={layout.width}
-      height={layout.height}
-      draggable
-      onDragMove={(e) => e.target.position(coveringPosition(e.target.position(), inner, layout))}
-      onDragEnd={(e) =>
-        updateSlot(slide, index, {
-          offsetX: e.target.x() - inner.x - (inner.w - layout.width) / 2,
-          offsetY: e.target.y() - inner.y - (inner.h - layout.height) / 2,
-        })
-      }
-      onWheel={(e) => {
-        e.evt.preventDefault()
-        updateSlot(slide, index, { zoom: zoomedBy(assignment.zoom, wheelSteps(e.evt.deltaY)) })
-      }}
-      onMouseEnter={(e) => e.target.getStage()?.container().classList.add('can-pan')}
-      onMouseLeave={(e) => e.target.getStage()?.container().classList.remove('can-pan')}
+      box={inner}
+      zoom={assignment.zoom}
+      offsetX={assignment.offsetX}
+      offsetY={assignment.offsetY}
+      onPan={(offsetX, offsetY) => updateSlot(slide, index, { offsetX, offsetY })}
+      onZoom={(zoom) => updateSlot(slide, index, { zoom })}
     />
   )
 }

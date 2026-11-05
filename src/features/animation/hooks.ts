@@ -8,14 +8,12 @@ import { clipProgress, layerAt, photoAt } from './model/timeline'
 import { usePlayback } from './playback'
 import { selectRouteParts, selectTrack } from '../../store/derived'
 
-// Seconds into the animation, or null while the editor shows the static view.
 export function useAnimationTime(): number | null {
   const enabled = useAppStore((s) => s.animation.enabled)
   const t = usePlayback((s) => (s.previewing ? s.t : null))
   return enabled ? t : null
 }
 
-// Fractional track index the line has reached, or null in the static view.
 export function useAnimationHead(): number | null {
   const t = useAnimationTime()
   const settings = useAppStore((s) => s.animation)
@@ -43,7 +41,6 @@ export function useAnimatedPhoto(order: number, count: number): LayerState {
   return t == null || !collage ? STATIC_LAYER : photoAt(settings, order, count, t)
 }
 
-// Something to animate: a route, or the photos of a collage.
 export function useCanAnimate(): boolean {
   const hasRoute = useHasRoute()
   const hasPhotos = useHasPhotos()

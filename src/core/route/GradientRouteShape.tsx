@@ -29,8 +29,7 @@ export interface GradientRouteShapeProps {
   coloring: PerPoint
 }
 
-// The same core-and-glow look as the solid route, coloured point by point.
-// Konva lines take one stroke colour, so this draws the runs on the canvas itself.
+// Konva lines take one stroke colour, so the colour runs are drawn on the canvas itself.
 export default function GradientRouteShape({ segment, style, coloring }: GradientRouteShapeProps) {
   const runs = useMemo(() => colorRuns(segment.positions, coloring.at), [segment.positions, coloring])
   const dash = coreDash(style, segment)

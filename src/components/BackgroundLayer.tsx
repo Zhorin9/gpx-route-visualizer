@@ -9,7 +9,6 @@ import type { BackgroundPattern } from '../types'
 const GRID_STEP = 72
 const CONTOUR_STEP = 60
 
-// Fine lines in the text colour: a drafting grid, or contour rings round a point low on each slide.
 function Pattern({ kind, width, height, slideWidth }: { kind: BackgroundPattern; width: number; height: number; slideWidth: number }) {
   const color = useAppStore((s) => s.statsStyle.color)
   if (kind === 'none') return null
@@ -44,9 +43,7 @@ function Pattern({ kind, width, height, slideWidth }: { kind: BackgroundPattern;
   return <Shape sceneFunc={sceneFunc} perfectDrawEnabled={false} />
 }
 
-// The frame's background across the whole carousel ribbon, drawn under the photos:
-// a flat colour or one gradient, with an optional pattern. Nothing at all for a transparent background,
-// nor for a map, which lies under the stage.
+// Nothing for a transparent background, nor for a map, which lies under the stage.
 export default function BackgroundLayer() {
   const collage = useAppStore((s) => s.collage)
   const slideCount = useAppStore((s) => s.slides.length)

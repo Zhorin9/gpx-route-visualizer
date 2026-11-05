@@ -4,14 +4,14 @@ import { useActiveSlide } from '../store/selectors'
 import { useAppStore } from '../store/useAppStore'
 import useDismiss from '../hooks/useDismiss'
 import { FORMATS } from '../core/formats/registry'
-import { computeSlots, layoutDef, slotCount } from '../utils/layouts'
+import { layoutDef, slotCount } from '../utils/layouts'
+import LayoutCells from './LayoutCells'
 import { drawDataSlide } from '../utils/drawSlide'
 import { LIMIT_MESSAGE, kindBlocker, roomForSlide, slideLabel, slideNumbers } from '../utils/series'
 import useSlideScene from '../hooks/useSlideScene'
 import type { Slide, SlideKind } from '../types'
 import './SlideStrip.css'
 
-// Along the bottom thumbnails share a height; on the rail beside a tall frame, a width.
 const THUMB_H = 72
 const RAIL_THUMB_W = 64
 const SLIDE_DRAG_TYPE = 'application/x-slide'
@@ -25,7 +25,6 @@ const ADD_KINDS: { kind: SlideKind | 'collage'; label: string }[] = [
   { kind: 'summary', label: 'Podsumowanie' },
 ]
 
-// A profile or summary in miniature, drawn the same way as on the frame.
 function DataThumb({ slide, width, height }: { slide: Slide; width: number; height: number }) {
   const ref = useRef<HTMLCanvasElement>(null)
   const { projectLook, ...scene } = useSlideScene()
@@ -41,28 +40,7 @@ function DataThumb({ slide, width, height }: { slide: Slide; width: number; heig
 
 function PhotoThumb({ slide, width, height }: { slide: Slide; width: number; height: number }) {
   const photos = useAppStore((s) => s.photos)
-  const thumbById = new Map(photos.map((p) => [p.id, p.thumb]))
-  return (
-    <>
-      {computeSlots(layoutDef(slide.layoutKey), width, height, 2, 0).map((cell) => {
-        const thumb = thumbById.get(slide.slots[cell.index]?.photoId ?? -1)
-        return (
-          <span
-            key={cell.index}
-            className="layout-thumb-cell"
-            style={{
-              left: cell.x,
-              top: cell.y,
-              width: cell.w,
-              height: cell.h,
-              transform: cell.rotation ? `rotate(${cell.rotation}deg)` : undefined,
-              backgroundImage: thumb ? `url(${thumb})` : undefined,
-            }}
-          />
-        )
-      })}
-    </>
-  )
+  return <LayoutCells def={layoutDef(slide.layoutKey)} slide={slide} photos={new Map(photos.map((p) => [p.id, p]))} width={width} height={height} margin={0} />
 }
 
 function SlideMenu({ index, count, at, onClose }: { index: number; count: number; at: CSSProperties; onClose: () => void }) {
@@ -148,7 +126,6 @@ function AddMenu({ at, onClose }: { at: CSSProperties; onClose: () => void }) {
   )
 }
 
-// Shows the reorder hint once, the first time the series has a slide to move.
 function useFirstUseHint(slideCount: number) {
   const showToast = useAppStore((s) => s.showToast)
   useEffect(() => {
@@ -163,7 +140,6 @@ function useFirstUseHint(slideCount: number) {
   }, [slideCount, showToast])
 }
 
-// The series beside or under the frame: pick a slide to edit, drag to reorder, "…" for the rest, "+" to add.
 export default function SlideStrip({ vertical }: { vertical: boolean }) {
   const slides = useAppStore((s) => s.slides)
   const mode = useAppStore((s) => s.mode)

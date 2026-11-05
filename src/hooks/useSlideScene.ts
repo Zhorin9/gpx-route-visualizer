@@ -5,7 +5,6 @@ import { useAppStore } from '../store/useAppStore'
 import { projectLook, seriesRoute } from '../utils/series'
 import type { SlideScene } from '../utils/drawSlide'
 
-// What slides drawn from data need: the route, its figures, the project's look and the photos.
 export default function useSlideScene(): Omit<SlideScene, 'look'> & { projectLook: SlideScene['look'] } {
   const { w, h } = FORMATS[useAppStore((s) => s.aspectKey)]
   const slides = useAppStore((s) => s.slides)

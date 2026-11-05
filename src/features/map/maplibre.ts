@@ -18,11 +18,10 @@ export const loadMapLibre = () =>
 export type MapStyleInput = Exclude<MapOptions['style'], string | undefined>
 export const asStyle = (style: StyleJson) => style as unknown as MapStyleInput
 
-// Everything a frame's map depends on: the preview publishes it, files are rendered from it.
 export interface MapScene {
   settings: MapSettings
   fit: MercatorFit | null
-  // The route's transform composed with the camera, so the map lies under the route as drawn.
+  // Composed with the camera, so the map lies under the route as drawn.
   transform: RouteTransform
 }
 
@@ -34,8 +33,7 @@ export function publishMapScene(value: MapScene | null) {
 
 export const currentMapScene = () => scene
 
-// Resolves once the map has drawn everything for its view; after a long wait it goes on with
-// what is there, so a slow network can't hang an export.
+// Gives up after `timeoutMs` with what is drawn, so a slow network can't hang an export.
 export function settled(map: MapLibreMap, timeoutMs = 20_000): Promise<boolean> {
   return new Promise((resolve) => {
     const timer = setTimeout(() => resolve(false), timeoutMs)
@@ -47,8 +45,7 @@ export function settled(map: MapLibreMap, timeoutMs = 20_000): Promise<boolean> 
   })
 }
 
-// The hidden map files are drawn with: one instance, reused frame after frame so tiles loaded
-// once stay in its cache.
+// One instance reused frame after frame, so tiles loaded once stay in its cache.
 let hidden: { map: MapLibreMap; container: HTMLDivElement; styleKey: string } | null = null
 
 // A wide ribbon at 2× would pass the WebGL canvas limit, so it is drawn in strips.
@@ -77,8 +74,6 @@ async function hiddenMap(scale: number) {
 
 export const styleKey = (s: MapSettings) => JSON.stringify([s.styleId, s.palette, s.labels, s.hillshade])
 
-// The map of a whole ribbon (`width` × `height` frame pixels) at `scale`, as the scene says,
-// dimmed, tinted and blurred as set. Throws when the map can't be loaded at all.
 export async function renderMapImage(scene: MapScene, width: number, height: number, scale: number): Promise<HTMLCanvasElement> {
   const h = await hiddenMap(scale)
   const key = styleKey(scene.settings)

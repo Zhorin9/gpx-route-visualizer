@@ -2,7 +2,6 @@ import { BufferTarget, EncodedPacket, EncodedVideoPacketSource, Mp4OutputFormat,
 import { EncodingFailedError, MIME_TYPES, type EncodeOptions } from '../VideoEncodingService'
 import type { ContainerMuxer, EncodedSample, VideoCodecId } from '../ports'
 
-// The only file that uses Mediabunny: it packs compressed samples into an MP4 or WebM file.
 export class MediabunnyMuxer implements ContainerMuxer {
   private output: Output | null = null
   private source: EncodedVideoPacketSource | null = null

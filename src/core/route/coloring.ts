@@ -1,8 +1,6 @@
 import type { RouteStyle } from '../../types'
 import type { RouteSegment } from './geometry'
 
-// Where each drawn part of the route takes its colour from. The painter only asks;
-// it does not know about days, data sources or palettes.
 export type RouteColoring =
   | {
       kind: 'solid'
@@ -16,7 +14,7 @@ export type RouteColoring =
       glow: { kind: 'follow' } | { kind: 'uniform'; color: string }
     }
 
-// The route colour, or the day's own colour on a multi-day route.
+// A multi-day route takes each day's own colour.
 export function styleColoring(style: Pick<RouteStyle, 'color'>): RouteColoring {
   return { kind: 'solid', color: (segment) => segment.day?.color ?? style.color }
 }

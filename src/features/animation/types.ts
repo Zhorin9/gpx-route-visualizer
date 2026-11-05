@@ -23,12 +23,10 @@ export interface AnimationSettings {
   endHold: number
   // Places and km marks pop up as the line reaches them, instead of following their bar.
   syncWaypoints: boolean
-  // Figures in the stats header count up with the line.
   countStats: boolean
   // The rest of the line stays visible, faint, ahead of the drawing.
   ghost: boolean
   headDot: boolean
-  // Marker at the head of the line; a part of the route may choose its own.
   vehicle: VehicleId
   // Unset in documents saved before it existed: art.
   vehicleLook?: VehicleLook

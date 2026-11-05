@@ -7,7 +7,6 @@ const KEY_FRAME_INTERVAL_S = 2
 // Frames waiting in the encoder before the session waits for it to catch up.
 const MAX_QUEUE = 8
 
-// Any codec + container pair: frames go through the encoder, samples into the muxer.
 export class CodecContainerSession implements EncodingSession {
   private readonly canvas: FrameCanvas
   private frameIndex = 0

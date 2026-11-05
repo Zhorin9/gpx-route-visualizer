@@ -1,4 +1,3 @@
-/* ---------- Slide series ---------- */
 .slide-strip {
   display: flex;
   flex-direction: column;
@@ -16,7 +15,6 @@
   padding: 2px 0 var(--space-1);
 }
 
-/* Beside a tall frame: a rail down the left edge of the preview. */
 .slide-strip.vertical {
   flex: none;
   min-height: 0;

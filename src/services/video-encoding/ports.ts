@@ -1,11 +1,8 @@
 import type { EncodeOptions } from './VideoEncodingService'
 
-// Internal seams of the service. A video file is made of two replaceable parts:
-// the codec turns frames into compressed samples, the container packs samples into a file.
-
 export type VideoCodecId = 'avc' | 'vp9'
 
-// One compressed sample. Plain web platform types, never a package's own.
+// Plain web platform types, never a package's own.
 export interface EncodedSample {
   chunk: EncodedVideoChunk
   // Present on the first sample: the decoder configuration the container must store.

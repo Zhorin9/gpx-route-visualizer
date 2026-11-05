@@ -1,9 +1,11 @@
 import { applyTransform } from '../../../utils/geometry'
 import { channels } from '../../../utils/color'
 import { memoOne } from '../../../utils/memo'
+import { newCanvas } from '../../../utils/image'
+import { seededRandom } from '../../../utils/math'
 import type { RouteTransform } from '../../../types'
 import type { MapSettings, SketchSettings } from '../types'
-import { jitter, rng, type Pt } from './pen'
+import { jitter, type Pt } from './pen'
 import type { SketchShape } from './shape'
 
 export interface SketchPalette {
@@ -12,8 +14,7 @@ export interface SketchPalette {
   water: string
 }
 
-// A notebook page; the map's palette (the style template's or the photos') takes over when set:
-// background → paper, text → ink, water → water.
+// Without a map palette; with one, background → paper, text → ink, water → water.
 const NOTEBOOK: SketchPalette = { paper: '#f7f1e3', ink: '#3a2a1c', water: '#5f7f93' }
 
 export function sketchPalette(settings: Pick<MapSettings, 'palette'>): SketchPalette {
@@ -21,7 +22,6 @@ export function sketchPalette(settings: Pick<MapSettings, 'palette'>): SketchPal
   return p ? { paper: p.land, ink: p.label, water: p.water } : NOTEBOOK
 }
 
-// Everything one drawing of the sketch depends on; the same frame always gives the same pixels.
 export interface SketchFrame {
   shape: SketchShape | null
   // The route's ends, labelled when there are no places (no data, no network).
@@ -46,22 +46,21 @@ interface Stroke {
   dashed: boolean
 }
 
-// D3: every line as pen strokes, in the route's pixels. Each object's seed is its own
-// (seed + layer × 1000 + index), so one changed feature leaves the others as they were.
+// Each object seeds its own strokes, so changing one feature leaves the others as they were.
 const inked = memoOne((shape: SketchShape | null, ends: [Pt, Pt] | null, seed: number, roughness: number, short: number, lines: boolean) => {
   const amp = short * 0.004 * roughness
   const step = short * 0.006
   const S = (layer: number, i: number) => seed + layer * 1000 + i
   const strokes: Stroke[] = []
-  // A main pass cut into ~40 px pieces of uneven width, then a thinner, paler correction.
+  // A main pass in uneven pieces, then a thinner, paler correction.
   const pen = (pts: Pt[], s: number, a: number, width: number, color: Stroke['color'], alpha = 1, dashed = false) => {
-    const r = rng(s + 99)
+    const r = seededRandom(s + 99)
     const main = jitter(pts, s, a, step)
     for (let i = 0; i < main.length - 1; i += 7) strokes.push({ pts: main.slice(i, i + 8), width: width * (0.75 + r() * 0.5), color, alpha, dashed })
     strokes.push({ pts: jitter(pts, s + 7, a * 1.4, step), width: width * 0.45, color, alpha: alpha * 0.5, dashed })
   }
   const circle = ([x, y]: Pt, radius: number): Pt[] => Array.from({ length: 13 }, (_, i) => [x + Math.cos((i / 12) * Math.PI * 2) * radius, y + Math.sin((i / 12) * Math.PI * 2) * radius])
-  // Little ripples off the coast, on the sea's side (the right of the line).
+  // On the sea's side: the right of the line.
   const offshore = (line: Pt[], by: number): Pt[] =>
     line.map(([x, y], i) => {
       const [ax, ay] = line[Math.max(0, i - 1)]
@@ -99,19 +98,15 @@ const inked = memoOne((shape: SketchShape | null, ends: [Pt, Pt] | null, seed: n
   return { strokes, ripples, washed, labels }
 })
 
-// Paper texture: seeded noise in the ink, `alpha` at most, `cols` × `rows` cells.
 const tiles = new Map<string, HTMLCanvasElement>()
 function noiseTile(seed: number, color: string, cols: number, rows: number, alpha: number): HTMLCanvasElement {
   const id = [seed, color, cols, rows, alpha].join()
   const known = tiles.get(id)
   if (known) return known
-  const canvas = document.createElement('canvas')
-  canvas.width = cols
-  canvas.height = rows
-  const ctx = canvas.getContext('2d')
+  const { canvas, ctx } = newCanvas(cols, rows)
   if (ctx) {
     const [r, g, b] = channels(color)
-    const random = rng(seed)
+    const random = seededRandom(seed)
     const data = ctx.createImageData(cols, rows)
     for (let i = 0; i < data.data.length; i += 4) {
       data.data[i] = r
@@ -139,7 +134,6 @@ function trace(ctx: CanvasRenderingContext2D, pts: Pt[], close = false) {
   if (close) ctx.closePath()
 }
 
-// D4: the whole sketch on a canvas `scale` times the frame's pixels.
 export function drawSketch(ctx: CanvasRenderingContext2D, f: SketchFrame, scale: number) {
   const { shape, transform: t, width, height, short, palette, settings, seed } = f
   const ink = inked(shape, f.ends, seed, settings.roughness, short, settings.lines)

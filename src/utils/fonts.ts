@@ -87,9 +87,13 @@ export function fontWeight(family: string, bold = false): number {
 }
 
 // Konva's fontStyle is spliced into the canvas `font` shorthand, so it can carry a numeric weight.
-export function konvaFontStyle(family: string, { bold = false, italic = false } = {}): string {
+export type FontStyle = { bold?: boolean; italic?: boolean }
+
+export function konvaFontStyle(family: string, { bold = false, italic = false }: FontStyle = {}): string {
   return `${italic ? 'italic ' : ''}${fontWeight(family, bold)}`
 }
+
+export const canvasFont = (family: string, size: number, style: FontStyle = {}) => `${konvaFontStyle(family, style)} ${Math.round(size)}px "${family}"`
 
 // Covers latin-ext, so the Polish-character subset is fetched too.
 const SAMPLE_TEXT = 'AaĄąĘęŁłŚśŻżŹźĆćŃńÓó0123'

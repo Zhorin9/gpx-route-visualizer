@@ -3,8 +3,7 @@ import { clamp } from '../../utils/math'
 // stretch of road (or time) first. Points are not evenly spaced, so windows are measured
 // in metres or seconds, never in point counts.
 
-// Mean of `values` within ±halfWindow of each point along `axis` (cumulative km or ms).
-// NaN values are skipped; a point with no valid neighbour stays NaN.
+// `axis`: cumulative km or ms. NaN values are skipped; a point with no valid neighbour stays NaN.
 export function windowMean(values: ArrayLike<number>, axis: ArrayLike<number>, halfWindow: number): Float32Array {
   const n = values.length
   const out = new Float32Array(n)
@@ -32,8 +31,7 @@ export function windowMean(values: ArrayLike<number>, axis: ArrayLike<number>, h
   return out
 }
 
-// Change of `values` per unit of `axis`, measured across ±halfWindow so single noisy
-// points don't produce spikes. NaN where the window has no length.
+// Measured across ±halfWindow so single noisy points don't spike. NaN where the window has no length.
 export function windowSlope(values: ArrayLike<number>, axis: ArrayLike<number>, halfWindow: number): Float32Array {
   const n = values.length
   const out = new Float32Array(n)

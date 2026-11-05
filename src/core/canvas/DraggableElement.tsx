@@ -6,7 +6,7 @@ import { useSlideAt } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { UI_ONLY } from '../../utils/exportImage'
 import { useLayerAnimation } from '../animation/layers'
-import { CHROME_ACCENT } from './chrome'
+import { CHROME_ACCENT, SELECTION_OUTLINE } from './chrome'
 import { canvasElement } from './registry'
 import { SNAP_BOX, SNAP_TARGET, snapDragEnd, snapDragMove } from './snapDrag'
 import type { ElementKind } from '../../types'
@@ -25,9 +25,7 @@ export interface DraggableElementProps {
   children: ReactNode
 }
 
-// Shared behaviour of every registered element: placement per format, dragging,
-// selection and its outline. The element itself only draws its content in a
-// width × height box with the origin at the top-left corner.
+// Children draw in a width × height box with the origin at its top-left corner.
 export default function DraggableElement({ kind, width, height, defaultX, defaultY, rotation = 0, children }: DraggableElementProps) {
   const placement = useAppStore((s) => s.placements[kind])
   const selected = useAppStore((s) => s.selection?.kind === 'element' && s.selection.element === kind)
@@ -74,11 +72,7 @@ export default function DraggableElement({ kind, width, height, defaultX, defaul
             width={width + OUTLINE_PAD * 2}
             height={height + OUTLINE_PAD * 2}
             stroke={CHROME_ACCENT}
-            strokeWidth={2.5}
-            strokeScaleEnabled={false}
-            dash={[8, 5]}
-            cornerRadius={4}
-            listening={false}
+            {...SELECTION_OUTLINE}
           />
         )}
       </Group>

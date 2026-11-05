@@ -10,7 +10,6 @@ export interface StatsContext {
 
 export interface StatDefinition {
   key: StatKey
-  // Name in the panel list.
   label: string
   // Caption above the value in the column, grid and hero arrangements.
   caption: string
@@ -34,7 +33,6 @@ interface NumericStat {
   timed?: boolean
 }
 
-// A figure from the track, unless the user typed their own value.
 function numericStat({ key, label, caption, requires, compute, format, timed }: NumericStat): StatDefinition {
   return {
     key,
@@ -123,7 +121,6 @@ export function statDefinition(key: StatKey): StatDefinition | undefined {
   return STAT_DEFINITIONS.find((d) => d.key === key)
 }
 
-// Visible chips in the user's order.
 export function buildChips(ctx: StatsContext): StatChip[] {
   return ctx.content.order
     .filter((key) => ctx.content.visible[key])

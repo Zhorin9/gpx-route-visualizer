@@ -3,7 +3,6 @@ import { useTrackCumKm } from '../store/selectors'
 import { formatClock, formatNumber } from '../utils/format'
 import { selectTrack } from '../store/derived'
 
-// Human-readable description of a point index — "12,4 km · 09:35" — for range sliders.
 export default function useRouteRange() {
   const track = useAppStore(selectTrack)
   const cum = useTrackCumKm()

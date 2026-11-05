@@ -9,7 +9,6 @@ export interface LayoutContext {
   texts: readonly TextNode[]
 }
 
-// How a format places what the user laid out in the source format.
 export interface LayoutStrategy {
   fromSource: (base: FormatLayout, ctx: LayoutContext) => FormatLayout
   // Inverse, for elements that only exist in this format so far.
@@ -27,7 +26,6 @@ const mapElements = (elements: FormatLayout['elements'], fn: (p: ElementPlacemen
 const mapTexts = (texts: FormatLayout['texts'], fn: (p: { x: number; y: number }, id: number) => { x: number; y: number }) =>
   Object.fromEntries(Object.entries(texts).map(([id, p]) => [id, fn(p, Number(id))]))
 
-// Distance from the bottom edge that elements anchored there keep.
 export function insetBelow({ safeZone }: FormatDef): number {
   return safeZone ? safeZone.bottom + 20 : 60
 }

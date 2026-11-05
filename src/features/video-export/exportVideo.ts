@@ -23,7 +23,6 @@ export interface VideoJob {
   inset?: CardInset | null
 }
 
-// How many times the animation is written in a row; only video files repeat it.
 export const playsInFile = (job: Pick<VideoJob, 'format' | 'repeat'>) => (job.format === 'mp4' || job.format === 'webm' ? Math.max(1, job.repeat) : 1)
 
 export interface VideoProgress {
@@ -32,9 +31,8 @@ export interface VideoProgress {
 }
 
 // GIFs are written at half size: a full-size GIF is huge and gains little on a phone.
-export const outputScale = (job: Pick<VideoJob, 'format' | 'scale'>) => (job.format === 'gif' ? 0.5 : job.scale)
+const outputScale = (job: Pick<VideoJob, 'format' | 'scale'>) => (job.format === 'gif' ? 0.5 : job.scale)
 
-// The file's frame: the design's own, or the footage's that the card is laid on.
 const frameOf = (job: Pick<VideoJob, 'aspect' | 'inset'>) => FORMATS[job.inset?.frame ?? job.aspect]
 
 export function outputSize(job: Pick<VideoJob, 'format' | 'aspect' | 'scale' | 'inset'>) {
@@ -42,12 +40,11 @@ export function outputSize(job: Pick<VideoJob, 'format' | 'aspect' | 'scale' | '
   return { width: Math.round(frameOf(job).w * scale), height: Math.round(frameOf(job).h * scale) }
 }
 
-// Pixels of the rendered design per pixel of its format, for a file `k` times its full size.
+// `k`: the file's size as a multiple of the full frame.
 function designScale(job: VideoJob, k: number): number {
   return job.inset ? (k * cardRect(job.inset, job.aspect).w) / FORMATS[job.aspect].w : k
 }
 
-// One slide out of the rendered ribbon as the file shows it: the whole frame, or the card on the footage's frame.
 function slideFrame(ribbon: HTMLCanvasElement, job: VideoJob, slide: number, k: number, t: number, duration: number, target: { card?: HTMLCanvasElement; out?: HTMLCanvasElement } = {}) {
   const card = cropSlide(ribbon, slide, job.aspect, designScale(job, k), target.card)
   if (!job.inset) return card
@@ -60,7 +57,7 @@ function slideFrame(ribbon: HTMLCanvasElement, job: VideoJob, slide: number, k: 
   return out
 }
 
-export function animationLength(): number {
+function animationLength(): number {
   return selectDuration(useAppStore.getState())
 }
 
@@ -74,7 +71,6 @@ function throwIfAborted(signal?: AbortSignal) {
   if (signal?.aborted) throw new DOMException('Przerwano renderowanie', 'AbortError')
 }
 
-// Frames of one slide at given moments, at a given output height; for palettes and previews.
 async function sampleFrames(frames: FrameSource, job: VideoJob, slide: number, times: number[], height: number, duration: number): Promise<HTMLCanvasElement[]> {
   const k = height / frameOf(job).h
   const out: HTMLCanvasElement[] = []
@@ -85,7 +81,6 @@ async function sampleFrames(frames: FrameSource, job: VideoJob, slide: number, t
   return out
 }
 
-// Small previews of the animation (first slide), evenly spread over its length.
 export async function renderThumbnails(job: VideoJob, count: number, height: number): Promise<string[]> {
   const duration = animationLength()
   const frames = await beginStageFrames()
@@ -99,8 +94,7 @@ export async function renderThumbnails(job: VideoJob, count: number, height: num
   }
 }
 
-// Renders the animation frame by frame and encodes it: one file per slide of a carousel.
-// Deterministic: every frame is drawn at its exact moment, however slow the computer.
+// Every frame is drawn at its exact moment, however slow the computer.
 export async function renderVideo(
   service: VideoEncodingService,
   job: VideoJob,
