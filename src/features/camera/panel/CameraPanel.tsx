@@ -1,3 +1,4 @@
+import CheckboxField from '../../../components/fields/CheckboxField'
 import SliderField from '../../../components/fields/SliderField'
 import Section from '../../../components/ui/Section'
 import Segmented from '../../../components/ui/Segmented'
@@ -11,6 +12,7 @@ const MODE_HINTS: Record<CameraId, string> = {
   static: 'Kadr pokazuje całą trasę przez cały film.',
   follow: 'Kadr jest przybliżony i płynnie podąża za końcem linii.',
   flyover: 'Film zaczyna się od całej trasy, przybliża się do linii, prowadzi ją i na końcu oddala.',
+  panorama: 'Kamera jedzie za kropką i trzyma ją w środku kadru. Przybliżenie dobiera sama, z długości trasy.',
 }
 
 export default function CameraPanel() {
@@ -26,7 +28,13 @@ export default function CameraPanel() {
         <p className="hint">
           {!enabled ? 'Kamera działa w animacji: włącz ją w podzakładce „Animacja”.' : carousel ? 'W karuzeli kamera jest wyłączona, bo trasa przechodzi przez granice slajdów.' : MODE_HINTS[camera.mode]}
         </p>
-        {camera.mode !== 'static' && (
+        {camera.mode === 'panorama' && (
+          <>
+            <CheckboxField label="Zbliżenie na wejściu, oddalenie na końcu" checked={camera.introOutro} onChange={(introOutro) => updateCamera({ introOutro })} />
+            {camera.introOutro && <p className="hint">Zbliżenie trwa do startu linii, oddalenie do końca filmu. Oba ustawisz na osi czasu.</p>}
+          </>
+        )}
+        {(camera.mode === 'follow' || camera.mode === 'flyover') && (
           <>
             <SliderField label="Przybliżenie" unit="×" min={1.5} max={8} step={0.5} value={camera.zoom} defaultValue={DEFAULT_CAMERA.zoom} onChange={(zoom) => updateCamera({ zoom })} />
             <SliderField label="Płynność" unit="s" min={0} max={3} step={0.25} value={camera.smoothing} defaultValue={DEFAULT_CAMERA.smoothing} onChange={(smoothing) => updateCamera({ smoothing })} />

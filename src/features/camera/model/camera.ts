@@ -2,8 +2,9 @@ import type { CameraView } from '../../../core/route/view'
 import type { Point2D } from '../../../utils/geometry'
 import { easeInOut } from '../../animation/model/timeline'
 import { clamp01 } from '../../../utils/math'
+import { panoramaCamera } from './panorama'
 
-export type CameraId = 'static' | 'follow' | 'flyover'
+export type CameraId = 'static' | 'follow' | 'flyover' | 'panorama'
 
 export interface CameraSettings {
   mode: CameraId
@@ -13,17 +14,33 @@ export interface CameraSettings {
   smoothing: number
   // Flyover: share of the drawing spent coming in at the start and going back out at the end.
   approach: number
+  // Panorama: comes down onto the start before the line sets off, and draws back to the whole route after it ends.
+  introOutro: boolean
 }
 
-export const DEFAULT_CAMERA: CameraSettings = { mode: 'static', zoom: 3, smoothing: 1, approach: 0.2 }
+export const DEFAULT_CAMERA: CameraSettings = { mode: 'static', zoom: 3, smoothing: 1, approach: 0.2, introOutro: true }
+
+export interface Bounds {
+  minX: number
+  minY: number
+  maxX: number
+  maxY: number
+}
 
 export interface CameraContext {
   // 0-1 of the route's bar on the timeline.
   progress: number
   // Where the head of the line is on the frame (static view) at a progress of the bar.
   headAt: (progress: number) => Point2D
-  // Middle of the route's area: what the camera looks at is brought here.
-  focus: Point2D
+  // A point at a share (0-1) of the route's length, and the share the head has covered.
+  pathAt: (share: number) => Point2D
+  headShare: number
+  bounds: Bounds
+  // The route's area; what the camera looks at is brought to its middle.
+  area: { width: number; height: number }
+  // 0-1 through the time before the line starts, and through the time after it ends.
+  entering: number
+  leaving: number
   // Seconds the drawing takes, to turn the smoothing time into a share of it.
   duration: number
   settings: CameraSettings
@@ -52,9 +69,12 @@ function smoothedHead({ progress, headAt, duration, settings }: CameraContext): 
   return { x: x / (SAMPLES + 1), y: y / (SAMPLES + 1) }
 }
 
+export const middleOf = (area: CameraContext['area']): Point2D => ({ x: area.width / 2, y: area.height / 2 })
+
 function followView(ctx: CameraContext): CameraView {
   const c = smoothedHead(ctx)
-  return { x: c.x, y: c.y, zoom: ctx.settings.zoom, focusX: ctx.focus.x, focusY: ctx.focus.y }
+  const focus = middleOf(ctx.area)
+  return { x: c.x, y: c.y, zoom: ctx.settings.zoom, focusX: focus.x, focusY: focus.y }
 }
 
 // The centre moves with the zoom, not evenly, so the point approached stays put on screen.
@@ -76,11 +96,11 @@ export const flyoverCamera: CameraStrategy = {
     const t = Math.min(1, ctx.progress / a, (1 - ctx.progress) / a)
     if (t <= 0) return null
     const close = followView(ctx)
-    return t >= 1 ? close : between(close, easeInOut(t), ctx.focus)
+    return t >= 1 ? close : between(close, easeInOut(t), middleOf(ctx.area))
   },
 }
 
-export const CAMERAS: readonly CameraStrategy[] = [staticCamera, followCamera, flyoverCamera]
+export const CAMERAS: readonly CameraStrategy[] = [staticCamera, followCamera, flyoverCamera, panoramaCamera]
 
 export function cameraFor(id: CameraId): CameraStrategy {
   return CAMERAS.find((c) => c.id === id) ?? staticCamera
