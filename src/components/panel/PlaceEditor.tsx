@@ -31,7 +31,6 @@ const SIZE_OPTIONS: SelectOption<PointStyle['size']>[] = [
   { value: 'L', label: 'L' },
 ]
 
-// A photo standing on the place's name; its look is shared by every place (and set by the style presets).
 function PointPhoto({ waypoint }: { waypoint: Waypoint }) {
   const photos = useAppStore((s) => s.photos)
   const pointStyle = useAppStore((s) => s.pointStyle)

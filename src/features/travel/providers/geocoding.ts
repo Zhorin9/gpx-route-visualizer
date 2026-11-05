@@ -1,4 +1,3 @@
-// A place found by name or by a point on the map.
 export interface Place {
   name: string
   // Region and country, to tell two places of the same name apart.
@@ -15,8 +14,7 @@ interface PhotonAnswer {
 }
 
 const URL_BASE = 'https://photon.komoot.io'
-// Names as they are on the spot (Warszawa). Without it Photon follows the browser's language and
-// an English browser gets Warsaw; Polish itself is not one of the languages it offers.
+// Names as on the spot (Warszawa); otherwise Photon follows the browser's language, and Polish isn't one it offers.
 const LOCAL_NAMES = '&lang=default'
 
 // A city and its district of the same name read alike; one of them is enough.
@@ -41,8 +39,7 @@ interface NominatimPlace {
   lon: string
 }
 
-// The region and country from the address, without the postcode.
-export function parseNominatim(answer: NominatimPlace[]): Place[] {
+function parseNominatim(answer: NominatimPlace[]): Place[] {
   return distinct(
     answer.map((p) => {
       const parts = p.display_name.split(', ').slice(1).filter((part) => !/\d/.test(part) && part !== p.name)
@@ -57,7 +54,7 @@ async function ask<T>(url: string, signal: AbortSignal, parse: (answer: T) => Pl
   return parse(await response.json())
 }
 
-// Photon (komoot): no key, made for suggestions while typing. Places near `near` come first.
+// Photon (komoot): no key, made for search-as-you-type. Places near `near` come first.
 export function searchPlaces(query: string, near: { lat: number; lon: number } | null, signal: AbortSignal): Promise<Place[]> {
   const bias = near ? `&lat=${near.lat.toFixed(4)}&lon=${near.lon.toFixed(4)}` : ''
   return ask(`${URL_BASE}/api/?q=${encodeURIComponent(query)}&limit=8${bias}${LOCAL_NAMES}`, signal, parsePhoton).then((places) => places.slice(0, 6))
@@ -69,15 +66,13 @@ export function searchPlacesExact(query: string, signal: AbortSignal): Promise<P
   return ask(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=jsonv2&limit=6&accept-language=pl`, signal, parseNominatim)
 }
 
-// A point on the nearest main street (primary to tertiary) within about 3 km, for a car that can't
-// start from a pedestrian square in the middle of town.
+// The nearest main street within about 3 km, for a car that can't start from a pedestrian square.
 export async function nearestRoad(at: { lat: number; lon: number }, signal: AbortSignal): Promise<Place | null> {
   const tags = ['trunk', 'primary', 'secondary', 'tertiary'].map((t) => `&osm_tag=highway:${t}`).join('')
   const url = `${URL_BASE}/reverse?lat=${at.lat.toFixed(5)}&lon=${at.lon.toFixed(5)}${tags}&radius=3&limit=1${LOCAL_NAMES}`
   return (await ask(url, signal, (answer: PhotonAnswer) => parsePhoton(answer)))[0] ?? null
 }
 
-// The railway station nearest a place, within about 15 km; null when there is none.
 export async function nearestStation(at: { lat: number; lon: number }, signal: AbortSignal): Promise<Place | null> {
   const url = `${URL_BASE}/reverse?lat=${at.lat.toFixed(5)}&lon=${at.lon.toFixed(5)}&osm_tag=railway:station&radius=15&limit=1${LOCAL_NAMES}`
   return (await ask(url, signal, (answer: PhotonAnswer) => parsePhoton(answer)))[0] ?? null

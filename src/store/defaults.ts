@@ -103,7 +103,6 @@ export const MIN_CAROUSEL_SLIDES = 2
 export const CAROUSEL_SLIDES = 2
 export const MAX_SLIDES = 5
 
-// The next free id in a list of document items.
 export function nextId(items: { id: number }[]): number {
   return items.reduce((max, item) => Math.max(max, item.id), 0) + 1
 }
@@ -136,9 +135,9 @@ export const DEFAULT_TITLE_STYLE: TitleStyle = {
   uppercase: true,
 }
 
-export const TITLE_FONT_SIZE = 80
+const TITLE_FONT_SIZE = 80
 
-// The track name, placed as on the template previews: centred, near the top.
+// Placed as on the template previews: centred, near the top.
 export function makeTitle(id: number, text: string, style: TitleStyle, at: { x: number; y: number }): TextNode {
   return {
     ...makeText(id, 0, 0),

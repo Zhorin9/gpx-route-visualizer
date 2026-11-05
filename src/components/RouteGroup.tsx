@@ -25,8 +25,6 @@ function readTransform(node: Konva.Node): RouteTransform {
   return { x: node.x(), y: node.y(), scaleX: node.scaleX(), scaleY: node.scaleY(), rotation: node.rotation() }
 }
 
-// The route on the frame: moving, scaling and rotating it, adding places by clicking it.
-// What is drawn comes from the geometry, how it looks from the painter.
 export default function RouteGroup() {
   const savedStyle = useAppStore((s) => s.routeStyle)
   const forcedGhost = useForcedGhost()
@@ -62,8 +60,7 @@ export default function RouteGroup() {
     tr.getLayer()?.batchDraw()
   }, [editable, active])
 
-  // Invisible rect over the route's bounds: the strokes alone are too thin to
-  // reliably grab. Only listens while needed, so it doesn't block the photo underneath.
+  // The strokes alone are too thin to grab; listens only while needed, so the photo underneath stays clickable.
   const hitBox = useMemo(() => {
     if (active.length < 4) return null
     const b = flatBounds(active)

@@ -21,7 +21,6 @@ function routeBox(s: Parameters<typeof profileBand>[0] & { aspectKey: AspectKey;
   return [columns.routeW, h - bottomInset(s.aspectKey) + ROUTE_PAD_OVERLAP - profileBand(s)]
 }
 
-// Box the route is fitted to, in frame pixels from the top-left corner.
 export function useRouteBox() {
   return useAppStore(useShallow(routeBox))
 }
@@ -80,7 +79,7 @@ export function useHasBackground() {
   return useAppStore((s) => (s.collage.bgKind !== 'transparent' && !(s.collage.bgKind === 'map' && mapIsSeeThrough(s.map))) || hasVisiblePhotos(s.slides, s.carouselKind))
 }
 
-// What was placed by hand in the current format (nothing in the source format).
+// Nothing in the source format.
 export function useManualFlags() {
   const aspectKey = useAppStore((s) => s.aspectKey)
   const texts = useAppStore((s) => s.texts)
@@ -106,7 +105,6 @@ export function useHasRoute() {
   return useAppStore((s) => selectTrack(s) !== null)
 }
 
-// The slide a node on the ribbon belongs to, by its x.
 export function useSlideAt(x: number): number {
   return useAppStore((s) => clamp(Math.floor(x / FORMATS[s.aspectKey].w), 0, s.slides.length - 1))
 }

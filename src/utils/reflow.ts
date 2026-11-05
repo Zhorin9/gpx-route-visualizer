@@ -13,7 +13,7 @@ type LayoutState = Pick<DocumentState, 'texts' | 'placements' | 'routeTransform'
 type BaseState = LayoutState & Pick<DocumentState, 'aspectKey' | 'sourceLayout'>
 type ReflowState = BaseState & Pick<DocumentState, 'layoutOverrides' | 'slides' | 'parkedSlides'>
 
-export function readLayout(s: LayoutState): FormatLayout {
+function readLayout(s: LayoutState): FormatLayout {
   return {
     texts: Object.fromEntries(s.texts.map((t) => [t.id, { x: t.x, y: t.y }])),
     elements: { ...s.placements },
@@ -23,7 +23,6 @@ export function readLayout(s: LayoutState): FormatLayout {
 
 const context = (s: LayoutState, key: AspectKey): LayoutContext => ({ source: FORMATS[SOURCE_ASPECT], format: FORMATS[key], texts: s.texts })
 
-// The automatic layout of a format, computed by the format's own strategy.
 const autoLayout = (base: FormatLayout, s: LayoutState, key: AspectKey) => FORMATS[key].layout.fromSource(base, context(s, key))
 const toSource = (live: FormatLayout, s: BaseState) => FORMATS[s.aspectKey].layout.toSource(live, context(s, s.aspectKey))
 
@@ -33,8 +32,7 @@ function routeDiffers(a: FormatLayout['route'], b: FormatLayout['route']) {
   return !near(a.x, b.x) || !near(a.y, b.y) || a.rotation !== b.rotation || Math.abs(a.scaleX - b.scaleX) > 0.001 || Math.abs(a.scaleY - b.scaleY) > 0.001
 }
 
-// Reference layout (in the source format) rebuilt from the live one plus what was remembered.
-function baseFor(s: BaseState): FormatLayout {
+function referenceLayout(s: BaseState): FormatLayout {
   const live = readLayout(s)
   if (s.aspectKey === SOURCE_ASPECT) return live
   const inferred = toSource(live, s)
@@ -68,10 +66,9 @@ export interface ManualFlags {
   texts: Record<number, boolean>
 }
 
-// Which elements were moved by hand in the current format (never in the source format).
 export function manualFlags(s: BaseState): ManualFlags {
   if (s.aspectKey === SOURCE_ASPECT) return { elements: {}, route: false, texts: {} }
-  const ov = manualOverrides(readLayout(s), autoLayout(baseFor(s), s, s.aspectKey))
+  const ov = manualOverrides(readLayout(s), autoLayout(referenceLayout(s), s, s.aspectKey))
   const flagged = (record: object) => Object.fromEntries(Object.keys(record).map((key) => [key, true]))
   return { elements: flagged(ov.elements), route: Boolean(ov.route), texts: flagged(ov.texts) }
 }
@@ -88,11 +85,10 @@ function applyLayout(s: Pick<DocumentState, 'texts' | 'placements'>, layout: For
   }
 }
 
-// Moves the document to another format: remembers what was placed by hand here and
-// restores the hand-placed elements of the target; everything else is recomputed.
+// Remembers what was placed by hand here, restores the target's; the rest is recomputed.
 export function reflowTo(s: ReflowState, key: AspectKey): Partial<DocumentState> {
   if (s.aspectKey === key) return {}
-  const base = baseFor(s)
+  const base = referenceLayout(s)
   const layoutOverrides = { ...s.layoutOverrides }
   if (s.aspectKey !== SOURCE_ASPECT) layoutOverrides[s.aspectKey] = manualOverrides(readLayout(s), autoLayout(base, s, s.aspectKey))
 
@@ -123,20 +119,18 @@ export function reflowTo(s: ReflowState, key: AspectKey): Partial<DocumentState>
   }
 }
 
-// A format without a carousel shows only the first slide; the others wait for one that has it.
+// Without a carousel only the first slide shows; the others wait parked.
 function carouselSlides(slides: Slide[], parked: Slide[], carousel: boolean): Pick<DocumentState, 'slides' | 'parkedSlides'> {
   return carousel ? { slides: [...slides, ...parked], parkedSlides: [] } : { slides: slides.slice(0, 1), parkedSlides: [...slides.slice(1), ...parked] }
 }
 
-// Slides the given format exports, whichever format is open now; skipped ones stay out.
 export function slideCountIn(s: Pick<DocumentState, 'slides' | 'parkedSlides'>, key: AspectKey): number {
   return FORMATS[key].carousel ? [...s.slides, ...s.parkedSlides].filter((slide) => !slide.skipped).length : 1
 }
 
-// Drops every hand-placed element of the current format and follows the source again.
 export function resetToAuto(s: ReflowState): Partial<DocumentState> {
   if (s.aspectKey === SOURCE_ASPECT) return {}
-  const base = baseFor(s)
+  const base = referenceLayout(s)
   const layoutOverrides = { ...s.layoutOverrides }
   delete layoutOverrides[s.aspectKey]
   return { ...applyLayout(s, autoLayout(base, s, s.aspectKey)), sourceLayout: base, layoutOverrides }

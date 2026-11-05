@@ -6,8 +6,6 @@ import { useAppStore } from '../../../store/useAppStore'
 import { mercatorX, mercatorY, type MercatorFit } from '../../../utils/gpx'
 import type { RouteTransform } from '../../../types'
 
-// What the graphic shows, drawn on the planning map: the frame's outline, the rest of the map dimmed.
-// Dragging its label moves the frame over the map, the corner scales it; both move the route on the graphic.
 export default function FrameOutline({ map, fit, width, height, label }: { map: MapLibreMap; fit: MercatorFit; width: number; height: number; label: string }) {
   const transform = useAppStore((s) => s.routeTransform)
   const setRouteTransform = useAppStore((s) => s.setRouteTransform)
@@ -27,7 +25,6 @@ export default function FrameOutline({ map, fit, width, height, label }: { map: 
   const h = Math.hypot(bl.x - tl.x, bl.y - tl.y)
   const angle = (Math.atan2(tr.y - tl.y, tr.x - tl.x) * 180) / Math.PI
 
-  // Follows the pointer from where it was pressed until it is let go.
   function track(e: ReactPointerEvent, move: (from: { x: number; y: number }, to: { x: number; y: number }, start: RouteTransform) => RouteTransform) {
     e.preventDefault()
     e.stopPropagation()
@@ -45,7 +42,6 @@ export default function FrameOutline({ map, fit, width, height, label }: { map: 
     target.addEventListener('pointerup', onUp)
   }
 
-  // The map pixels the pointer moved, as a shift of the world in Web Mercator.
   function shift(from: { x: number; y: number }, to: { x: number; y: number }) {
     const a = map.unproject([from.x, from.y])
     const b = map.unproject([to.x, to.y])

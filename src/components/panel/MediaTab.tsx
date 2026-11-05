@@ -8,8 +8,10 @@ import { useActiveSlide, useHasPhotos, usePanorama } from '../../store/selectors
 import { useAppStore } from '../../store/useAppStore'
 import { DEFAULT_COLLAGE } from '../../store/defaults'
 import { FORMATS } from '../../core/formats/registry'
-import { LAYOUTS, computeSlots, layoutDef, layoutFits, slotCount, type LayoutDef } from '../../utils/layouts'
-import { ThisSlideSection } from './SlidePanel'
+import { LAYOUTS, layoutDef, layoutFits, slotCount, type LayoutDef } from '../../utils/layouts'
+import ThisSlideSection from './ThisSlideSection'
+import { CROP_OPTIONS } from './cropOptions'
+import LayoutCells from '../LayoutCells'
 import PhotoPool from './PhotoPool'
 import { MAX_SLIDES, MIN_CAROUSEL_SLIDES } from '../../store/defaults'
 import type { CarouselKind, FrameKind, LayoutGroup, LayoutKey, Photo, SelectOption, Slide, SlotCrop } from '../../types'
@@ -39,18 +41,11 @@ const FIT_OPTIONS: SelectOption<'cover' | 'contain'>[] = [
   { value: 'contain', label: 'Całe + rozmyte tło' },
 ]
 
-const CROP_OPTIONS: SelectOption<SlotCrop>[] = [
-  { value: 'fill', label: 'Wypełnij' },
-  { value: 'fit', label: 'Dopasuj' },
-  { value: 'manual', label: 'Ręcznie' },
-]
-
 const OUTPUT_OPTIONS: SelectOption<'single' | 'carousel'>[] = [
   { value: 'single', label: 'Jeden kadr' },
   { value: 'carousel', label: 'Karuzela' },
 ]
 
-// Box a layout thumbnail fits in, in the frame's proportions.
 const THUMB_W = 76
 const THUMB_H = 96
 
@@ -71,7 +66,6 @@ function LayoutThumb({
   onApply: () => void
   onPreview: (on: boolean) => void
 }) {
-  const slots = computeSlots(def, size.w, size.h, 2, 3)
   return (
     <button
       type="button"
@@ -84,23 +78,7 @@ function LayoutThumb({
       onBlur={() => onPreview(false)}
     >
       <span className="layout-thumb-box" style={{ width: size.w, height: size.h }}>
-        {slots.map((slot) => {
-          const photo = photos.get(slide.slots[slot.index]?.photoId ?? -1)
-          return (
-            <span
-              key={slot.index}
-              className={slot.kind === 'framed' ? 'layout-thumb-cell framed' : 'layout-thumb-cell'}
-              style={{
-                left: slot.x,
-                top: slot.y,
-                width: slot.w,
-                height: slot.h,
-                transform: slot.rotation ? `rotate(${slot.rotation}deg)` : undefined,
-                backgroundImage: photo ? `url(${photo.thumb})` : undefined,
-              }}
-            />
-          )
-        })}
+        <LayoutCells def={def} slide={slide} photos={photos} width={size.w} height={size.h} margin={3} outlineFramed />
       </span>
       <span className="layout-thumb-label">{def.label}</span>
     </button>
@@ -284,8 +262,6 @@ export default function MediaTab() {
   )
 }
 
-// Wypełnij centres the photo over the slot, Dopasuj shows all of it, Ręcznie lets it be dragged
-// and zoomed. It applies to the selected photo, or to all of them when none is selected.
 function CropSection() {
   const slides = useAppStore((s) => s.slides)
   const fit = useAppStore((s) => s.collage.fit)

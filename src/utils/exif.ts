@@ -45,7 +45,6 @@ function rationals(view: DataView, e: Entry | undefined, little: boolean): numbe
 
 const pointer = (view: DataView, e: Entry | undefined, little: boolean) => (e ? view.getUint32(e.valueOffset, little) : undefined)
 
-// "2026:07:14 06:12:40" with an optional "+02:00".
 export function parseExifDate(value: string, offset?: string): number | undefined {
   const m = /^(\d{4}):(\d{2}):(\d{2}) (\d{2}):(\d{2}):(\d{2})/.exec(value)
   if (!m) return undefined
@@ -56,7 +55,6 @@ export function parseExifDate(value: string, offset?: string): number | undefine
   return Number.isFinite(t) ? t : undefined
 }
 
-// Reads the TIFF block of a JPEG's APP1 segment; anything else (PNG, HEIC, a damaged file) has no EXIF here.
 export function parseExif(buffer: ArrayBuffer): PhotoGeo {
   const view = new DataView(buffer)
   if (view.byteLength < 4 || view.getUint16(0) !== 0xffd8) return {}
@@ -99,7 +97,7 @@ function parseTiff(view: DataView, tiff: number): PhotoGeo {
   return out
 }
 
-// EXIF sits at the start of the file; the rest of a 10 MB photo isn't needed.
+// EXIF sits at the start of the file; the rest isn't needed.
 export async function readExif(file: Blob): Promise<PhotoGeo> {
   try {
     return parseExif(await file.slice(0, 256 * 1024).arrayBuffer())

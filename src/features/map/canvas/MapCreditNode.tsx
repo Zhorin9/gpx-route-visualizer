@@ -9,7 +9,7 @@ import { MAP_CREDIT_KIND } from '../types'
 
 const MARGIN = 24
 
-// The map's source, as its licence asks: small, in a corner, movable and recolourable but always there.
+// The licence requires the credit to stay on the frame.
 export default function MapCreditNode() {
   const settings = useAppStore((s) => s.map)
   const aspectKey = useAppStore((s) => s.aspectKey)

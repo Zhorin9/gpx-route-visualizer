@@ -7,7 +7,6 @@ import { useAppStore } from '../../store/useAppStore'
 
 export const PHOTO_DRAG_TYPE = 'application/x-gpx-photo'
 
-// Uploaded photos; click one to fill the selected slot, or drag it onto a slot.
 export default function PhotoPool() {
   const photos = useAppStore((s) => s.photos)
   const slides = useAppStore((s) => s.slides)

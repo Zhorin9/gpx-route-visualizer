@@ -9,17 +9,13 @@ import { fetchSketchLayers, type SketchLayers } from './sketch/tiles'
 import type { MapSettings } from './types'
 
 export interface MapSlice {
-  // OSM features for the sketch by route (its seed), fetched once; null when they couldn't be.
-  // Outside the history, like the routes' points.
+  // By route seed; null when fetching failed. Outside the history, like the routes' points.
   sketchLayers: Record<number, SketchLayers | null>
-  // Fetches the current route's features unless they are there; `retry` asks again after a failure.
   loadSketchLayers: (retry?: boolean) => void
   updateMap: (patch: Partial<MapSettings>) => void
-  // Makes the map the background, with text and route in contrast to it.
   showMapBackground: () => void
 }
 
-// Light or dark, as the map will look: its palette or style, unless dimmed or lightened a lot.
 export function drawnTone(map: MapSettings): Tone {
   if (map.kind === 'sketch') return toneOf(sketchPalette(map).paper)
   if (map.dim >= 0.35) return 'dark'
@@ -28,7 +24,7 @@ export function drawnTone(map: MapSettings): Tone {
   return map.palette && typeof style.url === 'string' ? toneOf(map.palette.land) : style.tone
 }
 
-// What texts and the route stand on: a faded map takes on the colour under it.
+// A faded map takes on the tone of the ground under it.
 export function mapTone(map: MapSettings): Tone {
   const tone = drawnTone(map)
   if (map.opacity >= 1) return tone

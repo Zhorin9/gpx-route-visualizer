@@ -7,14 +7,12 @@ export const easeInOut = (p: number) => (p < 0.5 ? 2 * p * p : 1 - (-2 * p + 2) 
 const easeOut = (p: number) => 1 - (1 - p) ** 3
 
 const SLIDE_PX = 40
-// Whole length of the animation: the last of the mode's bars to end, plus the still frames.
 export function totalDuration(settings: Pick<AnimationSettings, 'clips' | 'endHold'>, tracks: AnimationTrackId[] = tracksFor(null)): number {
   return Math.max(...tracks.map((track) => settings.clips[track]).map((c) => c.start + c.duration)) + settings.endHold
 }
 
 export const selectDuration = (s: { animation: AnimationSettings; mode: ProjectMode | null }) => totalDuration(s.animation, tracksFor(s.mode))
 
-// 0 before the bar, 1 after it.
 export function clipProgress(clip: TrackClip, t: number): number {
   if (clip.duration <= 0) return t >= clip.start ? 1 : 0
   return clamp01((t - clip.start) / clip.duration)

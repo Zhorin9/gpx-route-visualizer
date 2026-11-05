@@ -18,8 +18,6 @@ function PlayIcon({ playing }: { playing: boolean }) {
   )
 }
 
-// Under the frame: play/pause, a time slider and the clock. "Wróć do edycji" leaves the
-// animated preview and shows the static design again.
 export default function PlaybackBar() {
   const canAnimate = useCanAnimate()
   const settings = useAppStore((s) => s.animation)

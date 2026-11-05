@@ -59,7 +59,6 @@ import type { TravelSlice } from '../features/travel/store'
 export interface DocumentState {
   aspectKey: AspectKey
   routeStyle: RouteStyle
-  // The GPX files the route is made of; the track itself is derived from it.
   routeSource: RouteSource | null
   routeTransform: RouteTransform
   range: RouteRange
@@ -68,11 +67,9 @@ export interface DocumentState {
   titleStyle: TitleStyle
   statsContent: StatsContent
   statsLayout: StatsLayout
-  // Where each registered canvas element (stats header, elevation profile, ...) sits in this format.
   placements: Record<ElementKind, ElementPlacement>
   texts: TextNode[]
   waypoints: Waypoint[]
-  // How photos pinned to places look.
   pointStyle: PointStyle
   slides: Slide[]
   // Slides after the first while a format without a carousel is open; they come back with one.
@@ -88,11 +85,9 @@ export interface DocumentState {
   dataColor: DataColorSettings
   animation: AnimationSettings
   camera: CameraSettings
-  // The map background: its style and look.
   map: MapSettings
-  // The form every slide takes (Styl → Opakowanie).
   wrapper: Wrapper
-  // Chosen on the start screen; null until then. It decides which tabs the editor has.
+  // null until chosen on the start screen.
   mode: ProjectMode | null
 }
 
@@ -154,7 +149,7 @@ export interface RouteSourceSlice {
   // history (like the photo library), so undo can bring back a file that was replaced.
   trackCache: Record<string, GpxPoint[]>
   gpxError: string
-  // Replaces the route, or with `append` adds the file as another day.
+  // `append` adds the file as another day.
   loadGpxFile: (file: File, append?: boolean) => Promise<void>
   updatePart: (id: number, patch: Partial<Pick<TrackPart, 'color' | 'dashed' | 'visible' | 'vehicle'>>) => void
   removePart: (id: number) => void
@@ -171,7 +166,7 @@ export interface MediaSlice {
   assignPhoto: (slide: number, index: number, photoId: number) => void
   // Puts a library photo in the selected slot, else the first empty one.
   placePhoto: (photoId: number) => void
-  // Drops a photo from the library and empties every slot that showed it.
+  // Also empties every slot that showed it.
   removePhoto: (photoId: number) => void
   clearSlot: (slide: number, index: number) => void
   updateSlot: (slide: number, index: number, patch: Partial<Omit<SlotAssignment, 'photoId'>>) => void
@@ -225,7 +220,6 @@ export interface StatsSlice {
   updateStatsStyle: (patch: Partial<StatsStyle>) => void
   updateStatsContent: (patch: Partial<Omit<StatsContent, 'visible' | 'overrides'>>) => void
   setStatVisible: (key: StatKey, visible: boolean) => void
-  // Moves a stat to another place in the display order.
   moveStat: (key: StatKey, toIndex: number) => void
   setStatOverride: (key: keyof StatsContent['overrides'], value: string) => void
   setChipOffset: (key: StatKey, offset: Offset) => void
@@ -251,7 +245,7 @@ export interface TemplatesSlice {
   applyTemplate: (template: StyleTemplate, parts: TemplateParts) => void
   // The colours proposed from the photos, as one undo step; afterwards they are plain style values.
   applyPhotoTheme: (theme: PhotoTheme) => void
-  // Picks a wrapper; its empty fields are filled from the route.
+  // Empty fields are filled from the route.
   setWrapper: (id: WrapperId) => void
   updateWrapper: (patch: { fields?: Partial<Wrapper['fields']>; postmark?: Partial<Wrapper['postmark']> }) => void
   saveTemplate: (name: string) => void
@@ -260,7 +254,6 @@ export interface TemplatesSlice {
 
 export interface HistoryEntry {
   doc: DocumentState
-  // What the step changed, as the undo toast names it.
   label: string
 }
 

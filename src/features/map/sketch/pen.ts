@@ -1,26 +1,14 @@
 // A pen's tremble that is the same every time: seeded numbers, never Math.random.
+import { seededRandom } from '../../../utils/math'
 export type Pt = [number, number]
 
-// mulberry32
-export function rng(seed: number): () => number {
-  return () => {
-    seed |= 0
-    seed = (seed + 0x6d2b79f5) | 0
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed)
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
-  }
-}
-
-// Three sines with seeded phases: smooth along the line, never jagged. About -1 to 1.
-// `wave` is the length of the slowest one.
+// Three seeded sines, about -1 to 1, smooth along the line; `wave` is the slowest one's length.
 export function noise(seed: number, wave: number): (d: number) => number {
-  const r = rng(seed)
+  const r = seededRandom(seed)
   const waves = [0, 1, 2].map((i) => ({ f: ((0.8 + r() * 1.2) * (i + 1) * Math.PI * 2) / wave, p: r() * Math.PI * 2, a: 1 / (i + 1) }))
   return (d) => waves.reduce((v, w) => v + w.a * Math.sin(d * w.f + w.p), 0) / 1.83
 }
 
-// The line cut every `step` and each point moved across it by `amp` × noise of the distance so far.
 export function jitter(pts: Pt[], seed: number, amp: number, step: number): Pt[] {
   if (pts.length < 2) return pts
   const n = noise(seed, step * 100)
@@ -48,7 +36,7 @@ export function jitter(pts: Pt[], seed: number, amp: number, step: number): Pt[]
   return out
 }
 
-// The same tremble on a flat [x0, y0, x1, y1, …] line, point for point (a track keeps its indices).
+// The same tremble point for point, so a track keeps its indices.
 export function wobble(flat: Float64Array, seed: number, amp: number, wave: number): Float64Array {
   const n = noise(seed, wave)
   const out = new Float64Array(flat.length)
@@ -68,7 +56,7 @@ export function wobble(flat: Float64Array, seed: number, amp: number, wave: numb
   return out
 }
 
-// A number for the route (its points, not its place in memory), so the same route sketches the same.
+// From the points, not the object, so the same route sketches the same.
 export function routeSeed(points: { lat: number; lon: number }[]): number {
   let h = 2166136261
   const step = Math.max(1, Math.floor(points.length / 64))

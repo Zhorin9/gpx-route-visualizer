@@ -41,8 +41,6 @@ function VehiclePicture({ art, x, y, rotation, length }: { art: string; x: numbe
   return <KonvaImage image={picture} x={x} y={y} width={length} height={length / 2} offsetX={length / 2} offsetY={length / 4} rotation={rotation} listening={false} />
 }
 
-// What travels at the tip of the line while it is being drawn: a glowing dot or a vehicle
-// pointing the way, in the colour under it. Each part of the route may have its own.
 export default function RouteHeadMarker({ geometry }: { geometry: RouteGeometry }) {
   const enabled = useAppStore((s) => s.animation.headDot)
   const fallback = useAppStore((s) => s.animation.vehicle)

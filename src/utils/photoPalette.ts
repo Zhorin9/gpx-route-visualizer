@@ -1,8 +1,8 @@
 import { contrastRatio } from './color'
 import { clamp, clamp01 } from './math'
+import { newCanvas } from './image'
 
-// Colours from the photos, worked out in OKLCH/Oklab: there the distance between two colours
-// follows how different they look.
+// OKLCH/Oklab: distance there follows how different two colours look.
 
 export interface Oklch {
   L: number
@@ -60,9 +60,7 @@ export function oklchToHex(c: Oklch): string {
   return `#${rgb.map((v) => Math.round(clamp01(gamma(clamp01(v))) * 255).toString(16).padStart(2, '0')).join('')}`
 }
 
-// ---------- A1: samples ----------
-
-// Every 2nd RGBA pixel; transparent, near-white and near-black ones are left out, greys kept apart.
+// Every 2nd pixel; skips transparent, near-white and near-black ones.
 export function sortPixels(data: ArrayLike<number>, colored: Sample[], neutral: Sample[]): void {
   for (let i = 0; i < data.length; i += 8) {
     if (data[i + 3] < 128) continue
@@ -74,9 +72,8 @@ export function sortPixels(data: ArrayLike<number>, colored: Sample[], neutral: 
 }
 
 // Each photo is read at 64 px on its longer side, so a big photo weighs as much as a small one.
-export function readSamples(images: HTMLCanvasElement[]): { colored: Sample[]; neutral: Sample[] } {
-  const canvas = document.createElement('canvas')
-  const ctx = canvas.getContext('2d', { willReadFrequently: true })
+function readSamples(images: HTMLCanvasElement[]): { colored: Sample[]; neutral: Sample[] } {
+  const { canvas, ctx } = newCanvas(1, 1, { willReadFrequently: true })
   const colored: Sample[] = [], neutral: Sample[] = []
   if (!ctx) return { colored, neutral }
   for (const img of images) {
@@ -89,8 +86,6 @@ export function readSamples(images: HTMLCanvasElement[]): { colored: Sample[]; n
   return { colored, neutral }
 }
 
-// ---------- A2: dominant colours ----------
-
 const dist = (p: Sample, q: Sample) => Math.hypot(p.L - q.L, p.a - q.a, p.b - q.b)
 
 function mean(g: Sample[]): Swatch {
@@ -98,8 +93,7 @@ function mean(g: Sample[]): Swatch {
   return fromLab(avg('L'), avg('a'), avg('b'))
 }
 
-// k-means in Oklab, seeded with samples spread evenly along the hue, so a set always gives the same result.
-// Groups under 4% of the samples are dropped; the rest come largest first.
+// k-means seeded evenly along the hue, so a set always gives the same result; groups under 4% are dropped.
 export function dominant(samples: Sample[], k = 6, iters = 10): Swatch[] {
   const pts = samples.slice().sort((p, q) => p.h - q.h)
   let centers: Sample[] = Array.from({ length: k }, (_, i) => pts[Math.floor(((i + 0.5) * pts.length) / k)])
@@ -121,8 +115,7 @@ export function dominant(samples: Sample[], k = 6, iters = 10): Swatch[] {
     .sort((x, y) => y.share - x.share)
 }
 
-// Colours closer than `minDist` become one (weighted by share); the four largest stay. Fewer than four
-// are made up with lighter and darker takes on the largest.
+// Fewer than four are made up with lighter and darker takes on the largest.
 export function mergeClose(list: Swatch[], minDist = 0.08): Swatch[] {
   const out: Swatch[] = []
   for (const c of list) {
@@ -153,9 +146,7 @@ export function photoPalette(images: HTMLCanvasElement[]): PhotoPalette {
   return { colors: mergeClose(dominant(grey ? [...colored, ...neutral] : colored)), grey }
 }
 
-// ---------- A3: roles ----------
-
-// What "Inna propozycja" steps through: route and accent swapped, then the dark background.
+// Stepped through by "Inna propozycja".
 export const THEME_VARIANTS = [
   { dark: false, swap: false },
   { dark: false, swap: true },
@@ -166,8 +157,7 @@ export const THEME_VARIANTS = [
 const contrast = (x: Oklch, y: Oklch) => contrastRatio(oklchToHex(x), oklchToHex(y))
 const hueGap = (x: number, y: number) => Math.min(Math.abs(x - y), 360 - Math.abs(x - y))
 
-// Moves L away from the background in steps of 0.05 until the contrast holds.
-function readable(c: Oklch, bg: Oklch, min: number): Oklch {
+function shiftLightnessToContrast(c: Oklch, bg: Oklch, min: number): Oklch {
   const step = bg.L > 0.5 ? -0.05 : 0.05
   let out = c
   while (contrast(out, bg) < min && out.L > 0 && out.L < 1) out = { ...out, L: clamp01(out.L + step) }
@@ -183,10 +173,10 @@ export function assignRoles(colors: Swatch[], { dark, swap }: { dark: boolean; s
   const light = colors.reduce((x, y) => (y.L > x.L ? y : x))
   const bg = { L: dark ? 0.18 : 0.96, C: Math.min(light.C, dark ? 0.03 : 0.02), h: light.h }
   return {
-    route: readable({ L: route.L, C: route.C < 0.08 ? 0.12 : route.C, h: route.h }, bg, 3),
+    route: shiftLightnessToContrast({ L: route.L, C: route.C < 0.08 ? 0.12 : route.C, h: route.h }, bg, 3),
     bg,
     // In the accent's hue, toned down so it still reads as text; light text holds less colour.
-    text: readable({ L: dark ? 0.94 : 0.22, C: Math.min(accent.C, dark ? 0.04 : 0.06), h: accent.h }, bg, 4.5),
+    text: shiftLightnessToContrast({ L: dark ? 0.94 : 0.22, C: Math.min(accent.C, dark ? 0.04 : 0.06), h: accent.h }, bg, 4.5),
     accent: { L: accent.L, C: accent.C, h: accent.h },
   }
 }

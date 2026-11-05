@@ -2,7 +2,6 @@ import type { VehicleId } from '../../types'
 import { CAR_ART, PLANE_ART, TRAIN_ART } from './vehicleArt'
 import { clamp } from '../../utils/math'
 
-// A marker at the head of the animated line.
 export interface VehicleDef {
   id: VehicleId
   label: string
@@ -12,7 +11,7 @@ export interface VehicleDef {
   outline?: boolean
   // Cars and bikes flip instead of turning upside down when heading west.
   flipWhenWest: boolean
-  // A colour illustration seen from above (vehicleArt.ts), drawn instead of the path on the frame.
+  // A colour illustration (vehicleArt.ts) drawn instead of the path on the frame.
   art?: string
 }
 
@@ -83,7 +82,7 @@ export const BUILT_IN_VEHICLES: VehicleDef[] = [
 // jitter on a bend doesn't make the marker twitch, close enough to follow real turns.
 const HEADING_SPAN = 40
 
-// Point `distance` pixels along the projected line from fractional index `pos`, backwards when negative.
+// Backwards when `distance` is negative.
 function along(flat: ArrayLike<number>, pos: number, distance: number): { x: number; y: number } {
   const count = flat.length / 2
   const i = clamp(Math.floor(pos), 0, count - 1)
@@ -105,8 +104,7 @@ function along(flat: ArrayLike<number>, pos: number, distance: number): { x: num
   return { x, y }
 }
 
-// Direction of travel at `pos` in degrees (0 = east, clockwise on screen), from a point a little behind.
-// At the very start, where nothing lies behind, from the head to a point a little ahead.
+// 0 = east, clockwise on screen; at the very start, taken from a point ahead.
 export function headingAt(flat: ArrayLike<number>, pos: number): number {
   const head = along(flat, pos, 0)
   let from = along(flat, pos, -HEADING_SPAN)
@@ -118,8 +116,7 @@ export function headingAt(flat: ArrayLike<number>, pos: number): number {
   return (Math.atan2(to.y - from.y, to.x - from.x) * 180) / Math.PI
 }
 
-// Rotation and mirroring that point the marker along `heading`; `turn` is the rotation of the
-// route on the frame. A marker that flips stays upright going west: it mirrors instead.
+// `turn`: the route's rotation on the frame. A marker that flips mirrors instead of going upside down.
 export function vehiclePose(def: VehicleDef, heading: number, turn: number): { rotation: number; flip: boolean } {
   const onScreen = (((heading + turn) % 360) + 360) % 360
   return { rotation: heading, flip: def.flipWhenWest && onScreen > 90 && onScreen < 270 }

@@ -5,7 +5,7 @@ import MediaTab from './MediaTab'
 import RouteTab from './RouteTab'
 import ElementsTab from './ElementsTab'
 import TemplatesTab from './TemplatesTab'
-import { SlideStylePage } from './SlidePanel'
+import SlideStylePage from './SlideStylePage'
 import SubTabs from '../../core/panel/SubTabs'
 import { useAppStore } from '../../store/useAppStore'
 import { IconImage, IconRoute, IconType, IconPalette, IconPlay } from '../icons'
@@ -19,13 +19,11 @@ const TABS: TabDef<PanelTab>[] = [
   { key: 'animation', label: 'Animacja', icon: <IconPlay /> },
 ]
 
-// A collage has no route or map.
 const MODE_TABS: Record<ProjectMode, TabDef<PanelTab>[]> = {
   map: TABS,
   collage: TABS.filter((t) => t.key !== 'route'),
 }
 
-// The project's presets and background; in a series also the selected slide's own.
 function StylePanel() {
   const series = useAppStore((s) => s.slides.length > 1 && s.carouselKind === 'slides')
   const own = [

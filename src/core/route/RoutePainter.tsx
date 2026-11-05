@@ -64,8 +64,6 @@ function SolidStroke({ segment, style, color }: { segment: RouteSegment; style: 
   )
 }
 
-// The route's look: a core line, an optional glow or outline under it and a ghost of the part
-// not yet drawn. Same look whatever the colours come from.
 export default function RoutePainter({ segments, style, coloring }: RoutePainterProps) {
   return (
     <>

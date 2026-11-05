@@ -1,6 +1,5 @@
 import { useEffect, type RefObject } from 'react'
 
-// A click elsewhere or Escape closes an open menu.
 export default function useDismiss(open: boolean, ref: RefObject<HTMLElement | null>, close: () => void) {
   useEffect(() => {
     if (!open) return

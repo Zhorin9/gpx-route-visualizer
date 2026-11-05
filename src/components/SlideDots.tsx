@@ -9,7 +9,6 @@ import type { RouteTransform } from '../types'
 
 const R = 28
 
-// Where the series' photos were taken, numbered as their slides: one dot per exported photo slide.
 export default function SlideDots({ projected, transform }: { projected: ArrayLike<number>; transform: RouteTransform }) {
   const slides = useAppStore((s) => s.slides)
   const photos = useAppStore((s) => s.photos)

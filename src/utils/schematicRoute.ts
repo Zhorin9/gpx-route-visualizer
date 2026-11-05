@@ -25,8 +25,7 @@ function perpendicularDistance(p: Point2D, a: Point2D, b: Point2D): number {
   return Math.hypot(p.x - projX, p.y - projY)
 }
 
-// Ramer–Douglas–Peucker: keeps only the vertices needed to preserve the
-// route's major turns, dropping GPS jitter within `epsilon` of a straight run.
+// Ramer–Douglas–Peucker.
 function simplify(points: Point2D[], epsilon: number): Point2D[] {
   if (points.length < 3) return points
   const first = points[0]
@@ -52,11 +51,8 @@ function dist(a: Point2D, b: Point2D): number {
   return Math.hypot(a.x - b.x, a.y - b.y)
 }
 
-// An out-and-back or dead-end spur simplifies slightly differently on the
-// way there vs back, so it orthogonalizes into two parallel staircases
-// instead of one. Snaps a corner to match the one before the current tip
-// when it's stepping back over already-covered ground (never deletes
-// points, so it can't collapse a whole route to nothing).
+// An out-and-back spur simplifies differently each way and would become two parallel staircases;
+// corners stepping back over covered ground snap to the earlier one (points are never deleted).
 function alignRetraces(points: Point2D[], tolerance: number): Point2D[] {
   if (tolerance <= 0 || points.length < 3) return points
   const out = points.map((p) => ({ x: p.x, y: p.y }))
@@ -84,9 +80,7 @@ function dedupeConsecutive(points: Point2D[]): Point2D[] {
   return out
 }
 
-// Connects consecutive vertices with an "L" shaped corner instead of a
-// diagonal, picking whichever axis the segment travels further along first
-// so the schematic path still roughly tracks the original direction of travel.
+// The longer axis goes first, so the path still tracks the direction of travel.
 function toOrthogonalPath(points: Point2D[]): Point2D[] {
   if (points.length < 2) return points
   const result: Point2D[] = [points[0]]
@@ -109,8 +103,6 @@ export interface SchematicOptions {
   simplify?: number
 }
 
-// Turns a GPS polyline into a "circuit board" schematic: simplified to its
-// major turns, then connected with right-angle segments.
 export function schematicizeRoute(flatPoints: ArrayLike<number>, { simplify: amount = 40 }: SchematicOptions = {}): number[] {
   const points = flatToPoints(flatPoints)
   if (points.length < 2) return Array.from(flatPoints)

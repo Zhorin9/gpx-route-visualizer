@@ -1,6 +1,6 @@
+import { mixHex } from '../../utils/color'
 import { clamp, clamp01 } from '../../utils/math'
 
-// Colour scales for values along the route, tuned to the warm look of the templates.
 export interface Palette {
   id: PaletteId
   label: string
@@ -23,28 +23,18 @@ export function palette(id: PaletteId): Palette {
 // Colours are quantised: fewer distinct strokes to draw, and no visible difference.
 export const COLOR_BINS = 32
 
-function hexToRgb(hex: string): [number, number, number] {
-  const n = parseInt(hex.slice(1), 16)
-  return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
-}
-
 function mix(stops: string[], t: number): string {
   const scaled = clamp01(t) * (stops.length - 1)
   const i = Math.min(stops.length - 2, Math.floor(scaled))
-  const f = scaled - i
-  const a = hexToRgb(stops[i])
-  const b = hexToRgb(stops[i + 1])
-  const c = a.map((v, k) => Math.round(v + (b[k] - v) * f))
-  return `#${c.map((v) => v.toString(16).padStart(2, '0')).join('')}`
+  return mixHex(stops[i], stops[i + 1], scaled - i)
 }
 
-// Evenly spaced colours of the palette, low to high (or reversed).
 export function paletteBins(p: Palette, inverted: boolean, bins = COLOR_BINS): string[] {
   const colors = Array.from({ length: bins }, (_, i) => mix(p.stops, bins === 1 ? 0.5 : i / (bins - 1)))
   return inverted ? colors.reverse() : colors
 }
 
-// Maps a value to a colour of the palette over [min, max]; values outside are clamped.
+// Values outside the domain are clamped.
 export function colorScale(p: Palette, domain: [number, number], inverted: boolean): (value: number) => string {
   return binScale(paletteBins(p, inverted), domain)
 }
@@ -59,15 +49,15 @@ export function binScale(bins: readonly string[], domain: [number, number]): (va
   }
 }
 
-// A colour at a place (0-1) along a gradient.
 export interface GradientStop {
+  // 0-1
   at: number
   color: string
 }
 
 export const paletteStops = (p: Palette): GradientStop[] => p.stops.map((color, i) => ({ at: i / (p.stops.length - 1), color }))
 
-// Colour at t of stops sorted by place.
+// `stops` must be sorted by `at`.
 export function mixStops(stops: readonly GradientStop[], t: number): string {
   const next = stops.findIndex((s) => s.at >= t)
   if (next <= 0) return (next === 0 ? stops[0] : stops[stops.length - 1]).color
@@ -78,7 +68,6 @@ export function mixStops(stops: readonly GradientStop[], t: number): string {
 
 export const stopsCss = (stops: readonly GradientStop[]) => `linear-gradient(90deg, ${stops.map((s) => `${s.color} ${Math.round(s.at * 100)}%`).join(', ')})`
 
-// CSS gradient of a palette, for swatches in the panel.
 export function paletteCss(p: Palette, inverted = false, angle = 90): string {
   const stops = inverted ? [...p.stops].reverse() : p.stops
   return `linear-gradient(${angle}deg, ${stops.join(', ')})`

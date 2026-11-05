@@ -1,3 +1,4 @@
+import { channels } from '../../../utils/color'
 import { sampleRuns } from '../model/profile'
 import type { ProfileChartStyle } from '../types'
 
@@ -15,11 +16,9 @@ export interface ChartInput {
   // Value at the bottom and at the top of the area.
   low: number
   high: number
-  // One colour, or one per sample.
   color: string | string[]
   // Opacity at the top of the fill.
   fillOpacity: number
-  // Per sample: part of a highlighted climb.
   highlighted: (index: number) => boolean
   // Draw only the highlighted parts at full strength, the rest muted.
   highlight: boolean
@@ -28,7 +27,7 @@ export interface ChartInput {
 export const xAt = (area: ChartArea, count: number, i: number) => area.left + (count <= 1 ? 0 : (area.width * i) / (count - 1))
 export const yAt = (area: ChartArea, low: number, high: number, v: number) => area.top + area.height * (1 - (v - low) / (high - low || 1))
 
-// Runs of consecutive drawable samples (a hidden day splits the chart).
+// A hidden day splits the chart.
 const runs = (values: Float32Array, keep: (i: number) => boolean) => sampleRuns(values.length, (i) => Number.isFinite(values[i]) && keep(i))
 
 function tracePath(input: ChartInput, [from, to]: [number, number], closed: boolean, stepped: boolean) {
@@ -51,7 +50,6 @@ function tracePath(input: ChartInput, [from, to]: [number, number], closed: bool
   }
 }
 
-// Left to right through the samples' colours.
 function linePaint({ ctx, color, area }: ChartInput): string | CanvasGradient {
   if (typeof color === 'string') return color
   const g = ctx.createLinearGradient(area.left, 0, area.left + area.width, 0)
@@ -69,9 +67,8 @@ function fillPaint(input: ChartInput): string | CanvasGradient {
   return g
 }
 
-export function withAlpha(hex: string, alpha: number): string {
-  const n = parseInt(hex.replace('#', '').slice(0, 6).padEnd(6, '0'), 16)
-  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`
+function withAlpha(hex: string, alpha: number): string {
+  return `rgba(${channels(hex).join(', ')}, ${alpha})`
 }
 
 function stroke(input: ChartInput, run: [number, number], width: number, alpha: number, stepped: boolean) {
@@ -91,7 +88,6 @@ function fill(input: ChartInput, run: [number, number], alpha: number, stepped: 
   ctx.fill()
 }
 
-// Filled terrain under a line; climbs filled and stroked stronger.
 function paintArea(input: ChartInput, stepped = false) {
   const { ctx, values, fillOpacity, highlight, highlighted } = input
   ctx.lineJoin = stepped ? 'miter' : 'round'

@@ -1,9 +1,9 @@
+import { rotate } from './geometry'
 import type { CarouselKind, FrameKind, LayoutGroup, LayoutKey, Slide } from '../types'
 
 export type SlotKind = 'cell' | 'backdrop' | 'framed'
 
-// Fractions of the frame. Grid cells split the frame (gap/margin applied),
-// backdrops cover it, framed cells float freely and may be tilted.
+// Fractions of the frame.
 interface LayoutCell {
   x: number
   y: number
@@ -18,191 +18,44 @@ export interface LayoutDef {
   label: string
   group: LayoutGroup
   cells: LayoutCell[]
-  // Shape of frame the layout makes sense in; any when not set.
   orientation?: 'portrait' | 'landscape'
 }
 
 const T = 1 / 3
 
+const cell = (x: number, y: number, w: number, h: number): LayoutCell => ({ x, y, w, h })
+const framed = (x: number, y: number, w: number, h: number, rotation?: number): LayoutCell =>
+  ({ x, y, w, h, ...(rotation !== undefined && { rotation }), kind: 'framed' })
+const BACKDROP: LayoutCell = { x: 0, y: 0, w: 1, h: 1, kind: 'backdrop' }
+
+const grid = (key: LayoutKey, label: string, cells: LayoutCell[], orientation?: LayoutDef['orientation']): LayoutDef =>
+  ({ key, label, group: 'grid', cells, ...(orientation && { orientation }) })
+const creative = (key: LayoutKey, label: string, cells: LayoutCell[]): LayoutDef => ({ key, label, group: 'creative', cells })
+
 export const LAYOUTS: LayoutDef[] = [
-  { key: 'g1', label: '1 zdjęcie', group: 'grid', cells: [{ x: 0, y: 0, w: 1, h: 1 }] },
-  {
-    key: 'g2h',
-    label: '2 poziome',
-    group: 'grid',
-    cells: [
-      { x: 0, y: 0, w: 1, h: 0.5 },
-      { x: 0, y: 0.5, w: 1, h: 0.5 },
-    ],
-  },
-  {
-    key: 'g2v',
-    label: '2 pionowe',
-    group: 'grid',
-    cells: [
-      { x: 0, y: 0, w: 0.5, h: 1 },
-      { x: 0.5, y: 0, w: 0.5, h: 1 },
-    ],
-  },
-  {
-    key: 'g2v1h',
-    label: '2 pionowe + 1 poziome',
-    group: 'grid',
-    cells: [
-      { x: 0, y: 0, w: 0.5, h: 0.5 },
-      { x: 0.5, y: 0, w: 0.5, h: 0.5 },
-      { x: 0, y: 0.5, w: 1, h: 0.5 },
-    ],
-  },
-  {
-    key: 'g22',
-    label: '2×2',
-    group: 'grid',
-    cells: [
-      { x: 0, y: 0, w: 0.5, h: 0.5 },
-      { x: 0.5, y: 0, w: 0.5, h: 0.5 },
-      { x: 0, y: 0.5, w: 0.5, h: 0.5 },
-      { x: 0.5, y: 0.5, w: 0.5, h: 0.5 },
-    ],
-  },
-  {
-    key: 'g1b2s',
-    label: '1 duże + 2 małe',
-    group: 'grid',
-    cells: [
-      { x: 0, y: 0, w: 1, h: 0.62 },
-      { x: 0, y: 0.62, w: 0.5, h: 0.38 },
-      { x: 0.5, y: 0.62, w: 0.5, h: 0.38 },
-    ],
-  },
-  {
-    key: 'g2s1b',
-    label: '2 małe + 1 duże',
-    group: 'grid',
-    cells: [
-      { x: 0, y: 0, w: 0.5, h: 0.38 },
-      { x: 0.5, y: 0, w: 0.5, h: 0.38 },
-      { x: 0, y: 0.38, w: 1, h: 0.62 },
-    ],
-  },
-  {
-    key: 'g3h',
-    label: '3 poziome',
-    group: 'grid',
-    orientation: 'portrait',
-    cells: [
-      { x: 0, y: 0, w: 1, h: T },
-      { x: 0, y: T, w: 1, h: T },
-      { x: 0, y: 2 * T, w: 1, h: T },
-    ],
-  },
-  {
-    key: 'g3v',
-    label: '3 pionowe',
-    group: 'grid',
-    cells: [
-      { x: 0, y: 0, w: T, h: 1 },
-      { x: T, y: 0, w: T, h: 1 },
-      { x: 2 * T, y: 0, w: T, h: 1 },
-    ],
-  },
-  {
-    key: 'g4v',
-    label: '4 pionowe',
-    group: 'grid',
-    cells: [0, 0.25, 0.5, 0.75].map((x) => ({ x, y: 0, w: 0.25, h: 1 })),
-  },
-  {
-    key: 'g23',
-    label: '2×3',
-    group: 'grid',
-    orientation: 'portrait',
-    cells: [0, T, 2 * T].flatMap((y) => [
-      { x: 0, y, w: 0.5, h: T },
-      { x: 0.5, y, w: 0.5, h: T },
-    ]),
-  },
-  {
-    key: 'g1b3s',
-    label: '1 duże + 3 małe',
-    group: 'grid',
-    cells: [
-      { x: 0, y: 0, w: 1, h: 0.6 },
-      { x: 0, y: 0.6, w: T, h: 0.4 },
-      { x: T, y: 0.6, w: T, h: 0.4 },
-      { x: 2 * T, y: 0.6, w: T, h: 0.4 },
-    ],
-  },
-  {
-    key: 'g3s1b',
-    label: '3 małe + 1 duże',
-    group: 'grid',
-    cells: [
-      { x: 0, y: 0, w: T, h: 0.4 },
-      { x: T, y: 0, w: T, h: 0.4 },
-      { x: 2 * T, y: 0, w: T, h: 0.4 },
-      { x: 0, y: 0.4, w: 1, h: 0.6 },
-    ],
-  },
-  {
-    key: 'w1b2s',
-    label: '1 duże + 2 małe obok',
-    group: 'grid',
-    orientation: 'landscape',
-    cells: [
-      { x: 0, y: 0, w: 2 * T, h: 1 },
-      { x: 2 * T, y: 0, w: T, h: 0.5 },
-      { x: 2 * T, y: 0.5, w: T, h: 0.5 },
-    ],
-  },
-  {
-    // Leaves the side column of the landscape layout to the title and stats.
-    key: 'w1p',
-    label: 'Zdjęcie z pasem na tekst',
-    group: 'grid',
-    orientation: 'landscape',
-    cells: [{ x: 0, y: 0, w: 0.6, h: 1 }],
-  },
-  {
-    key: 'c1',
-    label: 'Tło + ramka na środku',
-    group: 'creative',
-    cells: [
-      { x: 0, y: 0, w: 1, h: 1, kind: 'backdrop' },
-      { x: 0.18, y: 0.26, w: 0.64, h: 0.48, kind: 'framed' },
-    ],
-  },
-  {
-    key: 'c2',
-    label: 'Tło + ramka w rogu',
-    group: 'creative',
-    cells: [
-      { x: 0, y: 0, w: 1, h: 1, kind: 'backdrop' },
-      { x: 0.5, y: 0.55, w: 0.42, h: 0.36, kind: 'framed' },
-    ],
-  },
-  {
-    key: 'c3',
-    label: 'Tło + duża na dole',
-    group: 'creative',
-    cells: [
-      { x: 0, y: 0, w: 1, h: 1, kind: 'backdrop' },
-      { x: 0.08, y: 0.36, w: 0.84, h: 0.56, kind: 'framed' },
-    ],
-  },
-  {
-    key: 'c4',
-    label: 'Scrapbook ×3',
-    group: 'creative',
-    cells: [
-      { x: 0.08, y: 0.06, w: 0.56, h: 0.46, rotation: -2, kind: 'framed' },
-      { x: 0.4, y: 0.3, w: 0.52, h: 0.4, rotation: 2.5, kind: 'framed' },
-      { x: 0.14, y: 0.58, w: 0.58, h: 0.36, rotation: -1.5, kind: 'framed' },
-    ],
-  },
+  grid('g1', '1 zdjęcie', [cell(0, 0, 1, 1)]),
+  grid('g2h', '2 poziome', [cell(0, 0, 1, 0.5), cell(0, 0.5, 1, 0.5)]),
+  grid('g2v', '2 pionowe', [cell(0, 0, 0.5, 1), cell(0.5, 0, 0.5, 1)]),
+  grid('g2v1h', '2 pionowe + 1 poziome', [cell(0, 0, 0.5, 0.5), cell(0.5, 0, 0.5, 0.5), cell(0, 0.5, 1, 0.5)]),
+  grid('g22', '2×2', [cell(0, 0, 0.5, 0.5), cell(0.5, 0, 0.5, 0.5), cell(0, 0.5, 0.5, 0.5), cell(0.5, 0.5, 0.5, 0.5)]),
+  grid('g1b2s', '1 duże + 2 małe', [cell(0, 0, 1, 0.62), cell(0, 0.62, 0.5, 0.38), cell(0.5, 0.62, 0.5, 0.38)]),
+  grid('g2s1b', '2 małe + 1 duże', [cell(0, 0, 0.5, 0.38), cell(0.5, 0, 0.5, 0.38), cell(0, 0.38, 1, 0.62)]),
+  grid('g3h', '3 poziome', [cell(0, 0, 1, T), cell(0, T, 1, T), cell(0, 2 * T, 1, T)], 'portrait'),
+  grid('g3v', '3 pionowe', [cell(0, 0, T, 1), cell(T, 0, T, 1), cell(2 * T, 0, T, 1)]),
+  grid('g4v', '4 pionowe', [0, 0.25, 0.5, 0.75].map((x) => cell(x, 0, 0.25, 1))),
+  grid('g23', '2×3', [0, T, 2 * T].flatMap((y) => [cell(0, y, 0.5, T), cell(0.5, y, 0.5, T)]), 'portrait'),
+  grid('g1b3s', '1 duże + 3 małe', [cell(0, 0, 1, 0.6), cell(0, 0.6, T, 0.4), cell(T, 0.6, T, 0.4), cell(2 * T, 0.6, T, 0.4)]),
+  grid('g3s1b', '3 małe + 1 duże', [cell(0, 0, T, 0.4), cell(T, 0, T, 0.4), cell(2 * T, 0, T, 0.4), cell(0, 0.4, 1, 0.6)]),
+  grid('w1b2s', '1 duże + 2 małe obok', [cell(0, 0, 2 * T, 1), cell(2 * T, 0, T, 0.5), cell(2 * T, 0.5, T, 0.5)], 'landscape'),
+  // Leaves the side column of the landscape layout to the title and stats.
+  grid('w1p', 'Zdjęcie z pasem na tekst', [cell(0, 0, 0.6, 1)], 'landscape'),
+  creative('c1', 'Tło + ramka na środku', [BACKDROP, framed(0.18, 0.26, 0.64, 0.48)]),
+  creative('c2', 'Tło + ramka w rogu', [BACKDROP, framed(0.5, 0.55, 0.42, 0.36)]),
+  creative('c3', 'Tło + duża na dole', [BACKDROP, framed(0.08, 0.36, 0.84, 0.56)]),
+  creative('c4', 'Scrapbook ×3', [framed(0.08, 0.06, 0.56, 0.46, -2), framed(0.4, 0.3, 0.52, 0.4, 2.5), framed(0.14, 0.58, 0.58, 0.36, -1.5)]),
 ]
 
-export const LAYOUT_BY_KEY = new Map(LAYOUTS.map((l) => [l.key, l]))
+const LAYOUT_BY_KEY = new Map(LAYOUTS.map((l) => [l.key, l]))
 
 export const DEFAULT_LAYOUT: LayoutKey = 'g1'
 
@@ -224,8 +77,6 @@ export interface SlotRect {
   kind: SlotKind
 }
 
-// Slot rectangles in frame pixels, with the gap split evenly between neighbours
-// and the margin kept around the whole grid.
 export function computeSlots(def: LayoutDef, W: number, H: number, gap: number, margin: number): SlotRect[] {
   const innerW = W - 2 * margin
   const innerH = H - 2 * margin
@@ -248,7 +99,6 @@ export interface Insets {
   left: number
 }
 
-// How much of a slot the frame takes. "Polaroid" leaves a thicker bottom edge.
 export function frameInsets(slot: SlotRect, thickness: number, style: 'equal' | 'polaroid', framed: boolean): Insets {
   if (!framed) return { top: 0, right: 0, bottom: 0, left: 0 }
   const t = Math.max(0, Math.min(thickness, slot.w / 2 - 2, slot.h / 2 - 2))
@@ -256,47 +106,36 @@ export function frameInsets(slot: SlotRect, thickness: number, style: 'equal' | 
   return { top: t, right: t, bottom: Math.max(t, bottom), left: t }
 }
 
-// In a panorama carousel one photo covers the whole ribbon of `count` frames.
 export function ribbonSlot(w: number, h: number, count: number): SlotRect {
   return { index: 0, x: 0, y: 0, w: w * count, h, rotation: 0, kind: 'cell' }
 }
 
-// Topmost slot under a point in frame pixels (later slots are drawn on top).
+// Later slots are drawn on top.
 export function slotAt(slots: SlotRect[], px: number, py: number): SlotRect | null {
   for (let i = slots.length - 1; i >= 0; i--) {
     const s = slots[i]
-    const cx = s.x + s.w / 2
-    const cy = s.y + s.h / 2
-    const rad = (-s.rotation * Math.PI) / 180
-    const dx = px - cx
-    const dy = py - cy
-    const lx = dx * Math.cos(rad) - dy * Math.sin(rad)
-    const ly = dx * Math.sin(rad) + dy * Math.cos(rad)
-    if (Math.abs(lx) <= s.w / 2 && Math.abs(ly) <= s.h / 2) return s
+    const local = rotate(px - s.x - s.w / 2, py - s.y - s.h / 2, -s.rotation)
+    if (Math.abs(local.x) <= s.w / 2 && Math.abs(local.y) <= s.h / 2) return s
   }
   return null
 }
 
-// Creative layouts come with polaroid frames, grids with equal ones.
 export function frameStyleFor(key: LayoutKey): FrameKind {
   return layoutDef(key).group === 'creative' ? 'polaroid' : 'equal'
 }
 
-// Slides drawn from data (profile, summary) have no places for photos.
 export const slotCount = (slide: Slide) => ((slide.kind ?? 'photos') === 'photos' ? layoutDef(slide.layoutKey).cells.length : 0)
 
 export function isPanorama(slides: Slide[], kind: CarouselKind) {
   return kind === 'panorama' && slides.length > 1
 }
 
-// Only the photos that are actually on the canvas: a panorama hides the other slides' slots.
+// A panorama hides the other slides' slots.
 export function hasVisiblePhotos(slides: Slide[], kind: CarouselKind) {
   if (isPanorama(slides, kind)) return Boolean(slides[0].slots[0])
   return slides.some((slide) => Object.keys(slide.slots).length > 0)
 }
 
-// Every slide is fully covered by a photo (one photo over the whole frame, a backdrop
-// behind framed photos, a panorama, a slide drawn from data): the background colour or gradient can't be seen.
 export function photoCoversFrame(slides: Slide[], kind: CarouselKind, W: number, H: number, gap: number, margin: number): boolean {
   if (isPanorama(slides, kind)) return Boolean(slides[0].slots[0])
   const covered = (slide: Slide) =>

@@ -1,6 +1,6 @@
 import { useRef, useState, type DragEvent } from 'react'
 import useElementSize from '../hooks/useElementSize'
-import useGpxImport from '../hooks/useGpxImport'
+import useGpxImport, { GPX_ACCEPT } from '../hooks/useGpxImport'
 import { useActiveSlide, useHasPhotos, useHasRoute, useManualFlags, usePanorama, usePhotoBackground } from '../store/selectors'
 import { useAppStore } from '../store/useAppStore'
 import { FORMATS, FORMAT_ORDER } from '../core/formats/registry'
@@ -107,7 +107,6 @@ function CanvasToolbar() {
 }
 
 
-// What gets exported, for the format picker's tooltip: mode, format, background and pixel size.
 function useFrameSummary() {
   const aspectKey = useAppStore((s) => s.aspectKey)
   const slideCount = useAppStore((s) => s.slides.length)
@@ -130,7 +129,6 @@ function useFrameSummary() {
   return `${mode} · tło: ${background} · ${w}×${h} px`
 }
 
-// Platform UI overlays, toggled from a corner of the preview; they never reach the export.
 function SafeZoneToggle() {
   const shown = useAppStore((s) => s.showSafeZones)
   const setShown = useAppStore((s) => s.setShowSafeZones)
@@ -174,7 +172,7 @@ function EmptyState({ onFiles }: { onFiles: (files: FileList | null) => void }) 
           <FileButton accept="image/*" multiple onFiles={onFiles} variant="primary" icon={<IconUpload />}>
             Dodaj zdjęcia
           </FileButton>
-          <FileButton accept=".gpx,application/gpx+xml" onFiles={onFiles} icon={<IconUpload />}>
+          <FileButton accept={GPX_ACCEPT} onFiles={onFiles} icon={<IconUpload />}>
             Wgraj GPX
           </FileButton>
         </div>
@@ -185,7 +183,6 @@ function EmptyState({ onFiles }: { onFiles: (files: FileList | null) => void }) 
   )
 }
 
-// The frame at a size that fits the box: the live preview a workspace shows in its corner.
 function FramePreview({ width, height }: { width: number; height: number }) {
   const aspectKey = useAppStore((s) => s.aspectKey)
   const slideCount = useAppStore((s) => s.slides.length)

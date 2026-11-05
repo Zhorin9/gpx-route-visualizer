@@ -6,8 +6,7 @@ import { pointAt } from '../../../utils/geometry'
 import { useProfileMarkerPos } from '../useProfile'
 import { SOFT_SHADOW } from '../../../core/canvas/shadows'
 
-// The point on the route that matches the line on the elevation chart. While the animation
-// plays, its own glowing head marks the place instead.
+// While the animation plays, its own glowing head marks the place instead.
 export default function ProfileRouteMarker() {
   const enabled = useAppStore((s) => s.profile.enabled && s.profile.marker)
   const color = useAppStore((s) => s.routeStyle.color)

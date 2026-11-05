@@ -5,39 +5,12 @@ import Section from '../ui/Section'
 import { IconMapPin, IconPlus, IconType } from '../icons'
 import TextEditor from './TextEditor'
 import PlaceEditor from './PlaceEditor'
+import ElementRow from './ElementRow'
 import { canvasElement, canvasElements, type CanvasElementDefinition } from '../../core/canvas/registry'
 import { useHasRoute } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import FontField from '../fields/FontField'
 import { FIELD_LABELS, wrapperFieldsOf } from '../../utils/wrappers'
-
-function ElementRow({
-  icon,
-  label,
-  meta,
-  active,
-  onClick,
-}: {
-  icon: React.ReactNode
-  label: string
-  meta: string
-  active: boolean
-  onClick: () => void
-}) {
-  return (
-    <button
-      type="button"
-      role="option"
-      aria-selected={active}
-      className={active ? 'item-list-item element-row active' : 'item-list-item element-row'}
-      onClick={onClick}
-    >
-      {icon}
-      <span className="element-row-label">{label}</span>
-      <span className="element-row-meta">{meta}</span>
-    </button>
-  )
-}
 
 function RegisteredElementRow({ def }: { def: CanvasElementDefinition }) {
   const available = def.useIsAvailable()
@@ -52,7 +25,6 @@ function SelectedElementEditor({ kind }: { kind: string }) {
   return def ? <def.Editor /> : null
 }
 
-// What the wrapper prints (Styl → Opakowanie), filled from the route when it was picked.
 function WrapperFields() {
   const wrapper = useAppStore((s) => s.wrapper)
   const updateWrapper = useAppStore((s) => s.updateWrapper)

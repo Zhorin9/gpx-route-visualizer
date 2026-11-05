@@ -23,7 +23,7 @@ function clearGuides(stage: Konva.Stage) {
   stage.find(`.${GUIDE}`).forEach((guide) => guide.destroy())
 }
 
-// Lines the dragged node up with the frame and the other targets; Alt drags freely.
+// Alt drags freely.
 export function snapDragMove(e: Konva.KonvaEventObject<DragEvent>) {
   const node = e.target
   const stage = node.getStage()

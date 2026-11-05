@@ -11,7 +11,6 @@ export interface GradientStopsEditorProps {
   scale: [string, string, string]
 }
 
-// A gradient bar with a handle per colour: drag a handle to move its colour, click the bar to add one.
 export default function GradientStopsEditor({ stops, onChange, scale }: GradientStopsEditorProps) {
   const barRef = useRef<HTMLDivElement>(null)
   const [selected, setSelected] = useState<number | null>(null)

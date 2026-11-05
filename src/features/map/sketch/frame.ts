@@ -20,7 +20,6 @@ const shapeOf = memoOne((layers: SketchLayers | null | undefined, route: Pt[], f
   layers ? sketchShape(layers, fit, route, w, h) : null,
 )
 
-// The frame the sketch is drawn from, for the preview and for files alike.
 export function sketchFrame(s: Pick<AppState, 'routeSource' | 'trackCache' | 'aspectKey' | 'slides' | 'map' | 'sketchLayers'>, fit: MercatorFit | null, transform: RouteTransform): SketchFrame {
   const { w, h } = FORMATS[s.aspectKey]
   const points = selectTrack(s)?.points

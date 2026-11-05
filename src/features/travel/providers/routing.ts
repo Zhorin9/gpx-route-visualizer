@@ -1,29 +1,24 @@
 import type { GpxPoint, RouteOption, Stop } from '../../../types'
 
-// The kinds of route the travel modes ask for; each service names them its own way.
 export type RouteProfile = 'car' | 'trekking' | 'road' | 'mtb' | 'hiking' | 'rail'
 
 export interface RouteRequest {
   stops: Stop[]
   profile: RouteProfile
-  // What the route keeps away from (tolls, motorways, ...), when the service can do it.
   options: readonly RouteOption[]
 }
 
-// A route service: turns stops into a line along roads, paths or rails.
 export interface RoutingProvider {
   id: string
   label: string
   // Terms of use, so a change of the app's licence means reviewing this list, not the code.
   terms: string
-  // The service's own profile for each generic one; a missing entry means "not supported".
+  // A missing entry means not supported.
   profiles: Partial<Record<RouteProfile, string>>
-  // Points with elevation, and times when the service estimates them.
   route: (request: RouteRequest, signal: AbortSignal) => Promise<GpxPoint[]>
 }
 
-// An error a person can act on, e.g. "no road between these places". `noTrack`: the service found no
-// way from a stop at all, as when a town's point lies in a car-free old town.
+// `noTrack`: no way from a stop at all, as from a town's point in a car-free old town.
 export class RouteError extends Error {
   constructor(
     message: string,
@@ -48,8 +43,7 @@ export function routingProvider(id?: string): RoutingProvider {
   return found
 }
 
-// Public instances ask for no more than about one request a second. A request cancelled while
-// waiting (a newer change replaced it) is dropped without a call and without a wait after it.
+// Public instances allow about one request a second; one cancelled while waiting is dropped without a wait.
 export function rateLimited(fn: (request: RouteRequest, signal: AbortSignal) => Promise<GpxPoint[]>, gapMs: number) {
   let queue: Promise<unknown> = Promise.resolve()
   return (request: RouteRequest, signal: AbortSignal): Promise<GpxPoint[]> => {

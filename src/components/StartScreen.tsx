@@ -1,5 +1,5 @@
 import { useState, type DragEvent, type ReactNode } from 'react'
-import useGpxImport from '../hooks/useGpxImport'
+import useGpxImport, { GPX_ACCEPT } from '../hooks/useGpxImport'
 import { useAppStore } from '../store/useAppStore'
 import { FORMATS } from '../core/formats/registry'
 import { LAYOUTS, layoutFits } from '../utils/layouts'
@@ -38,8 +38,6 @@ function ModeCard({ kicker, title, body, art, action, note, onDropFiles }: { kic
   )
 }
 
-// Three ways in. A GPX file and places on a map start the same map project (each can be added to
-// the other later); photos alone start a collage, which has no route or map.
 export default function StartScreen() {
   const startProject = useAppStore((s) => s.startProject)
   const { importFiles } = useGpxImport()
@@ -70,7 +68,7 @@ export default function StartScreen() {
           body="Rower, bieg, wędrówka. Kolorowanie według prędkości lub nachylenia, profil wysokości i statystyki wyliczone z pliku."
           art={<path d="M4 70 C40 66 50 30 90 36 S140 66 180 40 S250 8 296 16" />}
           action={
-            <FileButton accept=".gpx,application/gpx+xml" variant="primary" onFiles={start('map')}>
+            <FileButton accept={GPX_ACCEPT} variant="primary" onFiles={start('map')}>
               Wybierz plik .gpx
             </FileButton>
           }

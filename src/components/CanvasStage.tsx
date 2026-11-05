@@ -57,8 +57,7 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
   const isCheckerboard = !hasBackground && previewBackdrop === 'checkerboard'
   const classes = ['stage-wrapper', isCheckerboard && 'checkerboard', adding && 'is-adding'].filter(Boolean).join(' ')
 
-  // A click on empty space drops the selection and picks the slide under the pointer.
-  function handlePointerDown(e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) {
+  function deselectAndPickSlide(e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) {
     const stage = e.target.getStage()
     if (e.target !== stage) return
     select(null)
@@ -77,8 +76,7 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
     return slot ? { slide, slot } : null
   }
 
-  // A slot's rectangle on the ribbon, where its slide's box draws it.
-  function onRibbon(slot: SlotRect, slide: number) {
+  function slotOnRibbon(slot: SlotRect, slide: number) {
     const box = boxes[slide]
     if (!box) return { ...slot, x: slot.x + slide * w }
     const scale = box.w / w
@@ -92,7 +90,6 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
     if (slot) e.preventDefault()
   }
 
-  // Photos from the tape or the desktop land in the slot under the pointer; anything else bubbles up.
   function handleDrop(e: DragEvent<HTMLDivElement>) {
     setDragSlot(null)
     const target = slotUnderPointer(e)
@@ -107,7 +104,7 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
     else importFiles(images, place)
   }
 
-  const dragRect = dragSlot ? onRibbon(slotsBySlide[dragSlot.slide][dragSlot.index], dragSlot.slide) : null
+  const dragRect = dragSlot ? slotOnRibbon(slotsBySlide[dragSlot.slide][dragSlot.index], dragSlot.slide) : null
 
   return (
     <div
@@ -137,8 +134,7 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
           <Underlay key={i} previewScale={previewScale} />
         ))}
       </div>
-      {/* Sized to the preview, not the export: a full 1080×1920 canvas
-          would be redrawn at every change only to be cropped by CSS. */}
+      {/* Sized to the preview: a full-size canvas would be redrawn only to be cropped by CSS. */}
       <Stage
         ref={(stage) => {
           stageHandle.current = stage
@@ -147,8 +143,8 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
         height={h * previewScale}
         scaleX={previewScale}
         scaleY={previewScale}
-        onMouseDown={handlePointerDown}
-        onTouchStart={handlePointerDown}
+        onMouseDown={deselectAndPickSlide}
+        onTouchStart={deselectAndPickSlide}
       >
         <BackgroundLayer />
         <PhotoLayer />

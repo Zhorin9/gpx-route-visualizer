@@ -6,7 +6,6 @@ import { useAppStore } from '../../store/useAppStore'
 import { slideNumbers } from '../../utils/series'
 import { WRAPPER_OPTIONS } from '../../utils/wrappers'
 
-// Styl → Opakowanie: the form every slide takes. Its fields are edited in Teksty.
 export default function WrapperSection() {
   const wrapper = useAppStore((s) => s.wrapper)
   const slides = useAppStore((s) => s.slides)
@@ -20,7 +19,7 @@ export default function WrapperSection() {
 
   return (
     <Section title="Opakowanie">
-      <div className="wrapper-grid" role="radiogroup" aria-label="Opakowanie">
+      <div className="layout-grid" role="radiogroup" aria-label="Opakowanie">
         {WRAPPER_OPTIONS.map(({ id, label }) => (
           <button key={id} type="button" role="radio" aria-checked={wrapper.id === id} className={wrapper.id === id ? 'wrapper-option active' : 'wrapper-option'} onClick={() => setWrapper(id)}>
             <span className={`wrapper-thumb wrapper-thumb-${id}`} style={{ aspectRatio: `${w} / ${h}` }} />

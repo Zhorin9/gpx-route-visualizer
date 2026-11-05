@@ -1,10 +1,10 @@
 import type Konva from 'konva'
 import { FORMATS } from '../core/formats/registry'
 import { slugify } from './format'
+import { newCanvas } from './image'
 import { createZip } from './zip'
 import type { AspectKey, ExportFormat } from '../types'
 
-// Nodes that only exist for editing (transformer, selection outlines) carry this name.
 export const UI_ONLY = 'ui-only'
 
 export const stageHandle: { current: Konva.Stage | null } = { current: null }
@@ -28,11 +28,10 @@ export function exportFileNames(
   return Array.from({ length: slideCount }, (_, i) => `${base}-${String(i + 1).padStart(2, '0')}-${suffix}`)
 }
 
-export function canvasToBlob(canvas: HTMLCanvasElement, mime: string, quality = 0.92): Promise<Blob> {
+function canvasToBlob(canvas: HTMLCanvasElement, mime: string, quality = 0.92): Promise<Blob> {
   return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Nie udało się zapisać obrazu'))), mime, quality))
 }
 
-// One slide of the rendered ribbon, cropped to the exact output size.
 export function cropSlide(ribbon: HTMLCanvasElement, index: number, aspectKey: AspectKey, scale: number, target?: HTMLCanvasElement): HTMLCanvasElement {
   const w = FORMATS[aspectKey].w * scale
   const h = FORMATS[aspectKey].h * scale
@@ -45,13 +44,9 @@ export function cropSlide(ribbon: HTMLCanvasElement, index: number, aspectKey: A
   return out
 }
 
-// JPG has no transparency: see-through parts (gaps of a collage on a transparent
-// background) would turn black, so they are laid on white instead.
+// JPG has no alpha: transparent collage gaps would turn black.
 function onWhite(canvas: HTMLCanvasElement): HTMLCanvasElement {
-  const out = document.createElement('canvas')
-  out.width = canvas.width
-  out.height = canvas.height
-  const ctx = out.getContext('2d')
+  const { canvas: out, ctx } = newCanvas(canvas.width, canvas.height)
   if (!ctx) return canvas
   ctx.fillStyle = '#ffffff'
   ctx.fillRect(0, 0, out.width, out.height)
@@ -59,7 +54,6 @@ function onWhite(canvas: HTMLCanvasElement): HTMLCanvasElement {
   return out
 }
 
-// Cuts the ribbon of the current format into one image file per exported slide (by index).
 export async function ribbonToFiles(
   ribbon: HTMLCanvasElement,
   format: ExportFormat,
@@ -90,7 +84,6 @@ export function downloadBlob(blob: Blob, fileName: string) {
   setTimeout(() => URL.revokeObjectURL(url), 10_000)
 }
 
-// One file is saved as is; several go into a single ZIP.
 export async function downloadFiles(files: ExportFile[], archiveName: string) {
   if (files.length === 0) return
   if (files.length === 1) return downloadBlob(files[0].blob, files[0].name)

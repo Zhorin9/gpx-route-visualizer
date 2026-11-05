@@ -6,7 +6,6 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant
   size?: 'md' | 'sm' | 'icon'
   icon?: ReactNode
-  // Renders as a toggle (aria-pressed) with an "on" look when true.
   pressed?: boolean
   block?: boolean
 }

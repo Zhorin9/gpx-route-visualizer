@@ -5,7 +5,6 @@ const VIEWS = [
   { value: 'map', label: 'Mapa' },
 ] as const
 
-// Kadr / Mapa: what the middle of the editor shows in a tab that has its own workspace.
 export default function CenterViewSwitch() {
   const view = useAppStore((s) => s.centerView)
   const setCenterView = useAppStore((s) => s.setCenterView)

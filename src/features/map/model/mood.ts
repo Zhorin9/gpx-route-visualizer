@@ -1,10 +1,8 @@
 import type { CSSProperties } from 'react'
 import { channels } from '../../../utils/color'
-import { noiseTile } from '../../../utils/image'
+import { newCanvas, noiseTile } from '../../../utils/image'
 import type { MapSettings } from '../types'
 
-// How the map sits behind the route: faded into a ground colour, edges darkened, toned, grained.
-// Only the map changes; the route and texts above it keep their full colour.
 export type MapMood = Pick<MapSettings, 'opacity' | 'ground' | 'vignette' | 'sepia' | 'grain' | 'blur'>
 
 export const MOODS: { id: string; label: string; mood: MapMood }[] = [
@@ -40,13 +38,9 @@ export function grainCss(s: MapMood, pixel: number): CSSProperties | null {
   return { backgroundImage: `url(${grainUrl})`, backgroundSize: `${256 * pixel}px`, opacity: s.grain, mixBlendMode: 'overlay' }
 }
 
-// The map of a file, as the preview shows it: `slideWidth` in frame pixels, the canvas at `scale`.
 export function finishMap(map: HTMLCanvasElement, s: MapMood, slideWidth: number, scale: number, ground = true): HTMLCanvasElement {
   if (s.opacity >= 1 && s.vignette <= 0 && s.sepia <= 0 && s.grain <= 0) return map
-  const out = document.createElement('canvas')
-  out.width = map.width
-  out.height = map.height
-  const ctx = out.getContext('2d')
+  const { canvas: out, ctx } = newCanvas(map.width, map.height)
   if (!ctx) return map
   if (ground) {
     ctx.fillStyle = s.ground

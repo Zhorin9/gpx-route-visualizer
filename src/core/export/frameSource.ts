@@ -3,12 +3,11 @@ import { useAppStore } from '../../store/useAppStore'
 import { FORMATS } from '../formats/registry'
 import { UI_ONLY, stageHandle } from '../../utils/exportImage'
 import { reflowTo } from '../../utils/reflow'
+import { newCanvas } from '../../utils/image'
 import { slideBox } from '../../utils/wrappers'
 import type { AspectKey } from '../../types'
 
-// Renders the frame for files: still images and video frames. It owns the "export mode"
-// of the editor (no selection, no handles, the format being saved) and puts everything
-// back afterwards; it knows nothing about file formats.
+// Owns the editor's export mode (no selection or handles, the format being saved) and restores it; knows no file formats.
 export interface FrameSource {
   // Switches the document to a format and waits until it is drawn.
   useFormat: (key: AspectKey) => Promise<void>
@@ -38,13 +37,13 @@ export function provideFrameUnderlay(value: FrameUnderlay) {
   underlay = value
 }
 
-// The animation registers how to move to a moment in time; the source never imports it.
+// Registered by the animation, so the source never imports it.
 export function provideFrameClock(value: FrameClock) {
   clock = value
 }
 
 // rAF never fires in a hidden tab, so the timeout keeps the export from hanging.
-export const nextPaint = () =>
+const nextPaint = () =>
   Promise.race([
     new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(resolve, 60)))),
     new Promise<void>((resolve) => setTimeout(resolve, 400)),
@@ -89,10 +88,7 @@ export async function beginStageFrames(): Promise<FrameSource> {
         below.getContext('2d')?.drawImage(canvas, 0, 0, below.width, below.height)
         return below
       }
-      const out = document.createElement('canvas')
-      out.width = below.width
-      out.height = below.height
-      const ctx = out.getContext('2d')
+      const { canvas: out, ctx } = newCanvas(below.width, below.height)
       if (!ctx) return canvas
       ctx.scale(scale, scale)
       ctx.translate(box.x + box.w / 2, box.y + box.h / 2)

@@ -3,7 +3,7 @@ import { IconInfo } from '../../../components/icons'
 import SliderField from '../../../components/fields/SliderField'
 import Section from '../../../components/ui/Section'
 import Segmented from '../../../components/ui/Segmented'
-import { PALETTES, paletteCss } from '../../../core/data/palettes'
+import PalettePicker from './PalettePicker'
 import { DATA_SOURCES, dataSource, type DataSourceId } from '../../../core/data/sources'
 import ColorField from '../../../components/fields/ColorField'
 import { useAppStore } from '../../../store/useAppStore'
@@ -11,7 +11,6 @@ import { selectTrack, selectRouteDays } from '../../../store/derived'
 import type { GpxTrack, SelectOption } from '../../../types'
 import type { DataColorSettings } from '../types'
 import { useActiveDataColor } from '../useDataColoring'
-import './DataColorEditor.css'
 
 const GLOW_OPTIONS: SelectOption<DataColorSettings['glow']>[] = [
   { value: 'follow', label: 'Jak linia' },
@@ -23,33 +22,14 @@ const RANGE_OPTIONS: SelectOption<DataColorSettings['rangeMode']>[] = [
   { value: 'manual', label: 'Własny' },
 ]
 
-function PalettePicker() {
+function DataPalettePicker() {
   const current = useAppStore((s) => s.dataColor.palette)
   const inverted = useAppStore((s) => s.dataColor.inverted)
   const updateDataColor = useAppStore((s) => s.updateDataColor)
-  return (
-    <div className="field">
-      <span className="field-label">Paleta</span>
-      <div className="palette-picker" role="radiogroup" aria-label="Paleta">
-        {PALETTES.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            role="radio"
-            aria-checked={p.id === current}
-            className={p.id === current ? 'palette-option active' : 'palette-option'}
-            onClick={() => updateDataColor({ palette: p.id })}
-          >
-            <span className="palette-swatch" style={{ background: paletteCss(p, inverted) }} />
-            <span>{p.label}</span>
-          </button>
-        ))}
-      </div>
-    </div>
-  )
+  return <PalettePicker ariaLabel="Paleta" inverted={inverted} isActive={(p) => p.id === current} onPick={(p) => updateDataColor({ palette: p.id })} />
 }
 
-// Manual range in the source's own (metric) unit; the slider spans what the track contains.
+// In the source's own (metric) unit; the slider spans what the track contains.
 function ManualRange() {
   const settings = useAppStore((s) => s.dataColor)
   const updateDataColor = useAppStore((s) => s.updateDataColor)
@@ -75,7 +55,7 @@ function ManualRange() {
   )
 }
 
-export function DataColorSettingsFields() {
+function DataColorSettingsFields() {
   const settings = useAppStore((s) => s.dataColor)
   const glowEnabled = useAppStore((s) => s.routeStyle.glowEnabled)
   const track = useAppStore(selectTrack)
@@ -115,7 +95,7 @@ export function DataColorSettingsFields() {
       {unavailable && <p className="hint">Ten plik GPX nie ma tych danych ({unavailable}) — trasa zostaje w jednym kolorze.</p>}
       {settings.source !== 'none' && !unavailable && (
         <>
-          <PalettePicker />
+          <DataPalettePicker />
           <CheckboxField label="Odwróć kolory" checked={settings.inverted} onChange={(inverted) => updateDataColor({ inverted })} />
           <Segmented label="Zakres wartości" showLabel value={settings.rangeMode} options={RANGE_OPTIONS} onChange={chooseRange} />
           {settings.rangeMode === 'manual' && <ManualRange />}
@@ -132,7 +112,7 @@ const MODE_OPTIONS: SelectOption<'single' | 'data'>[] = [
   { value: 'data', label: 'Wg danych' },
 ]
 
-// The first source this file has data for: speed and heart rate tell the most about a ride.
+// Speed and heart rate tell the most about a ride.
 function firstAvailable(track: GpxTrack | null): DataSourceId {
   return DATA_SOURCES.find((s) => !track || !s.unavailable(track))?.id ?? 'elevation'
 }
@@ -145,7 +125,6 @@ function LineColor() {
   return <ColorField label="Kolor" value={color} onChange={(c) => updateRouteStyle({ color: c })} />
 }
 
-// Trasa → Kolor: one colour for the line, or colours from the recorded data.
 export function ColorPage() {
   const source = useAppStore((s) => s.dataColor.source)
   const track = useAppStore(selectTrack)

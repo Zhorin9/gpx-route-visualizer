@@ -7,7 +7,6 @@ import { registerStats } from './stats'
 import { registerTravel } from './travel'
 import { registerVideoExport } from './video-export'
 
-// Composition root: every feature plugs its pieces into the core registries here.
 export function registerFeatures() {
   registerStats()
   registerElevationProfile()

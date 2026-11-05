@@ -8,8 +8,7 @@ export interface RangeSliderFieldProps {
   describe?: (value: number) => string
 }
 
-// Two overlaid native range inputs — keeps keyboard and screen-reader
-// support for free, unlike a custom-drawn slider.
+// Two native range inputs keep keyboard and screen-reader support for free.
 export default function RangeSliderField({ label, min, max, start, end, onChange, describe }: RangeSliderFieldProps) {
   const span = max - min || 1
   const minGap = Math.max(1, Math.round(span / 1000))

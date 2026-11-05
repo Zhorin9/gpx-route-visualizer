@@ -7,8 +7,6 @@ import { drawWrapper, hasPostmark, slideBox } from '../utils/wrappers'
 import { clamp01 } from '../utils/math'
 
 
-// The project's wrapper over every slide: its paper round the content, its fields and the postmark,
-// which can be dragged to another place. Drawn on the canvas, so the files get the same.
 export default function WrapperLayer() {
   const { projectLook: look, route, units, w, h, slides } = useSlideScene()
   const wrapper = useAppStore((s) => s.wrapper)

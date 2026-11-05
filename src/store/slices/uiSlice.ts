@@ -44,7 +44,6 @@ export function createUiSlice({ set, get, commit }: SliceContext): UiSlice {
     },
     activeTab: 'media',
     subTabs: {},
-    // 'checkerboard' or a hex color
     previewBackdrop: 'checkerboard',
     selection: null,
     addingWaypoint: false,

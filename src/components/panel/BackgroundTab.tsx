@@ -29,7 +29,6 @@ const BACKDROP_OPTIONS: SelectOption<'checkerboard' | 'color'>[] = [
   { value: 'color', label: 'Kolor' },
 ]
 
-// The background is its own layer under the photos: a layout change leaves it alone and vice versa.
 export default function BackgroundTab() {
   const collage = useAppStore((s) => s.collage)
   const updateBackground = useAppStore((s) => s.updateBackground)

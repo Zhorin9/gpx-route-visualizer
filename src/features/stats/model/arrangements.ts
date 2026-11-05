@@ -11,7 +11,7 @@ export interface ArrangeInput {
   measure: MeasureText
 }
 
-// One piece of text in the header box, origin at the box's top-left corner.
+// Origin at the box's top-left corner.
 export interface StatTextBox {
   id: string
   chipKey: StatKey
@@ -46,12 +46,11 @@ const COLUMN_PAD_RATIO = 0.05
 const LABEL_RATIO = 0.5
 const LABEL_GAP_RATIO = 0.12
 const CELL_INSET_RATIO = 0.5
-export const LABEL_TRACKING = 0.08
+const LABEL_TRACKING = 0.08
 
-export const captionSize = (fontSize: number) => Math.max(14, Math.round(fontSize * LABEL_RATIO))
-export const captionGap = (fontSize: number) => fontSize * LABEL_GAP_RATIO
+const captionSize = (fontSize: number) => Math.max(14, Math.round(fontSize * LABEL_RATIO))
+const captionGap = (fontSize: number) => fontSize * LABEL_GAP_RATIO
 
-// Values side by side in one line; a chip dragged out keeps its own offset.
 export const rowArrangement: StatsArrangementStrategy = {
   id: 'row',
   label: 'W jednej linii',
@@ -105,8 +104,7 @@ function columnCells({ chips, style, fontStyle, frameW, measure }: ArrangeInput,
   return { totalW: Math.max(1, cursor - style.spacing), cells }
 }
 
-// Caption above the value, as in the column and grid arrangements.
-export function captionedValue(chip: StatChip, style: StatsStyle, left: number, top: number, width: number): StatTextBox[] {
+function captionedValue(chip: StatChip, style: StatsStyle, left: number, top: number, width: number): StatTextBox[] {
   const labelSize = captionSize(style.fontSize)
   const labelBlock = style.labels ? labelSize + captionGap(style.fontSize) : 0
   const texts: StatTextBox[] = []
@@ -127,7 +125,6 @@ export function captionedValue(chip: StatChip, style: StatsStyle, left: number, 
   return texts
 }
 
-// Equal columns across the frame (or sized to content), caption above each value, rules between.
 export const columnsArrangement: StatsArrangementStrategy = {
   id: 'columns',
   label: 'Kolumny',
@@ -151,7 +148,6 @@ export const columnsArrangement: StatsArrangementStrategy = {
 const GRID_COLUMNS = 2
 const GRID_ROW_GAP_RATIO = 0.45
 
-// Two columns that wrap into rows; caption above every value.
 export const gridArrangement: StatsArrangementStrategy = {
   id: 'grid',
   label: 'Siatka',
@@ -190,7 +186,6 @@ export const gridArrangement: StatsArrangementStrategy = {
 const HERO_RATIO = 2.4
 const HERO_SECONDARY_RATIO = 0.6
 
-// One figure large with its caption, the others in a small line under it.
 export const heroArrangement: StatsArrangementStrategy = {
   id: 'hero',
   label: 'Jedna duża liczba',

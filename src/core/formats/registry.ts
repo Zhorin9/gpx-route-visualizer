@@ -12,7 +12,6 @@ export interface SafeZone {
   bottomLabel: string
 }
 
-// Everything that differs between frame formats. A new format is a new entry here.
 export interface FormatDef {
   key: AspectKey
   w: number
@@ -73,7 +72,6 @@ export const FORMATS: Record<AspectKey, FormatDef> = {
 
 export const FORMAT_ORDER: AspectKey[] = ['4:5', '9:16', '1:1', '16:9']
 
-// Distance from the bottom edge that elements anchored there keep.
 export const bottomInset = (key: AspectKey) => insetBelow(FORMATS[key])
 
 // Horizontal span of the title and the stats header: the whole frame, or the side column.

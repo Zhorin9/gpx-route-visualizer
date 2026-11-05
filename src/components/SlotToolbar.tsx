@@ -8,7 +8,6 @@ import { clamp } from '../utils/math'
 import { zoomedBy } from '../utils/image'
 
 
-// Floating controls above the selected photo slot.
 export default function SlotToolbar({ previewScale }: { previewScale: number }) {
   const selection = useAppStore((s) => s.selection)
   const assignment = useAppStore((s) =>
@@ -37,7 +36,6 @@ export default function SlotToolbar({ previewScale }: { previewScale: number }) 
   const centre = box ? intoBox(box, w, h, own.x + own.w / 2, own.y + own.h / 2) : { x: own.x + own.w / 2, y: own.y + own.h / 2 }
   const slot = { ...own, x: centre.x - (own.w * scale) / 2, y: centre.y - (own.h * scale) / 2, w: own.w * scale, h: own.h * scale }
 
-  // Bounding box of the (possibly tilted) slot, in preview pixels.
   const rad = (slot.rotation * Math.PI) / 180
   const bh = Math.abs(slot.w * Math.sin(rad)) + Math.abs(slot.h * Math.cos(rad))
   // Keep the bar inside the frame; its width is roughly 330px.

@@ -1,10 +1,7 @@
 import type { Stop, TrackPart, TravelModeId, TravelPlan } from '../../../types'
 
-// How a leg is travelled and drawn: its plan without the stops.
 export type Leg = Omit<TravelPlan, 'stops'>
 
-// The trip as the panel shows it: every stop in order (via points among them) and how each
-// leg between two named stops is travelled. The route keeps it as one part per leg.
 export interface Journey {
   stops: Stop[]
   legs: Leg[]
@@ -12,7 +9,6 @@ export interface Journey {
 
 export const named = (stops: Stop[]) => stops.filter((s) => !s.via)
 
-// Joined from the planned parts in route order: a leg starts where the previous one ended.
 // A leg removed from the route in between is bridged with the mode of the one before it.
 export function journeyOf(parts: TrackPart[], draft: Stop | null): Journey {
   const stops: Stop[] = []
@@ -28,7 +24,6 @@ export function journeyOf(parts: TrackPart[], draft: Stop | null): Journey {
   return stops.length ? { stops, legs } : { stops: draft ? [draft] : [], legs: [] }
 }
 
-// One plan per leg: from a named stop to the next, with the via points between.
 export function legPlans({ stops, legs }: Journey): TravelPlan[] {
   const plans: TravelPlan[] = []
   let current: Stop[] = []
@@ -41,7 +36,7 @@ export function legPlans({ stops, legs }: Journey): TravelPlan[] {
   return plans
 }
 
-// The same line: same places in the same order, travelled and shaped the same way (its animation time aside).
+// Ignores the animation time.
 export function sameLeg(a: TravelPlan, b: TravelPlan): boolean {
   return (
     a.mode === b.mode &&
@@ -60,7 +55,6 @@ function trimVias(stops: Stop[]): Stop[] {
   return first < 0 ? [] : stops.slice(first, last + 1)
 }
 
-// A new stop at the end; its leg is travelled like the one before it.
 export function addStop(j: Journey, stop: Stop, mode: TravelModeId): Journey {
   const count = named(j.stops).length
   if (count === 0) return { stops: [stop], legs: [] }
@@ -68,7 +62,6 @@ export function addStop(j: Journey, stop: Stop, mode: TravelModeId): Journey {
   return { stops: [...j.stops, stop], legs: [...j.legs, previous ? { mode: previous.mode, line: previous.line } : { mode }] }
 }
 
-// Removing a stop in the middle joins its two legs into one, travelled like the first of them.
 export function removeStop(j: Journey, id: number): Journey {
   const stop = j.stops.find((s) => s.id === id)
   if (!stop) return j
@@ -79,8 +72,7 @@ export function removeStop(j: Journey, id: number): Journey {
   return { stops, legs: j.legs.filter((_, i) => i !== drop) }
 }
 
-// Moves a named stop to another place in the order. Legs keep their modes by position;
-// via points are dropped, since they shaped legs that no longer exist.
+// Via points are dropped: they shaped legs that no longer exist.
 export function moveStop(j: Journey, id: number, toIndex: number): Journey {
   const stops = named(j.stops)
   const from = stops.findIndex((s) => s.id === id)
@@ -94,7 +86,7 @@ export function setLeg(j: Journey, index: number, leg: Leg): Journey {
   return { ...j, legs: j.legs.map((l, i) => (i === index ? leg : l)) }
 }
 
-// A via point dragged out of leg `index`, placed after the leg's `after`-th stop.
+// `after`: the stop of the leg the via point follows.
 export function insertVia(j: Journey, index: number, after: number, via: Stop): Journey {
   const plan = legPlans(j)[index]
   if (!plan) return j

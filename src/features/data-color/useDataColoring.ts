@@ -37,7 +37,6 @@ const activeDataColor = memoOne(
   },
 )
 
-// The colour-by-data state for the current track, or null when the route keeps its colour.
 export function useActiveDataColor(): ActiveDataColor | null {
   const track = useAppStore(selectTrack)
   const range = useAppStore((s) => s.range)
@@ -58,7 +57,6 @@ const toColoring = memoOne((active: ActiveDataColor | null, routeColor: string):
   }
 })
 
-// Plugged into the route as its colouring provider.
 export function useDataColoring(): RouteColoring | null {
   const active = useActiveDataColor()
   const routeColor = useAppStore((s) => s.routeStyle.color)

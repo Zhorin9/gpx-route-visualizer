@@ -4,7 +4,7 @@ import { FORMATS } from '../core/formats/registry'
 import { useSlideBox } from '../store/selectors'
 import { useAppStore } from '../store/useAppStore'
 
-// Draws a slide's content into the box its wrapper leaves; the children keep their ribbon coordinates.
+// The children keep their ribbon coordinates.
 export default function SlideBox({ slide, children }: { slide: number; children: ReactNode }) {
   const { w, h } = FORMATS[useAppStore((s) => s.aspectKey)]
   const box = useSlideBox(slide) ?? { x: 0, y: 0, w, h, rotation: 0 }

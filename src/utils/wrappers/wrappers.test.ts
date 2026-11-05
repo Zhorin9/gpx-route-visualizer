@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { FORMATS, FORMAT_ORDER } from '../core/formats/registry'
-import { DEFAULT_WRAPPER } from '../store/defaults'
-import { contentBox, dateLines, formatDateSpan, intoBox, perforation, postmarkText, routeFields, slideBox, WRAPPER_OPTIONS } from './wrappers'
-import type { GpxPoint, RoutePart, Waypoint, Wrapper } from '../types'
+import { FORMATS, FORMAT_ORDER } from '../../core/formats/registry'
+import { DEFAULT_WRAPPER } from '../../store/defaults'
+import { contentBox, intoBox, routeFields, slideBox, WRAPPER_OPTIONS } from '.'
+import { dateLines } from './paint'
+import { postmarkText } from './postmark'
+import { formatDateSpan } from './routeFields'
+import { perforation } from './stamp'
+import type { GpxPoint, RoutePart, Waypoint, Wrapper } from '../../types'
 
 const fields = (patch: Partial<Wrapper['fields']> = {}) => ({ ...DEFAULT_WRAPPER.fields, ...patch })
 

@@ -9,7 +9,6 @@ export interface OwnPage {
   Component: ComponentType
 }
 
-// A tab split into pages: its own ones first, then those features registered for it.
 // The open page is remembered per tab, so leaving and coming back keeps it.
 export default function SubTabs({ tab, own }: { tab: TabKey; own: OwnPage[] }) {
   const mode = useAppStore((s) => s.mode)

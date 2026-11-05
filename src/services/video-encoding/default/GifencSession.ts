@@ -2,8 +2,7 @@ import { GIFEncoder, applyPalette, quantize, type Palette } from 'gifenc'
 import { EncodingFailedError, MIME_TYPES, type EncodeOptions, type EncodingSession } from '../VideoEncodingService'
 import { FrameCanvas } from './frameCanvas'
 
-// The only file that uses gifenc. A GIF has no separate codec and container, so this
-// is a whole session on its own.
+// A GIF has no separate codec and container, so this is a whole session on its own.
 
 const COLORS = 256
 

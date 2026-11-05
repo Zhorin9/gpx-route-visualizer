@@ -1,8 +1,7 @@
 import type { ComponentType } from 'react'
 import type { ProjectMode, TabKey } from '../../types'
 
-// A sub-tab a feature adds to a tab of the side panel (Mapa → Profil, Eksport → Wideo).
-// The tab's own pages come first; registered ones follow in `order`.
+// Follows the tab's own pages, in `order`.
 export interface PanelSection {
   id: string
   label: string

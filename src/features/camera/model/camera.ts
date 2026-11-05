@@ -29,8 +29,7 @@ export interface CameraContext {
   settings: CameraSettings
 }
 
-// A camera is a pure function of the moment, so preview, scrubbing and export frame by frame
-// show the same view at the same time.
+// Pure in the moment, so preview, scrubbing and export show the same view at the same time.
 export interface CameraStrategy {
   id: CameraId
   label: string
@@ -39,8 +38,7 @@ export interface CameraStrategy {
 
 const SAMPLES = 12
 
-// The head's position averaged over a stretch of time around now: no lag behind the line,
-// and GPS zigzags don't shake the frame.
+// Averaged over time around now: no lag behind the line, and GPS zigzags don't shake the frame.
 function smoothedHead({ progress, headAt, duration, settings }: CameraContext): Point2D {
   const span = Math.min(1, settings.smoothing / Math.max(duration, 0.1))
   if (span <= 0) return headAt(progress)
@@ -59,15 +57,14 @@ function followView(ctx: CameraContext): CameraView {
   return { x: c.x, y: c.y, zoom: ctx.settings.zoom, focusX: ctx.focus.x, focusY: ctx.focus.y }
 }
 
-// Between the whole route (t = 0) and a close view (t = 1). The centre moves with the zoom,
-// not evenly, so the point being approached stays put on screen while the camera comes in.
+// The centre moves with the zoom, not evenly, so the point approached stays put on screen.
 function between(to: CameraView, t: number, focus: Point2D): CameraView {
   const zoom = Math.exp(Math.log(to.zoom) * t)
   const w = to.zoom === 1 ? t : (1 - 1 / zoom) / (1 - 1 / to.zoom)
   return { x: focus.x + (to.x - focus.x) * w, y: focus.y + (to.y - focus.y) * w, zoom, focusX: focus.x, focusY: focus.y }
 }
 
-export const staticCamera: CameraStrategy = { id: 'static', label: 'Statyczna', viewAt: () => null }
+const staticCamera: CameraStrategy = { id: 'static', label: 'Statyczna', viewAt: () => null }
 
 export const followCamera: CameraStrategy = { id: 'follow', label: 'Śledzenie', viewAt: followView }
 

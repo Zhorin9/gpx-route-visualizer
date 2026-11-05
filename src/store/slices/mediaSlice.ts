@@ -9,6 +9,7 @@ import { CAROUSEL_SLIDES, DEFAULT_SLOT_CROP, MAX_SLIDES, MIN_CAROUSEL_SLIDES, ma
 import type { CarouselKind, CollageStyle, Photo, Slide } from '../../types'
 import type { AppState, MediaSlice, SliceContext } from '../types'
 import { clamp } from '../../utils/math'
+import { rotate } from '../../utils/geometry'
 
 // Texts left beyond the right edge after the ribbon shrinks would be unreachable.
 function keepInside<T extends { x: number }>(texts: T[], width: number): T[] {
@@ -27,7 +28,7 @@ export function takePhotoIds(photos: { id: number }[], count: number): number {
 
 export type LoadedPhoto = Omit<Photo, 'id'>
 
-// Decodes the files and reads where each photo was taken; files that can't be read are counted.
+// Also reads where each photo was taken.
 export async function readPhotoFiles(files: File[]): Promise<{ loaded: LoadedPhoto[]; failed: boolean }> {
   const loaded: LoadedPhoto[] = []
   let failed = false
@@ -42,7 +43,7 @@ export async function readPhotoFiles(files: File[]): Promise<{ loaded: LoadedPho
   return { loaded, failed }
 }
 
-// Whether a colour or gradient background is light or dark; null for the other kinds.
+// null for backgrounds other than a colour or gradient.
 export const collageTone = (c: CollageStyle): Tone | null =>
   c.bgKind === 'gradient' ? toneOf(mixHex(c.gradient.from, c.gradient.to)) : c.bgKind === 'color' ? toneOf(c.bgColor) : null
 
@@ -239,11 +240,7 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
       const fontSize = clamp((insets.bottom || 40) * 0.55, 22, 46)
       const text = makeText(nextId(s.texts), w, h)
       const width = measureTextWidth('Podpis', 'Caveat', fontSize, '400')
-      const rad = (slot.rotation * Math.PI) / 180
-      const lx = -width / 2
-      const ly = slot.h / 2 - (insets.bottom || 40) / 2 - fontSize * 0.55
-      const cx = slot.x + slot.w / 2 + slide * w
-      const cy = slot.y + slot.h / 2
+      const offset = rotate(-width / 2, slot.h / 2 - (insets.bottom || 40) / 2 - fontSize * 0.55, slot.rotation)
       commit('caption:add', {
         texts: [
           ...s.texts,
@@ -255,8 +252,8 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
             color: '#2a2a2a',
             shadowEnabled: false,
             rotation: slot.rotation,
-            x: cx + lx * Math.cos(rad) - ly * Math.sin(rad),
-            y: cy + lx * Math.sin(rad) + ly * Math.cos(rad),
+            x: slot.x + slot.w / 2 + slide * w + offset.x,
+            y: slot.y + slot.h / 2 + offset.y,
           },
         ],
         selection: { kind: 'text', id: text.id },

@@ -7,6 +7,7 @@ import { useAppStore } from '../../store/useAppStore'
 import MapCreditNode from './canvas/MapCreditNode'
 import MapUnderlay from './canvas/MapUnderlay'
 import { ensureFontLoaded } from '../../utils/fonts'
+import { newCanvas } from '../../utils/image'
 import type { AppState } from '../../store/types'
 import { currentMapScene, renderMapImage, type MapScene } from './maplibre'
 import { finishMap } from './model/mood'
@@ -20,14 +21,10 @@ import './map.css'
 
 const useMapShown = () => useAppStore((s) => s.collage.bgKind === 'map')
 
-// The sketch for files: the preview's own drawing, at the output's resolution.
 async function renderSketchImage(state: AppState, scene: MapScene, scale: number): Promise<HTMLCanvasElement> {
   await ensureFontLoaded('Caveat')
   const frame = sketchFrame(state, scene.fit, scene.transform)
-  const canvas = document.createElement('canvas')
-  canvas.width = Math.round(frame.width * scale)
-  canvas.height = Math.round(frame.height * scale)
-  const ctx = canvas.getContext('2d')
+  const { canvas, ctx } = newCanvas(Math.round(frame.width * scale), Math.round(frame.height * scale))
   if (ctx) drawSketch(ctx, frame, scale)
   return canvas
 }
@@ -49,8 +46,7 @@ export function registerMap() {
     subTab: 'background',
   })
 
-  // Files get the map drawn again at their own resolution, fully loaded, under the frame.
-  // When it can't be loaded at all, the file is saved without it only if the person agrees.
+  // Files redraw the map at their own resolution; if it can't load, saving without it needs the person's consent.
   provideFrameUnderlay(async (width, height, scale) => {
     const scene = currentMapScene()
     const state = useAppStore.getState()

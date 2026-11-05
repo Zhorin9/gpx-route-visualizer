@@ -36,7 +36,8 @@
   opacity: 0.5;
 }
 
-.trip-letter {
+.trip-letter,
+.trip-pin-dot {
   width: 24px;
   height: 24px;
   flex: none;
@@ -50,7 +51,8 @@
   border-radius: 12px;
 }
 
-.trip-row.selected .trip-letter {
+.trip-row.selected .trip-letter,
+.trip-pin.selected .trip-pin-dot {
   background: var(--accent);
 }
 

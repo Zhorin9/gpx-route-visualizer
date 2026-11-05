@@ -2,7 +2,7 @@ import { mercatorX, mercatorY, type MercatorFit } from '../../../utils/gpx'
 import type { LonLat, SketchLayers, SketchPlace } from './tiles'
 import type { Pt } from './pen'
 
-// The sketch's features in the route's own frame pixels (before the view transform), simplified.
+// In the route's frame pixels, before the view transform.
 export interface SketchShape {
   // Rings to fill under the nonzero rule (islands are holes), and their shores to ink.
   water: Pt[][]
@@ -26,7 +26,7 @@ const MIN_PLACES = 3
 const closed = (line: Pt[]) => line.length > 2 && line[0][0] === line[line.length - 1][0] && line[0][1] === line[line.length - 1][1]
 const inside = (p: Pt, r: Rect) => p[0] >= r.x0 && p[0] <= r.x1 && p[1] >= r.y0 && p[1] <= r.y1
 
-// Liang–Barsky: the part of a→b inside the rectangle, with where along a→b it starts and ends.
+// Liang–Barsky; also where along a→b the clipped part starts and ends.
 function clipSegment(a: Pt, b: Pt, r: Rect): [Pt, Pt, number, number] | null {
   const dx = b[0] - a[0]
   const dy = b[1] - a[1]
@@ -50,7 +50,7 @@ function clipSegment(a: Pt, b: Pt, r: Rect): [Pt, Pt, number, number] | null {
   return [[a[0] + dx * t0, a[1] + dy * t0], [a[0] + dx * t1, a[1] + dy * t1], t0, t1]
 }
 
-// The pieces of a line inside the rectangle. A ring is opened where it is outside first.
+// A ring is opened where it is first outside.
 function clipLine(line: Pt[], r: Rect): Pt[][] {
   let pts = line
   if (closed(line)) {
@@ -112,7 +112,7 @@ function area(ring: Pt[]): number {
   return Math.abs(a / 2)
 }
 
-// The shortest distance from any of the points to the route (sampled, it is only for ranking).
+// Sampled: it only ranks places.
 function distanceTo(route: Pt[], pts: Pt[]): number {
   let best = Infinity
   for (const p of pts) for (const q of route) best = Math.min(best, Math.hypot(p[0] - q[0], p[1] - q[1]))
@@ -121,8 +121,7 @@ function distanceTo(route: Pt[], pts: Pt[]): number {
 
 const KIND_RANK = { city: 0, town: 1, village: 2, water: 3 }
 
-// A few places along the route, the largest first, never crowding each other: the towns at both ends
-// first when there are any close by.
+// The towns at both ends first when close by, then the largest, never crowding each other.
 function pickPlaces(places: { name: string; at: Pt; kind: SketchPlace['kind']; rank: number }[], route: Pt[], short: number) {
   const gap = (p: Pt, q: Pt) => Math.hypot(p[0] - q[0], p[1] - q[1])
   const towns = places
@@ -141,8 +140,6 @@ function pickPlaces(places: { name: string; at: Pt; kind: SketchPlace['kind']; r
   return chosen.map((t) => ({ name: t.name, at: t.at, kind: t.kind }))
 }
 
-// D2: projected, cut to around the route's area, thinned out, and simplified until the whole map
-// stays under MAX_POINTS. `route` is the track in the same pixels; slideW × slideH a slide.
 export function sketchShape(layers: SketchLayers, fit: MercatorFit, route: Pt[], slideW: number, slideH: number): SketchShape {
   const short = Math.min(slideW, slideH)
   const project = ([lon, lat]: LonLat): Pt => [(mercatorX(lon) - fit.x0) * fit.scale, (mercatorY(lat) - fit.y0) * fit.scale]

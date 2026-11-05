@@ -1,16 +1,18 @@
 import { INK, PAPER, toneOf } from './color'
 import { formatDuration, formatNumber } from './format'
-import { fontWeight } from './fonts'
+import { canvasFont } from './fonts'
+import { drawText, wrapText } from './canvasText'
 import { fitMercator, projectWithFit } from './gpx'
+import { coverLayout } from './image'
 import { percentile } from '../core/data/smoothing'
 import { distanceIn, distanceUnit, formatDistance, formatGain, formatHeight, formatSpeed, type Units } from '../core/units'
 import { DEFAULT_BACKGROUND, DEFAULT_FIGURES, FIGURE_LABELS, slideKind, type SeriesRoute } from './series'
 import type { FigureSize, Photo, Slide, SlideLook, SummaryFigure } from '../types'
 
 // Instagram's own interface covers about this much of the top and bottom of a post.
-export const SAFE_BAND = 0.08
+const SAFE_BAND = 0.08
 
-// Everything a slide is drawn from. Sizes are frame pixels; the caller scales the context.
+// Sizes in frame pixels; the caller scales the context.
 export interface SlideScene {
   w: number
   h: number
@@ -20,7 +22,6 @@ export interface SlideScene {
   movingMs: number | null
   durationMs: number | null
   gainM: number | null
-  // Days the recording spans, by date.
   days: number
   slides: Slide[]
   photos: Map<number, Photo>
@@ -28,45 +29,22 @@ export interface SlideScene {
 
 type Rect = { x: number; y: number; w: number; h: number }
 
-const font = (family: string, size: number, bold = false) => `${fontWeight(family, bold)} ${Math.round(size)}px "${family}"`
+const font = (family: string, size: number, bold = false) => canvasFont(family, size, { bold })
 
-// Text and lines are sized off the shorter side, so a landscape frame doesn't get giant type.
+// Sized off the shorter side, so a landscape frame doesn't get giant type.
 const unit = (scene: Pick<SlideScene, 'w' | 'h'>) => Math.min(scene.w, scene.h)
 
-function text(ctx: CanvasRenderingContext2D, value: string, x: number, y: number, f: string, color: string, align: CanvasTextAlign = 'left', baseline: CanvasTextBaseline = 'alphabetic') {
+function text(ctx: CanvasRenderingContext2D, value: string, x: number, y: number, f: string, color: string, align?: CanvasTextAlign, baseline?: CanvasTextBaseline) {
   ctx.font = f
-  ctx.fillStyle = color
-  ctx.textAlign = align
-  ctx.textBaseline = baseline
-  ctx.fillText(value, x, y)
+  drawText(ctx, value, x, y, color, align, baseline)
 }
 
-export function wrapText(ctx: CanvasRenderingContext2D, value: string, maxWidth: number): string[] {
-  const lines: string[] = []
-  for (const para of value.split('\n')) {
-    let line = ''
-    for (const word of para.split(/\s+/).filter(Boolean)) {
-      const next = line ? `${line} ${word}` : word
-      if (line && ctx.measureText(next).width > maxWidth) {
-        lines.push(line)
-        line = word
-      } else line = next
-    }
-    lines.push(line)
-  }
-  return lines
-}
-
-// Covers the box with the photo, centred.
 function drawCover(ctx: CanvasRenderingContext2D, img: HTMLCanvasElement, r: Rect) {
-  const scale = Math.max(r.w / img.width, r.h / img.height)
-  const w = img.width * scale
-  const h = img.height * scale
-  ctx.drawImage(img, r.x + (r.w - w) / 2, r.y + (r.h - h) / 2, w, h)
+  const c = coverLayout(img.width, img.height, r.w, r.h, 1, 0, 0)
+  ctx.drawImage(img, r.x + c.x, r.y + c.y, c.width, c.height)
 }
 
-// The photo a slide's background takes: the chosen slide's first photo, else the first in the series.
-export function backgroundPhoto(slide: Slide, scene: Pick<SlideScene, 'slides' | 'photos'>): HTMLCanvasElement | null {
+function backgroundPhoto(slide: Slide, scene: Pick<SlideScene, 'slides' | 'photos'>): HTMLCanvasElement | null {
   const from = slide.background?.fromSlide
   const owners = from != null && scene.slides[from] ? [scene.slides[from]] : scene.slides
   for (const owner of owners) {
@@ -78,8 +56,7 @@ export function backgroundPhoto(slide: Slide, scene: Pick<SlideScene, 'slides' |
   return null
 }
 
-// Paints the background and gives the ink that reads on it.
-function drawBackground(ctx: CanvasRenderingContext2D, slide: Slide, scene: SlideScene): string {
+function drawBackgroundAndPickInk(ctx: CanvasRenderingContext2D, slide: Slide, scene: SlideScene): string {
   const { look } = scene
   const bg = slide.background ?? DEFAULT_BACKGROUND
   if (bg.source === 'color') {
@@ -95,12 +72,10 @@ function drawBackground(ctx: CanvasRenderingContext2D, slide: Slide, scene: Slid
   }
   const blur = (bg.blur / 100) * unit(scene) * 0.04
   ctx.save()
-  // Drawn larger, so the blur doesn't fade the edges into transparency. The filter works in
-  // canvas pixels, not frame pixels, so it follows the scale the slide is drawn at.
+  // Drawn larger so the blur doesn't fade the edges; the filter works in canvas pixels, not frame pixels.
   if (blur > 0) ctx.filter = `blur(${blur * Math.abs(ctx.getTransform().a)}px)`
   drawCover(ctx, img, { x: -blur * 2, y: -blur * 2, w: scene.w + blur * 4, h: scene.h + blur * 4 })
   ctx.restore()
-  // Darkened enough that the chart and the text keep their contrast.
   ctx.fillStyle = `rgba(0,0,0,${bg.dim / 100})`
   ctx.fillRect(0, 0, scene.w, scene.h)
   return PAPER
@@ -190,7 +165,7 @@ function figureValue(figure: SummaryFigure, scene: SlideScene): string {
   }
 }
 
-// Height of a figure's value; the label sits above it, smaller.
+// Value heights in fractions of the shorter side.
 const FIGURE_SIZES: Record<FigureSize, number> = { small: 0.065, medium: 0.09, large: 0.12 }
 
 function drawSummary(ctx: CanvasRenderingContext2D, slide: Slide, scene: SlideScene, ink: string) {
@@ -199,7 +174,6 @@ function drawSummary(ctx: CanvasRenderingContext2D, slide: Slide, scene: SlideSc
   const pad = u * 0.08
   if (!scene.route) return noRoute(ctx, scene, ink)
 
-  // The question sits at the bottom; the figures get what is left above it.
   const question = slide.question?.trim()
   const lh = u * 0.055
   ctx.font = font(look.font, u * 0.042)
@@ -234,10 +208,9 @@ function drawSummary(ctx: CanvasRenderingContext2D, slide: Slide, scene: SlideSc
   lines.forEach((line, i) => text(ctx, line, pad, questionTop + i * lh, font(look.font, u * 0.042), ink, 'left', 'top'))
 }
 
-// A profile or summary slide, whole, into a context already scaled to frame pixels.
 export function drawDataSlide(ctx: CanvasRenderingContext2D, slide: Slide, scene: SlideScene) {
   ctx.save()
-  const ink = drawBackground(ctx, slide, scene)
+  const ink = drawBackgroundAndPickInk(ctx, slide, scene)
   // On a photo or a colour the look's accent may vanish; the ink always reads.
   const accent = (slide.background ?? DEFAULT_BACKGROUND).source === 'style' ? scene.look.accent : ink
   if (slideKind(slide) === 'profile') drawProfile(ctx, slide, scene, ink, accent)
@@ -245,9 +218,6 @@ export function drawDataSlide(ctx: CanvasRenderingContext2D, slide: Slide, scene
   ctx.restore()
 }
 
-// ---------- Overlays on a photo ----------
-
-// "km 62 · 1 840 m" for a place on the route.
 export function markerText(route: SeriesRoute, index: number, units: Units): string {
   const km = Math.round(distanceIn(route.cumKm[index], units))
   return `${distanceUnit(units)} ${formatNumber(km)} · ${formatHeight(route.points[index].ele, units)}`
@@ -281,7 +251,6 @@ function drawMiniMap(ctx: CanvasRenderingContext2D, scene: SlideScene, box: Rect
   ctx.restore()
 }
 
-// The mini-map and the km and height marker of a photo slide, inside the safe zone.
 export function drawOverlays(ctx: CanvasRenderingContext2D, slide: Slide, scene: SlideScene, index: number) {
   const overlays = slide.overlays
   if (!scene.route || !overlays) return

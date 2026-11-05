@@ -6,7 +6,7 @@ import { clamp } from '../../utils/math'
 export interface AnimationSlice {
   updateAnimation: (patch: Partial<Omit<AnimationSettings, 'clips'>>) => void
   setClip: (track: AnimationTrackId, clip: TrackClip) => void
-  // Drawing time of the line; places that follow the line keep pace with it.
+  // Places that follow the line keep pace with it.
   setDrawDuration: (seconds: number) => void
 }
 
@@ -15,7 +15,6 @@ const fit = (clip: TrackClip): TrackClip => {
   return { start, duration: clamp(clip.duration, 0, MAX_DURATION_S - start) }
 }
 
-// The line's bar set to `seconds`; places that follow the line keep pace with it.
 export function withDrawDuration(animation: AnimationSettings, seconds: number): AnimationSettings {
   const { route, waypoints } = animation.clips
   const next = fit({ ...route, duration: seconds })

@@ -4,7 +4,6 @@ import { addStop, type Journey } from './model/journey'
 import { useJourney } from './useJourney'
 import type { Stop } from '../../types'
 
-// What the map and the panel both do to the trip: change it, add a stop at the end.
 export function useTravelActions() {
   const journey = useJourney()
   const setJourney = useAppStore((s) => s.setJourney)
@@ -20,5 +19,4 @@ export function useTravelActions() {
   return { journey, change, addAt }
 }
 
-// The letter a stop is marked with on the map and in the list: A, B, … Z, then numbers.
 export const stopLetter = (index: number) => (index < 26 ? String.fromCharCode(65 + index) : String(index + 1))

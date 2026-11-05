@@ -3,6 +3,7 @@ import type { RefObject } from 'react'
 import { insertVia, legPlans, type Journey } from '../model/journey'
 import { lineOf } from '../model/modes'
 import type { GpxPoint, TrackPart } from '../../../types'
+import { kmBetween, nearestIndex, type LatLon } from '../../../utils/gpx'
 
 // Line colours on the planning map: the trip in ink, the leg being edited in the accent.
 const INK = '#24351f'
@@ -10,22 +11,8 @@ const ACCENT = '#b68235'
 
 export const lngLat = (p: { lat: number; lon: number }): [number, number] => [p.lon, p.lat]
 
-// Index of the point of `points` nearest to `at` (degrees, longitude shrunk with latitude).
-export function nearestIndex(points: GpxPoint[], at: { lat: number; lon: number }): number {
-  const k = Math.cos((at.lat * Math.PI) / 180) ** 2
-  let best = 0
-  let bestD = Infinity
-  points.forEach((p, i) => {
-    const d = (p.lat - at.lat) ** 2 + (p.lon - at.lon) ** 2 * k
-    if (d < bestD) {
-      bestD = d
-      best = i
-    }
-  })
-  return best
-}
+const nearestTo = (points: GpxPoint[], at: LatLon) => nearestIndex(points, (p) => kmBetween(p, at)) ?? 0
 
-// How a leg's line is drawn: a road solid, a bike dotted, a flight or straight line dashed.
 function dashOf(part: TrackPart): 'solid' | 'dotted' | 'dashed' {
   if (!part.plan) return 'solid'
   if (lineOf(part.plan) !== 'road') return 'dashed'
@@ -43,7 +30,7 @@ export function tripData(planned: TrackPart[], cache: Record<string, GpxPoint[]>
   }
 }
 
-// The trip's source and layers; added again whenever the map's style is swapped (Jasna, Topo, Satelita).
+// Added again whenever the map's style is swapped.
 export function addTripLayers(map: MapLibreMap, data: ReturnType<typeof tripData>) {
   if (map.getSource('trip')) return void (map.getSource('trip') as GeoJSONSource).setData(data)
   map.addSource('trip', { type: 'geojson', data })
@@ -67,7 +54,6 @@ export interface Latest {
   bentAt: number
 }
 
-// Dragging the line places a via point where the pointer is let go.
 export function bendLine(m: MapLibreMap, e: MapLayerMouseEvent, latest: RefObject<Latest>) {
   const leg = Number(e.features?.[0]?.properties?.leg)
   // A pin lies on the line; dragging it moves the stop, not the line.
@@ -85,9 +71,9 @@ export function bendLine(m: MapLibreMap, e: MapLayerMouseEvent, latest: RefObjec
     if (!part || !plan) return
     const line = cache[part.sourceKey] ?? []
     const at = { lat: end.lngLat.lat, lon: end.lngLat.lng }
-    const where = nearestIndex(line, at)
+    const where = nearestTo(line, at)
     // After the stops of the leg that the line reaches before this point.
-    const after = plan.stops.slice(1, -1).filter((s) => nearestIndex(line, s) < where).length
+    const after = plan.stops.slice(1, -1).filter((s) => nearestTo(line, s) < where).length
     onChange(insertVia(j, leg, after, { id: Math.max(0, ...j.stops.map((s) => s.id)) + 1, name: '', ...at, via: true }), 'via')
   })
 }

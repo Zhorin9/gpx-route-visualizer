@@ -1,8 +1,6 @@
 import type { EncodeOptions, EncodeQuality } from '../VideoEncodingService'
 import type { EncodedSample, FrameEncoder, VideoCodecId } from '../ports'
 
-// The only file that talks to the browser's WebCodecs encoder.
-
 // Bits per pixel per frame; ~4.4 Mb/s for a 1080×1920 story at 30 fps on medium.
 const BITS_PER_PIXEL: Record<EncodeQuality, number> = { low: 0.04, medium: 0.07, high: 0.12 }
 
@@ -10,7 +8,6 @@ export function targetBitrate(options: Pick<EncodeOptions, 'width' | 'height' | 
   return Math.round(options.width * options.height * options.fps * BITS_PER_PIXEL[options.quality])
 }
 
-// Codec strings with a level high enough for the frame size and rate.
 function codecString(codec: VideoCodecId, { width, height, fps }: EncodeOptions): string {
   const macroblocks = Math.ceil(width / 16) * Math.ceil(height / 16)
   if (codec === 'avc') {

@@ -12,7 +12,6 @@ export interface CameraView {
   focusY: number
 }
 
-// The route transform followed by the camera, as one transform for the route group.
 export function composeView(t: RouteTransform, view: CameraView | null): RouteTransform {
   if (!view) return t
   const { zoom: z } = view
@@ -25,8 +24,7 @@ export function composeView(t: RouteTransform, view: CameraView | null): RouteTr
   }
 }
 
-// Where everything pinned to the route (the line, places, km marks, the vehicle) is drawn.
-// Without a camera this is the route transform itself, so the frame looks as it always did.
+// Without a camera this is the route transform itself.
 export function useViewTransform(): RouteTransform {
   const transform = useAppStore((s) => s.routeTransform)
   return composeView(transform, useWorldView())

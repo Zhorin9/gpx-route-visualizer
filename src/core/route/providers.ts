@@ -3,8 +3,7 @@ import type { RouteColoring } from './coloring'
 import type { RouteGeometry } from './geometry'
 import type { CameraView } from './view'
 
-// Extension points of the route. Features plug in here at start-up, so the route
-// itself never imports them (animation, colour by data, camera).
+// Features plug in at start-up, so the route never imports them.
 
 type Hook<T> = () => T
 

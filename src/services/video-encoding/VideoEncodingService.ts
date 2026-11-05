@@ -1,6 +1,4 @@
-// Public face of video and GIF encoding. The rest of the app depends on these types only:
-// no encoding package (or its types) is visible outside this folder, so a package can be
-// replaced without touching the UI or the export loop.
+// No encoding package (or its types) is visible outside this folder, so one can be replaced freely.
 
 // png: numbered frames with transparency, packed in a ZIP, for editing software.
 export type VideoFormat = 'mp4' | 'webm' | 'gif' | 'png'

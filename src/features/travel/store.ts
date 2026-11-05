@@ -17,18 +17,14 @@ export type TravelSelection = { kind: 'leg'; index: number } | { kind: 'stop'; i
 export interface TravelSlice {
   // First stop of a trip with no second one yet: not a route, so kept outside the document.
   draftStop: Stop | null
-  // Legs are being fetched from the route service.
   travelBusy: boolean
-  // What went wrong with the last change, in words a person can act on.
   travelError: string
-  // The leg or stop whose settings the panel shows, also marked on the map.
   travelSelection: TravelSelection | null
   // How the leg to the next added stop is travelled while the trip has one stop.
   nextMode: TravelModeId
   selectTravel: (selection: TravelSelection | null) => void
   setNextMode: (mode: TravelModeId) => void
-  // Puts the trip on the route as one undo step: legs that didn't change keep their points, the
-  // others are built. `atStart` places the trip before the GPX files (a flight to the start).
+  // `atStart` places the trip before the GPX files (a flight to the start).
   setJourney: (journey: Journey, label: string, options?: { atStart?: boolean }) => Promise<void>
 }
 
@@ -39,15 +35,13 @@ function morning(): number {
   return d.getTime()
 }
 
-// Distance from the part's start to a fractional index of its points.
 function kmAt(cum: Float64Array, pos: number): number {
   const i = clamp(Math.floor(pos), 0, cum.length - 1)
   const next = Math.min(cum.length - 1, i + 1)
   return cum[i] + (cum[next] - cum[i]) * (pos - i)
 }
 
-// Where the places go when the parts change: a stop's label to its stop, any other place along
-// its part (by share of the distance when the part's line was rebuilt). Places on removed parts go.
+// A stop's label follows its stop; any other place keeps its share of the distance along a rebuilt part.
 function moveWaypoints(waypoints: Waypoint[], before: JoinedTrack | null, after: JoinedTrack, cache: Record<string, GpxPoint[]>, stopPos: Map<number, number>) {
   return waypoints.flatMap((w): Waypoint[] => {
     if (w.stopId != null) {
@@ -65,7 +59,6 @@ function moveWaypoints(waypoints: Waypoint[], before: JoinedTrack | null, after:
   })
 }
 
-// Track position of every named stop: where its leg starts, or where the last leg ends.
 function stopPositions(parts: JoinedTrack['parts']): Map<number, number> {
   const at = new Map<number, number>()
   for (const p of parts) {

@@ -11,7 +11,6 @@ import type { Units } from '../core/units'
 
 const SOON = 'Wkrótce'
 
-// One choice of a settings row; `soon` marks what is only sketched so far.
 function Choice<T extends string>({ label, value, options, onChange }: { label: string; value: T; options: { value: T; label: string; soon?: boolean }[]; onChange?: (value: T) => void }) {
   return (
     <div className="settings-row">
@@ -36,8 +35,6 @@ function Choice<T extends string>({ label, value, options, onChange }: { label: 
   )
 }
 
-// Settings that apply to the whole project, behind the gear. Units work; theme, language,
-// shortcuts and help are laid out for later.
 function SettingsMenu({ onClose }: { onClose: () => void }) {
   const units = useAppStore((s) => s.statsContent.units)
   const updateStatsContent = useAppStore((s) => s.updateStatsContent)
@@ -80,7 +77,6 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
   )
 }
 
-// The project's name opens what can be done to the project. Changing its type works; the rest is laid out for later.
 function ProjectMenu({ name }: { name: string }) {
   const mode = useAppStore((s) => s.mode)
   const [open, setOpen] = useState(false)
@@ -125,7 +121,6 @@ function ProjectMenu({ name }: { name: string }) {
   )
 }
 
-// Across the editor: the project's name, undo and redo, versions, settings and the way to the files.
 export default function TopBar() {
   const name = useAppStore((s) => s.texts.find((t) => t.role === 'title')?.text || s.routeSource?.name || 'Nowy projekt')
   const canUndo = useAppStore((s) => s.past.length > 0)

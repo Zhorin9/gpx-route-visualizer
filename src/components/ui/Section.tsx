@@ -12,7 +12,6 @@ export interface SectionProps {
   actions?: ReactNode
   // Makes the heading a button that folds the content away.
   collapseId?: string
-  // Folded until opened ('Zaawansowane').
   startCollapsed?: boolean
 }
 

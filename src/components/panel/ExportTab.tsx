@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import CheckboxField from '../fields/CheckboxField'
 import Button from '../ui/Button'
+import Dialog from '../ui/Dialog'
 import Section from '../ui/Section'
 import Segmented from '../ui/Segmented'
-import { IconClose, IconDownload } from '../icons'
+import { IconDownload } from '../icons'
+import { plural } from '../../utils/format'
 import { useHasBackground, useHasRoute, useManualFlags } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { FORMATS, FORMAT_ORDER } from '../../core/formats/registry'
@@ -25,7 +27,7 @@ const FORMAT_OPTIONS: SelectOption<ExportFormat>[] = [
 ]
 
 function filesLabel(count: number) {
-  return count === 1 ? '1 plik' : `${count} ${count < 5 ? 'pliki' : 'plików'}`
+  return `${count} ${plural(count, 'plik', 'pliki', 'plików')}`
 }
 
 function FormatCard({ aspect, checked, onToggle }: { aspect: AspectKey; checked: boolean; onToggle: () => void }) {
@@ -45,17 +47,19 @@ function FormatCard({ aspect, checked, onToggle }: { aspect: AspectKey; checked:
   )
 }
 
-function ElementStateRow({ def, manual }: { def: CanvasElementDefinition; manual: boolean }) {
-  if (!def.useIsAvailable()) return null
+function ElementStateRow({ name, manual }: { name: string; manual: boolean }) {
   return (
     <li className={manual ? 'manual' : undefined}>
-      <span>{def.label}</span>
+      <span>{name}</span>
       <span className="element-state-tag">{manual ? 'Ręcznie' : 'Auto'}</span>
     </li>
   )
 }
 
-// Hand-placed elements of the open format, and the way back to the automatic layout.
+function CanvasElementStateRow({ def, manual }: { def: CanvasElementDefinition; manual: boolean }) {
+  return def.useIsAvailable() ? <ElementStateRow name={def.label} manual={manual} /> : null
+}
+
 function FormatLayoutSection() {
   const aspectKey = useAppStore((s) => s.aspectKey)
   const texts = useAppStore((s) => s.texts)
@@ -78,13 +82,10 @@ function FormatLayoutSection() {
       {FORMATS[aspectKey].safeZone && <CheckboxField label="Strefy bezpieczne" checked={showSafeZones} onChange={setShowSafeZones} />}
       <ul className="element-states">
         {canvasElements().map((def) => (
-          <ElementStateRow key={def.kind} def={def} manual={Boolean(flags.elements[def.kind])} />
+          <CanvasElementStateRow key={def.kind} def={def} manual={Boolean(flags.elements[def.kind])} />
         ))}
         {rows.map((row) => (
-          <li key={row.key} className={row.manual ? 'manual' : undefined}>
-            <span>{row.name}</span>
-            <span className="element-state-tag">{row.manual ? 'Ręcznie' : 'Auto'}</span>
-          </li>
+          <ElementStateRow key={row.key} name={row.name} manual={row.manual} />
         ))}
       </ul>
       <Button disabled={!manual} onClick={resetFormatLayout}>
@@ -95,28 +96,11 @@ function FormatLayoutSection() {
   )
 }
 
-// Pobierz opens this over the editor. Obraz is its own page; Wideo is added by its feature.
 export default function ExportDialog({ onClose }: { onClose: () => void }) {
-  useEffect(() => {
-    const escape = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
-    document.addEventListener('keydown', escape)
-    return () => document.removeEventListener('keydown', escape)
-  }, [onClose])
-
   return (
-    <div className="dialog-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="dialog export-dialog" role="dialog" aria-modal="true" aria-labelledby="export-title">
-        <div className="export-dialog-head">
-          <h2 id="export-title" className="dialog-title">
-            Pobierz
-          </h2>
-          <Button size="icon" variant="ghost" aria-label="Zamknij" onClick={onClose}>
-            <IconClose />
-          </Button>
-        </div>
-        <SubTabs tab="export" own={[{ id: 'image', label: 'Obraz', Component: ImageExport }]} />
-      </div>
-    </div>
+    <Dialog title="Pobierz" onClose={onClose} className="export-dialog" closeButton>
+      <SubTabs tab="export" own={[{ id: 'image', label: 'Obraz', Component: ImageExport }]} />
+    </Dialog>
   )
 }
 
