@@ -1,6 +1,7 @@
 import { FORMATS } from '../../core/formats/registry'
 import { easeInOut } from '../animation/model/timeline'
 import type { AspectKey } from '../../types'
+import { clamp01 } from '../../utils/math'
 
 export type InsetCorner = 'tl' | 'tr' | 'bl' | 'br'
 
@@ -44,7 +45,6 @@ export function cardRect(inset: CardInset, card: AspectKey): CardRect {
 // 0 off screen, 1 at rest: in over the first moments, out over the last.
 export function cardPresence(t: number, duration: number): number {
   const slide = Math.min(SLIDE_S, duration / 3)
-  const clamp01 = (v: number) => Math.max(0, Math.min(1, v))
   return easeInOut(clamp01(Math.min(t, duration - t) / slide))
 }
 

@@ -1,3 +1,4 @@
+import { clamp, clamp01 } from '../../../utils/math'
 export interface ProfileSamples {
   // Evenly spaced along the distance of the range; NaN where the route is hidden (a hidden day).
   values: Float32Array
@@ -29,7 +30,7 @@ export function sampleByDistance(
     while (i < to && cumKm[i + 1] < target) i++
     const next = Math.min(i + 1, to)
     const segment = cumKm[next] - cumKm[i]
-    const t = segment > 0 ? Math.max(0, Math.min(1, (target - cumKm[i]) / segment)) : 0
+    const t = segment > 0 ? clamp01((target - cumKm[i]) / segment) : 0
     positions[c] = i + (next - i) * t
     if (hidden?.(t < 0.5 ? i : next)) {
       out[c] = NaN
@@ -47,9 +48,9 @@ export function sampleByDistance(
 export function distanceFraction(cumKm: ArrayLike<number>, from: number, to: number, pos: number): number {
   const span = cumKm[to] - cumKm[from]
   if (span <= 0) return 0
-  const i = Math.max(from, Math.min(to - 1, Math.floor(pos)))
+  const i = clamp(Math.floor(pos), from, to - 1)
   const km = cumKm[i] + (cumKm[i + 1] - cumKm[i]) * (pos - i)
-  return Math.max(0, Math.min(1, (km - cumKm[from]) / span))
+  return clamp01((km - cumKm[from]) / span)
 }
 
 // A per-point series read at each sample; NaN where the chart is hidden.

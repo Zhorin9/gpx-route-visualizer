@@ -8,6 +8,7 @@ import { readExif } from '../../utils/exif'
 import { CAROUSEL_SLIDES, DEFAULT_SLOT_CROP, MAX_SLIDES, MIN_CAROUSEL_SLIDES, makeText, nextId } from '../defaults'
 import type { CarouselKind, CollageStyle, Photo, Slide } from '../../types'
 import type { AppState, MediaSlice, SliceContext } from '../types'
+import { clamp } from '../../utils/math'
 
 // Texts left beyond the right edge after the ribbon shrinks would be unreachable.
 function keepInside<T extends { x: number }>(texts: T[], width: number): T[] {
@@ -195,7 +196,7 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
 
     // How many slides a panorama is cut into; a series grows slide by slide instead.
     setSlideCount: (count) => {
-      const next = Math.max(MIN_CAROUSEL_SLIDES, Math.min(MAX_SLIDES, count))
+      const next = clamp(count, MIN_CAROUSEL_SLIDES, MAX_SLIDES)
       if (get().slides.length === next) return
       commit('carousel:count', (s) => ({
         slides: (next > s.slides.length
@@ -235,7 +236,7 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
       if (!slot) return
       const { frame } = s.collage
       const insets = frameInsets(slot, frame.thickness, frame.style, slot.kind === 'framed' || frame.enabled)
-      const fontSize = Math.max(22, Math.min(46, (insets.bottom || 40) * 0.55))
+      const fontSize = clamp((insets.bottom || 40) * 0.55, 22, 46)
       const text = makeText(nextId(s.texts), w, h)
       const width = measureTextWidth('Podpis', 'Caveat', fontSize, '400')
       const rad = (slot.rotation * Math.PI) / 180

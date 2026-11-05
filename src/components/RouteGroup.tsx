@@ -16,7 +16,7 @@ import { applyTransform, nearestPointOnPolyline, pointAt } from '../utils/geomet
 import { flatBounds } from '../utils/gpx'
 import KmMarkers from './KmMarkers'
 import SlideDots from './SlideDots'
-import WaypointLabel from './WaypointLabel'
+import WaypointLabel from './place/WaypointLabel'
 import type { RouteTransform } from '../types'
 
 const HIT_PADDING = 30

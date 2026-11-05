@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useAppStore } from '../store/useAppStore'
+import { clamp } from '../utils/math'
 
 function isEditingField(target: EventTarget | null): boolean {
   const el = target as HTMLElement | null
@@ -45,7 +46,7 @@ export default function useKeyboardShortcuts(): void {
         }
         if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !(e.target as HTMLElement).closest?.('[role="tablist"], [role="radiogroup"], input')) {
           e.preventDefault()
-          s.setActiveSlide(Math.max(0, Math.min(s.slides.length - 1, slide + (e.key === 'ArrowLeft' ? -1 : 1))))
+          s.setActiveSlide(clamp(slide + (e.key === 'ArrowLeft' ? -1 : 1), 0, s.slides.length - 1))
           return
         }
         if (e.key === 'Delete' && slide > 0) {

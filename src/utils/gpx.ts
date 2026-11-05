@@ -1,4 +1,5 @@
 import type { GpxPoint, GpxTrack, RangeStats, TrackDay } from '../types'
+import { clamp } from './math'
 
 // Parsed by hand with DOMParser instead of the `gpxparser` package: that
 // library throws under strict-mode ES modules for real exported tracks.
@@ -218,7 +219,7 @@ export function flatBounds(flat: ArrayLike<number>, from = 0, to = flat.length):
 export const mercatorX = (lon: number) => (lon + 180) / 360
 
 export function mercatorY(lat: number): number {
-  const sin = Math.sin((Math.max(-85.05, Math.min(85.05, lat)) * Math.PI) / 180)
+  const sin = Math.sin((clamp(lat, -85.05, 85.05) * Math.PI) / 180)
   return 0.5 - Math.log((1 + sin) / (1 - sin)) / (4 * Math.PI)
 }
 

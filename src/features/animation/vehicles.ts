@@ -1,5 +1,6 @@
 import type { VehicleId } from '../../types'
 import { CAR_ART, PLANE_ART, TRAIN_ART } from './vehicleArt'
+import { clamp } from '../../utils/math'
 
 // A marker at the head of the animated line.
 export interface VehicleDef {
@@ -85,7 +86,7 @@ const HEADING_SPAN = 40
 // Point `distance` pixels along the projected line from fractional index `pos`, backwards when negative.
 function along(flat: ArrayLike<number>, pos: number, distance: number): { x: number; y: number } {
   const count = flat.length / 2
-  const i = Math.max(0, Math.min(count - 1, Math.floor(pos)))
+  const i = clamp(Math.floor(pos), 0, count - 1)
   const t = pos - i
   const next = Math.min(count - 1, i + 1)
   let x = flat[i * 2] + (flat[next * 2] - flat[i * 2]) * t

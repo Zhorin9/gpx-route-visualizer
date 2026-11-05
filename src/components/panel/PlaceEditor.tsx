@@ -8,16 +8,14 @@ import Section from '../ui/Section'
 import Segmented from '../ui/Segmented'
 import FileButton from '../ui/FileButton'
 import { IconFit, IconImage, IconTrash } from '../icons'
-import { FONT_OPTIONS } from '../../utils/fonts'
+import FontField from '../fields/FontField'
+import KindIcon from '../place/KindIcon'
+import { POINT_KIND_ORDER, POINT_KINDS } from '../place/pointKinds'
 import { DEFAULT_SLOT_CROP } from '../../store/defaults'
 import { useAppStore } from '../../store/useAppStore'
 import type { PhotoMarker, PointStyle, SelectOption, Waypoint, WaypointKind } from '../../types'
 
-const KIND_OPTIONS: SelectOption<WaypointKind>[] = [
-  { value: 'pass', label: 'Przełęcz' },
-  { value: 'peak', label: 'Szczyt' },
-  { value: 'point', label: 'Punkt' },
-]
+const KIND_OPTIONS: SelectOption<WaypointKind>[] = POINT_KIND_ORDER.map((kind) => ({ value: kind, label: POINT_KINDS[kind].label, icon: <KindIcon kind={kind} /> }))
 
 const MARKER_OPTIONS: SelectOption<PhotoMarker>[] = [
   { value: 'polaroid', label: 'Polaroid' },
@@ -79,7 +77,7 @@ function PointPhoto({ waypoint }: { waypoint: Waypoint }) {
   )
 }
 
-export default function WaypointEditor({ id }: { id: number }) {
+export default function PlaceEditor({ id }: { id: number }) {
   const selected = useAppStore((s) => s.waypoints.find((w) => w.id === id))
   const updateWaypoint = useAppStore((s) => s.updateWaypoint)
   const deleteWaypoint = useAppStore((s) => s.deleteWaypoint)
@@ -91,12 +89,7 @@ export default function WaypointEditor({ id }: { id: number }) {
       <Section title="Etykieta">
         <TextField label="Nazwa" value={selected.text} onChange={(text) => updateWaypoint(selected.id, { text })} />
         <Segmented label="Rodzaj punktu" showLabel value={selected.kind} options={KIND_OPTIONS} onChange={(kind) => updateWaypoint(selected.id, { kind })} />
-        <SelectField
-          label="Czcionka"
-          value={selected.fontFamily}
-          onChange={(fontFamily) => updateWaypoint(selected.id, { fontFamily })}
-          options={FONT_OPTIONS}
-        />
+        <FontField value={selected.fontFamily} onChange={(fontFamily) => updateWaypoint(selected.id, { fontFamily })} />
         <SliderField
           label="Rozmiar"
           unit="px"
@@ -108,6 +101,7 @@ export default function WaypointEditor({ id }: { id: number }) {
         />
         <ColorField label="Kolor" value={selected.color} onChange={(color) => updateWaypoint(selected.id, { color })} />
         <CheckboxField label="Cień" checked={selected.shadowEnabled ?? true} onChange={(shadowEnabled) => updateWaypoint(selected.id, { shadowEnabled })} />
+        <CheckboxField label="Linia do punktu na trasie" checked={selected.leaderEnabled ?? true} onChange={(leaderEnabled) => updateWaypoint(selected.id, { leaderEnabled })} />
       </Section>
       <Section title="Zdjęcie w punkcie">
         <PointPhoto waypoint={selected} />

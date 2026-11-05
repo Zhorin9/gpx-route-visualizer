@@ -12,7 +12,7 @@ import { useActiveSlide } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { plural } from '../../utils/format'
 import { markerText } from '../../utils/drawSlide'
-import { FONT_OPTIONS } from '../../utils/fonts'
+import FontField from '../fields/FontField'
 import { slotCount } from '../../utils/layouts'
 import { DEFAULT_BACKGROUND, DEFAULT_FIGURES, DEFAULT_OVERLAYS, FIGURE_LABELS, SUMMARY_FIGURES, applyTargets, slideLabel, slideKind, slideNumbers, slidePlace, type ApplyChoice, type PlaceSource } from '../../utils/series'
 import type { FigureSize, MiniMap, SelectOption, Slide, SlideBackground, SlotCrop } from '../../types'
@@ -282,7 +282,7 @@ export function SlideStylePage() {
             <ColorField label="Papier" value={look.paper} onChange={(paper) => updateSlide(index, { ownLook: { ...look, paper } })} />
             <ColorField label="Tekst" value={look.ink} onChange={(ink) => updateSlide(index, { ownLook: { ...look, ink } })} />
             <ColorField label="Akcent" value={look.accent} onChange={(accent) => updateSlide(index, { ownLook: { ...look, accent } })} />
-            <SelectField label="Czcionka" value={look.font} options={FONT_OPTIONS} onChange={(font) => updateSlide(index, { ownLook: { ...look, font } })} />
+            <FontField value={look.font} onChange={(font) => updateSlide(index, { ownLook: { ...look, font } })} />
           </>
         ) : (
           <p className="hint">Slajd bierze kolory i czcionkę z projektu (tło, kolor trasy i czcionka tytułu), więc zmiany stylu projektu odświeżają go razem z resztą.</p>

@@ -1,3 +1,4 @@
+import { clamp } from './math'
 // Enough for a 2× export of the tallest aspect (2160×3840) with zoom headroom.
 const MAX_SIDE = 4096
 const THUMB_SIDE = 160
@@ -53,9 +54,27 @@ export function coverLayout(imgW: number, imgH: number, boxW: number, boxH: numb
   const height = imgH * scale
   const overflowX = Math.max(0, (width - boxW) / 2)
   const overflowY = Math.max(0, (height - boxH) / 2)
-  const clampedX = Math.max(-overflowX, Math.min(overflowX, offsetX))
-  const clampedY = Math.max(-overflowY, Math.min(overflowY, offsetY))
+  const clampedX = clamp(offsetX, -overflowX, overflowX)
+  const clampedY = clamp(offsetY, -overflowY, overflowY)
   return { width, height, x: (boxW - width) / 2 + clampedX, y: (boxH - height) / 2 + clampedY }
+}
+
+const ZOOM_STEP = 0.1
+const MAX_ZOOM = 4
+
+export const zoomedBy = (zoom: number, steps: number) => clamp(zoom + steps * ZOOM_STEP, 1, MAX_ZOOM)
+
+export const wheelSteps = (deltaY: number) => (deltaY < 0 ? 1 : -1)
+
+interface Area {
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
+export function coveringPosition(at: { x: number; y: number }, box: Area, photo: { width: number; height: number }) {
+  return { x: clamp(at.x, box.x + box.w - photo.width, box.x), y: clamp(at.y, box.y + box.h - photo.height, box.y) }
 }
 
 // Whole photo inside the box, centred, never cropped.

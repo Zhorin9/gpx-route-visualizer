@@ -8,12 +8,12 @@ import { measureTextWidth } from '../../../utils/measureText'
 import { profileBand } from '../../elevation-profile/types'
 import { LEGEND_KIND } from '../types'
 import { useActiveDataColor } from '../useDataColoring'
+import { SOFT_SHADOW } from '../../../core/canvas/shadows'
 
 const WIDTH = 380
 const BAR_H = 16
 const LABEL = 22
 const GAP = 10
-const SHADOW = { shadowColor: '#000000', shadowBlur: 8, shadowOpacity: 0.5 }
 
 // Gradient bar with what the colours mean, in the stats header's font and colour.
 export default function ColorLegendNode() {
@@ -39,7 +39,7 @@ export default function ColorLegendNode() {
   const { h, safeZone } = FORMATS[aspectKey]
   const bottom = bottomInset(aspectKey) + profileBelow
   const text = (key: string, value: string, x: number, y: number, size: number, extra = {}) => (
-    <Text key={key} text={value} x={x} y={y} fontSize={size} fontFamily={fontFamily} fontStyle={fontStyle} fill={textColor} listening={false} perfectDrawEnabled={false} {...SHADOW} {...extra} />
+    <Text key={key} text={value} x={x} y={y} fontSize={size} fontFamily={fontFamily} fontStyle={fontStyle} fill={textColor} listening={false} perfectDrawEnabled={false} {...SOFT_SHADOW} {...extra} />
   )
 
   return (
@@ -54,7 +54,7 @@ export default function ColorLegendNode() {
         fillLinearGradientEndPoint={{ x: WIDTH, y: 0 }}
         fillLinearGradientColorStops={stops}
         listening={false}
-        {...SHADOW}
+        {...SOFT_SHADOW}
       />
       {text('low', low, 0, LABEL + GAP * 2 + BAR_H, LABEL)}
       {text('high', high, WIDTH - measureTextWidth(high, fontFamily, LABEL, fontStyle), LABEL + GAP * 2 + BAR_H, LABEL)}

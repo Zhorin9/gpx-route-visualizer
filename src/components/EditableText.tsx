@@ -12,6 +12,7 @@ import SelectionOutline from './SelectionOutline'
 import { useSlideAt } from '../store/selectors'
 import SlideBox from './SlideBox'
 import type { TextNode } from '../types'
+import { TEXT_SHADOW } from '../core/canvas/shadows'
 
 export default function EditableText({ node }: { node: TextNode }) {
   const isSelected = useAppStore((s) => s.selection?.kind === 'text' && s.selection.id === node.id)
@@ -84,9 +85,8 @@ export default function EditableText({ node }: { node: TextNode }) {
           snapDragEnd(e)
           updateText(node.id, { x: e.target.x(), y: e.target.y() - animation.offsetY })
         }}
-        shadowColor="#000000"
-        shadowBlur={node.shadowEnabled ? 10 : 0}
-        shadowOpacity={node.shadowEnabled ? 0.6 : 0}
+        {...TEXT_SHADOW}
+        shadowEnabled={node.shadowEnabled}
       />
       <SelectionOutline targetRef={shapeRef} visible={isSelected && !hidden} />
     </SlideBox>

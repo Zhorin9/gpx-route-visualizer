@@ -5,6 +5,7 @@ import { cumulativeDistanceKm } from './gpx'
 import { layoutDef } from './layouts'
 import { memoOne } from './memo'
 import type { CollageStyle, GpxPoint, Photo, PhotoGeo, ProjectMode, RouteStyle, Slide, SlideBackground, SlideKind, SlideLook, SlideOverlays, StatsStyle, SummaryFigure, TitleStyle } from '../types'
+import { clamp } from './math'
 
 // A series is the carousel of the editor: its first slide is the frame itself, the others are
 // photos, an elevation profile or a summary. Instagram takes at most 20 slides in one post.
@@ -80,7 +81,7 @@ export function insertIndex(slides: Slide[], selected: number, kind: SlideKind):
 export function followSlides<T extends { x: number }>(texts: T[], order: number[], w: number): T[] {
   const count = Math.max(...order) + 1
   return texts.flatMap((t) => {
-    const from = Math.max(0, Math.min(count - 1, Math.floor(t.x / w)))
+    const from = clamp(Math.floor(t.x / w), 0, count - 1)
     const to = order.indexOf(from)
     return to < 0 ? [] : [{ ...t, x: t.x + (to - from) * w }]
   })
@@ -88,7 +89,7 @@ export function followSlides<T extends { x: number }>(texts: T[], order: number[
 
 // Moves a slide; the first one stays first and nothing can get ahead of it.
 export function moveOrder(count: number, from: number, to: number): number[] | null {
-  const target = Math.max(1, Math.min(count - 1, to))
+  const target = clamp(to, 1, count - 1)
   if (from < 1 || from === target) return null
   const order = Array.from({ length: count }, (_, i) => i).filter((i) => i !== from)
   order.splice(target, 0, from)

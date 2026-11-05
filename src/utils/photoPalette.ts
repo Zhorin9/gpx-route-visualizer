@@ -1,4 +1,5 @@
 import { contrastRatio } from './color'
+import { clamp, clamp01 } from './math'
 
 // Colours from the photos, worked out in OKLCH/Oklab: there the distance between two colours
 // follows how different they look.
@@ -30,7 +31,6 @@ export interface PhotoPalette {
 const hue = (a: number, b: number) => ((Math.atan2(b, a) * 180) / Math.PI + 360) % 360
 const fromLab = (L: number, a: number, b: number, share = 0): Swatch => ({ L, a, b, C: Math.hypot(a, b), h: hue(a, b), share })
 const fromLch = ({ L, C, h }: Oklch, share = 0) => fromLab(L, C * Math.cos((h * Math.PI) / 180), C * Math.sin((h * Math.PI) / 180), share)
-const clamp = (v: number, lo = 0, hi = 1) => Math.min(hi, Math.max(lo, v))
 
 export function rgbToOklch(r: number, g: number, b: number): Sample {
   const lin = (v: number) => ((v /= 255) <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)
@@ -57,7 +57,7 @@ export function oklchToHex(c: Oklch): string {
     -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s,
   ]
   const gamma = (v: number) => (v <= 0.0031308 ? 12.92 * v : 1.055 * v ** (1 / 2.4) - 0.055)
-  return `#${rgb.map((v) => Math.round(clamp(gamma(clamp(v))) * 255).toString(16).padStart(2, '0')).join('')}`
+  return `#${rgb.map((v) => Math.round(clamp01(gamma(clamp01(v))) * 255).toString(16).padStart(2, '0')).join('')}`
 }
 
 // ---------- A1: samples ----------
@@ -170,14 +170,14 @@ const hueGap = (x: number, y: number) => Math.min(Math.abs(x - y), 360 - Math.ab
 function readable(c: Oklch, bg: Oklch, min: number): Oklch {
   const step = bg.L > 0.5 ? -0.05 : 0.05
   let out = c
-  while (contrast(out, bg) < min && out.L > 0 && out.L < 1) out = { ...out, L: clamp(out.L + step) }
+  while (contrast(out, bg) < min && out.L > 0 && out.L < 1) out = { ...out, L: clamp01(out.L + step) }
   return out
 }
 
 export function assignRoles(colors: Swatch[], { dark, swap }: { dark: boolean; swap: boolean }): Record<keyof PhotoTheme, Oklch> {
   const vivid = colors.reduce((x, y) => (y.C > x.C ? y : x))
   const other = colors.find((c) => c !== vivid && hueGap(c.h, vivid.h) >= 40)
-  const [first, second] = [vivid, other ?? { ...vivid, L: clamp(vivid.L + (vivid.L > 0.6 ? -0.2 : 0.2)) }]
+  const [first, second] = [vivid, other ?? { ...vivid, L: clamp01(vivid.L + (vivid.L > 0.6 ? -0.2 : 0.2)) }]
   const [route, accent] = swap ? [second, first] : [first, second]
 
   const light = colors.reduce((x, y) => (y.L > x.L ? y : x))

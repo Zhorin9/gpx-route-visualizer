@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type { Units } from './core/units'
 
 export interface GpxPoint {
@@ -136,7 +137,7 @@ export interface TitleStyle {
   uppercase: boolean
 }
 
-export type WaypointKind = 'point' | 'pass' | 'peak'
+export type WaypointKind = 'point' | 'pass' | 'peak' | 'lodging'
 
 export interface Waypoint {
   id: number
@@ -153,6 +154,8 @@ export interface Waypoint {
   color: string
   // Under the name and its leader line. Unset: on.
   shadowEnabled?: boolean
+  // Unset: on.
+  leaderEnabled?: boolean
   // Shown at the label, the way the document's point style says.
   photoId?: number
   // How that photo is framed, as in a slot, but with offsets as fractions of the photo's box
@@ -258,6 +261,7 @@ export interface StatsStyle {
   fontSize: number
   spacing: number
   rotation: number
+  shadow: boolean
   // Hero arrangement: the figure shown large, and whether the others stay under it.
   heroKey: StatKey
   heroSecondary: boolean
@@ -482,6 +486,7 @@ export type ProjectMode = 'map' | 'collage'
 export interface SelectOption<T extends string = string> {
   value: T
   label: string
+  icon?: ReactNode
   group?: string
   disabled?: boolean
 }

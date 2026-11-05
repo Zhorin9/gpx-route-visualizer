@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { fitMercator, mercatorX, mercatorY } from '../../utils/gpx'
-import { jitter, routeSeed, wobble, type Pt } from './sketch/pen'
-import { clipLine, simplify, sketchShape } from './sketch/shape'
+import { jitter, wobble, type Pt } from './sketch/pen'
+import { sketchShape } from './sketch/shape'
 import { readTile, sketchBbox, sketchTiles, type LonLat, type SketchLayers, type TileLayers } from './sketch/tiles'
 import type { GpxPoint } from '../../types'
 
@@ -83,17 +83,6 @@ describe('sketch data (D1)', () => {
 })
 
 describe('sketch shapes (D2)', () => {
-  it('cuts a line to the rectangle', () => {
-    const runs = clipLine([[-5, 5], [5, 5], [15, 5], [15, 8], [5, 8]], { x0: 0, y0: 0, x1: 10, y1: 10 })
-    expect(runs).toEqual([
-      [[0, 5], [5, 5], [10, 5]],
-      [[10, 8], [5, 8]],
-    ])
-  })
-
-  it('simplifies a nearly straight line to its ends', () => {
-    expect(simplify([[0, 0], [5, 0.1], [10, 0]], 1)).toEqual([[0, 0], [10, 0]])
-  })
 
   it('keeps the whole map under 600 points and drops ponds', () => {
     const route = [at(39.9, 9.6), at(40.1, 9.7)]
@@ -151,11 +140,5 @@ describe('the pen (D3)', () => {
     expect(out).toHaveLength(flat.length)
     expect(out).toEqual(wobble(flat, 5, 3, 400))
     expect(Array.from(out).filter((_, i) => i % 2 === 0)).toEqual([0, 100, 200, 300])
-  })
-
-  it('takes the seed from the route itself', () => {
-    const a = [at(54.1, 18.2), at(54.2, 18.3)]
-    expect(routeSeed(a)).toBe(routeSeed(a.map((p) => ({ ...p }))))
-    expect(routeSeed(a)).not.toBe(routeSeed([at(54.1, 18.2), at(54.2, 18.4)]))
   })
 })

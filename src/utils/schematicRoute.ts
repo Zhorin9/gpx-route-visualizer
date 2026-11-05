@@ -1,5 +1,6 @@
 import { flatBounds } from './gpx'
 import type { Point2D } from './geometry'
+import { clamp } from './math'
 
 function flatToPoints(flat: ArrayLike<number>): Point2D[] {
   const pts: Point2D[] = []
@@ -117,7 +118,7 @@ export function schematicizeRoute(flatPoints: ArrayLike<number>, { simplify: amo
   const b = flatBounds(flatPoints)
   const diagonal = Math.hypot(b.maxX - b.minX, b.maxY - b.minY) || 1
 
-  const t = Math.min(100, Math.max(0, amount)) / 100
+  const t = clamp(amount, 0, 100) / 100
   const epsilon = diagonal * (0.01 + t * 0.09)
 
   const simplified = dedupeConsecutive(simplify(points, epsilon))

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_ANIMATION, tracksFor } from '../types'
 import { PACINGS, constantPacing, easedPacing, pacingFor, speedPacing, type PacingContext } from './pacing'
-import { clipProgress, entranceState, layerAt, photoAt, pointOpacity, totalDuration } from './timeline'
+import { clipProgress, entranceState, layerAt, photoAt, totalDuration } from './timeline'
 import type { GpxPoint } from '../../../types'
 
 // 101 points, 100 m apart; the first half ridden at 10 km/h, the second at 30 km/h, with a 1 h stop in between.
@@ -75,19 +75,5 @@ describe('pacing', () => {
     expect(speedPacing.unavailable?.(untimed.track)).toMatch(/czasu/)
     expect(speedPacing.headAt(0.5, untimed)).toBeCloseTo(50)
     expect(pacingFor('nope' as never).id).toBe('eased')
-  })
-})
-
-describe('places on the route', () => {
-  const range = { start: 0, end: 100 }
-
-  it('fade in once the line passes them', () => {
-    expect(pointOpacity(40, 50, range, 0.03)).toBe(0)
-    expect(pointOpacity(53, 50, range, 0.03)).toBe(1)
-  })
-
-  it('are whole when the line stops, even at its very end', () => {
-    expect(pointOpacity(100, 100, range, 0.03)).toBe(1)
-    expect(pointOpacity(96, 100, range, 0.03)).toBeLessThan(1)
   })
 })

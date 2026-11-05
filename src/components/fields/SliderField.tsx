@@ -1,4 +1,5 @@
 import { useId, useState } from 'react'
+import { clamp } from '../../utils/math'
 
 export interface SliderFieldProps {
   label: string
@@ -14,10 +15,6 @@ export interface SliderFieldProps {
   snapPoints?: number[]
   snapTolerance?: number
   disabled?: boolean
-}
-
-function clamp(v: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, v))
 }
 
 export default function SliderField({

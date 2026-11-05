@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import ColorField from '../../../components/fields/ColorField'
 import Button from '../../../components/ui/Button'
 import { mixStops, stopsCss, type GradientStop } from '../../../core/data/palettes'
+import { clamp, clamp01 } from '../../../utils/math'
 
 export interface GradientStopsEditorProps {
   stops: GradientStop[]
@@ -9,8 +10,6 @@ export interface GradientStopsEditorProps {
   // Under the bar: what the start, middle and end mean.
   scale: [string, string, string]
 }
-
-const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
 
 // A gradient bar with a handle per colour: drag a handle to move its colour, click the bar to add one.
 export default function GradientStopsEditor({ stops, onChange, scale }: GradientStopsEditorProps) {
@@ -20,7 +19,7 @@ export default function GradientStopsEditor({ stops, onChange, scale }: Gradient
 
   const placeAt = (clientX: number) => {
     const rect = barRef.current!.getBoundingClientRect()
-    return clamp((clientX - rect.left) / rect.width, 0, 1)
+    return clamp01((clientX - rect.left) / rect.width)
   }
 
   // A handle never passes its neighbours, so the order of the stops stays put.

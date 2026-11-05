@@ -1,5 +1,6 @@
 import { DEFAULT_STATS_LAYOUT } from '../defaults'
 import type { SliceContext, StatsSlice } from '../types'
+import { clamp } from '../../utils/math'
 
 export function createStatsSlice({ commit }: SliceContext): StatsSlice {
   return {
@@ -14,7 +15,7 @@ export function createStatsSlice({ commit }: SliceContext): StatsSlice {
     moveStat: (key, toIndex) =>
       commit(`statOrder:${key}`, (s) => {
         const order = s.statsContent.order.filter((k) => k !== key)
-        order.splice(Math.max(0, Math.min(order.length, toIndex)), 0, key)
+        order.splice(clamp(toIndex, 0, order.length), 0, key)
         return { statsContent: { ...s.statsContent, order } }
       }),
     setStatOverride: (key, value) =>

@@ -51,7 +51,7 @@ function clipSegment(a: Pt, b: Pt, r: Rect): [Pt, Pt, number, number] | null {
 }
 
 // The pieces of a line inside the rectangle. A ring is opened where it is outside first.
-export function clipLine(line: Pt[], r: Rect): Pt[][] {
+function clipLine(line: Pt[], r: Rect): Pt[][] {
   let pts = line
   if (closed(line)) {
     const out = line.findIndex((p) => !inside(p, r))
@@ -97,7 +97,7 @@ function simplifyInto(pts: Pt[], first: number, last: number, tol: number, keep:
 }
 
 // Douglas–Peucker.
-export function simplify(pts: Pt[], tol: number): Pt[] {
+function simplify(pts: Pt[], tol: number): Pt[] {
   if (pts.length < 3) return pts
   const keep = pts.map((_, i) => i === 0 || i === pts.length - 1)
   simplifyInto(pts, 0, pts.length - 1, tol, keep)

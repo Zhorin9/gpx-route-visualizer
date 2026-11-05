@@ -4,8 +4,8 @@ import useSlideScene from '../hooks/useSlideScene'
 import { useAppStore } from '../store/useAppStore'
 import { formatDistance } from '../core/units'
 import { drawWrapper, hasPostmark, slideBox } from '../utils/wrappers'
+import { clamp01 } from '../utils/math'
 
-const clamp01 = (v: number) => Math.min(1, Math.max(0, v))
 
 // The project's wrapper over every slide: its paper round the content, its fields and the postmark,
 // which can be dragged to another place. Drawn on the canvas, so the files get the same.

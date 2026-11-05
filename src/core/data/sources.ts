@@ -2,6 +2,7 @@ import { formatNumber } from '../../utils/format'
 import { heightIn, heightUnit, distanceIn, speedUnit, type Units } from '../units'
 import { windowMean, windowSlope } from './smoothing'
 import type { GpxTrack } from '../../types'
+import { clamp } from '../../utils/math'
 
 // A value along the route, one per track point: what the route can be coloured by and
 // what the elevation chart draws. Consumers get a plain array and never see how it was made.
@@ -68,7 +69,7 @@ export const gradeSource: DataSource = {
   compute: (track, cumKm) => {
     const slope = windowSlope(smoothedElevation(track, cumKm), cumKm, GRADE_WINDOW_KM)
     // metres per km → percent
-    return slope.map((v) => (Number.isFinite(v) ? Math.max(-MAX_GRADE, Math.min(MAX_GRADE, v / 10)) : 0))
+    return slope.map((v) => (Number.isFinite(v) ? clamp(v / 10, -MAX_GRADE, MAX_GRADE) : 0))
   },
 }
 

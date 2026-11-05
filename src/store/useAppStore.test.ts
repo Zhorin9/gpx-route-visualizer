@@ -495,6 +495,13 @@ describe('tab switching on selection', () => {
     expect(get().activeTab).toBe('route')
   })
 
+  it('keeps an element picked from Napisy in Napisy', () => {
+    registerCanvasElement({ kind: 'probe', label: 'Probe', meta: '', icon: null, order: 99, useIsAvailable: () => true, Node: () => null, Editor: () => null, tab: 'route', subTab: 'stats' })
+    get().setActiveTab('texts')
+    get().select({ kind: 'element', element: 'probe' })
+    expect(get().activeTab).toBe('texts')
+  })
+
   it('stays on the open tab when a photo is picked or dragged', () => {
     get().setActiveTab('route')
     get().select({ kind: 'slot', slide: 0, index: 0 })

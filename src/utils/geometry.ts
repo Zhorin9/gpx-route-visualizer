@@ -1,4 +1,5 @@
 import type { RouteTransform } from '../types'
+import { clamp, clamp01 } from './math'
 
 export interface Point2D {
   x: number
@@ -28,7 +29,7 @@ export function nearestPointOnPolyline(
     const dx = flat[i * 2 + 2] - x1
     const dy = flat[i * 2 + 3] - y1
     const lenSq = dx * dx + dy * dy
-    const t = lenSq === 0 ? 0 : Math.max(0, Math.min(1, ((x - x1) * dx + (y - y1) * dy) / lenSq))
+    const t = lenSq === 0 ? 0 : clamp01(((x - x1) * dx + (y - y1) * dy) / lenSq)
     const px = x1 + t * dx
     const py = y1 + t * dy
     const dist = (px - x) ** 2 + (py - y) ** 2
@@ -43,7 +44,7 @@ export function nearestPointOnPolyline(
 
 export function pointAt(flat: ArrayLike<number>, pos: number): Point2D {
   const count = flat.length / 2
-  const clamped = Math.max(0, Math.min(count - 1, pos))
+  const clamped = clamp(pos, 0, count - 1)
   const i = Math.min(Math.floor(clamped), count - 2)
   if (i < 0) return { x: flat[0] ?? 0, y: flat[1] ?? 0 }
   const t = clamped - i
