@@ -3,7 +3,8 @@ import { useDayBreaks, useHasPhotos, useHasRoute, useTrackCumKm } from '../../st
 import { useAppStore } from '../../store/useAppStore'
 import { headFor } from './model/pacing'
 import { tripSchedule } from './model/schedule'
-import { clamp01, clipProgress, layerAt, photoAt } from './model/timeline'
+import { clamp01 } from '../../utils/math'
+import { clipProgress, layerAt, photoAt } from './model/timeline'
 import { usePlayback } from './playback'
 import { selectRouteParts, selectTrack } from '../../store/derived'
 
@@ -61,7 +62,8 @@ export function useAnimatedPoint(trackPos: number): LayerState {
   if (head == null) return STATIC_LAYER
   if (!sync) return layer
   const fade = Math.max(1, (range.end - range.start) * POINT_FADE_SHARE)
-  const opacity = clamp01((head - trackPos) / fade)
+  // Places too near the end start earlier, so they are whole when the line stops.
+  const opacity = clamp01((head - Math.min(trackPos, range.end - fade)) / fade)
   return opacity >= 1 ? STATIC_LAYER : { opacity, offsetY: 0 }
 }
 

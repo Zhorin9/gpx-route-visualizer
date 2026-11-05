@@ -1,6 +1,7 @@
 import type { AnimationTrackId } from '../../core/animation/layers'
 import type { SliceContext } from '../../store/types'
 import { MAX_DURATION_S, type AnimationSettings, type TrackClip } from './types'
+import { clamp } from '../../utils/math'
 
 export interface AnimationSlice {
   updateAnimation: (patch: Partial<Omit<AnimationSettings, 'clips'>>) => void
@@ -10,8 +11,8 @@ export interface AnimationSlice {
 }
 
 const fit = (clip: TrackClip): TrackClip => {
-  const start = Math.max(0, Math.min(MAX_DURATION_S - 0.1, clip.start))
-  return { start, duration: Math.max(0, Math.min(MAX_DURATION_S - start, clip.duration)) }
+  const start = clamp(clip.start, 0, MAX_DURATION_S - 0.1)
+  return { start, duration: clamp(clip.duration, 0, MAX_DURATION_S - start) }
 }
 
 // The line's bar set to `seconds`; places that follow the line keep pace with it.

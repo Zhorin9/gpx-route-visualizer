@@ -4,6 +4,7 @@ import { useProjectedTrack } from '../../../store/selectors'
 import { useAppStore } from '../../../store/useAppStore'
 import { pointAt } from '../../../utils/geometry'
 import { useProfileMarkerPos } from '../useProfile'
+import { SOFT_SHADOW } from '../../../core/canvas/shadows'
 
 // The point on the route that matches the line on the elevation chart. While the animation
 // plays, its own glowing head marks the place instead.
@@ -16,5 +17,5 @@ export default function ProfileRouteMarker() {
   const animating = useRouteHead() != null
   if (!enabled || animating || pos == null || !projected) return null
   const p = pointAt(projected, pos)
-  return <Circle x={p.x} y={p.y} radius={9} fill={color} stroke={ring} strokeWidth={3.5} shadowColor="#000000" shadowBlur={8} shadowOpacity={0.5} listening={false} />
+  return <Circle x={p.x} y={p.y} radius={9} fill={color} stroke={ring} strokeWidth={3.5} {...SOFT_SHADOW} listening={false} />
 }

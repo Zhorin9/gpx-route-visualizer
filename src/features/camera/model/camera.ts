@@ -1,6 +1,7 @@
 import type { CameraView } from '../../../core/route/view'
 import type { Point2D } from '../../../utils/geometry'
 import { easeInOut } from '../../animation/model/timeline'
+import { clamp01 } from '../../../utils/math'
 
 export type CameraId = 'static' | 'follow' | 'flyover'
 
@@ -37,7 +38,6 @@ export interface CameraStrategy {
 }
 
 const SAMPLES = 12
-const clamp01 = (v: number) => Math.max(0, Math.min(1, v))
 
 // The head's position averaged over a stretch of time around now: no lag behind the line,
 // and GPS zigzags don't shake the frame.

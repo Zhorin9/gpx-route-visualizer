@@ -2,9 +2,21 @@ import { canvasElement } from '../../core/canvas/registry'
 import { INITIAL_DOCUMENT } from '../document'
 import { MODE_LABELS } from '../../utils/modeChange'
 import type { SliceContext, UiSlice } from '../types'
-import type { PanelTab } from '../../types'
+import type { PanelTab, Selection } from '../../types'
 
 let nextToastId = 1
+
+function settingsTabFor(selection: Selection, openTab: PanelTab): { tab: PanelTab; page?: string } {
+  const listedInTexts = selection.kind === 'waypoint' || selection.kind === 'element'
+  if (selection.kind === 'slot') return { tab: openTab }
+  if (listedInTexts && openTab === 'texts') return { tab: 'texts' }
+  if (selection.kind === 'waypoint') return { tab: 'route', page: 'line' }
+  if (selection.kind === 'element') {
+    const def = canvasElement(selection.element)
+    return { tab: def?.tab ?? 'texts', page: def?.subTab }
+  }
+  return { tab: 'texts' }
+}
 
 export function createUiSlice({ set, get, commit }: SliceContext): UiSlice {
   return {
@@ -51,24 +63,10 @@ export function createUiSlice({ set, get, commit }: SliceContext): UiSlice {
     setCenterView: (view) => set({ centerView: view }),
     setSubTab: (tab, page) => set((s) => ({ subTabs: { ...s.subTabs, [tab]: page }, centerView: 'map' })),
     setPreviewBackdrop: (value) => set({ previewBackdrop: value }),
-    // Picking something on the canvas brings up its settings: texts in Napisy, registered elements
-    // where they say (Trasa → Statystyki). A waypoint has settings in both Trasa (Linia) and Napisy, so
-    // it stays in whichever of the two is open. A photo is mostly grabbed to move it in its slot, so
-    // the open tab stays.
     select: (selection) =>
       set((s) => {
         if (!selection) return { selection: null }
-        let tab: PanelTab = 'texts'
-        let page: string | undefined
-        if (selection.kind === 'slot') tab = s.activeTab
-        else if (selection.kind === 'waypoint') {
-          tab = s.activeTab === 'texts' ? 'texts' : 'route'
-          if (tab === 'route') page = 'line'
-        } else if (selection.kind === 'element') {
-          const def = canvasElement(selection.element)
-          tab = def?.tab ?? 'texts'
-          page = def?.subTab
-        }
+        const { tab, page } = settingsTabFor(selection, s.activeTab)
         return {
           selection,
           addingWaypoint: false,

@@ -1,3 +1,4 @@
+import { clamp } from '../../utils/math'
 // GPS data is noisy point to point; everything coloured or charted is averaged over a
 // stretch of road (or time) first. Points are not evenly spaced, so windows are measured
 // in metres or seconds, never in point counts.
@@ -56,6 +57,6 @@ export function percentile(values: ArrayLike<number>, p: number, from = 0, to = 
   for (let i = from; i <= to; i++) if (Number.isFinite(values[i])) sorted.push(values[i])
   if (!sorted.length) return NaN
   sorted.sort((a, b) => a - b)
-  const idx = Math.min(sorted.length - 1, Math.max(0, Math.round((p / 100) * (sorted.length - 1))))
+  const idx = clamp(Math.round((p / 100) * (sorted.length - 1)), 0, sorted.length - 1)
   return sorted[idx]
 }

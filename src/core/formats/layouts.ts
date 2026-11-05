@@ -1,5 +1,6 @@
 import type { ElementPlacement, FormatLayout, TextNode } from '../../types'
 import type { FormatDef } from './registry'
+import { clamp } from '../../utils/math'
 
 export interface LayoutContext {
   // The format the reference layout is authored in, and the one being laid out.
@@ -33,7 +34,7 @@ export function insetBelow({ safeZone }: FormatDef): number {
 
 function clampToSafe(y: number, { h, safeZone }: FormatDef): number {
   if (!safeZone) return y
-  return Math.max(safeZone.top, Math.min(h - safeZone.bottom - TEXT_BOTTOM_ROOM, y))
+  return clamp(y, safeZone.top, h - safeZone.bottom - TEXT_BOTTOM_ROOM)
 }
 
 // Same width in every portrait format, so only vertical positions change.
@@ -77,7 +78,7 @@ export const columnLayout: LayoutStrategy = {
     const side = format.columns!.side
     const ratio = source.h / format.h
     return {
-      texts: mapTexts(layout.texts, (p) => ({ x: Math.max(0, Math.min(source.w - TEXT_GAP, p.x - side.x)), y: p.y * ratio })),
+      texts: mapTexts(layout.texts, (p) => ({ x: clamp(p.x - side.x, 0, source.w - TEXT_GAP), y: p.y * ratio })),
       elements: mapElements(layout.elements, () => ({ x: null, y: null })),
       route: IDENTITY,
     }

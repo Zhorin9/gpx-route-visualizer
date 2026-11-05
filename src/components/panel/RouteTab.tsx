@@ -6,18 +6,19 @@ import Section from '../ui/Section'
 import Segmented from '../ui/Segmented'
 import StatusCard from '../ui/StatusCard'
 import GpxErrorCard from '../GpxErrorCard'
-import { IconClose, IconEye, IconEyeOff, IconMapPin, IconMountain, IconPlus, IconUpload } from '../icons'
+import { IconClose, IconEye, IconEyeOff, IconPlus, IconUpload } from '../icons'
+import KindIcon from '../place/KindIcon'
 import SubTabs from '../../core/panel/SubTabs'
 import { panelSections } from '../../core/panel/registry'
 import RangeTab from './RangeTab'
 import StyleTab from './StyleTab'
-import WaypointEditor from './PlacesTab'
+import PlaceEditor from './PlaceEditor'
 import useGpxImport from '../../hooks/useGpxImport'
 import { useHasRoute, useTrackCumKm } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { formatKm } from '../../utils/format'
 import { selectTrack, selectRouteDays } from '../../store/derived'
-import type { KmInterval, RoutePart, SelectOption, WaypointKind } from '../../types'
+import type { KmInterval, RoutePart, SelectOption } from '../../types'
 import './RouteTab.css'
 
 // The trip planner's page, added by the travel feature.
@@ -34,10 +35,6 @@ const LINE_OPTIONS: SelectOption<'solid' | 'dashed'>[] = [
   { value: 'solid', label: 'Ciągła' },
   { value: 'dashed', label: 'Kreskowana' },
 ]
-
-function KindIcon({ kind }: { kind: WaypointKind }) {
-  return kind === 'point' ? <IconMapPin /> : <IconMountain />
-}
 
 // Before there is a route the tab is only this; a file that failed to load says why instead.
 function RouteEmpty() {
@@ -214,7 +211,7 @@ function RouteLinePage() {
       <RoutesSection />
       <MarkersSection />
       <PoiSection />
-      {selection?.kind === 'waypoint' && <WaypointEditor id={selection.id} />}
+      {selection?.kind === 'waypoint' && <PlaceEditor id={selection.id} />}
       <RangeTab />
       <StyleTab />
     </>

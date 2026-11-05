@@ -5,6 +5,7 @@ import { UI_ONLY } from '../../utils/exportImage'
 import { slideBox } from '../../utils/wrappers'
 import { CHROME_ACCENT } from './chrome'
 import { snapBox, type Box } from './snap'
+import { clamp } from '../../utils/math'
 
 // Name of a draggable node others line up with; a child named SNAP_BOX, if any, stands for its bounds.
 export const SNAP_TARGET = 'snap-target'
@@ -33,7 +34,7 @@ export function snapDragMove(e: Konva.KonvaEventObject<DragEvent>) {
   const state = useAppStore.getState()
   const { w, h } = FORMATS[state.aspectKey]
   const box = boxOf(node)
-  const slide = Math.min(state.slides.length - 1, Math.max(0, Math.floor((box.x + box.width / 2) / w)))
+  const slide = clamp(Math.floor((box.x + box.width / 2) / w), 0, state.slides.length - 1)
   // Under a wrapper the frame to line up with is the content's box, and the node moves at its scale.
   const frame = slideBox(state, slide, w, h) ?? { x: 0, y: 0, w, h }
   const scale = (node.getParent()?.getAbsoluteScale().x ?? stage.scaleX()) / stage.scaleX()

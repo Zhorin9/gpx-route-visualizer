@@ -56,6 +56,7 @@ export const DEFAULT_STATS_STYLE: StatsStyle = {
   fontSize: 38,
   spacing: 40,
   rotation: 0,
+  shadow: true,
   heroKey: 'distance',
   heroSecondary: true,
 }

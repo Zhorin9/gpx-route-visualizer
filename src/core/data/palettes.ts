@@ -1,3 +1,5 @@
+import { clamp, clamp01 } from '../../utils/math'
+
 // Colour scales for values along the route, tuned to the warm look of the templates.
 export interface Palette {
   id: PaletteId
@@ -27,7 +29,7 @@ function hexToRgb(hex: string): [number, number, number] {
 }
 
 function mix(stops: string[], t: number): string {
-  const scaled = Math.max(0, Math.min(1, t)) * (stops.length - 1)
+  const scaled = clamp01(t) * (stops.length - 1)
   const i = Math.min(stops.length - 2, Math.floor(scaled))
   const f = scaled - i
   const a = hexToRgb(stops[i])
@@ -53,7 +55,7 @@ export function binScale(bins: readonly string[], domain: [number, number]): (va
   return (value) => {
     if (!Number.isFinite(value)) return bins[0]
     const t = (value - min) / span
-    return bins[Math.max(0, Math.min(bins.length - 1, Math.floor(t * bins.length)))]
+    return bins[clamp(Math.floor(t * bins.length), 0, bins.length - 1)]
   }
 }
 

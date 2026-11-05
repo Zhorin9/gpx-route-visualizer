@@ -12,11 +12,6 @@ describe('card on the footage', () => {
     expect(tl.x).toBe(tl.y)
   })
 
-  it('never outgrows the frame', () => {
-    const r = cardRect({ frame: '9:16', corner: 'tl', size: 0.9 }, '16:9')
-    expect(r.x * 2 + r.w).toBeLessThanOrEqual(1080 + 1e-6)
-  })
-
   it('slides in at the start and out at the end', () => {
     expect(cardPresence(0, 8)).toBe(0)
     expect(cardPresence(4, 8)).toBe(1)

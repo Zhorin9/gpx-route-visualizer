@@ -1,12 +1,12 @@
 import SliderField from '../fields/SliderField'
-import SelectField from '../fields/SelectField'
+import FontField from '../fields/FontField'
+import RotationField from '../fields/RotationField'
 import ColorField from '../fields/ColorField'
 import CheckboxField from '../fields/CheckboxField'
 import TextField from '../fields/TextField'
 import Button from '../ui/Button'
 import Section from '../ui/Section'
 import { IconTrash } from '../icons'
-import { FONT_OPTIONS } from '../../utils/fonts'
 import { useAppStore } from '../../store/useAppStore'
 
 export default function TextEditor({ id }: { id: number }) {
@@ -20,12 +20,7 @@ export default function TextEditor({ id }: { id: number }) {
     <>
       <Section title="Treść">
         <TextField label="Tekst" multiline value={selected.text} onChange={(text) => updateText(selected.id, { text })} />
-        <SelectField
-          label="Czcionka"
-          value={selected.fontFamily}
-          onChange={(fontFamily) => updateText(selected.id, { fontFamily })}
-          options={FONT_OPTIONS}
-        />
+        <FontField value={selected.fontFamily} onChange={(fontFamily) => updateText(selected.id, { fontFamily })} />
         <div className="button-row">
           <Button pressed={selected.bold} aria-label="Pogrubienie" onClick={() => updateText(selected.id, { bold: !selected.bold })}>
             <strong>B</strong>
@@ -56,16 +51,7 @@ export default function TextEditor({ id }: { id: number }) {
           defaultValue={0}
           onChange={(letterSpacing) => updateText(selected.id, { letterSpacing })}
         />
-        <SliderField
-          label="Obrót"
-          unit="°"
-          min={-180}
-          max={180}
-          value={selected.rotation}
-          defaultValue={0}
-          snapPoints={[0, -90, 90]}
-          onChange={(rotation) => updateText(selected.id, { rotation })}
-        />
+        <RotationField value={selected.rotation} onChange={(rotation) => updateText(selected.id, { rotation })} />
         <SliderField
           label="Krycie"
           unit="%"

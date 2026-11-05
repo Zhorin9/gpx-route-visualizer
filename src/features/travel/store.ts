@@ -10,6 +10,7 @@ import { journeyOf, legName, legPlans, named, sameLeg, type Journey } from './mo
 import { buildLeg, lineOf, onGround, travelMode } from './model/modes'
 import { scheduleSeconds, tripSchedule } from '../animation/model/schedule'
 import { withDrawDuration } from '../animation/store'
+import { clamp } from '../../utils/math'
 
 export type TravelSelection = { kind: 'leg'; index: number } | { kind: 'stop'; id: number }
 
@@ -40,7 +41,7 @@ function morning(): number {
 
 // Distance from the part's start to a fractional index of its points.
 function kmAt(cum: Float64Array, pos: number): number {
-  const i = Math.max(0, Math.min(cum.length - 1, Math.floor(pos)))
+  const i = clamp(Math.floor(pos), 0, cum.length - 1)
   const next = Math.min(cum.length - 1, i + 1)
   return cum[i] + (cum[next] - cum[i]) * (pos - i)
 }

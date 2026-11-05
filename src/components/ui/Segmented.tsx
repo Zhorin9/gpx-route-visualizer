@@ -25,6 +25,7 @@ export default function Segmented<T extends string>({ label, value, options, onC
             onClick={() => onChange(opt.value)}
             disabled={disabled || opt.disabled}
           >
+            {opt.icon}
             {opt.label}
           </button>
         ))}

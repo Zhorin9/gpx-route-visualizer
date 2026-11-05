@@ -7,13 +7,11 @@ import { useAppStore } from '../store/useAppStore'
 import { FORMATS } from '../core/formats/registry'
 import { UI_ONLY } from '../utils/exportImage'
 import { usePhotoAnimation } from '../core/animation/layers'
-import { blurredBackdrop, containLayout, coverLayout } from '../utils/image'
+import { blurredBackdrop, containLayout, coverLayout, coveringPosition, wheelSteps, zoomedBy } from '../utils/image'
 import { computeSlots, frameInsets, layoutDef, ribbonSlot, slotCount, type SlotRect } from '../utils/layouts'
 import SlideBox from './SlideBox'
 import type { CollageStyle, Photo, SlotAssignment } from '../types'
-
-const ZOOM_STEP = 0.1
-const MAX_ZOOM = 4
+import { clamp } from '../utils/math'
 
 interface Box {
   x: number
@@ -55,12 +53,6 @@ function PhotoImage({ photo, assignment, inner, fit, slide, index }: { photo: Ph
   const layout = coverLayout(img.width, img.height, inner.w, inner.h, assignment.zoom, assignment.offsetX, assignment.offsetY)
   if (crop === 'fill') return <KonvaImage image={img} x={inner.x + layout.x} y={inner.y + layout.y} width={layout.width} height={layout.height} />
 
-  // Keeps the photo covering the whole slot while it's dragged.
-  function clamp(node: Konva.Node) {
-    node.x(Math.max(inner.x + inner.w - layout.width, Math.min(inner.x, node.x())))
-    node.y(Math.max(inner.y + inner.h - layout.height, Math.min(inner.y, node.y())))
-  }
-
   return (
     <KonvaImage
       image={img}
@@ -69,7 +61,7 @@ function PhotoImage({ photo, assignment, inner, fit, slide, index }: { photo: Ph
       width={layout.width}
       height={layout.height}
       draggable
-      onDragMove={(e) => clamp(e.target)}
+      onDragMove={(e) => e.target.position(coveringPosition(e.target.position(), inner, layout))}
       onDragEnd={(e) =>
         updateSlot(slide, index, {
           offsetX: e.target.x() - inner.x - (inner.w - layout.width) / 2,
@@ -78,8 +70,7 @@ function PhotoImage({ photo, assignment, inner, fit, slide, index }: { photo: Ph
       }
       onWheel={(e) => {
         e.evt.preventDefault()
-        const zoom = Math.max(1, Math.min(MAX_ZOOM, assignment.zoom + (e.evt.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP)))
-        updateSlot(slide, index, { zoom })
+        updateSlot(slide, index, { zoom: zoomedBy(assignment.zoom, wheelSteps(e.evt.deltaY)) })
       }}
       onMouseEnter={(e) => e.target.getStage()?.container().classList.add('can-pan')}
       onMouseLeave={(e) => e.target.getStage()?.container().classList.remove('can-pan')}
@@ -91,7 +82,7 @@ function PhotoImage({ photo, assignment, inner, fit, slide, index }: { photo: Ph
 function EmptySlot({ inner, label, onPick }: { inner: Box; label: string; onPick: () => void }) {
   const [hover, setHover] = useState(false)
   const short = Math.min(inner.w, inner.h)
-  const radius = Math.max(22, Math.min(56, short * 0.14))
+  const radius = clamp(short * 0.14, 22, 56)
   const cx = inner.x + inner.w / 2
   const cy = inner.y + inner.h / 2 - radius * 0.5
   const arm = radius * 0.5
@@ -145,7 +136,7 @@ function EmptySlot({ inner, label, onPick }: { inner: Box; label: string; onPick
         align="center"
         fontFamily="Lora"
         fontStyle="600"
-        fontSize={Math.max(18, Math.min(34, inner.w / 9))}
+        fontSize={clamp(inner.w / 9, 18, 34)}
         fill="#7a5920"
         listening={false}
       />

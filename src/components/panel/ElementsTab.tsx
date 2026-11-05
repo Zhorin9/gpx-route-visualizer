@@ -1,15 +1,14 @@
 import { useState } from 'react'
-import SelectField from '../fields/SelectField'
 import TextField from '../fields/TextField'
 import Button from '../ui/Button'
 import Section from '../ui/Section'
 import { IconMapPin, IconPlus, IconType } from '../icons'
-import TextEditor from './TextsTab'
-import WaypointEditor from './PlacesTab'
+import TextEditor from './TextEditor'
+import PlaceEditor from './PlaceEditor'
 import { canvasElement, canvasElements, type CanvasElementDefinition } from '../../core/canvas/registry'
 import { useHasRoute } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
-import { FONT_OPTIONS } from '../../utils/fonts'
+import FontField from '../fields/FontField'
 import { FIELD_LABELS, wrapperFieldsOf } from '../../utils/wrappers'
 
 function ElementRow({
@@ -74,7 +73,7 @@ function GlobalFontPicker() {
   const [family, setFamily] = useState(statsFont)
   return (
     <Section title="Jedna czcionka dla wszystkiego">
-      <SelectField label="Czcionka" value={family} onChange={setFamily} options={FONT_OPTIONS} />
+      <FontField value={family} onChange={setFamily} />
       <Button onClick={() => applyGlobalFont(family)}>Zastosuj wszędzie</Button>
     </Section>
   )
@@ -137,7 +136,7 @@ export default function ElementsTab() {
 
       {selection?.kind === 'element' && <SelectedElementEditor kind={selection.element} />}
       {selection?.kind === 'text' && <TextEditor id={selection.id} />}
-      {selection?.kind === 'waypoint' && <WaypointEditor id={selection.id} />}
+      {selection?.kind === 'waypoint' && <PlaceEditor id={selection.id} />}
 
       <WrapperFields />
       <GlobalFontPicker />

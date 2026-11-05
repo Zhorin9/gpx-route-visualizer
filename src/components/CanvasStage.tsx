@@ -21,6 +21,7 @@ import SlideBox from './SlideBox'
 import SlotToolbar from './SlotToolbar'
 import WrapperLayer from './WrapperLayer'
 import type { SlotRect } from '../utils/layouts'
+import { clamp } from '../utils/math'
 
 export default function CanvasStage({ previewScale }: { previewScale: number }) {
   const aspectKey = useAppStore((s) => s.aspectKey)
@@ -69,7 +70,7 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
     const rect = e.currentTarget.getBoundingClientRect()
     const x = (e.clientX - rect.left) / previewScale
     const y = (e.clientY - rect.top) / previewScale
-    const slide = panorama ? 0 : Math.min(slideCount - 1, Math.max(0, Math.floor(x / w)))
+    const slide = panorama ? 0 : clamp(Math.floor(x / w), 0, slideCount - 1)
     const box = boxes[slide]
     const at = box ? fromBox(box, w, h, x - slide * w, y) : { x: panorama ? x : x - slide * w, y }
     const slot = slotAt(slotsBySlide[slide], at.x, at.y)

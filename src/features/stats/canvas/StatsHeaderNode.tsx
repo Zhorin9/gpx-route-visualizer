@@ -9,10 +9,10 @@ import { fittedTitleSize } from '../../../utils/title'
 import type { ArrangeInput } from '../model/arrangements'
 import { arrangementFor } from '../model/registry'
 import { useStatsChips } from '../useStatsChips'
+import { TEXT_SHADOW } from '../../../core/canvas/shadows'
 
 export const STATS_KIND = 'stats'
 
-const SHADOW = { shadowColor: '#000000', shadowBlur: 10, shadowOpacity: 0.6 }
 
 // In a side column the figures shrink until none is cut short by its cell.
 function arrangeInColumn(input: ArrangeInput) {
@@ -69,7 +69,7 @@ export default function StatsHeaderNode() {
             listening={Boolean(base)}
             draggable={Boolean(base)}
             onDragEnd={base ? (e) => setChipOffset(t.chipKey, { dx: e.target.x() - base.x, dy: e.target.y() - base.y }) : undefined}
-            {...(t.shadow ? SHADOW : null)}
+            {...(style.shadow && t.shadow ? TEXT_SHADOW : null)}
           />
         )
       })}

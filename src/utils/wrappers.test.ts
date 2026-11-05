@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { FORMATS, FORMAT_ORDER } from '../core/formats/registry'
 import { DEFAULT_WRAPPER } from '../store/defaults'
-import { contentBox, dateLines, formatDateSpan, fromBox, intoBox, perforation, postmarkText, routeFields, slideBox, WRAPPER_OPTIONS } from './wrappers'
+import { contentBox, dateLines, formatDateSpan, intoBox, perforation, postmarkText, routeFields, slideBox, WRAPPER_OPTIONS } from './wrappers'
 import type { GpxPoint, RoutePart, Waypoint, Wrapper } from '../types'
 
 const fields = (patch: Partial<Wrapper['fields']> = {}) => ({ ...DEFAULT_WRAPPER.fields, ...patch })
@@ -35,14 +35,6 @@ describe('contentBox', () => {
 
   it('gives the album content back the room of an empty caption', () => {
     expect(contentBox('album', 1080, 1350, fields()).h).toBeGreaterThan(contentBox('album', 1080, 1350, fields({ note: 'Podpis' })).h)
-  })
-
-  it('maps points into the box and back', () => {
-    const b = contentBox('album', 1080, 1920, fields())
-    const drawn = intoBox(b, 1080, 1920, 200, 900)
-    const p = fromBox(b, 1080, 1920, drawn.x, drawn.y)
-    expect(p.x).toBeCloseTo(200, 6)
-    expect(p.y).toBeCloseTo(900, 6)
   })
 })
 

@@ -1,3 +1,4 @@
+import { clamp01 } from '../../../utils/math'
 import { STATIC_LAYER, type AnimationTrackId, type LayerState } from '../../../core/animation/layers'
 import { tracksFor, type AnimationSettings, type Entrance, type TrackClip } from '../types'
 import type { ProjectMode } from '../../../types'
@@ -6,10 +7,6 @@ export const easeInOut = (p: number) => (p < 0.5 ? 2 * p * p : 1 - (-2 * p + 2) 
 const easeOut = (p: number) => 1 - (1 - p) ** 3
 
 const SLIDE_PX = 40
-export function clamp01(v: number) {
-  return Math.max(0, Math.min(1, v))
-}
-
 // Whole length of the animation: the last of the mode's bars to end, plus the still frames.
 export function totalDuration(settings: Pick<AnimationSettings, 'clips' | 'endHold'>, tracks: AnimationTrackId[] = tracksFor(null)): number {
   return Math.max(...tracks.map((track) => settings.clips[track]).map((c) => c.start + c.duration)) + settings.endHold

@@ -10,7 +10,8 @@ import StatConfigItem from './StatConfigItem'
 import { DEFAULT_STATS_STYLE } from '../../../store/defaults'
 import { useRangeStats } from '../../../store/selectors'
 import { useAppStore } from '../../../store/useAppStore'
-import { FONT_OPTIONS } from '../../../utils/fonts'
+import FontField from '../../../components/fields/FontField'
+import RotationField from '../../../components/fields/RotationField'
 import { formatNumber } from '../../../utils/format'
 import { distanceUnit, heightUnit } from '../../../core/units'
 import { STAT_DEFINITIONS, statDefinition, type StatDefinition } from '../model/definitions'
@@ -202,8 +203,9 @@ export default function StatsEditor() {
             <CheckboxField label="Rozciągnij na całą szerokość" checked={style.stretch} onChange={(stretch) => updateStatsStyle({ stretch })} />
           </>
         )}
-        <SelectField label="Czcionka" value={style.fontFamily} onChange={(v) => updateStatsStyle({ fontFamily: v })} options={FONT_OPTIONS} />
+        <FontField value={style.fontFamily} onChange={(fontFamily) => updateStatsStyle({ fontFamily })} />
         <ColorField label="Kolor" value={style.color} onChange={(v) => updateStatsStyle({ color: v })} />
+        <CheckboxField label="Cień" checked={style.shadow} onChange={(shadow) => updateStatsStyle({ shadow })} />
         <SliderField
           label="Wielkość"
           unit="px"
@@ -224,16 +226,7 @@ export default function StatsEditor() {
             onChange={(v) => updateStatsStyle({ spacing: v })}
           />
         )}
-        <SliderField
-          label="Obrót"
-          unit="°"
-          min={-180}
-          max={180}
-          value={style.rotation}
-          defaultValue={0}
-          snapPoints={[0, -90, 90]}
-          onChange={(v) => updateStatsStyle({ rotation: v })}
-        />
+        <RotationField value={style.rotation} onChange={(rotation) => updateStatsStyle({ rotation })} />
       </Section>
     </>
   )

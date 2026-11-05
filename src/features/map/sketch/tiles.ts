@@ -2,6 +2,7 @@ import { VectorTile } from '@mapbox/vector-tile'
 import { PbfReader } from 'pbf'
 import { mercatorX, mercatorY } from '../../../utils/gpx'
 import type { GpxPoint } from '../../../types'
+import { clamp } from '../../../utils/math'
 
 // What the sketch is drawn from, fetched once per route from the same vector tiles as the
 // ordinary map (OpenFreeMap): plain features in longitude/latitude.
@@ -69,7 +70,7 @@ export function sketchTiles([s, w, n, e]: SketchLayers['bbox']): { z: number; x:
   const x1 = mercatorX(e)
   const y0 = mercatorY(n)
   const y1 = mercatorY(s)
-  const z = Math.max(3, Math.min(13, Math.floor(Math.log2(1 / Math.max(x1 - x0, y1 - y0))) + 1))
+  const z = clamp(Math.floor(Math.log2(1 / Math.max(x1 - x0, y1 - y0))) + 1, 3, 13)
   const n2 = 2 ** z
   const tiles = []
   for (let x = Math.floor(x0 * n2); x <= Math.floor(x1 * n2); x++) for (let y = Math.floor(y0 * n2); y <= Math.floor(y1 * n2); y++) tiles.push({ z, x, y })

@@ -8,6 +8,7 @@ import { useAppStore } from '../../store/useAppStore'
 import { memoOne } from '../../utils/memo'
 import type { GpxTrack, RouteRange } from '../../types'
 import type { DataColorSettings } from './types'
+import { clamp } from '../../utils/math'
 
 export interface ActiveDataColor {
   sourceId: DataSourceId
@@ -52,7 +53,7 @@ const toColoring = memoOne((active: ActiveDataColor | null, routeColor: string):
   const last = series.length - 1
   return {
     kind: 'perPoint',
-    at: (pos) => scale(series[Math.max(0, Math.min(last, Math.round(pos)))]),
+    at: (pos) => scale(series[clamp(Math.round(pos), 0, last)]),
     glow: settings.glow === 'uniform' ? { kind: 'uniform', color: routeColor } : { kind: 'follow' },
   }
 })

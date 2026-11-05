@@ -1061,6 +1061,10 @@
 
 .segment {
   flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
   padding: 7px var(--space-2);
   font-size: var(--text-md);
   background: none;

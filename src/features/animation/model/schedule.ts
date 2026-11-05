@@ -1,6 +1,7 @@
 import { posAtDistance } from '../../../utils/geometry'
 import { memoOne } from '../../../utils/memo'
 import type { RoutePart } from '../../../types'
+import { clamp01 } from '../../../utils/math'
 
 // Seconds a leg takes when it has no time of its own (a GPX day among planned legs).
 export const DEFAULT_LEG_S = 4
@@ -34,7 +35,7 @@ export const scheduleSeconds = (steps: ScheduleStep[]) => steps.reduce((sum, s) 
 // moves by distance, through `shape` (easing per leg, so a flight speeds up and lands).
 export function scheduleHead(steps: ScheduleStep[], progress: number, cumKm: Float64Array, shape: (f: number) => number): number {
   const total = scheduleSeconds(steps)
-  let t = Math.max(0, Math.min(1, progress)) * total
+  let t = clamp01(progress) * total
   for (const step of steps) {
     if (t <= step.seconds || step === steps[steps.length - 1]) {
       if (step.from === step.to) return step.to

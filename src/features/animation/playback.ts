@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { useAppStore } from '../../store/useAppStore'
 import { selectDuration } from './model/timeline'
+import { clamp } from '../../utils/math'
 
 // The animation's clock. Not part of the document: playing never adds an undo step
 // and nothing of it is saved.
@@ -63,6 +64,6 @@ export const usePlayback = create<PlaybackState>()((set, get) => ({
     set({ playing: false, previewing: false, t: 0 })
   },
   seek: (t) => {
-    set({ t: Math.max(0, Math.min(duration(), t)), previewing: true })
+    set({ t: clamp(t, 0, duration()), previewing: true })
   },
 }))

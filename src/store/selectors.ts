@@ -8,6 +8,7 @@ import { dayBreaks, projectTrack, trackFit, rangeStats, selectRouteDays, selectR
 import { useShallow } from 'zustand/react/shallow'
 import { useAppStore } from './useAppStore'
 import type { AspectKey, CarouselKind, Slide } from '../types'
+import { clamp } from '../utils/math'
 
 // The projection's padding lets the route come this close to what sits under it.
 const ROUTE_PAD_OVERLAP = 50
@@ -107,7 +108,7 @@ export function useHasRoute() {
 
 // The slide a node on the ribbon belongs to, by its x.
 export function useSlideAt(x: number): number {
-  return useAppStore((s) => Math.min(s.slides.length - 1, Math.max(0, Math.floor(x / FORMATS[s.aspectKey].w))))
+  return useAppStore((s) => clamp(Math.floor(x / FORMATS[s.aspectKey].w), 0, s.slides.length - 1))
 }
 
 // The box a slide's content is drawn in under the project's wrapper; null when it fills the slide.
