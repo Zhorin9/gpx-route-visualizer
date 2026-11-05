@@ -245,12 +245,7 @@ export default function MediaTab() {
         <>
           <Section title="Wyjście">
             {format.carousel ? (
-              <Segmented label="Wyjście" value={slides.length > 1 ? 'carousel' : 'single'} options={OUTPUT_OPTIONS} onChange={(out) => {
-                  // A collage turned into a carousel keeps its layout on the first slide.
-                  if (out === 'carousel') setCarouselKind('slides')
-                  setCarousel(out === 'carousel')
-                }}
-              />
+              <Segmented label="Wyjście" value={slides.length > 1 ? 'carousel' : 'single'} options={OUTPUT_OPTIONS} onChange={(out) => setCarousel(out === 'carousel')} />
             ) : (
               <p className="hint">Ten format ma jeden kadr. Karuzelę zrobisz w formacie Instagrama.</p>
             )}
