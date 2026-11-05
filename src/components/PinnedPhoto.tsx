@@ -2,9 +2,9 @@ import { Circle, Group, Image as KonvaImage, Rect } from 'react-konva'
 import type Konva from 'konva'
 import { DEFAULT_SLOT_CROP } from '../store/defaults'
 import { coverLayout } from '../utils/image'
-import type { Photo, PhotoMarker, PointStyle, Waypoint } from '../types'
+import { MARKER_WIDTHS, markerSize } from './photoMarker'
+import type { Photo, PointStyle, Waypoint } from '../types'
 
-const WIDTHS: Record<PointStyle['size'], number> = { S: 120, M: 180, L: 260 }
 const PRINT = '#fbf8f1'
 const FILM = '#0a0a09'
 const SHADOW = { shadowColor: '#000000', shadowBlur: 10, shadowOpacity: 0.35, shadowOffsetY: 3 }
@@ -12,14 +12,6 @@ const ZOOM_STEP = 0.1
 const MAX_ZOOM = 4
 
 type Crop = NonNullable<Waypoint['photoCrop']>
-
-// Outer size of each marker for a photo `w` wide.
-function markerSize(marker: PhotoMarker, w: number) {
-  if (marker === 'circle') return { w: w * 0.75, h: w * 0.75 }
-  if (marker === 'polaroid') return { w, h: w * 0.05 + (w * 0.9 * 3) / 4 + w * 0.15 }
-  if (marker === 'film') return { w, h: w * 0.7 }
-  return { w, h: w * 0.78 }
-}
 
 interface PictureProps {
   photo: Photo
@@ -86,7 +78,7 @@ export interface PinnedPhotoProps {
 export default function PinnedPhoto({ photo, style, color, gap, crop = DEFAULT_SLOT_CROP, onCrop }: PinnedPhotoProps) {
   const { marker } = style
   if (marker === 'label') return null
-  const size = markerSize(marker, WIDTHS[style.size])
+  const size = markerSize(marker, MARKER_WIDTHS[style.size])
   const { w, h } = size
   const y = -h - gap
   const picture = { photo, crop, onCrop }
