@@ -66,6 +66,9 @@ function withSlide(slides: Slide[], index: number, update: (slide: Slide) => Sli
   return slides.map((slide, i) => (i === index ? update(slide) : slide))
 }
 
+const panoramaRecentred = (slides: Slide[]) =>
+  withSlide(slides, 0, (sl) => (sl.slots[0] ? { ...sl, slots: { ...sl.slots, 0: { ...sl.slots[0], ...DEFAULT_SLOT_CROP } } } : sl))
+
 export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice {
   return {
     photos: [],
@@ -188,9 +191,11 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
       if (on === count > 1) return
       commit('carousel', (s) => ({
         slides: on
-          ? [...s.slides, ...Array.from({ length: CAROUSEL_SLIDES - s.slides.length }, (): Slide => ({ layoutKey: 'g1', slots: {} }))]
+          ? panoramaRecentred([...s.slides, ...Array.from({ length: CAROUSEL_SLIDES - s.slides.length }, (): Slide => ({ layoutKey: 'g1', slots: {} }))])
           : s.slides.slice(0, 1),
+        carouselKind: on ? 'panorama' : s.carouselKind,
         activeSlide: 0,
+        selection: s.selection?.kind === 'slot' ? null : s.selection,
         texts: on ? s.texts : keepInside(s.texts, FORMATS[s.aspectKey].w),
       }))
     },
@@ -200,10 +205,11 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
       const next = clamp(count, MIN_CAROUSEL_SLIDES, MAX_SLIDES)
       if (get().slides.length === next) return
       commit('carousel:count', (s) => ({
-        slides: (next > s.slides.length
-          ? [...s.slides, ...Array.from({ length: next - s.slides.length }, (): Slide => ({ layoutKey: 'g1', slots: {} }))]
-          : s.slides.slice(0, next)
-        ).map((sl, i) => (i === 0 && sl.slots[0] ? { ...sl, slots: { ...sl.slots, 0: { ...sl.slots[0], ...DEFAULT_SLOT_CROP } } } : sl)),
+        slides: panoramaRecentred(
+          next > s.slides.length
+            ? [...s.slides, ...Array.from({ length: next - s.slides.length }, (): Slide => ({ layoutKey: 'g1', slots: {} }))]
+            : s.slides.slice(0, next),
+        ),
         activeSlide: Math.min(s.activeSlide, next - 1),
         selection: s.selection?.kind === 'slot' && s.selection.slide >= next ? null : s.selection,
         texts: keepInside(s.texts, FORMATS[s.aspectKey].w * next),
@@ -216,7 +222,7 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
         carouselKind: kind,
         activeSlide: 0,
         selection: s.selection?.kind === 'slot' ? null : s.selection,
-        slides: withSlide(s.slides, 0, (sl) => (sl.slots[0] ? { ...sl, slots: { ...sl.slots, 0: { ...sl.slots[0], ...DEFAULT_SLOT_CROP } } } : sl)),
+        slides: panoramaRecentred(s.slides),
       }))
     },
 

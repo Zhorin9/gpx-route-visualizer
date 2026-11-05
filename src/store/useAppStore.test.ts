@@ -143,6 +143,14 @@ describe('carousel', () => {
     expect(get().slides).toHaveLength(1)
   })
 
+  it('starts every carousel as one photo split, even after separate layouts', () => {
+    get().setCarousel(true)
+    get().setCarouselKind('slides')
+    get().setCarousel(false)
+    get().setCarousel(true)
+    expect(get().carouselKind).toBe('panorama')
+  })
+
   it('splits one photo over a chosen number of slides', () => {
     useAppStore.setState({ photos: [fakePhoto(1), fakePhoto(2)] })
     get().setCarousel(true)
