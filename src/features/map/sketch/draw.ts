@@ -28,9 +28,10 @@ export interface SketchFrame {
   ends: [Pt, Pt] | null
   // The view: the route's transform composed with the camera.
   transform: RouteTransform
-  // The ribbon, and a slide's shorter side, in frame pixels.
+  // The ribbon, a slide's width and its shorter side, in frame pixels.
   width: number
   height: number
+  slideWidth: number
   short: number
   palette: SketchPalette
   settings: SketchSettings
@@ -219,7 +220,7 @@ export function drawSketch(ctx: CanvasRenderingContext2D, f: SketchFrame, scale:
   toView(ctx, t, scale)
   strokes(ink.strokes)
 
-  // Names upright on the page, beside their dot, turned back in when they would leave the frame.
+  // Names upright on the page, beside their dot, turned back in and kept inside their slide.
   ctx.setTransform(scale, 0, 0, scale, 0, 0)
   const size = short * 0.036
   ctx.textBaseline = 'alphabetic'
@@ -238,9 +239,14 @@ export function drawSketch(ctx: CanvasRenderingContext2D, f: SketchFrame, scale:
     }
     ctx.font = `600 ${size}px Caveat, cursive`
     ctx.fillStyle = palette.ink
-    const right = x + size * 0.4 + ctx.measureText(label.name).width < width - size * 0.5
-    ctx.textAlign = right ? 'left' : 'right'
-    ctx.fillText(label.name, x + (right ? 1 : -1) * size * 0.4, y - size * 0.25)
+    // A town just past the frame is still named, inside the nearest slide.
+    const slide = Math.min(Math.max(Math.floor(x / f.slideWidth), 0), Math.round(width / f.slideWidth) - 1)
+    const left = slide * f.slideWidth + size * 0.5
+    const end = left - size + f.slideWidth
+    const w = ctx.measureText(label.name).width
+    const tx = x + size * 0.4 + w < end ? x + size * 0.4 : Math.max(left, x - size * 0.4 - w)
+    ctx.textAlign = 'left'
+    ctx.fillText(label.name, Math.min(tx, end - w), Math.min(Math.max(y - size * 0.25, size * 1.2), height - size * 0.5))
   }
 
   // Grain over everything, at the canvas's own pixels; without paper only over the ink.
