@@ -129,7 +129,8 @@ function pickPlaces(places: { name: string; at: Pt; kind: SketchPlace['kind']; r
     .filter((p) => p.kind !== 'water')
     .map((p) => ({ ...p, d: distanceTo(route, [p.at]) }))
     .sort((a, b) => KIND_RANK[a.kind] - KIND_RANK[b.kind] || a.rank - b.rank)
-  const nearestTo = (end: Pt) => towns.filter((t) => gap(t.at, end) < short * 0.06).sort((a, b) => gap(a.at, end) - gap(b.at, end))[0]
+  // A town's point is its centre, which can lie well off a route ending in its streets.
+  const nearestTo = (end: Pt) => towns.filter((t) => gap(t.at, end) < short * 0.15).sort((a, b) => gap(a.at, end) - gap(b.at, end))[0]
   const chosen: typeof towns = []
   const offer = (t: (typeof towns)[number] | undefined) => {
     if (t && chosen.length < MAX_PLACES && !chosen.some((c) => c === t || gap(c.at, t.at) < short * 0.08)) chosen.push(t)
@@ -160,7 +161,8 @@ export function sketchShape(layers: SketchLayers, fit: MercatorFit, route: Pt[],
     .filter((wa) => area(wa.ring) >= slideW * slideH * 0.003 && wa.ring.some((p) => inside(p, reach)))
   const rivers = cut(lines(layers.rivers)).filter((l) => length(l) >= short * 0.08)
   const roadLines = cut(lines(layers.roads))
-  const sample = route.filter((_, i) => i % Math.max(1, Math.floor(route.length / 300)) === 0)
+  // The last point is kept: the town at the very end is named after it.
+  const sample = route.filter((_, i) => i % Math.max(1, Math.floor(route.length / 300)) === 0 || i === route.length - 1)
   const roads = roadLines
     .map((l) => ({ l, d: distanceTo(sample, l.filter((_, i) => i % 4 === 0)) }))
     .sort((a, b) => a.d - b.d)

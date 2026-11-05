@@ -120,6 +120,15 @@ describe('sketch shapes (D2)', () => {
     const flat = route.map((p): Pt => [(mercatorX(p.lon) - fit.x0) * fit.scale, (mercatorY(p.lat) - fit.y0) * fit.scale])
     expect(sketchShape(layers, fit, flat, 1080, 1350).places.map((p) => p.name)).toEqual(['Start', 'Meta', 'Miasto', 'Wieś'])
   })
+
+  it('names the town a route ends in, even when its centre is off the last point', () => {
+    const route = Array.from({ length: 1001 }, (_, i) => at(40 + i * 0.0002, 9))
+    const fit = fitMercator(route, 1080, 1350)
+    const town = (name: string, lat: number, lon: number, kind: 'city' | 'town' | 'village') => ({ name, at: [lon, lat] as LonLat, kind, rank: 99 })
+    const layers: SketchLayers = { ...empty(sketchBbox(route)), places: [town('Meta', 40.2, 9.02, 'village'), town('Start', 40, 9, 'village'), ...Array.from({ length: 8 }, (_, i) => town(`Miasto ${i}`, 40.02 + i * 0.02, 9, 'city'))] }
+    const flat = route.map((p): Pt => [(mercatorX(p.lon) - fit.x0) * fit.scale, (mercatorY(p.lat) - fit.y0) * fit.scale])
+    expect(sketchShape(layers, fit, flat, 1080, 1350).places.map((p) => p.name)).toContain('Meta')
+  })
 })
 
 describe('the pen (D3)', () => {

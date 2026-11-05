@@ -32,6 +32,7 @@ export function sketchFrame(s: Pick<AppState, 'routeSource' | 'trackCache' | 'as
     transform,
     width: w * s.slides.length,
     height: h,
+    slideWidth: w,
     short: Math.min(w, h),
     palette: sketchPalette(s.map),
     settings: s.map.sketch,
