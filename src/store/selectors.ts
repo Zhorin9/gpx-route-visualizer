@@ -34,7 +34,8 @@ export function useProjectedTrack() {
   // On the sketch map the route trembles like its pen: 0.32% of the shorter side at roughness 1.
   const tremble = useAppStore((s) => {
     const { w, h } = FORMATS[s.aspectKey]
-    return s.collage.bgKind === 'map' && s.map.kind === 'sketch' ? Math.min(w, h) * 0.0032 * s.map.sketch.roughness : 0
+    const roughness = s.collage.bgKind === 'map' && s.map.kind === 'sketch' ? s.map.sketch.roughness : (s.routeStyle.pen ?? 0)
+    return Math.min(w, h) * 0.0032 * roughness
   })
   return projectTrack(track, boxW, boxH, tremble)
 }

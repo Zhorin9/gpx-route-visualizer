@@ -378,6 +378,17 @@ describe('style templates', () => {
     expect(get().texts.every((t) => !t.typing && !t.warp)).toBe(true)
   })
 
+  it('shows the kicker and the stamp with their styles, hides them with others, and keeps the kicker words', () => {
+    const byId = (id: string) => BUILT_IN_TEMPLATES.find((t) => t.id === id)!
+    get().applyTemplate(byId('gravel'), all)
+    expect(get().kicker.shown).toBe(true)
+    get().setKicker({ text: 'Nasz weekend' })
+    get().applyTemplate(byId('dokument'), all)
+    expect([get().stamp, get().kicker]).toEqual([true, { shown: false, text: 'Nasz weekend' }])
+    get().applyTemplate(papier, all)
+    expect(get().stamp).toBe(false)
+  })
+
   it('saves the current look as a custom template', () => {
     get().updateRouteStyle({ color: '#ff0000', dotted: true })
     get().saveTemplate('Mój')

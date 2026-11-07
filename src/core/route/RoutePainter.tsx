@@ -90,10 +90,37 @@ function Casing({ segments, style }: { segments: RouteSegment[]; style: RouteSty
   )
 }
 
+// Under the line, so where they cross the line stays whole.
+function Echo({ segments, style }: { segments: RouteSegment[]; style: RouteStyle }) {
+  const echo = style.echo
+  if (!echo) return null
+  return (
+    <>
+      {segments
+        .filter((s) => s.role !== 'remaining' && s.points.length >= 4)
+        .map((segment, i) => (
+          <Line
+            key={i}
+            points={segment.points}
+            x={echo.dx}
+            y={echo.dy}
+            stroke={style.color}
+            strokeWidth={style.coreWidth * echo.width}
+            opacity={echo.opacity}
+            listening={false}
+            perfectDrawEnabled={false}
+            {...ROUND}
+          />
+        ))}
+    </>
+  )
+}
+
 export default function RoutePainter({ segments, style, coloring }: RoutePainterProps) {
   return (
     <>
       <Casing segments={segments} style={style} />
+      <Echo segments={segments} style={style} />
       {segments.map((segment, i) => {
         if (segment.points.length < 4) return null
         if (segment.role === 'remaining') return <Ghost key={i} segment={segment} style={style} />

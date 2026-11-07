@@ -2,7 +2,9 @@ import { registerAnimation } from './animation'
 import { registerCamera } from './camera'
 import { registerDataColor } from './data-color'
 import { registerElevationProfile } from './elevation-profile'
+import { registerKicker } from './kicker'
 import { registerMap } from './map'
+import { registerStamp } from './stamp'
 import { registerStats } from './stats'
 import { registerTravel } from './travel'
 import { registerVideoExport } from './video-export'
@@ -16,4 +18,6 @@ export function registerFeatures() {
   registerVideoExport()
   registerTravel()
   registerMap()
+  registerStamp()
+  registerKicker()
 }

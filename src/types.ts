@@ -233,6 +233,18 @@ export interface RouteStyle {
   schematicSimplify: number
   // A dark line under the route and its copy shifted aside, as on a sticker.
   casing?: RouteCasing
+  // Drawn by hand: how much the pen trembles (0.5–2), as on the sketch map, on any background.
+  pen?: number
+  // A second, thinner and fainter stroke beside the line, as a pen goes over it twice.
+  echo?: RouteEcho
+}
+
+export interface RouteEcho {
+  // Share of the line's width.
+  width: number
+  opacity: number
+  dx: number
+  dy: number
 }
 
 export interface RouteCasing {
@@ -272,6 +284,9 @@ export interface StyleTemplate {
   // Only the sticker styles carry one; any other style turns it off.
   sticker?: StickerSettings
   photoLook?: PhotoLook
+  // The start day and time in a corner, and a line over the title; applied with the effects.
+  stamp?: boolean
+  kicker?: boolean
   // Saved templates have a group of their own.
   group?: TemplateGroup
   custom?: boolean

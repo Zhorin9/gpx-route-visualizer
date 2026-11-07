@@ -59,6 +59,8 @@ const STEP_LABELS: Record<string, string> = {
   iconFinish: 'zmiana wykonania ikon',
   sticker: 'zmiana koloru naklejki',
   photoLook: 'zmiana wyglądu zdjęć',
+  stamp: 'zmiana daty w rogu',
+  kicker: 'zmiana nadtytułu',
   wrapper: 'zmiana opakowania',
   travel: 'zmiana podróży',
   camera: 'zmiana kamery',

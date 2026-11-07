@@ -6,10 +6,13 @@ import Section from '../ui/Section'
 import Segmented from '../ui/Segmented'
 import { DEFAULT_ROUTE_STYLE, STYLE_PRESETS } from '../../store/defaults'
 import { useAppStore } from '../../store/useAppStore'
-import type { RouteCasing, RouteShape, RouteStyle, SelectOption, StylePreset } from '../../types'
+import type { RouteCasing, RouteEcho, RouteShape, RouteStyle, SelectOption, StylePreset } from '../../types'
 
 // The line's width plus 80%, at the default 5 px line, with the sticker's ink and offset.
 const DEFAULT_CASING: RouteCasing = { width: 4, color: '#241a26', dx: 3, dy: 3 }
+
+// The style board's sketchbook: half as wide, half as strong, a little down and right.
+const DEFAULT_ECHO: RouteEcho = { width: 0.45, opacity: 0.5, dx: 3, dy: 6 }
 
 const SHAPE_OPTIONS: SelectOption<RouteShape>[] = [
   { value: 'natural', label: 'Naturalny' },
@@ -71,6 +74,12 @@ export default function StyleTab() {
         />
         <CheckboxField label="Linia przerywana" checked={style.dashed} onChange={(dashed) => update({ dashed, dotted: false })} />
         <CheckboxField label="Linia kropkowana" checked={style.dotted} onChange={(dotted) => update({ dotted, dashed: false })} />
+      </Section>
+
+      <Section title="Odręczna kreska">
+        <CheckboxField label="Drżenie pióra" checked={!!style.pen} onChange={(on) => update({ pen: on ? 1 : undefined })} />
+        {style.pen ? <SliderField label="Drżenie" min={0.5} max={2} step={0.1} value={style.pen} defaultValue={1} onChange={(pen) => update({ pen })} /> : null}
+        <CheckboxField label="Druga, cieńsza kreska obok" checked={!!style.echo} onChange={(on) => update({ echo: on ? DEFAULT_ECHO : undefined })} />
       </Section>
 
       <Section title="Kontur i cień">

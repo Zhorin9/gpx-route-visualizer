@@ -90,7 +90,7 @@ export const BUILT_IN_TEMPLATES: StyleTemplate[] = [
   template({ id: 'notes', name: 'Notes z trasy', desc: 'odręczny, biały, trasa z obwódką', group: 'sticker', fonts: { title: 'Kalam', data: 'Kalam', note: 'Kalam' },
     titleUppercase: false, textColor: '#ffffff', statsStyle: columns(46), route: line('#e9572b', 15, undefined, { casing: casing(20, '#ffffff', 0) }), gradient: BROWN, pointStyle: points('label'), iconFinish: 'line' }),
   template({ id: 'szkicownik', name: 'Szkicownik', desc: 'papier, polaroid, Caveat', group: 'sticker', fonts: { title: 'Caveat', data: 'Caveat', note: 'Caveat' },
-    titleUppercase: false, statsStyle: columns(30), textColor: '#3a2a1c', route: line('#3a2a1c', 8, ['#3a2a1c', 4, 0.5]), frame: POLAROID,
+    titleUppercase: false, statsStyle: columns(30), textColor: '#3a2a1c', route: line('#3a2a1c', 8, undefined, { pen: 1, echo: { width: 0.45, opacity: 0.5, dx: 3, dy: 6 } }), frame: POLAROID,
     gradient: flat('#efe6d2', 'none', 6), layoutKey: 'c1', pointStyle: points('polaroid'), iconFinish: 'ink' }),
 
   template({ id: 'retro70', name: 'Retro 70.', desc: 'żółty, czerwony cień', group: 'poster', fonts: { title: 'Shrikhand', data: 'Rubik', note: 'Rubik' },
@@ -98,8 +98,8 @@ export const BUILT_IN_TEMPLATES: StyleTemplate[] = [
     pointStyle: points('polaroid'), titleEffect: { outline: { color: RED, width: 6 }, hardShadow: shadow(15, RED) }, iconFinish: 'sticker' }),
   template({ id: 'dokument', name: 'Dokument', desc: 'maszyna do pisania', group: 'poster', fonts: { title: 'Special Elite', data: 'Special Elite', note: 'Special Elite' },
     titleUppercase: false, statsStyle: columns(28), textColor: '#f3ef8a', route: line('#f3ef8a', 6), gradient: { ...BROWN, from: '#8a8378', to: '#4d4840', grain: 22 }, photoLook: { grade: 'cool', fade: 25, grain: 22 },
-    pointStyle: points('label'), iconFinish: 'line', titleEffect: { typing: { cps: 12 } } }),
+    pointStyle: points('label'), iconFinish: 'line', titleEffect: { typing: { cps: 12 } }, stamp: true }),
   template({ id: 'gravel', name: 'Plakat gravel', desc: 'gruby żółty krój', group: 'poster', fonts: { title: 'Bagel Fat One', data: 'Rubik', note: 'Rubik' },
     titleUppercase: true, statsStyle: columns(36), textColor: '#ffffff', titleColor: YELLOW, route: line(YELLOW, 22), gradient: { ...BROWN, from: '#9a7a52', to: '#5c4930' }, photoLook: { grade: 'vivid', fade: 0, grain: 0 },
-    pointStyle: points('square'), titleEffect: { hardShadow: { dx: 0, dy: 9, color: 'rgba(120,80,0,0.45)' }, warp: { kind: 'wave', amount: 15, length: 3.4 } }, iconFinish: 'sticker' }),
+    pointStyle: points('square'), titleEffect: { hardShadow: { dx: 0, dy: 9, color: 'rgba(120,80,0,0.45)' }, warp: { kind: 'wave', amount: 15, length: 3.4 } }, kicker: true, iconFinish: 'sticker' }),
 ]

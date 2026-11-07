@@ -98,6 +98,10 @@ export interface DocumentState {
   // Set by the sticker styles: one colour for their elements, in place of each element's own.
   sticker: StickerSettings | null
   photoLook: PhotoLook
+  // The route's start day and time in a corner, as a camera stamps a frame.
+  stamp: boolean
+  // A short line over the title; its words stay when a style hides it.
+  kicker: { shown: boolean; text: string }
 }
 
 // undo and redo are the history's own; anything else brings its handler.
@@ -239,6 +243,8 @@ export interface ElementsSlice {
   setIconFinish: (finish: IconFinish) => void
   updateSticker: (patch: Partial<StickerSettings>) => void
   updatePhotoLook: (patch: Partial<PhotoLook>) => void
+  setStamp: (on: boolean) => void
+  setKicker: (patch: Partial<DocumentState['kicker']>) => void
   // With an icon: an icon placed loose on the frame, moved and turned like a text.
   addText: (icon?: IconId) => number
   updateText: (id: number, patch: Partial<TextNode>) => void
