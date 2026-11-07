@@ -5,6 +5,7 @@ import { FORMATS, bottomInset } from '../../core/formats/registry'
 import { selectTrack } from '../../store/derived'
 import { IDENTITY_TRANSFORM } from '../../store/defaults'
 import { useAppStore } from '../../store/useAppStore'
+import useSettled from '../../hooks/useSettled'
 import { fitMercator, projectWithFit } from '../../utils/gpx'
 import { renderMapImage } from '../map/maplibre'
 import { DEFAULT_MAP } from '../map/types'
@@ -45,18 +46,19 @@ export default function MapStickerNode() {
 
   const [map, setMap] = useState<HTMLCanvasElement | null>(null)
   const { styleId, palette } = sticker
+  const wanted = useSettled(useMemo(() => layout && { layout, W, styleId, palette }, [layout, W, styleId, palette]))
   useEffect(() => {
-    if (!layout) return
+    if (!wanted) return
     let live = true
-    const settings = { ...DEFAULT_MAP, styleId, palette, labels: false }
+    const settings = { ...DEFAULT_MAP, styleId: wanted.styleId, palette: wanted.palette, labels: false }
     // Offline the sticker keeps its land colour; the route still shows.
-    renderMapImage({ settings, fit: layout.fit, transform: IDENTITY_TRANSFORM }, W, layout.H, MAP_SCALE)
+    renderMapImage({ settings, fit: wanted.layout.fit, transform: IDENTITY_TRANSFORM }, wanted.W, wanted.layout.H, MAP_SCALE)
       .then((canvas) => live && setMap(canvas))
       .catch(() => live && setMap(null))
     return () => {
       live = false
     }
-  }, [layout, W, styleId, palette])
+  }, [wanted])
 
   if (!layout) return null
   const { H, flat, outline } = layout

@@ -32,7 +32,7 @@ type PersistedState = Pick<
   statsContent: Omit<AppState['statsContent'], 'overrides'>
 }
 
-const STORE_VERSION = 5
+const STORE_VERSION = 4
 
 // v0 kept every style field flat on the root.
 function migrateV0(old: Record<string, unknown>): Partial<PersistedState> {
@@ -153,9 +153,7 @@ export const useAppStore = create<AppState>()(
         const state = version < 2 ? migrateV0((persisted ?? {}) as Record<string, unknown>) : ((persisted ?? {}) as Partial<PersistedState>)
         const v3 = version < 3 ? migrateV2(state) : state
         // v3 still saved the rotation; drop it so the header starts level again.
-        const v4 = version < 4 && v3.statsStyle ? { ...v3, statsStyle: withoutRotation(v3.statsStyle as AppState['statsStyle']) } : v3
-        // v4 had styles change the photos unless told not to; now they leave them alone unless asked.
-        return (version < 5 && v4.templateParts ? { ...v4, templateParts: { ...v4.templateParts, photo: false } } : v4) as PersistedState
+        return (version < 4 && v3.statsStyle ? { ...v3, statsStyle: withoutRotation(v3.statsStyle as AppState['statsStyle']) } : v3) as PersistedState
       },
       // Default shallow merge would drop style fields added after the data was saved.
       merge: (persisted, current) => {

@@ -11,6 +11,8 @@ export interface CanvasElementDefinition {
   // Drawing order on the overlay layer; lower is drawn first.
   order: number
   useIsAvailable: () => boolean
+  // For an element the user can hide: what puts it back, while it is hidden.
+  useShowAgain?: () => (() => void) | null
   // Wraps itself in a DraggableElement.
   Node: ComponentType
   Editor: ComponentType

@@ -282,10 +282,8 @@ export interface TemplatesSlice {
   templatePreview: TemplatePreview | null
   applyTemplate: (template: StyleTemplate, parts: TemplateParts) => void
   previewTemplate: (template: StyleTemplate) => void
-  // The previewed template as one undo step.
-  applyPreview: () => void
   endPreview: () => void
-  // Anything else done meanwhile keeps the previewed template, as one undo step of its own.
+  // The previewed template as one undo step: on Zastosuj, and before anything else done meanwhile.
   keepPreview: () => void
   setTemplateParts: (parts: TemplateParts) => void
   toggleFavoriteTemplate: (id: string) => void

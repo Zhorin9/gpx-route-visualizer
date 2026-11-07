@@ -22,6 +22,11 @@ describe('warped text', () => {
     }
   })
 
+  it('keeps a finite box for a text cleared to nothing, so it can still be picked', () => {
+    const line = warpLine([], [], 60, { kind: 'arc', amount: 40 })
+    expect(Number.isFinite(line.width) && Number.isFinite(line.height)).toBe(true)
+  })
+
   it('lays the letters of an arc at an equal distance from its centre', () => {
     const { glyphs } = warpLine(chars, advances, 60, { kind: 'arc', amount: 30 })
     const radius = 240 / (0.3 * 2 * Math.PI)

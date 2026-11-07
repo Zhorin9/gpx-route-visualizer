@@ -1,4 +1,6 @@
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
+import { useShallow } from 'zustand/react/shallow'
+import { pickDocument } from '../../store/document'
 import CheckboxField from '../fields/CheckboxField'
 import Button from '../ui/Button'
 import TemplateThumb from './TemplateThumb'
@@ -107,10 +109,18 @@ function SaveTemplate() {
   )
 }
 
+// Worked out again only when the document changes, not on every store update (playback, hover, selection).
+function useLookChanged(template: StyleTemplate | undefined): boolean {
+  const doc = useAppStore(useShallow(pickDocument))
+  const activeSlide = useAppStore((s) => s.activeSlide)
+  const parts = useAppStore((s) => s.templateParts)
+  return useMemo(() => !!template && lookChanged({ ...doc, activeSlide }, template, parts), [doc, activeSlide, parts, template])
+}
+
 function PreviewBar({ template }: { template: StyleTemplate }) {
   const parts = useAppStore((s) => s.templateParts)
   const setParts = useAppStore((s) => s.setTemplateParts)
-  const applyPreview = useAppStore((s) => s.applyPreview)
+  const keepPreview = useAppStore((s) => s.keepPreview)
   const endPreview = useAppStore((s) => s.endPreview)
   const collageMode = useAppStore((s) => s.mode === 'collage')
   const [choosing, setChoosing] = useState(false)
@@ -127,7 +137,7 @@ function PreviewBar({ template }: { template: StyleTemplate }) {
       {/* Photos keep their own colours unless asked: the style's film look is opt-in. */}
       {grade && <CheckboxField label={`Nałóż też na zdjęcia (${grade.toLowerCase()})`} checked={parts.photo} onChange={(photo) => setParts({ ...parts, photo })} />}
       <div className="button-row">
-        <Button variant="primary" size="sm" disabled={!anyPart} onClick={applyPreview}>
+        <Button variant="primary" size="sm" disabled={!anyPart} onClick={keepPreview}>
           Zastosuj
         </Button>
         <Button size="sm" onClick={endPreview}>
@@ -154,10 +164,10 @@ export default function TemplatesPage() {
   const favorite = useAppStore((s) => s.favoriteTemplates)
   const preview = useAppStore((s) => s.templatePreview)
   const previewTemplate = useAppStore((s) => s.previewTemplate)
-  const applyPreview = useAppStore((s) => s.applyPreview)
+  const keepPreview = useAppStore((s) => s.keepPreview)
   const templates = [...BUILT_IN_TEMPLATES, ...customTemplates]
   const current = useAppStore((s) => templates.find((t) => t.id === s.templateId))
-  const changed = useAppStore((s) => !s.templatePreview && !!current && lookChanged(s, current, s.templateParts))
+  const changed = useLookChanged(preview ? undefined : current)
   const [filter, setFilter] = useState<Filter>(recent.length ? 'recent' : 'all')
   const [menuOf, setMenuOf] = useState<string | null>(null)
 
@@ -193,7 +203,7 @@ export default function TemplatesPage() {
                 aria-pressed={template.id === onFrame}
                 title={`${template.desc}. Dwuklik: zastosuj`}
                 onClick={() => previewTemplate(template)}
-                onDoubleClick={applyPreview}
+                onDoubleClick={keepPreview}
               >
                 <TemplateThumb template={template} />
                 <span className="template-card-name">{template.name}</span>

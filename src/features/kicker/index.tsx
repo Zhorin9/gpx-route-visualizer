@@ -12,7 +12,13 @@ export function registerKicker() {
     meta: 'nad tytułem',
     icon: <IconType />,
     order: 5,
-    useIsAvailable: () => useAppStore((s) => s.kicker.shown && s.kicker.text.trim() !== ''),
+    // Shown with no words it stays listed, so clearing the field mid-edit doesn't lose it.
+    useIsAvailable: () => useAppStore((s) => s.kicker.shown),
+    useShowAgain: () => {
+      const hidden = useAppStore((s) => !s.kicker.shown)
+      const setKicker = useAppStore((s) => s.setKicker)
+      return hidden ? () => setKicker({ shown: true }) : null
+    },
     Node: KickerNode,
     Editor: KickerFields,
     animationTrack: 'header',

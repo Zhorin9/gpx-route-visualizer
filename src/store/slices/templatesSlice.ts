@@ -4,7 +4,7 @@ import { routeFields } from '../../utils/wrappers'
 import { joinTrack } from '../derived'
 import { pickDocument } from '../document'
 import { NO_PHOTO_LOOK } from '../../utils/photoLook'
-import type { GradientStyle, StyleTemplate, TemplateParts, WrapperField } from '../../types'
+import type { GradientStyle, StyleTemplate, TemplateParts, TextNode, WrapperField } from '../../types'
 import type { AppState, DocumentState, SliceContext, TemplatesSlice } from '../types'
 
 type Look = Pick<AppState, 'collage' | 'map' | 'statsStyle' | 'titleStyle' | 'texts' | 'waypoints'>
@@ -21,6 +21,9 @@ function recolor(s: Look, gradient: GradientStyle, text: string, title = text): 
     waypoints: s.waypoints.map((w) => ({ ...w, color: text })),
   }
 }
+
+// A badge, an icon or a bent caption carries its own outline and shadow, which a style's text effects leave alone.
+const isStickerPiece = (t: TextNode) => t.role !== 'title' && Boolean(t.badge || t.icon || t.warp)
 
 // The look a template gives the document; everything else is left as it is.
 export function withTemplate(s: TemplateTarget, template: StyleTemplate, parts: TemplateParts): Partial<DocumentState> {
@@ -55,14 +58,18 @@ export function withTemplate(s: TemplateTarget, template: StyleTemplate, parts: 
   if (parts.frame) collage = { ...collage, frame: { ...template.frame } }
   if (parts.effects) {
     const { outline, hardShadow, warp, typing } = template.titleEffect ?? {}
-    texts = texts.map((t) => ({
-      ...t,
-      outlineEnabled: !!outline,
-      ...(outline ? { outlineColor: outline.color, outlineWidth: outline.width } : null),
-      hardShadow,
-      typing,
-      ...(t.role === 'title' ? { warp } : null),
-    }))
+    texts = texts.map((t) =>
+      isStickerPiece(t)
+        ? t
+        : {
+            ...t,
+            outlineEnabled: !!outline,
+            ...(outline ? { outlineColor: outline.color, outlineWidth: outline.width } : null),
+            hardShadow,
+            typing,
+            ...(t.role === 'title' ? { warp } : null),
+          },
+    )
     statsStyle = { ...statsStyle, hardShadow: template.statsEffect?.hardShadow, outline: template.statsEffect?.outline }
   }
 
@@ -85,9 +92,10 @@ export function withTemplate(s: TemplateTarget, template: StyleTemplate, parts: 
 
 const sameValue = (a: unknown, b: unknown) => a === b || JSON.stringify(a) === JSON.stringify(b)
 
-// Whether the look differs from what the template would give it.
+// Whether the look differs from what the template would give it. The layout went to one slide only,
+// so the slides are left out: moving to another slide is not a change of look.
 export function lookChanged(s: TemplateTarget, template: StyleTemplate, parts: TemplateParts): boolean {
-  return Object.entries(withTemplate(s, template, parts)).some(([key, value]) => !sameValue(value, s[key as keyof DocumentState]))
+  return Object.entries(withTemplate(s, template, parts)).some(([key, value]) => key !== 'slides' && !sameValue(value, s[key as keyof DocumentState]))
 }
 
 const RECENT_LIMIT = 6
@@ -112,16 +120,12 @@ export function createTemplatesSlice({ set, get, commit }: SliceContext): Templa
       set({ ...base, ...withTemplate({ ...s, ...base }, template, s.templateParts), templatePreview: { template, base } })
     },
 
-    applyPreview: () => {
-      const { templatePreview, templateParts, applyTemplate } = get()
-      if (templatePreview) applyTemplate(templatePreview.template, templateParts)
-    },
-
     keepPreview: () => {
-      const preview = get().templatePreview
+      const { templatePreview: preview, templateParts } = get()
       if (!preview) return
       set({ ...preview.base, templatePreview: null })
-      get().applyTemplate(preview.template, get().templateParts)
+      // With no part ticked the template gives nothing, so there is nothing to keep.
+      if (Object.values(templateParts).some(Boolean)) get().applyTemplate(preview.template, templateParts)
     },
 
     endPreview: () => {

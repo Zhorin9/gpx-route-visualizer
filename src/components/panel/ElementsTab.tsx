@@ -22,6 +22,23 @@ function RegisteredElementRow({ def }: { def: CanvasElementDefinition }) {
   return <ElementRow icon={def.icon} label={def.label} meta={def.meta} active={active} onClick={() => select({ kind: 'element', element: def.kind })} />
 }
 
+function ShowAgainButton({ def, useShowAgain }: { def: CanvasElementDefinition; useShowAgain: () => (() => void) | null }) {
+  const show = useShowAgain()
+  const select = useAppStore((s) => s.select)
+  if (!show) return null
+  return (
+    <Button
+      icon={<IconPlus />}
+      onClick={() => {
+        show()
+        select({ kind: 'element', element: def.kind })
+      }}
+    >
+      {def.label}
+    </Button>
+  )
+}
+
 function SelectedElementEditor({ kind }: { kind: string }) {
   const def = canvasElement(kind)
   return def ? <def.Editor /> : null
@@ -84,6 +101,7 @@ export default function ElementsTab() {
         <Button pressed={adding} icon={<IconPlus />} disabled={!hasRoute} onClick={() => setAddingWaypoint(!adding)}>
           {adding ? 'Anuluj' : 'Miejscowość'}
         </Button>
+        {canvasElements().map((def) => def.useShowAgain && <ShowAgainButton key={def.kind} def={def} useShowAgain={def.useShowAgain} />)}
       </div>
       {hasRoute && (
         <Button size="sm" variant="ghost" icon={<IconPlus />} onClick={addRouteCaptions}>

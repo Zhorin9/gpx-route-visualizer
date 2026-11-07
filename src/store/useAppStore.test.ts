@@ -300,11 +300,23 @@ describe('style templates', () => {
   it('applies a previewed template as one undo step', () => {
     vi.advanceTimersByTime(1000)
     get().previewTemplate(papier)
-    get().applyPreview()
+    const steps = get().past.length
+    get().keepPreview()
     expect(get().routeStyle.color).toBe('#8a3b24')
     expect(get().templatePreview).toBeNull()
+    expect(get().past).toHaveLength(steps + 1)
     get().undo()
     expect(get().routeStyle.color).toBe(initial.routeStyle.color)
+  })
+
+  it('applies nothing, and records no step, when no part of the template is ticked', () => {
+    const none = Object.fromEntries(Object.keys(all).map((key) => [key, false])) as typeof all
+    get().setTemplateParts(none)
+    get().previewTemplate(papier)
+    const steps = get().past.length
+    get().keepPreview()
+    expect(get().past).toHaveLength(steps)
+    expect(get().templateId).toBeNull()
   })
 
   it('keeps a previewed template when something else is changed, as its own undo step', () => {
@@ -376,6 +388,15 @@ describe('style templates', () => {
     expect(get().texts.map((t) => [t.warp, t.typing?.cps])).toEqual([[undefined, 12], [undefined, 12]])
     get().applyTemplate(papier, all)
     expect(get().texts.every((t) => !t.typing && !t.warp)).toBe(true)
+  })
+
+  it('leaves the ink outline of a badge, an icon and a bent caption to them when a style changes the texts', () => {
+    get().addText('badge')
+    get().addText('arc')
+    get().addText('icon')
+    const pieces = get().texts.map(({ outlineEnabled, hardShadow, warp }) => ({ outlineEnabled, hardShadow, warp }))
+    get().applyTemplate(papier, all)
+    expect(get().texts.map(({ outlineEnabled, hardShadow, warp }) => ({ outlineEnabled, hardShadow, warp }))).toEqual(pieces)
   })
 
   it('shows the kicker and the stamp with their styles, hides them with others, and keeps the kicker words', () => {

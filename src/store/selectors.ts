@@ -88,6 +88,8 @@ function backgroundColor(s: AppState): string | null {
   return null
 }
 
+export const useBackgroundColor = () => useAppStore(backgroundColor)
+
 // A sticker style's colour for the element on this slide; null outside the sticker styles.
 export function useStickerColor(slide: number): string | null {
   return useAppStore((s) => (s.sticker ? stickerColor(s.sticker, slide, backgroundColor(s)) : null))

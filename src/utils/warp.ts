@@ -22,6 +22,7 @@ const MAX_ARC = Math.PI * 1.6
 // amount: wave height and bulge growth in % of the font size, arc bend in % of a full circle (negative bends down).
 // length: the wave's period, in font sizes.
 export function warpLine(chars: string[], advances: number[], fontSize: number, warp: TextWarp): WarpedLine {
+  if (!chars.length) return { glyphs: [], width: 0, height: fontSize }
   const total = advances.reduce((a, b) => a + b, 0)
   let along = 0
   const raw = chars.map((ch, i) => {

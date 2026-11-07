@@ -5,12 +5,13 @@ import { useDayBreaks, useRangeStats, useTrackDays } from '../store/selectors'
 import { useAppStore } from '../store/useAppStore'
 import { projectLook, seriesRoute } from '../utils/series'
 import type { SlideScene } from '../utils/drawSlide'
+import useSettled from './useSettled'
 
 export default function useSlideScene(): Omit<SlideScene, 'look'> & { projectLook: SlideScene['look'] } {
   const { w, h } = FORMATS[useAppStore((s) => s.aspectKey)]
   const slides = useAppStore((s) => s.slides)
   const photos = useAppStore((s) => s.photos)
-  const photoLook = useAppStore((s) => s.photoLook)
+  const photoLook = useSettled(useAppStore((s) => s.photoLook))
   const seed = useAppStore(selectSeed)
   const units = useAppStore((s) => s.statsContent.units)
   const collage = useAppStore((s) => s.collage)
