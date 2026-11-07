@@ -1,6 +1,7 @@
 import type { IconFinish, IconId } from './components/place/icons'
 import type { StickerSettings } from './utils/sticker'
 import type { PhotoLook } from './utils/photoLook'
+import type { MapStickerSettings } from './features/map-sticker/model'
 import type { ReactNode } from 'react'
 import type { Units } from './core/units'
 
@@ -297,6 +298,8 @@ export interface StyleTemplate {
   // The start day and time in a corner, and a line over the title; applied with the effects.
   stamp?: boolean
   kicker?: boolean
+  // The route as a map sticker, in these colours; applied with the route.
+  mapSticker?: Omit<MapStickerSettings, 'shown'>
   // Saved templates have a group of their own.
   group?: TemplateGroup
   custom?: boolean

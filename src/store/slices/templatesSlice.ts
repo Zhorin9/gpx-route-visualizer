@@ -74,6 +74,7 @@ export function withTemplate(s: TemplateTarget, template: StyleTemplate, parts: 
     waypoints,
     slides,
     map,
+    ...(parts.route ? { mapSticker: template.mapSticker ? { ...template.mapSticker, shown: true } : { ...s.mapSticker, shown: false } } : null),
     ...(parts.route ? { routeStyle: { ...s.routeStyle, ...template.route, casing: template.route.casing, pen: template.route.pen, echo: template.route.echo } } : null),
     ...(parts.effects ? { iconFinish: template.iconFinish ?? 'sticker', stamp: !!template.stamp, kicker: { ...s.kicker, shown: !!template.kicker } } : null),
     ...(parts.colors ? { sticker: template.sticker ? { ...template.sticker } : null } : null),

@@ -62,6 +62,7 @@ const STEP_LABELS: Record<string, string> = {
   photoLook: 'zmiana wyglądu zdjęć',
   stamp: 'zmiana daty w rogu',
   kicker: 'zmiana nadtytułu',
+  mapSticker: 'zmiana naklejki mapy',
   wrapper: 'zmiana opakowania',
   travel: 'zmiana podróży',
   camera: 'zmiana kamery',

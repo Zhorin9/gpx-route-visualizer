@@ -1,5 +1,8 @@
 import { DEFAULT_COLLAGE, DEFAULT_ROUTE_STYLE, DEFAULT_STATS_STYLE } from '../store/defaults'
 import { STICKER_COLORS, STICKER_INK } from './sticker'
+import { DEFAULT_MAP_STICKER } from '../features/map-sticker/model'
+
+const { shown: _shown, ...DEFAULT_MAP_STICKER_LOOK } = DEFAULT_MAP_STICKER
 import type { BackgroundPattern, HardShadow, PhotoMarker, RouteCasing, RouteStyle, StyleTemplate } from '../types'
 
 const { shape: _shape, schematicSimplify: _simplify, ...DEFAULT_ROUTE_LOOK } = DEFAULT_ROUTE_STYLE
@@ -88,7 +91,7 @@ export const BUILT_IN_TEMPLATES: StyleTemplate[] = [
     iconFinish: 'sticker', sticker: { mode: 'manual', color: PINK } }),
   // Kalam, not the board's Permanent Marker: that one has no Polish letters.
   template({ id: 'notes', name: 'Notes z trasy', desc: 'odręczny, biały, trasa z obwódką', group: 'sticker', fonts: { title: 'Kalam', data: 'Kalam', note: 'Kalam' },
-    titleUppercase: false, textColor: '#ffffff', statsStyle: columns(46), route: line('#e9572b', 15, undefined, { casing: casing(20, '#ffffff', 0) }), gradient: BROWN, pointStyle: points('label'), iconFinish: 'line' }),
+    titleUppercase: false, textColor: '#ffffff', statsStyle: columns(46), route: line('#e9572b', 15, undefined, { casing: casing(20, '#ffffff', 0) }), mapSticker: DEFAULT_MAP_STICKER_LOOK, gradient: BROWN, pointStyle: points('label'), iconFinish: 'line' }),
   template({ id: 'szkicownik', name: 'Szkicownik', desc: 'papier, polaroid, Caveat', group: 'sticker', fonts: { title: 'Caveat', data: 'Caveat', note: 'Caveat' },
     titleUppercase: false, statsStyle: columns(30), textColor: '#3a2a1c', route: line('#3a2a1c', 8, undefined, { pen: 1, echo: { width: 0.45, opacity: 0.5, dx: 3, dy: 6 } }), frame: POLAROID,
     gradient: flat('#efe6d2', 'none', 6), layoutKey: 'c1', pointStyle: points('polaroid'), iconFinish: 'ink' }),

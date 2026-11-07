@@ -29,6 +29,8 @@ export default function StyleTab() {
   const style = useAppStore((s) => s.routeStyle)
   const update = useAppStore((s) => s.updateRouteStyle)
   const applyStylePreset = useAppStore((s) => s.applyStylePreset)
+  const mapSticker = useAppStore((s) => s.mapSticker)
+  const updateMapSticker = useAppStore((s) => s.updateMapSticker)
   const isSchematic = style.shape === 'schematic'
   const casing = style.casing
   const setCasing = (patch: Partial<RouteCasing>) => update({ casing: { ...DEFAULT_CASING, ...casing, ...patch } })
@@ -74,6 +76,11 @@ export default function StyleTab() {
         />
         <CheckboxField label="Linia przerywana" checked={style.dashed} onChange={(dashed) => update({ dashed, dotted: false })} />
         <CheckboxField label="Linia kropkowana" checked={style.dotted} onChange={(dotted) => update({ dotted, dashed: false })} />
+      </Section>
+
+      <Section title="Naklejka mapy">
+        <CheckboxField label="Trasa jako naklejka mapy" checked={mapSticker.shown} onChange={(shown) => updateMapSticker({ shown })} />
+        <p className="hint">Mapa okolicy przycięta do kształtu trasy, z białą obwódką i cieniem. Przesuwasz ją jak inne elementy.</p>
       </Section>
 
       <Section title="Odręczna kreska">

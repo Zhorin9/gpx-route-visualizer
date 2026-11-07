@@ -389,6 +389,14 @@ describe('style templates', () => {
     expect(get().stamp).toBe(false)
   })
 
+  it('shows the route as a map sticker with Notes z trasy, and draws it plain again with another style', () => {
+    const notes = BUILT_IN_TEMPLATES.find((t) => t.id === 'notes')!
+    get().applyTemplate(notes, all)
+    expect(get().mapSticker).toMatchObject({ shown: true, route: '#e9572b' })
+    get().applyTemplate(papier, all)
+    expect(get().mapSticker.shown).toBe(false)
+  })
+
   it('saves the current look as a custom template', () => {
     get().updateRouteStyle({ color: '#ff0000', dotted: true })
     get().saveTemplate('Mój')
