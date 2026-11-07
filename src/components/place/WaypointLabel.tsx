@@ -3,6 +3,7 @@ import { Group } from 'react-konva'
 import { usePointAnimation } from '../../core/animation/layers'
 import { useAppStore } from '../../store/useAppStore'
 import { useStickerColor } from '../../store/selectors'
+import { STICKER_INK } from '../../utils/sticker'
 import type { Point2D } from '../../utils/geometry'
 import type { Waypoint } from '../../types'
 import AnchorSymbol from './AnchorSymbol'
@@ -35,7 +36,7 @@ export default function WaypointLabel({ waypoint, anchor }: WaypointLabelProps) 
 
   return (
     <Group x={anchor.x} y={anchor.y + animation.offsetY} opacity={animation.opacity}>
-      <LeaderLine element={layout.leader} offset={offset} color={waypoint.color} shadow={waypoint.shadowEnabled ?? true} />
+      <LeaderLine element={layout.leader} offset={offset} color={sticker ? STICKER_INK : waypoint.color} shadow={waypoint.shadowEnabled ?? true} />
       <AnchorSymbol kind={labelIcon ? 'point' : waypoint.kind} color={sticker ?? waypoint.color} icon={waypoint.icon} iconSize={waypoint.iconSize} />
       <Group
         x={offset.x}

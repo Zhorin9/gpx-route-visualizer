@@ -14,6 +14,7 @@ import SlideBox from './SlideBox'
 import type { TextNode, TextWarp } from '../types'
 import { TEXT_SHADOW } from '../core/canvas/shadows'
 import WarpedText from './WarpedText'
+import BadgeBack from './BadgeBack'
 import useWarpedLine from '../hooks/useWarpedLine'
 
 // The hook runs for a straight text too, on no letters.
@@ -32,7 +33,8 @@ export default function EditableText({ node }: { node: TextNode }) {
   const fontsVersion = useAppStore((s) => s.fontsVersion)
   const animation = useLayerAnimation('header')
   const slide = useSlideAt(node.x)
-  const color = useStickerColor(slide) ?? node.color
+  const sticker = useStickerColor(slide)
+  const color = sticker ?? node.color
   const full = displayText(node)
   const typed = useTypedCount(full.length, node.typing?.cps ?? 0)
   const shown = node.typing ? typed : full.length
@@ -108,8 +110,26 @@ export default function EditableText({ node }: { node: TextNode }) {
     )
   }
 
+  const badgeColor = sticker ?? node.badge?.color
+
   return (
     <SlideBox slide={slide}>
+      {node.badge && badgeColor && (
+        <BadgeBack
+          badge={node.badge}
+          color={badgeColor}
+          text={full}
+          x={shared.x}
+          y={shared.y}
+          rotation={node.rotation}
+          opacity={shared.opacity}
+          fontSize={fontSize}
+          fontFamily={node.fontFamily}
+          fontStyle={fontStyle}
+          letterSpacing={node.letterSpacing}
+          width={isTitle ? span : undefined}
+        />
+      )}
       {/* The outline casts the shadow too, so it is a copy of glyphs and outline together. */}
       {node.hardShadow && (
         <Text

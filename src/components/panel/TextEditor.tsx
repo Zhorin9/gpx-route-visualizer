@@ -5,6 +5,7 @@ import ColorField from '../fields/ColorField'
 import CheckboxField from '../fields/CheckboxField'
 import ShadowField from '../fields/ShadowField'
 import WarpField from '../fields/WarpField'
+import BadgeField from '../fields/BadgeField'
 import IconEditor from './IconEditor'
 import TextField from '../fields/TextField'
 import Button from '../ui/Button'
@@ -65,6 +66,10 @@ export default function TextEditor({ id }: { id: number }) {
           defaultValue={100}
           onChange={(v) => updateText(selected.id, { opacity: v / 100 })}
         />
+      </Section>
+
+      <Section title="Odznaka">
+        <BadgeField value={selected.badge} onChange={(badge) => updateText(selected.id, { badge })} />
       </Section>
 
       <Section title="Kształt i pisanie">

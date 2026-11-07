@@ -10,6 +10,7 @@ const STEP_LABELS: Record<string, string> = {
   'text:delete': 'usunięcie tekstu',
   'waypoint:add': 'dodanie miejscowości',
   'waypoint:delete': 'usunięcie miejscowości',
+  'waypoint:captions': 'dodanie podpisów trasy',
   'dataColor:palette': 'zmiana palety',
   'route:load': 'wczytanie trasy',
   mode: 'zmiana typu projektu',

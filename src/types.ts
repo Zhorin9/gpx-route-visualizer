@@ -125,6 +125,8 @@ export interface TextNode {
   warp?: TextWarp
   // In a video the text is typed out letter by letter from the start of the texts' bar.
   typing?: TextTyping
+  // Set: a shape under the text, outlined in ink, as a sticker badge.
+  badge?: TextBadge
   // Set: an icon stands in for the text, fontSize wide.
   icon?: IconId
   // 'title': the track name, centred across the frame with the stats header a line below.
@@ -135,6 +137,14 @@ export interface TextNode {
 export interface HardShadow {
   dx: number
   dy: number
+  color: string
+}
+
+export type BadgeShape = 'burst' | 'star' | 'circle' | 'ribbon'
+
+export interface TextBadge {
+  shape: BadgeShape
+  // The shape's fill; a sticker style paints it in its colour.
   color: string
 }
 

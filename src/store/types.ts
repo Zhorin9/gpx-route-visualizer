@@ -1,6 +1,7 @@
 import type { StickerSettings } from '../utils/sticker'
 import type { PhotoLook } from '../utils/photoLook'
-import type { IconFinish, IconId } from '../components/place/icons'
+import type { IconFinish } from '../components/place/icons'
+import type { TextKind } from './textKinds'
 import type {
   AspectKey,
   CarouselKind,
@@ -245,11 +246,13 @@ export interface ElementsSlice {
   updatePhotoLook: (patch: Partial<PhotoLook>) => void
   setStamp: (on: boolean) => void
   setKicker: (patch: Partial<DocumentState['kicker']>) => void
-  // With an icon: an icon placed loose on the frame, moved and turned like a text.
-  addText: (icon?: IconId) => number
+  // Besides a plain text: a loose icon, a badge or a text bent over an icon; all move and turn like a text.
+  addText: (kind?: TextKind) => number
   updateText: (id: number, patch: Partial<TextNode>) => void
   deleteText: (id: number) => void
   addWaypoint: (trackPos: number) => number
+  // Start, finish and the halfway distance as places, in one step.
+  addRouteCaptions: () => void
   updateWaypoint: (id: number, patch: Partial<Waypoint>) => void
   updatePointStyle: (patch: Partial<PointStyle>) => void
   deleteWaypoint: (id: number) => void

@@ -61,6 +61,7 @@ export default function ElementsTab() {
   const adding = useAppStore((s) => s.addingWaypoint)
   const select = useAppStore((s) => s.select)
   const addText = useAppStore((s) => s.addText)
+  const addRouteCaptions = useAppStore((s) => s.addRouteCaptions)
   const setAddingWaypoint = useAppStore((s) => s.setAddingWaypoint)
 
   const isSelected = (kind: 'text' | 'waypoint', id: number) => selection?.kind === kind && selection.id === id
@@ -71,13 +72,24 @@ export default function ElementsTab() {
         <Button variant="primary" icon={<IconPlus />} onClick={() => addText()}>
           Napis
         </Button>
-        <Button icon={<IconPlus />} onClick={() => addText('star')}>
+        <Button icon={<IconPlus />} onClick={() => addText('icon')}>
           Ikona
+        </Button>
+        <Button icon={<IconPlus />} onClick={() => addText('badge')}>
+          Odznaka
+        </Button>
+        <Button icon={<IconPlus />} title="Napis wygięty w łuk, np. nad ikoną aparatu" onClick={() => addText('arc')}>
+          Po łuku
         </Button>
         <Button pressed={adding} icon={<IconPlus />} disabled={!hasRoute} onClick={() => setAddingWaypoint(!adding)}>
           {adding ? 'Anuluj' : 'Miejscowość'}
         </Button>
       </div>
+      {hasRoute && (
+        <Button size="sm" variant="ghost" icon={<IconPlus />} onClick={addRouteCaptions}>
+          Podpisy trasy: start, meta, dystans
+        </Button>
+      )}
       {adding && <p className="hint">Kliknij na trasie — etykieta przyklei się do najbliższego punktu.</p>}
 
       <Section title="Elementy na grafice">
@@ -90,7 +102,7 @@ export default function ElementsTab() {
               key={`t${t.id}`}
               icon={t.icon ? <IconSvg icon={t.icon} /> : <IconType />}
               label={t.icon ? (iconById(t.icon)?.label ?? 'Ikona') : t.text || '(pusty)'}
-              meta={t.icon ? 'ikona' : 'napis'}
+              meta={t.icon ? 'ikona' : t.badge ? 'odznaka' : 'napis'}
               active={isSelected('text', t.id)}
               onClick={() => select({ kind: 'text', id: t.id })}
             />

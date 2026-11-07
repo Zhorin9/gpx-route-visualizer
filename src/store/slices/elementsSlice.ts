@@ -1,19 +1,27 @@
 import { FORMATS } from '../../core/formats/registry'
 import { makeText, makeWaypoint, nextId } from '../defaults'
+import { TEXT_KINDS } from '../textKinds'
+import { selectTrack } from '../derived'
+import { routeCaptions } from '../../utils/routeCaptions'
+
+// Large, as on the board, the distance larger still; each stands off its point to its own side.
+const END_CAPTIONS = [
+  { dx: 30, dy: 40, fontSize: 40 },
+  { dx: 40, dy: -60, fontSize: 40 },
+]
+const DISTANCE_CAPTION = { dx: -200, dy: -40, fontSize: 52 }
 import type { ElementsSlice, SliceContext } from '../types'
 
-// A loose icon starts this wide, centred where a new text would start.
-const ICON_SIZE = 120
 
 // Derived from the list rather than a module counter, so ids stay unique after undo.
 export function createElementsSlice({ get, commit }: SliceContext): ElementsSlice {
   const slice: ElementsSlice = {
-    addText: (icon) => {
+    addText: (kind = 'text') => {
       const s = get()
       const { w, h } = FORMATS[s.aspectKey]
       const base = makeText(nextId(s.texts), w, h)
       const shown = { ...base, x: base.x + Math.min(s.activeSlide, s.slides.length - 1) * w }
-      const node = icon ? { ...shown, icon, text: '', fontSize: ICON_SIZE, x: shown.x + 120, color: s.statsStyle.color } : shown
+      const node = { ...shown, ...TEXT_KINDS[kind](s.statsStyle.color, shown) }
       commit('text:add', {
         texts: [...s.texts, node],
         selection: { kind: 'text', id: node.id },
@@ -48,6 +56,19 @@ export function createElementsSlice({ get, commit }: SliceContext): ElementsSlic
         activeTab: s.activeTab === 'texts' ? 'texts' : 'route',
       })
       return node.id
+    },
+    addRouteCaptions: () => {
+      const s = get()
+      const points = selectTrack(s)?.points
+      if (!points) return
+      const first = nextId(s.waypoints)
+      const captions = routeCaptions(points, s.range, s.statsContent.units)
+      const added = captions.map(({ trackPos, text }, i) => ({
+        ...makeWaypoint(first + i, trackPos),
+        text,
+        ...(i === captions.length - 1 ? DISTANCE_CAPTION : END_CAPTIONS[i]),
+      }))
+      commit('waypoint:captions', { waypoints: [...s.waypoints, ...added] })
     },
     updateWaypoint: (id, patch) =>
       commit(`waypoint:${id}:${Object.keys(patch).join()}`, (s) => ({
