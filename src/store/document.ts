@@ -38,6 +38,7 @@ export const INITIAL_DOCUMENT: DocumentState = {
   map: DEFAULT_MAP,
   wrapper: DEFAULT_WRAPPER,
   mode: null,
+  templateId: null,
 }
 
 export const DOCUMENT_KEYS = Object.keys(INITIAL_DOCUMENT) as (keyof DocumentState)[]

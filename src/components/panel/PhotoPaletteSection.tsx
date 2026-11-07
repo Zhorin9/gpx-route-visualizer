@@ -5,6 +5,7 @@ import { useAppStore } from '../../store/useAppStore'
 import { paletteFrom } from '../../features/map/model/styles'
 import { photoPalette, photoTheme, THEME_VARIANTS, type PhotoPalette, type PhotoTheme } from '../../utils/photoPalette'
 import type { Photo } from '../../types'
+import './PhotoPaletteSection.css'
 
 const ROLES: { key: keyof PhotoTheme; label: string }[] = [
   { key: 'route', label: 'Trasa' },

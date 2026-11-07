@@ -51,6 +51,8 @@ const nextPaint = () =>
 
 export async function beginStageFrames(): Promise<FrameSource> {
   const store = useAppStore
+  // An export is of the applied look, never of a template being previewed.
+  store.getState().endPreview()
   const before = store.getState()
   const snapshot = pickDocument(before)
   const { selection, routeEditable } = before

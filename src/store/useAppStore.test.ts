@@ -3,6 +3,7 @@ import { registerCanvasElement } from '../core/canvas/registry'
 import { BUILT_IN_TEMPLATES } from '../utils/templates'
 import { selectRouteDays, selectTrack } from './derived'
 import { DOCUMENT_KEYS, pickDocument } from './document'
+import { lookChanged } from './slices/templatesSlice'
 import { useAppStore } from './useAppStore'
 
 const initial = useAppStore.getState()
@@ -281,6 +282,52 @@ describe('style templates', () => {
     expect(get().wrapper.fields.note).toBe('Tu złapał nas deszcz.')
     get().undo()
     expect(get().wrapper.id).toBe('none')
+  })
+
+  it('previews a template on the frame without a history step and goes back to the exact look', () => {
+    get().updateRouteStyle({ color: '#123456' })
+    const before = pickDocument(get())
+    const steps = get().past.length
+    get().previewTemplate(papier)
+    get().previewTemplate(BUILT_IN_TEMPLATES.find((t) => t.id === 'neon')!)
+    expect(get().routeStyle.color).toBe('#d8fff3')
+    expect(get().past).toHaveLength(steps)
+    get().endPreview()
+    expect(pickDocument(get())).toEqual(before)
+  })
+
+  it('applies a previewed template as one undo step', () => {
+    vi.advanceTimersByTime(1000)
+    get().previewTemplate(papier)
+    get().applyPreview()
+    expect(get().routeStyle.color).toBe('#8a3b24')
+    expect(get().templatePreview).toBeNull()
+    get().undo()
+    expect(get().routeStyle.color).toBe(initial.routeStyle.color)
+  })
+
+  it('drops the preview before any other change, so the change lands on the applied look', () => {
+    get().previewTemplate(papier)
+    get().updateStatsStyle({ fontSize: 50 })
+    expect(get().routeStyle.color).toBe(initial.routeStyle.color)
+    expect(get().statsStyle.fontSize).toBe(50)
+    get().undo()
+    expect(get().templatePreview).toBeNull()
+  })
+
+  it('remembers the last six templates, most recent first', () => {
+    for (const t of BUILT_IN_TEMPLATES.slice(0, 7)) get().applyTemplate(t, all)
+    get().applyTemplate(BUILT_IN_TEMPLATES[3], all)
+    expect(get().recentTemplates).toEqual([3, 6, 5, 4, 2, 1].map((i) => BUILT_IN_TEMPLATES[i].id))
+  })
+
+  it('marks the look as changed after a hand edit and clears it when the template is applied again', () => {
+    get().applyTemplate(papier, all)
+    expect(lookChanged(get(), papier, all)).toBe(false)
+    get().updateRouteStyle({ coreWidth: 12 })
+    expect(lookChanged(get(), papier, all)).toBe(true)
+    get().applyTemplate(papier, all)
+    expect(lookChanged(get(), papier, all)).toBe(false)
   })
 
   it('saves the current look as a custom template', () => {

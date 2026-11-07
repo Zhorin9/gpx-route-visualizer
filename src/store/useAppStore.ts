@@ -24,7 +24,10 @@ import type { StatKey, StyleTemplate } from '../types'
 // content (track, texts, places, overrides) or transient UI state.
 // The stats header's rotation is part of one design's layout, not a look to carry over:
 // a remembered 90° would turn the header of every route loaded afterwards.
-type PersistedState = Pick<AppState, 'aspectKey' | 'previewBackdrop' | 'showSafeZones' | 'dimOpacity' | 'routeStyle' | 'titleStyle' | 'customTemplates'> & {
+type PersistedState = Pick<
+  AppState,
+  'aspectKey' | 'previewBackdrop' | 'showSafeZones' | 'dimOpacity' | 'routeStyle' | 'titleStyle' | 'customTemplates' | 'templateParts' | 'recentTemplates' | 'favoriteTemplates'
+> & {
   statsStyle: Omit<AppState['statsStyle'], 'rotation'>
   statsContent: Omit<AppState['statsContent'], 'overrides'>
 }
@@ -121,24 +124,31 @@ export const useAppStore = create<AppState>()(
     {
       name: 'gpxVisualizer.store',
       version: STORE_VERSION,
-      partialize: (s): PersistedState => ({
-        aspectKey: s.aspectKey,
-        previewBackdrop: s.previewBackdrop,
-        showSafeZones: s.showSafeZones,
-        dimOpacity: s.dimOpacity,
-        routeStyle: s.routeStyle,
-        statsStyle: withoutRotation(s.statsStyle),
-        titleStyle: s.titleStyle,
-        customTemplates: s.customTemplates,
-        statsContent: {
-          dayLabel: s.statsContent.dayLabel,
-          visible: s.statsContent.visible,
-          order: s.statsContent.order,
-          units: s.statsContent.units,
-          distancePrecision: s.statsContent.distancePrecision,
-          elevationRoundTo: s.statsContent.elevationRoundTo,
-        },
-      }),
+      // A previewed template is never saved; the look under it is.
+      partialize: (state): PersistedState => {
+        const s = { ...state, ...state.templatePreview?.base }
+        return {
+          aspectKey: s.aspectKey,
+          previewBackdrop: s.previewBackdrop,
+          showSafeZones: s.showSafeZones,
+          dimOpacity: s.dimOpacity,
+          routeStyle: s.routeStyle,
+          statsStyle: withoutRotation(s.statsStyle),
+          titleStyle: s.titleStyle,
+          customTemplates: s.customTemplates,
+          templateParts: s.templateParts,
+          recentTemplates: s.recentTemplates,
+          favoriteTemplates: s.favoriteTemplates,
+          statsContent: {
+            dayLabel: s.statsContent.dayLabel,
+            visible: s.statsContent.visible,
+            order: s.statsContent.order,
+            units: s.statsContent.units,
+            distancePrecision: s.statsContent.distancePrecision,
+            elevationRoundTo: s.statsContent.elevationRoundTo,
+          },
+        }
+      },
       migrate: (persisted, version) => {
         const state = version < 2 ? migrateV0((persisted ?? {}) as Record<string, unknown>) : ((persisted ?? {}) as Partial<PersistedState>)
         const v3 = version < 3 ? migrateV2(state) : state

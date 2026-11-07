@@ -81,7 +81,9 @@ export function createHistory(set: SetState, get: GetState) {
 
   // Rapid repeats of the same action (slider drag, typing, arrow nudges)
   // collapse into one undo step; a different action always starts a new one.
+  // A previewed template is not part of the document: every real step starts from the look under it.
   const commit: Commit = (key, update) => {
+    get().endPreview()
     const now = Date.now()
     if (key !== lastKey || now - lastAt > COALESCE_MS) {
       const s = get()
@@ -105,6 +107,7 @@ export function createHistory(set: SetState, get: GetState) {
     past: [],
     future: [],
     undo: () => {
+      get().endPreview()
       const s = get()
       const prev = s.past[s.past.length - 1]
       if (!prev) return
@@ -118,6 +121,7 @@ export function createHistory(set: SetState, get: GetState) {
       get().showToast(`Cofnięto: ${prev.label}`, 'redo')
     },
     redo: () => {
+      get().endPreview()
       const s = get()
       const next = s.future[0]
       if (!next) return

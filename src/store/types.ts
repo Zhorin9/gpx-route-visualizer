@@ -89,6 +89,8 @@ export interface DocumentState {
   wrapper: Wrapper
   // null until chosen on the start screen.
   mode: ProjectMode | null
+  // The template applied last, to tell whether the look has changed since.
+  templateId: string | null
 }
 
 // undo and redo are the history's own; anything else brings its handler.
@@ -240,9 +242,27 @@ export interface ElementsSlice {
   nudgeSelection: (dx: number, dy: number) => void
 }
 
+export interface TemplatePreview {
+  template: StyleTemplate
+  // The document from before the preview; going back restores it.
+  base: DocumentState
+}
+
 export interface TemplatesSlice {
   customTemplates: StyleTemplate[]
+  // Preferences: the parts "Tylko…" applies, the last used and the favourite template ids.
+  templateParts: TemplateParts
+  recentTemplates: string[]
+  favoriteTemplates: string[]
+  // Outside the history: a template shown on the frame until applied or dropped.
+  templatePreview: TemplatePreview | null
   applyTemplate: (template: StyleTemplate, parts: TemplateParts) => void
+  previewTemplate: (template: StyleTemplate) => void
+  // The previewed template as one undo step.
+  applyPreview: () => void
+  endPreview: () => void
+  setTemplateParts: (parts: TemplateParts) => void
+  toggleFavoriteTemplate: (id: string) => void
   // The colours proposed from the photos, as one undo step; afterwards they are plain style values.
   applyPhotoTheme: (theme: PhotoTheme) => void
   // Empty fields are filled from the route.
