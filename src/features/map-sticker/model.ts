@@ -4,6 +4,8 @@ export const MAP_STICKER_KIND = 'mapSticker'
 
 export interface MapStickerSettings {
   shown: boolean
+  // Width as a share of the frame's; edge, route and dot grow with it.
+  size: number
   styleId: string
   palette: MapPalette
   route: string
@@ -13,6 +15,7 @@ export interface MapStickerSettings {
 // The style board's notebook sticker: soft green land, an orange route, a green start dot.
 export const DEFAULT_MAP_STICKER: MapStickerSettings = {
   shown: false,
+  size: 0.46,
   styleId: 'positron',
   palette: { land: '#a9cf8e', water: '#8fc6e8', green: '#93c27a', road: '#ffffff', label: '#3a4a30' },
   route: '#e9572b',

@@ -389,10 +389,11 @@ describe('style templates', () => {
     expect(get().stamp).toBe(false)
   })
 
-  it('shows the route as a map sticker with Notes z trasy, and draws it plain again with another style', () => {
+  it('shows the route as a map sticker with Notes z trasy at the size set by hand, and plain again with another style', () => {
     const notes = BUILT_IN_TEMPLATES.find((t) => t.id === 'notes')!
+    get().updateMapSticker({ size: 0.7 })
     get().applyTemplate(notes, all)
-    expect(get().mapSticker).toMatchObject({ shown: true, route: '#e9572b' })
+    expect(get().mapSticker).toMatchObject({ shown: true, route: '#e9572b', size: 0.7 })
     get().applyTemplate(papier, all)
     expect(get().mapSticker.shown).toBe(false)
   })

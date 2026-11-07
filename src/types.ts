@@ -299,7 +299,7 @@ export interface StyleTemplate {
   stamp?: boolean
   kicker?: boolean
   // The route as a map sticker, in these colours; applied with the route.
-  mapSticker?: Omit<MapStickerSettings, 'shown'>
+  mapSticker?: Omit<MapStickerSettings, 'shown' | 'size'>
   // Saved templates have a group of their own.
   group?: TemplateGroup
   custom?: boolean

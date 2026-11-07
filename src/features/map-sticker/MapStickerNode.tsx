@@ -8,11 +8,10 @@ import { useAppStore } from '../../store/useAppStore'
 import { fitMercator, projectWithFit } from '../../utils/gpx'
 import { renderMapImage } from '../map/maplibre'
 import { DEFAULT_MAP } from '../map/types'
-import { MAP_STICKER_KIND } from './model'
+import { DEFAULT_MAP_STICKER, MAP_STICKER_KIND } from './model'
 import { convexHull, grown } from './shape'
 
-// Shares of the frame's width, as on the style board.
-const WIDTH = 0.46
+// Shares of the sticker's width, as on the style board.
 const MARGIN = 0.07
 const BORDER = 0.022
 const ROUTE = 0.016
@@ -25,7 +24,7 @@ export default function MapStickerNode() {
   const track = useAppStore(selectTrack)
   const range = useAppStore((s) => s.range)
   const { w, h, safeZone } = FORMATS[aspectKey]
-  const W = Math.round(w * WIDTH)
+  const W = Math.round(w * (sticker.size ?? DEFAULT_MAP_STICKER.size))
 
   const layout = useMemo(() => {
     const points = track?.points.slice(Math.floor(range.start), Math.ceil(range.end) + 1)
