@@ -265,6 +265,8 @@ export interface TemplatesSlice {
   // The previewed template as one undo step.
   applyPreview: () => void
   endPreview: () => void
+  // Anything else done meanwhile keeps the previewed template, as one undo step of its own.
+  keepPreview: () => void
   setTemplateParts: (parts: TemplateParts) => void
   toggleFavoriteTemplate: (id: string) => void
   // The colours proposed from the photos, as one undo step; afterwards they are plain style values.

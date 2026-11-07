@@ -82,9 +82,9 @@ export function createHistory(set: SetState, get: GetState) {
 
   // Rapid repeats of the same action (slider drag, typing, arrow nudges)
   // collapse into one undo step; a different action always starts a new one.
-  // A previewed template is not part of the document: every real step starts from the look under it.
+  // A step taken while a template is previewed keeps the template first, so neither is lost.
   const commit: Commit = (key, update) => {
-    get().endPreview()
+    get().keepPreview()
     const now = Date.now()
     if (key !== lastKey || now - lastAt > COALESCE_MS) {
       const s = get()

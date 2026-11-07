@@ -193,7 +193,7 @@ export default function TemplatesPage() {
         <span className="hint">{countLabel(shown.length, templates.length)}</span>
         <SaveTemplate />
       </div>
-      <p className="hint">Klik pokazuje szablon na kadrze. Szablon nie rusza zdjęć, tras ani treści napisów, tylko wygląd.</p>
+      <p className="hint">Klik pokazuje szablon na kadrze i zostaje, gdy robisz coś dalej. „Wróć do poprzedniego” albo Esc go cofa. Szablon nie rusza zdjęć, tras ani treści napisów, tylko wygląd.</p>
 
       {preview && <PreviewBar template={preview.template} />}
     </div>

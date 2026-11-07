@@ -306,13 +306,25 @@ describe('style templates', () => {
     expect(get().routeStyle.color).toBe(initial.routeStyle.color)
   })
 
-  it('drops the preview before any other change, so the change lands on the applied look', () => {
+  it('keeps a previewed template when something else is changed, as its own undo step', () => {
+    vi.advanceTimersByTime(1000)
     get().previewTemplate(papier)
-    get().updateStatsStyle({ fontSize: 50 })
-    expect(get().routeStyle.color).toBe(initial.routeStyle.color)
-    expect(get().statsStyle.fontSize).toBe(50)
-    get().undo()
+    get().setWrapper('postcard')
     expect(get().templatePreview).toBeNull()
+    expect(get().routeStyle.color).toBe('#8a3b24')
+    expect(get().wrapper.id).toBe('postcard')
+    get().undo()
+    expect(get().wrapper.id).toBe('none')
+    expect(get().routeStyle.color).toBe('#8a3b24')
+    get().undo()
+    expect(get().routeStyle.color).toBe(initial.routeStyle.color)
+  })
+
+  it('keeps a previewed template when another tab opens', () => {
+    get().previewTemplate(papier)
+    get().setSubTab('style', 'wrapper')
+    expect(get().templatePreview).toBeNull()
+    expect(get().templateId).toBe('papier')
   })
 
   it('remembers the last six templates, most recent first', () => {

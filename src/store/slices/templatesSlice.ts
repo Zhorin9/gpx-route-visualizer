@@ -100,6 +100,13 @@ export function createTemplatesSlice({ set, get, commit }: SliceContext): Templa
       if (templatePreview) applyTemplate(templatePreview.template, templateParts)
     },
 
+    keepPreview: () => {
+      const preview = get().templatePreview
+      if (!preview) return
+      set({ ...preview.base, templatePreview: null })
+      get().applyTemplate(preview.template, get().templateParts)
+    },
+
     endPreview: () => {
       const preview = get().templatePreview
       if (preview) set({ ...preview.base, templatePreview: null })

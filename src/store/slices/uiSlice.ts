@@ -58,19 +58,19 @@ export function createUiSlice({ set, get, commit }: SliceContext): UiSlice {
     centerView: 'map',
 
     // A page with its own workspace (Mapa → Przystanki → the map) opens on it; the frame is one click away.
-    // Leaving the templates, or reaching for the frame, drops a previewed template.
+    // Leaving the templates, or reaching for the frame, keeps a previewed template.
     setActiveTab: (tab) => {
-      get().endPreview()
+      get().keepPreview()
       set({ activeTab: tab, centerView: 'map' })
     },
     setCenterView: (view) => set({ centerView: view }),
     setSubTab: (tab, page) => {
-      get().endPreview()
+      get().keepPreview()
       set((s) => ({ subTabs: { ...s.subTabs, [tab]: page }, centerView: 'map' }))
     },
     setPreviewBackdrop: (value) => set({ previewBackdrop: value }),
     select: (selection) => {
-      get().endPreview()
+      get().keepPreview()
       set((s) => {
         if (!selection) return { selection: null }
         const { tab, page } = settingsTabFor(selection, s.activeTab)
