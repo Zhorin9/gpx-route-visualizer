@@ -1082,6 +1082,18 @@
   background: color-mix(in srgb, var(--text) 7%, transparent);
 }
 
+/* Each cell draws its own edge, so a short last row leaves no grey gap. */
+.segmented.wrap {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.segmented.wrap .segment {
+  border-left: none;
+  outline: 1px solid var(--border);
+  outline-offset: -0.5px;
+}
+
 .segment.active {
   color: var(--accent);
   box-shadow: inset 0 0 0 1px var(--accent);

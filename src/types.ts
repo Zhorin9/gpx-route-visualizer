@@ -196,6 +196,10 @@ export interface Waypoint {
   stopId?: number
   // Kind 'icon' only.
   icon?: IconId
+  // The icon stands at the end of the leader, where the name would be; a plain dot marks the place.
+  iconAsLabel?: boolean
+  // Unset: DEFAULT_ICON_SIZE.
+  iconSize?: number
 }
 
 // 'label': no photo, the name alone over a rule.

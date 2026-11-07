@@ -8,13 +8,15 @@ export interface SegmentedProps<T extends string> {
   // Shows the label above the control; otherwise it's only exposed to screen readers.
   showLabel?: boolean
   disabled?: boolean
+  // Too many options for one row: they wrap in a grid of three.
+  wrap?: boolean
 }
 
-export default function Segmented<T extends string>({ label, value, options, onChange, showLabel = false, disabled }: SegmentedProps<T>) {
+export default function Segmented<T extends string>({ label, value, options, onChange, showLabel = false, disabled, wrap }: SegmentedProps<T>) {
   return (
     <div className="field">
       {showLabel && <span className="field-label">{label}</span>}
-      <div className="segmented" role="radiogroup" aria-label={label}>
+      <div className={wrap ? 'segmented wrap' : 'segmented'} role="radiogroup" aria-label={label}>
         {options.map((opt) => (
           <button
             key={opt.value}
