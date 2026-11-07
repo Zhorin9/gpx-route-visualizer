@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import CheckboxField from '../fields/CheckboxField'
 import Button from '../ui/Button'
 import TemplateThumb from './TemplateThumb'
+import { isPlainLook, PHOTO_GRADES } from '../../utils/photoLook'
 import { IconMore } from '../icons'
 import useDismiss from '../../hooks/useDismiss'
 import { useAppStore } from '../../store/useAppStore'
@@ -18,7 +19,6 @@ const PART_LABELS: { key: keyof TemplateParts; label: string }[] = [
   { key: 'layout', label: 'Układ zdjęć' },
   { key: 'points', label: 'Zdjęcia w punktach' },
   { key: 'effects', label: 'Efekty i ikony' },
-  { key: 'photo', label: 'Wygląd zdjęć' },
 ]
 
 // A collage has no route and no places to pin photos to.
@@ -115,6 +115,7 @@ function PreviewBar({ template }: { template: StyleTemplate }) {
   const collageMode = useAppStore((s) => s.mode === 'collage')
   const [choosing, setChoosing] = useState(false)
   const anyPart = Object.values(parts).some(Boolean)
+  const grade = template.photoLook && !isPlainLook(template.photoLook) ? PHOTO_GRADES.find((g) => g.value === template.photoLook?.grade)?.label : null
   return (
     <div className="template-preview-bar" role="region" aria-label="Podgląd szablonu">
       <div className="template-preview-head">
@@ -123,6 +124,8 @@ function PreviewBar({ template }: { template: StyleTemplate }) {
         </span>
         <span className="hint">kadr pokazuje ten styl</span>
       </div>
+      {/* Photos keep their own colours unless asked: the style's film look is opt-in. */}
+      {grade && <CheckboxField label={`Nałóż też na zdjęcia (${grade.toLowerCase()})`} checked={parts.photo} onChange={(photo) => setParts({ ...parts, photo })} />}
       <div className="button-row">
         <Button variant="primary" size="sm" disabled={!anyPart} onClick={applyPreview}>
           Zastosuj

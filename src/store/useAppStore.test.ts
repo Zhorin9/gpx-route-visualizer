@@ -356,9 +356,9 @@ describe('style templates', () => {
     expect(get().statsStyle.hardShadow).toBeUndefined()
   })
 
-  it('lays the film look of a style on the photos, and only when the photo part is applied', () => {
+  it('leaves the photos alone unless asked, and lays the film look of a style on them when asked', () => {
     const retro = BUILT_IN_TEMPLATES.find((t) => t.id === 'retro70')!
-    get().applyTemplate(retro, { ...all, photo: false })
+    get().applyTemplate(retro, get().templateParts)
     expect(get().photoLook.grade).toBe('none')
     get().applyTemplate(retro, all)
     expect(get().photoLook).toEqual({ grade: 'warm', fade: 0, grain: 28 })

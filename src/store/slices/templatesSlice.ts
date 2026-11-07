@@ -93,7 +93,7 @@ export function createTemplatesSlice({ set, get, commit }: SliceContext): Templa
   return {
     customTemplates: [],
 
-    templateParts: { fonts: true, route: true, frame: true, colors: true, layout: false, points: true, effects: true, photo: true },
+    templateParts: { fonts: true, route: true, frame: true, colors: true, layout: false, points: true, effects: true, photo: false },
     recentTemplates: [],
     favoriteTemplates: [],
     templatePreview: null,

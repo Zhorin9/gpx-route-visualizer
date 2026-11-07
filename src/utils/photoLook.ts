@@ -12,7 +12,6 @@ export interface PhotoLook {
 export const NO_PHOTO_LOOK: PhotoLook = { grade: 'none', fade: 0, grain: 0 }
 
 export const PHOTO_GRADES: { value: PhotoGrade; label: string }[] = [
-  { value: 'none', label: 'Bez zmian' },
   { value: 'warm', label: 'Ciepły film' },
   { value: 'cool', label: 'Chłodny poranek' },
   { value: 'faded', label: 'Wyblakłe lato' },
