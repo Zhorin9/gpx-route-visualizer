@@ -2,7 +2,7 @@ import { Group, Rect } from 'react-konva'
 import { useLayerAnimation } from '../../core/animation/layers'
 import { CHROME_ACCENT, SELECTION_OUTLINE } from '../../core/canvas/chrome'
 import { SNAP_TARGET, snapDragEnd, snapDragMove } from '../../core/canvas/snapDrag'
-import { useSlideAt } from '../../store/selectors'
+import { useSlideAt, useStickerColor } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { UI_ONLY } from '../../utils/exportImage'
 import SlideBox from '../SlideBox'
@@ -19,6 +19,7 @@ export default function LooseIcon({ node }: { node: TextNode }) {
   const updateText = useAppStore((s) => s.updateText)
   const animation = useLayerAnimation('header')
   const slide = useSlideAt(node.x)
+  const color = useStickerColor(slide) ?? node.color
   const { finish, paper } = useIconLook()
   if (!node.icon) return null
   const size = node.fontSize
@@ -43,7 +44,7 @@ export default function LooseIcon({ node }: { node: TextNode }) {
       >
         {/* Catches clicks between the strokes. */}
         <Rect x={-size / 2} y={-size / 2} width={size} height={size} fill="transparent" />
-        <IconGlyph icon={node.icon} size={size} finish={finish} color={node.color} paper={paper} />
+        <IconGlyph icon={node.icon} size={size} finish={finish} color={color} paper={paper} />
         {selected && <Rect name={UI_ONLY} x={-size / 2 - PAD} y={-size / 2 - PAD} width={size + PAD * 2} height={size + PAD * 2} stroke={CHROME_ACCENT} {...SELECTION_OUTLINE} />}
       </Group>
     </SlideBox>

@@ -54,7 +54,12 @@ export default function PhotoPaletteSection() {
     return () => clearTimeout(timer)
   }, [photos])
 
-  if (!photos.length) return null
+  if (!photos.length)
+    return (
+      <Section title="Z Twoich zdjęć">
+        <p className="hint">Dodaj zdjęcia w zakładce Zdjęcia, a zaproponuję kolory trasy, tła i tekstu dobrane do nich.</p>
+      </Section>
+    )
 
   return (
     <Section title="Z Twoich zdjęć">
@@ -74,7 +79,7 @@ export default function PhotoPaletteSection() {
           {palette.grey && <p className="hint">Zdjęcia mają mało koloru, propozycja oparta na odcieniach szarości.</p>}
           <div className="button-row photo-palette-actions">
             <Button disabled={applied} onClick={() => applyPhotoTheme(theme)}>
-              {applied ? 'Zastosowano' : 'Zastosuj'}
+              {applied ? 'Zastosowano' : 'Zastosuj do kadru'}
             </Button>
             <button type="button" className="link-btn" onClick={() => setVariant((v) => (v + 1) % THEME_VARIANTS.length)}>
               Inna propozycja

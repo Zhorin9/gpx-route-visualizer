@@ -2,6 +2,7 @@ import { Fragment } from 'react'
 import { Line, Text } from 'react-konva'
 import DraggableElement from '../../../core/canvas/DraggableElement'
 import { useAppStore } from '../../../store/useAppStore'
+import { useStickerColor } from '../../../store/selectors'
 import { textColumn } from '../../../core/formats/registry'
 import { defaultStatsY, statsYBelowTitle } from '../../../utils/aspects'
 import { konvaFontStyle } from '../../../utils/fonts'
@@ -25,7 +26,9 @@ function arrangeInColumn(input: ArrangeInput) {
 
 export default function StatsHeaderNode() {
   const chips = useStatsChips()
-  const style = useAppStore((s) => s.statsStyle)
+  const ownStyle = useAppStore((s) => s.statsStyle)
+  const sticker = useStickerColor(0)
+  const style = sticker ? { ...ownStyle, color: sticker } : ownStyle
   const title = useAppStore((s) => s.texts.find((t) => t.role === 'title'))
   const chipOffsets = useAppStore((s) => s.statsLayout.chipOffsets)
   const aspectKey = useAppStore((s) => s.aspectKey)
@@ -63,10 +66,12 @@ export default function StatsHeaderNode() {
           opacity: t.opacity,
           perfectDrawEnabled: false,
         }
-        const hard = style.hardShadow
+        const { hardShadow: hard, outline } = style
+        const stroke = outline ? outline.width * 2 : 0
         return (
           <Fragment key={t.id}>
-            {hard && <Text {...glyphs} x={t.x + hard.dx} y={t.y + hard.dy} fill={hard.color} listening={false} />}
+            {hard && <Text {...glyphs} x={t.x + hard.dx} y={t.y + hard.dy} fill={hard.color} stroke={hard.color} strokeWidth={stroke} lineJoin="round" listening={false} />}
+            {outline && <Text {...glyphs} fill={outline.color} stroke={outline.color} strokeWidth={stroke} lineJoin="round" listening={false} />}
             <Text
               {...glyphs}
               fill={style.color}

@@ -5,7 +5,7 @@ import MediaTab from './MediaTab'
 import RouteTab from './RouteTab'
 import ElementsTab from './ElementsTab'
 import TemplatesPage from './TemplatesPage'
-import PhotoPaletteSection from './PhotoPaletteSection'
+import ColorsPage from './ColorsPage'
 import WrapperSection from './WrapperSection'
 import SlideStylePage from './SlideStylePage'
 import SubTabs from '../../core/panel/SubTabs'
@@ -30,7 +30,7 @@ function StylePanel() {
   const series = useAppStore((s) => s.slides.length > 1 && s.carouselKind === 'slides')
   const own = [
     { id: 'presets', label: 'Szablony', Component: TemplatesPage },
-    { id: 'colors', label: 'Kolory', Component: PhotoPaletteSection },
+    { id: 'colors', label: 'Kolory', Component: ColorsPage },
     { id: 'background', label: 'Tło', Component: BackgroundTab },
     { id: 'wrapper', label: 'Opakowanie', Component: WrapperSection },
     ...(series ? [{ id: 'slide', label: 'Ten slajd', Component: SlideStylePage }] : []),

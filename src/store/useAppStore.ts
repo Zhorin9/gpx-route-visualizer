@@ -164,6 +164,7 @@ export const useAppStore = create<AppState>()(
           routeStyle: { ...current.routeStyle, ...p.routeStyle },
           statsStyle: { ...current.statsStyle, ...p.statsStyle },
           titleStyle: { ...current.titleStyle, ...p.titleStyle },
+          templateParts: { ...current.templateParts, ...p.templateParts },
           statsContent: {
             ...current.statsContent,
             ...p.statsContent,

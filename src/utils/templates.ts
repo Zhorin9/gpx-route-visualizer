@@ -1,5 +1,6 @@
 import { DEFAULT_COLLAGE, DEFAULT_ROUTE_STYLE, DEFAULT_STATS_STYLE } from '../store/defaults'
-import type { BackgroundPattern, PhotoMarker, RouteStyle, StyleTemplate } from '../types'
+import { STICKER_COLORS, STICKER_INK } from './sticker'
+import type { BackgroundPattern, HardShadow, PhotoMarker, RouteCasing, RouteStyle, StyleTemplate } from '../types'
 
 const { shape: _shape, schematicSimplify: _simplify, ...DEFAULT_ROUTE_LOOK } = DEFAULT_ROUTE_STYLE
 
@@ -19,6 +20,15 @@ const gradient = (from: string, to: string, angle = 180, pattern: BackgroundPatt
 const FONTS = { title: 'Cormorant Garamond', data: 'Lora', note: 'Lora' }
 const CINZEL = { title: 'Cinzel', data: 'Lora', note: 'Lora' }
 const MONO = { title: 'Cormorant Garamond', data: 'JetBrains Mono', note: 'JetBrains Mono' }
+
+// Board values are for a post about 370 px wide; here they are scaled to the 1080 px frame (×2.9).
+// The style board's photo stand-in: warm brown, darker at the foot.
+const BROWN = { from: '#6e5638', to: '#3a2e20', angle: 170, grain: 0, smooth: true, pattern: 'none' as const }
+const shadow = (d: number, color = STICKER_INK): HardShadow => ({ dx: d, dy: d, color })
+const casing = (width: number, color = STICKER_INK, d = 12): RouteCasing => ({ width, color, dx: d, dy: d })
+const PINK = STICKER_COLORS[0].hex
+const YELLOW = '#ffd23f'
+const RED = '#d7261e'
 
 const NO_FRAME = { ...DEFAULT_COLLAGE.frame, enabled: false }
 const POLAROID = { enabled: true, color: PRINT, thickness: 24, style: 'polaroid' as const }
@@ -71,4 +81,25 @@ export const BUILT_IN_TEMPLATES: StyleTemplate[] = [
     route: line('#fff4e3', 5, ['#ffd9a0', 16, 0.35, 12]), gradient: gradient('#2b1a4a', '#e8875f'), pointStyle: points('square') }),
   template({ id: 'pastel', name: 'Pastel', desc: 'kółko, jasny', group: 'dark', textColor: '#4b3f6b',
     route: line('#6a5bc4', 6, ['#9b8de0', 16, 0.2]), gradient: gradient('#fde8ea', '#e6eefb'), pointStyle: points('circle') }),
+
+  template({ id: 'naklejka', name: 'Naklejka', desc: 'jeden kolor, kontur, ikony', group: 'sticker', fonts: { title: 'Sedgwick Ave Display', data: 'Rubik', note: 'Rubik' },
+    titleUppercase: true, statsStyle: columns(52), textColor: PINK, route: line(PINK, 19, undefined, { casing: casing(15) }), gradient: BROWN, pointStyle: points('circle'),
+    titleEffect: { outline: { color: STICKER_INK, width: 7 }, hardShadow: shadow(15) }, statsEffect: { outline: { color: STICKER_INK, width: 4 }, hardShadow: shadow(9) },
+    iconFinish: 'sticker', sticker: { mode: 'manual', color: PINK } }),
+  // Kalam, not the board's Permanent Marker: that one has no Polish letters.
+  template({ id: 'notes', name: 'Notes z trasy', desc: 'odręczny, biały, trasa z obwódką', group: 'sticker', fonts: { title: 'Kalam', data: 'Kalam', note: 'Kalam' },
+    titleUppercase: false, textColor: '#ffffff', statsStyle: columns(46), route: line('#e9572b', 15, undefined, { casing: casing(20, '#ffffff', 0) }), gradient: BROWN, pointStyle: points('label'), iconFinish: 'line' }),
+  template({ id: 'szkicownik', name: 'Szkicownik', desc: 'papier, polaroid, Caveat', group: 'sticker', fonts: { title: 'Caveat', data: 'Caveat', note: 'Caveat' },
+    titleUppercase: false, statsStyle: columns(30), textColor: '#3a2a1c', route: line('#3a2a1c', 8, ['#3a2a1c', 4, 0.5]), frame: POLAROID,
+    gradient: flat('#efe6d2', 'none', 6), layoutKey: 'c1', pointStyle: points('polaroid'), iconFinish: 'ink' }),
+
+  template({ id: 'retro70', name: 'Retro 70.', desc: 'żółty, czerwony cień', group: 'poster', fonts: { title: 'Shrikhand', data: 'Rubik', note: 'Rubik' },
+    titleUppercase: false, textColor: YELLOW, statsStyle: columns(32), route: line(YELLOW, 16, undefined, { casing: casing(12, RED) }), gradient: { ...BROWN, from: '#8b6f4a', to: '#4a3b28', grain: 28 },
+    pointStyle: points('polaroid'), titleEffect: { outline: { color: RED, width: 6 }, hardShadow: shadow(15, RED) }, iconFinish: 'sticker' }),
+  template({ id: 'dokument', name: 'Dokument', desc: 'maszyna do pisania', group: 'poster', fonts: { title: 'Special Elite', data: 'Special Elite', note: 'Special Elite' },
+    titleUppercase: false, statsStyle: columns(28), textColor: '#f3ef8a', route: line('#f3ef8a', 6), gradient: { ...BROWN, from: '#8a8378', to: '#4d4840', grain: 22 },
+    pointStyle: points('label'), iconFinish: 'line' }),
+  template({ id: 'gravel', name: 'Plakat gravel', desc: 'gruby żółty krój', group: 'poster', fonts: { title: 'Bagel Fat One', data: 'Rubik', note: 'Rubik' },
+    titleUppercase: true, statsStyle: columns(36), textColor: '#ffffff', titleColor: YELLOW, route: line(YELLOW, 22), gradient: { ...BROWN, from: '#9a7a52', to: '#5c4930' },
+    pointStyle: points('square'), titleEffect: { hardShadow: { dx: 0, dy: 9, color: 'rgba(120,80,0,0.45)' } }, iconFinish: 'sticker' }),
 ]

@@ -1,3 +1,4 @@
+import type { StickerSettings } from '../utils/sticker'
 import type { IconFinish, IconId } from '../components/place/icons'
 import type {
   AspectKey,
@@ -93,6 +94,8 @@ export interface DocumentState {
   // The template applied last, to tell whether the look has changed since.
   templateId: string | null
   iconFinish: IconFinish
+  // Set by the sticker styles: one colour for their elements, in place of each element's own.
+  sticker: StickerSettings | null
 }
 
 // undo and redo are the history's own; anything else brings its handler.
@@ -232,6 +235,7 @@ export interface StatsSlice {
 
 export interface ElementsSlice {
   setIconFinish: (finish: IconFinish) => void
+  updateSticker: (patch: Partial<StickerSettings>) => void
   // With an icon: an icon placed loose on the frame, moved and turned like a text.
   addText: (icon?: IconId) => number
   updateText: (id: number, patch: Partial<TextNode>) => void

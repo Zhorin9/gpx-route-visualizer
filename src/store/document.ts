@@ -40,6 +40,7 @@ export const INITIAL_DOCUMENT: DocumentState = {
   mode: null,
   templateId: null,
   iconFinish: 'sticker',
+  sticker: null,
 }
 
 export const DOCUMENT_KEYS = Object.keys(INITIAL_DOCUMENT) as (keyof DocumentState)[]

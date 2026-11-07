@@ -1,4 +1,5 @@
-import type { IconId } from './components/place/icons'
+import type { IconFinish, IconId } from './components/place/icons'
+import type { StickerSettings } from './utils/sticker'
 import type { ReactNode } from 'react'
 import type { Units } from './core/units'
 
@@ -132,6 +133,17 @@ export interface HardShadow {
   color: string
 }
 
+export interface TextOutline {
+  color: string
+  width: number
+}
+
+// What a style does to the glyphs of every text, beyond font and colour.
+export interface TextEffect {
+  outline?: TextOutline
+  hardShadow?: HardShadow
+}
+
 export interface TitleStyle {
   fontFamily: string
   color: string
@@ -230,12 +242,18 @@ export interface StyleTemplate {
   pointStyle?: PointStyle
   // The map's colours come from the template's background and text.
   map?: { styleId?: string; hillshade?: boolean; labels?: boolean }
+  // Applied with the effects part; absent ones clear what an earlier style left.
+  titleEffect?: TextEffect
+  statsEffect?: TextEffect
+  iconFinish?: IconFinish
+  // Only the sticker styles carry one; any other style turns it off.
+  sticker?: StickerSettings
   // Saved templates have a group of their own.
   group?: TemplateGroup
   custom?: boolean
 }
 
-export type TemplateGroup = 'basic' | 'natural' | 'retro' | 'dark'
+export type TemplateGroup = 'basic' | 'natural' | 'retro' | 'dark' | 'sticker' | 'poster'
 
 export interface TemplateParts {
   fonts: boolean
@@ -244,6 +262,7 @@ export interface TemplateParts {
   colors: boolean
   layout: boolean
   points: boolean
+  effects: boolean
 }
 
 export interface RouteTransform {
@@ -273,6 +292,7 @@ export interface StatsStyle {
   rotation: number
   shadow: boolean
   hardShadow?: HardShadow
+  outline?: TextOutline
   // Hero arrangement only.
   heroKey: StatKey
   heroSecondary: boolean

@@ -52,6 +52,16 @@ export function withTemplate(s: TemplateTarget, template: StyleTemplate, parts: 
     collage = { ...collage, frame: { ...collage.frame, style: frameStyleFor(template.layoutKey) } }
   }
   if (parts.frame) collage = { ...collage, frame: { ...template.frame } }
+  if (parts.effects) {
+    const { outline, hardShadow } = template.titleEffect ?? {}
+    texts = texts.map((t) => ({
+      ...t,
+      outlineEnabled: !!outline,
+      ...(outline ? { outlineColor: outline.color, outlineWidth: outline.width } : null),
+      hardShadow,
+    }))
+    statsStyle = { ...statsStyle, hardShadow: template.statsEffect?.hardShadow, outline: template.statsEffect?.outline }
+  }
 
   return {
     statsStyle,
@@ -61,7 +71,9 @@ export function withTemplate(s: TemplateTarget, template: StyleTemplate, parts: 
     waypoints,
     slides,
     map,
-    ...(parts.route ? { routeStyle: { ...s.routeStyle, ...template.route } } : null),
+    ...(parts.route ? { routeStyle: { ...s.routeStyle, ...template.route, casing: template.route.casing } } : null),
+    ...(parts.effects ? { iconFinish: template.iconFinish ?? 'sticker' } : null),
+    ...(parts.colors ? { sticker: template.sticker ? { ...template.sticker } : null } : null),
     ...(parts.points && template.pointStyle ? { pointStyle: { ...template.pointStyle } } : null),
   }
 }
@@ -79,7 +91,7 @@ export function createTemplatesSlice({ set, get, commit }: SliceContext): Templa
   return {
     customTemplates: [],
 
-    templateParts: { fonts: true, route: true, frame: true, colors: true, layout: false, points: true },
+    templateParts: { fonts: true, route: true, frame: true, colors: true, layout: false, points: true, effects: true },
     recentTemplates: [],
     favoriteTemplates: [],
     templatePreview: null,
@@ -154,6 +166,10 @@ export function createTemplatesSlice({ set, get, commit }: SliceContext): Templa
         gradient,
         layoutKey: s.slides[Math.min(s.activeSlide, s.slides.length - 1)].layoutKey,
         pointStyle: s.pointStyle,
+        titleEffect: title && { outline: title.outlineEnabled ? { color: title.outlineColor, width: title.outlineWidth } : undefined, hardShadow: title.hardShadow },
+        statsEffect: { outline: s.statsStyle.outline, hardShadow: s.statsStyle.hardShadow },
+        iconFinish: s.iconFinish,
+        ...(s.sticker ? { sticker: s.sticker } : null),
         ...(s.collage.bgKind === 'map' ? { map: { styleId: s.map.styleId, hillshade: s.map.hillshade, labels: s.map.labels } } : null),
         custom: true,
       }

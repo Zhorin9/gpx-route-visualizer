@@ -57,6 +57,7 @@ const STEP_LABELS: Record<string, string> = {
   template: 'zastosowanie szablonu',
   photoTheme: 'zastosowanie kolorów ze zdjęć',
   iconFinish: 'zmiana wykonania ikon',
+  sticker: 'zmiana koloru naklejki',
   wrapper: 'zmiana opakowania',
   travel: 'zmiana podróży',
   camera: 'zmiana kamery',

@@ -9,7 +9,7 @@ import { textColumn } from '../core/formats/registry'
 import { konvaFontStyle } from '../utils/fonts'
 import { displayText, fittedTitleSize } from '../utils/title'
 import SelectionOutline from './SelectionOutline'
-import { useSlideAt } from '../store/selectors'
+import { useSlideAt, useStickerColor } from '../store/selectors'
 import SlideBox from './SlideBox'
 import type { TextNode } from '../types'
 import { TEXT_SHADOW } from '../core/canvas/shadows'
@@ -26,6 +26,7 @@ export default function EditableText({ node }: { node: TextNode }) {
   const fontsVersion = useAppStore((s) => s.fontsVersion)
   const animation = useLayerAnimation('header')
   const slide = useSlideAt(node.x)
+  const color = useStickerColor(slide) ?? node.color
 
   // Konva lays text out once; widths measured with a fallback font would stay wrong after the real one loads.
   useEffect(() => {
@@ -86,7 +87,7 @@ export default function EditableText({ node }: { node: TextNode }) {
       <Text
         ref={shapeRef}
         {...shared}
-        fill={node.color}
+        fill={color}
         visible={!hidden}
         name={SNAP_TARGET}
         draggable

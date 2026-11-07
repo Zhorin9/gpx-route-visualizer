@@ -233,7 +233,7 @@ describe('carousel', () => {
 
 describe('style templates', () => {
   const papier = BUILT_IN_TEMPLATES.find((t) => t.id === 'papier')!
-  const all = { fonts: true, route: true, frame: true, colors: true, layout: false, points: true }
+  const all = { fonts: true, route: true, frame: true, colors: true, layout: false, points: true, effects: true }
 
   it('applies only the chosen parts and never touches texts content or photos', () => {
     useAppStore.setState({ photos: [fakePhoto(1)] })
@@ -340,6 +340,20 @@ describe('style templates', () => {
     expect(lookChanged(get(), papier, all)).toBe(true)
     get().applyTemplate(papier, all)
     expect(lookChanged(get(), papier, all)).toBe(false)
+  })
+
+  it('turns off what a sticker style left when another style is applied', () => {
+    get().addText()
+    const naklejka = BUILT_IN_TEMPLATES.find((t) => t.id === 'naklejka')!
+    get().applyTemplate(naklejka, all)
+    expect(get().sticker?.color).toBe('#f2b8f5')
+    expect(get().routeStyle.casing).toBeDefined()
+    expect(get().texts[0]).toMatchObject({ outlineEnabled: true, hardShadow: { dx: 5, dy: 5 } })
+    get().applyTemplate(papier, all)
+    expect(get().sticker).toBeNull()
+    expect(get().routeStyle.casing).toBeUndefined()
+    expect(get().texts[0]).toMatchObject({ outlineEnabled: false, hardShadow: undefined })
+    expect(get().statsStyle.hardShadow).toBeUndefined()
   })
 
   it('saves the current look as a custom template', () => {
@@ -495,7 +509,7 @@ describe('multi-day routes', () => {
   it('turns the track name into one centred title, styled by the template', async () => {
     vi.useRealTimers()
     const plakat = BUILT_IN_TEMPLATES.find((t) => t.id === 'plakat')!
-    get().applyTemplate(plakat, { fonts: true, route: false, frame: false, colors: true, layout: false, points: false })
+    get().applyTemplate(plakat, { fonts: true, route: false, frame: false, colors: true, layout: false, points: false, effects: false })
     await get().loadGpxFile(gpx(50, 'Sardynia'))
     await get().loadGpxFile(gpx(51, 'Dzień 2'), true)
     const titles = get().texts.filter((t) => t.role === 'title')
@@ -602,7 +616,7 @@ describe('gradient background', () => {
 
   it('applies a template background', () => {
     const topo = BUILT_IN_TEMPLATES.find((t) => t.id === 'topo')!
-    get().applyTemplate(topo, { fonts: false, route: false, frame: false, colors: true, layout: false, points: false })
+    get().applyTemplate(topo, { fonts: false, route: false, frame: false, colors: true, layout: false, points: false, effects: false })
     expect(get().collage.bgKind).toBe('gradient')
     expect(get().collage.gradient).toMatchObject({ from: topo.gradient.from, pattern: 'contours' })
   })

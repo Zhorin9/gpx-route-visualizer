@@ -5,6 +5,7 @@ import { useForcedGhost } from '../core/animation/layers'
 import { CHROME_ACCENT } from '../core/canvas/chrome'
 import { SNAP_BOX, SNAP_TARGET, snapDragEnd, snapDragMove } from '../core/canvas/snapDrag'
 import { styleColoring } from '../core/route/coloring'
+import { useStickerColor } from '../store/selectors'
 import { routeDecorations, useProvidedColoring, useWorldView } from '../core/route/providers'
 import RoutePainter from '../core/route/RoutePainter'
 import { useRouteGeometry } from '../core/route/useRouteGeometry'
@@ -26,7 +27,9 @@ function readTransform(node: Konva.Node): RouteTransform {
 }
 
 export default function RouteGroup() {
-  const savedStyle = useAppStore((s) => s.routeStyle)
+  const ownStyle = useAppStore((s) => s.routeStyle)
+  const sticker = useStickerColor(0)
+  const savedStyle = useMemo(() => (sticker ? { ...ownStyle, color: sticker } : ownStyle), [ownStyle, sticker])
   const forcedGhost = useForcedGhost()
   const view = useWorldView()
   const zoom = view?.zoom ?? 1

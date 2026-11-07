@@ -17,6 +17,7 @@ const PART_LABELS: { key: keyof TemplateParts; label: string }[] = [
   { key: 'colors', label: 'Kolory kadru' },
   { key: 'layout', label: 'Układ zdjęć' },
   { key: 'points', label: 'Zdjęcia w punktach' },
+  { key: 'effects', label: 'Efekty i ikony' },
 ]
 
 // A collage has no route and no places to pin photos to.
@@ -32,6 +33,8 @@ const FILTERS: { key: Filter; label: string }[] = [
   { key: 'natural', label: 'Naturalne' },
   { key: 'retro', label: 'Retro' },
   { key: 'dark', label: 'Ciemne' },
+  { key: 'sticker', label: 'Naklejki' },
+  { key: 'poster', label: 'Plakaty' },
   { key: 'custom', label: 'Własne' },
 ]
 
@@ -74,7 +77,12 @@ function SaveTemplate() {
   const saveTemplate = useAppStore((s) => s.saveTemplate)
   const [naming, setNaming] = useState(false)
   const [name, setName] = useState('')
-  if (!naming) return <Button onClick={() => setNaming(true)}>Zapisz obecny jako własny</Button>
+  if (!naming)
+    return (
+      <Button size="sm" onClick={() => setNaming(true)}>
+        Zapisz obecny jako własny
+      </Button>
+    )
   return (
     <form
       className="template-name-row"
@@ -108,20 +116,30 @@ function PreviewBar({ template }: { template: StyleTemplate }) {
   const anyPart = Object.values(parts).some(Boolean)
   return (
     <div className="template-preview-bar" role="region" aria-label="Podgląd szablonu">
-      <span className="template-preview-name">Podgląd: {template.name}</span>
-      {choosing &&
-        PART_LABELS.filter(({ key }) => !collageMode || !ROUTE_PARTS.includes(key)).map(({ key, label }) => (
-          <CheckboxField key={key} label={label} checked={parts[key]} onChange={(on) => setParts({ ...parts, [key]: on })} />
-        ))}
+      <div className="template-preview-head">
+        <span>
+          Podgląd: <strong>{template.name}</strong>
+        </span>
+        <span className="hint">kadr pokazuje ten styl</span>
+      </div>
       <div className="button-row">
-        <Button variant="primary" disabled={!anyPart} onClick={applyPreview}>
+        <Button variant="primary" size="sm" disabled={!anyPart} onClick={applyPreview}>
           Zastosuj
         </Button>
-        <Button onClick={endPreview}>Wróć do poprzedniego</Button>
-        <Button variant="ghost" pressed={choosing} onClick={() => setChoosing(!choosing)}>
+        <Button size="sm" onClick={endPreview}>
+          Wróć do poprzedniego
+        </Button>
+        <Button size="sm" variant="ghost" className="template-only" pressed={choosing} onClick={() => setChoosing(!choosing)}>
           Tylko…
         </Button>
       </div>
+      {choosing && (
+        <div className="template-parts">
+          {PART_LABELS.filter(({ key }) => !collageMode || !ROUTE_PARTS.includes(key)).map(({ key, label }) => (
+            <CheckboxField key={key} label={label} checked={parts[key]} onChange={(on) => setParts({ ...parts, [key]: on })} />
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -132,6 +150,7 @@ export default function TemplatesPage() {
   const favorite = useAppStore((s) => s.favoriteTemplates)
   const preview = useAppStore((s) => s.templatePreview)
   const previewTemplate = useAppStore((s) => s.previewTemplate)
+  const applyPreview = useAppStore((s) => s.applyPreview)
   const templates = [...BUILT_IN_TEMPLATES, ...customTemplates]
   const current = useAppStore((s) => templates.find((t) => t.id === s.templateId))
   const changed = useAppStore((s) => !s.templatePreview && !!current && lookChanged(s, current, s.templateParts))
@@ -140,62 +159,67 @@ export default function TemplatesPage() {
 
   const shown = filtered(templates, filter, recent, favorite)
   const filters = FILTERS.filter(({ key }) => key === 'recent' || key === 'favorite' || filtered(templates, key, recent, favorite).length)
+  const onFrame = preview?.template.id ?? current?.id
 
   return (
     <div className="templates-page">
-      <div className="chip-list" role="radiogroup" aria-label="Grupa szablonów">
+      <div className="template-current">
+        <span>
+          Teraz: <strong>{current?.name ?? 'własny wygląd'}</strong>
+        </span>
+        {changed && <span className="template-changed">zmieniony</span>}
+      </div>
+
+      <div className="template-filters" role="radiogroup" aria-label="Grupa szablonów">
         {filters.map(({ key, label }) => (
-          <button key={key} type="button" role="radio" aria-checked={key === filter} className={key === filter ? 'chip active' : 'chip'} onClick={() => setFilter(key)}>
+          <button key={key} type="button" role="radio" aria-checked={key === filter} className={key === filter ? 'template-filter active' : 'template-filter'} onClick={() => setFilter(key)}>
             {label}
           </button>
         ))}
       </div>
 
-      {current && (
-        <p className="template-current">
-          Teraz: <strong>{current.name}</strong>
-          {changed && <span className="template-changed">zmieniony</span>}
-        </p>
-      )}
-
       {shown.length ? (
         <div className="template-grid">
-          {shown.map((template) => {
-            const previewed = preview?.template.id === template.id
-            return (
-              <div key={template.id} className={previewed ? 'template-card active' : 'template-card'}>
-                <button type="button" className="template-card-body" aria-pressed={previewed} title={template.desc} onClick={() => previewTemplate(template)}>
-                  <TemplateThumb template={template} />
-                  <span className="template-card-name">{template.name}</span>
-                </button>
-                <button
-                  type="button"
-                  className="template-card-more"
-                  aria-label={`Więcej: ${template.name}`}
-                  aria-haspopup="menu"
-                  aria-expanded={menuOf === template.id}
-                  // The open menu closes on a press elsewhere; its own button toggles it instead.
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onClick={() => setMenuOf(menuOf === template.id ? null : template.id)}
-                >
-                  <IconMore width={12} height={12} />
-                </button>
-                {menuOf === template.id && <CardMenu template={template} onClose={() => setMenuOf(null)} />}
-              </div>
-            )
-          })}
+          {shown.map((template) => (
+            <div key={template.id} className={template.id === onFrame ? 'template-card active' : 'template-card'}>
+              {/* A click shows it on the frame; a double click applies it straight away. */}
+              <button
+                type="button"
+                className="template-card-body"
+                aria-pressed={template.id === onFrame}
+                title={`${template.desc}. Dwuklik: zastosuj`}
+                onClick={() => previewTemplate(template)}
+                onDoubleClick={applyPreview}
+              >
+                <TemplateThumb template={template} />
+                <span className="template-card-name">{template.name}</span>
+              </button>
+              <button
+                type="button"
+                className="template-card-more"
+                aria-label={`Więcej: ${template.name}`}
+                aria-haspopup="menu"
+                aria-expanded={menuOf === template.id}
+                // The open menu closes on a press elsewhere; its own button toggles it instead.
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={() => setMenuOf(menuOf === template.id ? null : template.id)}
+              >
+                <IconMore width={12} height={12} />
+              </button>
+              {menuOf === template.id && <CardMenu template={template} onClose={() => setMenuOf(null)} />}
+            </div>
+          ))}
         </div>
       ) : (
         <p className="hint">{filter === 'favorite' ? 'Dodaj szablon do ulubionych z menu na jego karcie.' : 'Tu pojawią się szablony, których używasz.'}</p>
       )}
 
+      {preview && <PreviewBar template={preview.template} />}
+
       <div className="template-footer">
         <span className="hint">{countLabel(shown.length, templates.length)}</span>
         <SaveTemplate />
       </div>
-      <p className="hint">Klik pokazuje szablon na kadrze i zostaje, gdy robisz coś dalej. „Wróć do poprzedniego” albo Esc go cofa. Szablon nie rusza zdjęć, tras ani treści napisów, tylko wygląd.</p>
-
-      {preview && <PreviewBar template={preview.template} />}
     </div>
   )
 }
