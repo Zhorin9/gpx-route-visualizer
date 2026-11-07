@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { Line, Text } from 'react-konva'
 import DraggableElement from '../../../core/canvas/DraggableElement'
 import { useAppStore } from '../../../store/useAppStore'
@@ -48,27 +49,33 @@ export default function StatsHeaderNode() {
       ))}
       {box.texts.map((t) => {
         const base = t.dragBase
+        const glyphs = {
+          text: t.text,
+          x: t.x,
+          y: t.y,
+          width: t.width,
+          wrap: t.width ? 'none' : undefined,
+          ellipsis: Boolean(t.width),
+          fontFamily: style.fontFamily,
+          fontStyle,
+          fontSize: t.fontSize,
+          letterSpacing: t.letterSpacing,
+          opacity: t.opacity,
+          perfectDrawEnabled: false,
+        }
+        const hard = style.hardShadow
         return (
-          <Text
-            key={t.id}
-            text={t.text}
-            x={t.x}
-            y={t.y}
-            width={t.width}
-            wrap={t.width ? 'none' : undefined}
-            ellipsis={Boolean(t.width)}
-            fontFamily={style.fontFamily}
-            fontStyle={fontStyle}
-            fontSize={t.fontSize}
-            letterSpacing={t.letterSpacing}
-            opacity={t.opacity}
-            fill={style.color}
-            perfectDrawEnabled={false}
-            listening={Boolean(base)}
-            draggable={Boolean(base)}
-            onDragEnd={base ? (e) => setChipOffset(t.chipKey, { dx: e.target.x() - base.x, dy: e.target.y() - base.y }) : undefined}
-            {...(style.shadow && t.shadow ? TEXT_SHADOW : null)}
-          />
+          <Fragment key={t.id}>
+            {hard && <Text {...glyphs} x={t.x + hard.dx} y={t.y + hard.dy} fill={hard.color} listening={false} />}
+            <Text
+              {...glyphs}
+              fill={style.color}
+              listening={Boolean(base)}
+              draggable={Boolean(base)}
+              onDragEnd={base ? (e) => setChipOffset(t.chipKey, { dx: e.target.x() - base.x, dy: e.target.y() - base.y }) : undefined}
+              {...(style.shadow && !hard && t.shadow ? TEXT_SHADOW : null)}
+            />
+          </Fragment>
         )
       })}
     </DraggableElement>

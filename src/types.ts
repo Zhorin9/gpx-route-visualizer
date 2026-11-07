@@ -116,9 +116,17 @@ export interface TextNode {
   outlineColor: string
   outlineWidth: number
   shadowEnabled: boolean
+  // In place of the soft shadow: a sharp copy underneath.
+  hardShadow?: HardShadow
   // 'title': the track name, centred across the frame with the stats header a line below.
   role?: 'title'
   uppercase?: boolean
+}
+
+export interface HardShadow {
+  dx: number
+  dy: number
+  color: string
 }
 
 export interface TitleStyle {
@@ -183,6 +191,16 @@ export interface RouteStyle {
   dotted: boolean
   // 0-100, higher = more simplified.
   schematicSimplify: number
+  // A dark line under the route and its copy shifted aside, as on a sticker.
+  casing?: RouteCasing
+}
+
+export interface RouteCasing {
+  // Added to the line's width, half on each side.
+  width: number
+  color: string
+  dx: number
+  dy: number
 }
 
 export type StylePreset = 'flat' | 'neon'
@@ -249,6 +267,7 @@ export interface StatsStyle {
   spacing: number
   rotation: number
   shadow: boolean
+  hardShadow?: HardShadow
   // Hero arrangement only.
   heroKey: StatKey
   heroSecondary: boolean

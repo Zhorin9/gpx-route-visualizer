@@ -6,7 +6,10 @@ import Section from '../ui/Section'
 import Segmented from '../ui/Segmented'
 import { DEFAULT_ROUTE_STYLE, STYLE_PRESETS } from '../../store/defaults'
 import { useAppStore } from '../../store/useAppStore'
-import type { RouteShape, RouteStyle, SelectOption, StylePreset } from '../../types'
+import type { RouteCasing, RouteShape, RouteStyle, SelectOption, StylePreset } from '../../types'
+
+// The line's width plus 80%, at the default 5 px line, with the sticker's ink and offset.
+const DEFAULT_CASING: RouteCasing = { width: 4, color: '#241a26', dx: 3, dy: 3 }
 
 const SHAPE_OPTIONS: SelectOption<RouteShape>[] = [
   { value: 'natural', label: 'Naturalny' },
@@ -24,6 +27,8 @@ export default function StyleTab() {
   const update = useAppStore((s) => s.updateRouteStyle)
   const applyStylePreset = useAppStore((s) => s.applyStylePreset)
   const isSchematic = style.shape === 'schematic'
+  const casing = style.casing
+  const setCasing = (patch: Partial<RouteCasing>) => update({ casing: { ...DEFAULT_CASING, ...casing, ...patch } })
 
   return (
     <>
@@ -66,6 +71,18 @@ export default function StyleTab() {
         />
         <CheckboxField label="Linia przerywana" checked={style.dashed} onChange={(dashed) => update({ dashed, dotted: false })} />
         <CheckboxField label="Linia kropkowana" checked={style.dotted} onChange={(dotted) => update({ dotted, dashed: false })} />
+      </Section>
+
+      <Section title="Kontur i cień">
+        <CheckboxField label="Ciemny kontur jak naklejka" checked={!!casing} onChange={(on) => update({ casing: on ? DEFAULT_CASING : undefined })} />
+        {casing && (
+          <>
+            <SliderField label="Grubość konturu" unit="px" min={1} max={20} step={0.5} value={casing.width} defaultValue={DEFAULT_CASING.width} onChange={(width) => setCasing({ width })} />
+            <ColorField label="Kolor konturu" value={casing.color} onChange={(color) => setCasing({ color })} />
+            <SliderField label="Cień w poziomie" unit="px" min={-15} max={15} value={casing.dx} defaultValue={DEFAULT_CASING.dx} onChange={(dx) => setCasing({ dx })} />
+            <SliderField label="Cień w pionie" unit="px" min={-15} max={15} value={casing.dy} defaultValue={DEFAULT_CASING.dy} onChange={(dy) => setCasing({ dy })} />
+          </>
+        )}
       </Section>
 
       <Section title="Poświata i obrys">

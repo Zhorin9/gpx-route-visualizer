@@ -56,6 +56,20 @@ export default function EditableText({ node }: { node: TextNode }) {
 
   return (
     <SlideBox slide={slide}>
+      {/* The outline casts the shadow too, so it is a copy of glyphs and outline together. */}
+      {node.hardShadow && (
+        <Text
+          {...shared}
+          x={shared.x + node.hardShadow.dx}
+          y={shared.y + node.hardShadow.dy}
+          fill={node.hardShadow.color}
+          stroke={node.hardShadow.color}
+          strokeWidth={node.outlineEnabled ? node.outlineWidth * 2 : 0}
+          lineJoin="round"
+          visible={!hidden}
+          listening={false}
+        />
+      )}
       {/* Stroke drawn on a copy underneath, so the outline doesn't eat into the glyphs. */}
       {node.outlineEnabled && (
         <Text
@@ -86,7 +100,7 @@ export default function EditableText({ node }: { node: TextNode }) {
           updateText(node.id, { x: e.target.x(), y: e.target.y() - animation.offsetY })
         }}
         {...TEXT_SHADOW}
-        shadowEnabled={node.shadowEnabled}
+        shadowEnabled={node.shadowEnabled && !node.hardShadow}
       />
       <SelectionOutline targetRef={shapeRef} visible={isSelected && !hidden} />
     </SlideBox>

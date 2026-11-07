@@ -3,6 +3,7 @@ import FontField from '../fields/FontField'
 import RotationField from '../fields/RotationField'
 import ColorField from '../fields/ColorField'
 import CheckboxField from '../fields/CheckboxField'
+import ShadowField from '../fields/ShadowField'
 import TextField from '../fields/TextField'
 import Button from '../ui/Button'
 import Section from '../ui/Section'
@@ -64,11 +65,7 @@ export default function TextEditor({ id }: { id: number }) {
       </Section>
 
       <Section title="Efekty">
-        <CheckboxField
-          label="Cień"
-          checked={selected.shadowEnabled}
-          onChange={(shadowEnabled) => updateText(selected.id, { shadowEnabled })}
-        />
+        <ShadowField soft={selected.shadowEnabled} hard={selected.hardShadow} onChange={({ soft, hard }) => updateText(selected.id, { shadowEnabled: soft, hardShadow: hard })} />
         <CheckboxField
           label="Obrys"
           checked={selected.outlineEnabled}
