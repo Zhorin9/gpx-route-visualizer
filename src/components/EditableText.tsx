@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { Text } from 'react-konva'
 import type Konva from 'konva'
-import { useLayerAnimation } from '../core/animation/layers'
+import { useLayerAnimation, useTypedCount } from '../core/animation/layers'
 import { SNAP_TARGET, snapDragEnd, snapDragMove } from '../core/canvas/snapDrag'
 import useInlineTextEditor from '../hooks/useInlineTextEditor'
 import { useAppStore } from '../store/useAppStore'
@@ -11,8 +11,13 @@ import { displayText, fittedTitleSize } from '../utils/title'
 import SelectionOutline from './SelectionOutline'
 import { useSlideAt, useStickerColor } from '../store/selectors'
 import SlideBox from './SlideBox'
-import type { TextNode } from '../types'
+import type { TextNode, TextWarp } from '../types'
 import { TEXT_SHADOW } from '../core/canvas/shadows'
+import WarpedText from './WarpedText'
+import useWarpedLine from '../hooks/useWarpedLine'
+
+// The hook runs for a straight text too, on no letters.
+const STRAIGHT: TextWarp = { kind: 'wave', amount: 0 }
 
 export default function EditableText({ node }: { node: TextNode }) {
   const isSelected = useAppStore((s) => s.selection?.kind === 'text' && s.selection.id === node.id)
@@ -20,6 +25,7 @@ export default function EditableText({ node }: { node: TextNode }) {
   const updateText = useAppStore((s) => s.updateText)
   const { hidden, edit } = useInlineTextEditor()
   const shapeRef = useRef<Konva.Text>(null)
+  const warpedRef = useRef<Konva.Shape>(null)
   const outlineRef = useRef<Konva.Text>(null)
   const span = useAppStore((s) => textColumn(s.aspectKey).w)
   const isTitle = node.role === 'title'
@@ -27,6 +33,13 @@ export default function EditableText({ node }: { node: TextNode }) {
   const animation = useLayerAnimation('header')
   const slide = useSlideAt(node.x)
   const color = useStickerColor(slide) ?? node.color
+  const full = displayText(node)
+  const typed = useTypedCount(full.length, node.typing?.cps ?? 0)
+  const shown = node.typing ? typed : full.length
+  const fontSize = isTitle ? fittedTitleSize(node, span) : node.fontSize
+  const fontStyle = konvaFontStyle(node.fontFamily, { bold: node.bold, italic: node.italic })
+  const warp = node.warp ?? STRAIGHT
+  const line = useWarpedLine(node, node.warp ? full : '', warp, fontSize, fontStyle)
 
   // Konva lays text out once; widths measured with a fallback font would stay wrong after the real one loads.
   useEffect(() => {
@@ -36,23 +49,63 @@ export default function EditableText({ node }: { node: TextNode }) {
     }
   }, [fontsVersion])
 
-  function startEditing(e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) {
-    edit(e.target as Konva.Text, { value: node.text, onCommit: (text) => updateText(node.id, { text }) })
+  // A warped text is edited over its plain twin, which is laid out but never drawn.
+  function startEditing() {
+    if (shapeRef.current) edit(shapeRef.current, { value: node.text, onCommit: (text) => updateText(node.id, { text }) })
   }
 
   const shared = {
-    text: displayText(node),
+    // While typing, a caret stands where the next letter will come.
+    text: shown < full.length ? `${full.slice(0, shown)}▍` : full,
     // A title spans the frame (or the side column) and centres itself, whatever its font or length.
     ...(isTitle ? { width: span, align: 'center', wrap: 'none' } : null),
     x: node.x,
     y: node.y + animation.offsetY,
     rotation: node.rotation,
-    fontSize: isTitle ? fittedTitleSize(node, span) : node.fontSize,
+    fontSize,
     fontFamily: node.fontFamily,
-    fontStyle: konvaFontStyle(node.fontFamily, { bold: node.bold, italic: node.italic }),
+    fontStyle,
     letterSpacing: node.letterSpacing,
     opacity: node.opacity * animation.opacity,
     perfectDrawEnabled: false,
+  }
+
+  const select_ = () => select({ kind: 'text', id: node.id })
+
+  if (node.warp) {
+    // A title keeps centring itself in its column.
+    const shift = isTitle ? (span - line.width) / 2 : 0
+    return (
+      <SlideBox slide={slide}>
+        <Text ref={shapeRef} {...shared} text={full} visible={false} listening={false} />
+        <WarpedText
+          ref={warpedRef}
+          node={node}
+          line={line}
+          shown={shown}
+          fontSize={fontSize}
+          fontStyle={fontStyle}
+          color={color}
+          x={node.x + shift}
+          y={shared.y}
+          rotation={node.rotation}
+          opacity={shared.opacity}
+          visible={!hidden}
+          name={SNAP_TARGET}
+          draggable
+          onMouseDown={select_}
+          onTouchStart={select_}
+          onDblClick={startEditing}
+          onDblTap={startEditing}
+          onDragMove={snapDragMove}
+          onDragEnd={(e: Konva.KonvaEventObject<DragEvent>) => {
+            snapDragEnd(e)
+            updateText(node.id, { x: e.target.x() - shift, y: e.target.y() - animation.offsetY })
+          }}
+        />
+        <SelectionOutline targetRef={warpedRef} visible={isSelected && !hidden} />
+      </SlideBox>
+    )
   }
 
   return (
@@ -91,8 +144,8 @@ export default function EditableText({ node }: { node: TextNode }) {
         visible={!hidden}
         name={SNAP_TARGET}
         draggable
-        onMouseDown={() => select({ kind: 'text', id: node.id })}
-        onTouchStart={() => select({ kind: 'text', id: node.id })}
+        onMouseDown={select_}
+        onTouchStart={select_}
         onDblClick={startEditing}
         onDblTap={startEditing}
         onDragMove={snapDragMove}

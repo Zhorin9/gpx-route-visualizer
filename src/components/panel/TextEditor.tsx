@@ -4,6 +4,7 @@ import RotationField from '../fields/RotationField'
 import ColorField from '../fields/ColorField'
 import CheckboxField from '../fields/CheckboxField'
 import ShadowField from '../fields/ShadowField'
+import WarpField from '../fields/WarpField'
 import IconEditor from './IconEditor'
 import TextField from '../fields/TextField'
 import Button from '../ui/Button'
@@ -64,6 +65,25 @@ export default function TextEditor({ id }: { id: number }) {
           defaultValue={100}
           onChange={(v) => updateText(selected.id, { opacity: v / 100 })}
         />
+      </Section>
+
+      <Section title="Kształt i pisanie">
+        <WarpField value={selected.warp} onChange={(warp) => updateText(selected.id, { warp })} />
+        <CheckboxField label="Pisanie litera po literze" checked={!!selected.typing} onChange={(on) => updateText(selected.id, { typing: on ? { cps: 12 } : undefined })} />
+        {selected.typing && (
+          <>
+            <SliderField
+              label="Tempo"
+              unit="zn./s"
+              min={2}
+              max={40}
+              value={selected.typing.cps}
+              defaultValue={12}
+              onChange={(cps) => updateText(selected.id, { typing: { cps } })}
+            />
+            <p className="hint">Tylko w filmie: zaczyna się z paskiem napisów na osi czasu. Obraz pokazuje cały tekst.</p>
+          </>
+        )}
       </Section>
 
       <Section title="Efekty">

@@ -54,12 +54,14 @@ export function withTemplate(s: TemplateTarget, template: StyleTemplate, parts: 
   }
   if (parts.frame) collage = { ...collage, frame: { ...template.frame } }
   if (parts.effects) {
-    const { outline, hardShadow } = template.titleEffect ?? {}
+    const { outline, hardShadow, warp, typing } = template.titleEffect ?? {}
     texts = texts.map((t) => ({
       ...t,
       outlineEnabled: !!outline,
       ...(outline ? { outlineColor: outline.color, outlineWidth: outline.width } : null),
       hardShadow,
+      typing,
+      ...(t.role === 'title' ? { warp } : null),
     }))
     statsStyle = { ...statsStyle, hardShadow: template.statsEffect?.hardShadow, outline: template.statsEffect?.outline }
   }
@@ -168,7 +170,12 @@ export function createTemplatesSlice({ set, get, commit }: SliceContext): Templa
         gradient,
         layoutKey: s.slides[Math.min(s.activeSlide, s.slides.length - 1)].layoutKey,
         pointStyle: s.pointStyle,
-        titleEffect: title && { outline: title.outlineEnabled ? { color: title.outlineColor, width: title.outlineWidth } : undefined, hardShadow: title.hardShadow },
+        titleEffect: title && {
+          outline: title.outlineEnabled ? { color: title.outlineColor, width: title.outlineWidth } : undefined,
+          hardShadow: title.hardShadow,
+          warp: title.warp,
+          typing: title.typing,
+        },
         statsEffect: { outline: s.statsStyle.outline, hardShadow: s.statsStyle.hardShadow },
         iconFinish: s.iconFinish,
         photoLook: s.photoLook,

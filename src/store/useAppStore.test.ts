@@ -5,6 +5,7 @@ import { selectRouteDays, selectTrack } from './derived'
 import { DOCUMENT_KEYS, pickDocument } from './document'
 import { lookChanged } from './slices/templatesSlice'
 import { useAppStore } from './useAppStore'
+import { makeText } from './defaults'
 
 const initial = useAppStore.getState()
 
@@ -364,6 +365,17 @@ describe('style templates', () => {
     expect(get().photoLook).toEqual({ grade: 'warm', fade: 0, grain: 28 })
     get().applyTemplate(papier, all)
     expect(get().photoLook.grade).toBe('none')
+  })
+
+  it('bends only the title of a wave style, types every text of a typing style, and clears both after', () => {
+    useAppStore.setState({ texts: [{ ...makeText(1, 0, 0), role: 'title' }, makeText(2, 0, 0)] })
+    const byId = (id: string) => BUILT_IN_TEMPLATES.find((t) => t.id === id)!
+    get().applyTemplate(byId('gravel'), all)
+    expect(get().texts.map((t) => t.warp?.kind)).toEqual(['wave', undefined])
+    get().applyTemplate(byId('dokument'), all)
+    expect(get().texts.map((t) => [t.warp, t.typing?.cps])).toEqual([[undefined, 12], [undefined, 12]])
+    get().applyTemplate(papier, all)
+    expect(get().texts.every((t) => !t.typing && !t.warp)).toBe(true)
   })
 
   it('saves the current look as a custom template', () => {

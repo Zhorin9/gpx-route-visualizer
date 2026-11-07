@@ -121,6 +121,10 @@ export interface TextNode {
   shadowEnabled: boolean
   // In place of the soft shadow: a sharp copy underneath.
   hardShadow?: HardShadow
+  // Letters on a curve; the text is laid out as one line.
+  warp?: TextWarp
+  // In a video the text is typed out letter by letter from the start of the texts' bar.
+  typing?: TextTyping
   // Set: an icon stands in for the text, fontSize wide.
   icon?: IconId
   // 'title': the track name, centred across the frame with the stats header a line below.
@@ -134,6 +138,17 @@ export interface HardShadow {
   color: string
 }
 
+export interface TextWarp {
+  kind: 'wave' | 'arc' | 'bulge'
+  amount: number
+  length?: number
+}
+
+export interface TextTyping {
+  // Characters a second.
+  cps: number
+}
+
 export interface TextOutline {
   color: string
   width: number
@@ -143,6 +158,9 @@ export interface TextOutline {
 export interface TextEffect {
   outline?: TextOutline
   hardShadow?: HardShadow
+  // The title only.
+  warp?: TextWarp
+  typing?: TextTyping
 }
 
 export interface TitleStyle {
