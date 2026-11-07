@@ -12,7 +12,7 @@ const ctx = (progress: number, settings = DEFAULT_CAMERA): CameraContext => ({
   headAt,
   pathAt: headAt,
   headShare: progress,
-  bounds: { minX: 100, minY: 200, maxX: 980, maxY: 1700 },
+  route: [headAt(0), headAt(1)],
   area: { width: 1080, height: 1920 },
   entering: 1,
   leaving: 0,

@@ -1,26 +1,29 @@
 import { useAppStore } from '../../store/useAppStore'
 import type { RouteStyle, RouteTransform } from '../../types'
+import { rotate } from '../../utils/geometry'
 import { useWorldView } from './providers'
 
 // What the camera shows: the frame point (x, y) of the static view, brought to the focus point
-// (the middle of the route's area) and enlarged `zoom` times. Null = the static view.
+// (the middle of the route's area), enlarged `zoom` times and turned `rotation` degrees about it. Null = the static view.
 export interface CameraView {
   x: number
   y: number
   zoom: number
   focusX: number
   focusY: number
+  rotation?: number
 }
 
 export function composeView(t: RouteTransform, view: CameraView | null): RouteTransform {
   if (!view) return t
-  const { zoom: z } = view
+  const { zoom: z, rotation = 0 } = view
+  const at = rotate(z * (t.x - view.x), z * (t.y - view.y), rotation)
   return {
-    x: z * (t.x - view.x) + view.focusX,
-    y: z * (t.y - view.y) + view.focusY,
+    x: at.x + view.focusX,
+    y: at.y + view.focusY,
     scaleX: z * t.scaleX,
     scaleY: z * t.scaleY,
-    rotation: t.rotation,
+    rotation: t.rotation + rotation,
   }
 }
 

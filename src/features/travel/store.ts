@@ -9,7 +9,7 @@ import type { GpxPoint, Stop, TrackPart, TravelModeId, TravelPlan, Waypoint } fr
 import { journeyOf, legName, legPlans, named, sameLeg, type Journey } from './model/journey'
 import { buildLeg, lineOf, onGround, travelMode } from './model/modes'
 import { scheduleSeconds, tripSchedule } from '../animation/model/schedule'
-import { withDrawDuration } from '../animation/store'
+import { withRouteClip } from '../animation/store'
 import { clamp } from '../../utils/math'
 
 export type TravelSelection = { kind: 'leg'; index: number } | { kind: 'stop'; id: number }
@@ -177,7 +177,7 @@ export function createTravelSlice({ set, get, commit }: SliceContext): TravelSli
       // The line takes as long to draw as the trip's legs and rests add up to.
       const schedule = after ? tripSchedule(after.parts) : null
       commit(label.startsWith('drag') ? `travel:${label}` : `travel:${label}:${++edits}`, {
-        ...(schedule ? { animation: withDrawDuration(s.animation, scheduleSeconds(schedule)) } : null),
+        ...(schedule ? { animation: withRouteClip(s.animation, { duration: scheduleSeconds(schedule) }) } : null),
         routeSource,
         routeStyle: settled.routeStyle,
         range: { start: 0, end: Math.max(0, (after?.track.points.length ?? 1) - 1) },

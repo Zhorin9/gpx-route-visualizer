@@ -10,19 +10,11 @@ import { headFor } from '../animation/model/pacing'
 import { tripSchedule } from '../animation/model/schedule'
 import { clipProgress, selectDuration } from '../animation/model/timeline'
 import type { RouteRange, RouteTransform } from '../../types'
-import { cameraFor, type Bounds } from './model/camera'
+import { cameraFor } from './model/camera'
 
-const boundsOf = memoOne((projected: ArrayLike<number>, range: RouteRange, transform: RouteTransform): Bounds => {
-  const b = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity }
-  for (let i = range.start; i <= range.end; i++) {
-    const p = applyTransform(pointAt(projected, i), transform)
-    b.minX = Math.min(b.minX, p.x)
-    b.minY = Math.min(b.minY, p.y)
-    b.maxX = Math.max(b.maxX, p.x)
-    b.maxY = Math.max(b.maxY, p.y)
-  }
-  return b
-})
+const routeOnFrame = memoOne((projected: ArrayLike<number>, range: RouteRange, transform: RouteTransform) =>
+  Array.from({ length: range.end - range.start + 1 }, (_, i) => applyTransform(pointAt(projected, range.start + i), transform)),
+)
 
 function kmAt(cumKm: Float64Array, pos: number): number {
   const i = Math.floor(pos)
@@ -57,7 +49,7 @@ export function useCameraView(): CameraView | null {
     headAt: (p) => applyTransform(pointAt(projected, headFor(animation.pacing, p, ctx)), transform),
     pathAt: (share) => applyTransform(pointAt(projected, posAtDistance(cumKm, range.start, range.end, from + length * share)), transform),
     headShare: (kmAt(cumKm, headFor(animation.pacing, progress, ctx)) - from) / length,
-    bounds: boundsOf(projected, range, transform),
+    route: routeOnFrame(projected, range, transform),
     area: { width: boxW, height: boxH },
     entering: clip.start > 0 ? clamp01(t / clip.start) : 1,
     leaving: total > end ? clamp01((t - end) / (total - end)) : 0,

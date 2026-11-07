@@ -16,16 +16,11 @@ export interface CameraSettings {
   approach: number
   // Panorama: comes down onto the start before the line sets off, and draws back to the whole route after it ends.
   introOutro: boolean
+  // Panorama: north up, or the map turned so the route runs along the frame's longer side.
+  orientation: 'north' | 'route'
 }
 
-export const DEFAULT_CAMERA: CameraSettings = { mode: 'static', zoom: 3, smoothing: 1, approach: 0.2, introOutro: true }
-
-export interface Bounds {
-  minX: number
-  minY: number
-  maxX: number
-  maxY: number
-}
+export const DEFAULT_CAMERA: CameraSettings = { mode: 'static', zoom: 3, smoothing: 1, approach: 0.2, introOutro: true, orientation: 'route' }
 
 export interface CameraContext {
   // 0-1 of the route's bar on the timeline.
@@ -35,7 +30,8 @@ export interface CameraContext {
   // A point at a share (0-1) of the route's length, and the share the head has covered.
   pathAt: (share: number) => Point2D
   headShare: number
-  bounds: Bounds
+  // The route's points on the frame (static view).
+  route: readonly Point2D[]
   // The route's area; what the camera looks at is brought to its middle.
   area: { width: number; height: number }
   // 0-1 through the time before the line starts, and through the time after it ends.
