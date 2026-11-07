@@ -348,7 +348,7 @@ describe('style templates', () => {
     get().applyTemplate(naklejka, all)
     expect(get().sticker?.color).toBe('#f2b8f5')
     expect(get().routeStyle.casing).toBeDefined()
-    expect(get().texts[0]).toMatchObject({ outlineEnabled: true, hardShadow: { dx: 5, dy: 5 } })
+    expect(get().texts[0]).toMatchObject({ outlineEnabled: true, hardShadow: naklejka.titleEffect?.hardShadow })
     get().applyTemplate(papier, all)
     expect(get().sticker).toBeNull()
     expect(get().routeStyle.casing).toBeUndefined()
