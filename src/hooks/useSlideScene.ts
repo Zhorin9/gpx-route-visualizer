@@ -1,5 +1,6 @@
 import { FORMATS } from '../core/formats/registry'
-import { selectTrack } from '../store/derived'
+import { selectSeed, selectTrack } from '../store/derived'
+import { withPhotoLook } from '../utils/photoLook'
 import { useDayBreaks, useRangeStats, useTrackDays } from '../store/selectors'
 import { useAppStore } from '../store/useAppStore'
 import { projectLook, seriesRoute } from '../utils/series'
@@ -9,6 +10,8 @@ export default function useSlideScene(): Omit<SlideScene, 'look'> & { projectLoo
   const { w, h } = FORMATS[useAppStore((s) => s.aspectKey)]
   const slides = useAppStore((s) => s.slides)
   const photos = useAppStore((s) => s.photos)
+  const photoLook = useAppStore((s) => s.photoLook)
+  const seed = useAppStore(selectSeed)
   const units = useAppStore((s) => s.statsContent.units)
   const collage = useAppStore((s) => s.collage)
   const titleStyle = useAppStore((s) => s.titleStyle)
@@ -22,7 +25,8 @@ export default function useSlideScene(): Omit<SlideScene, 'look'> & { projectLoo
     w,
     h,
     slides,
-    photos: new Map(photos.map((p) => [p.id, p])),
+    // Data slides lay the same film look on a photo behind them.
+    photos: new Map(photos.map((p) => [p.id, { ...p, image: withPhotoLook(p.image, photoLook, seed) }])),
     units,
     route,
     movingMs: stats?.movingMs ?? null,

@@ -1,5 +1,6 @@
 import type { IconFinish, IconId } from './components/place/icons'
 import type { StickerSettings } from './utils/sticker'
+import type { PhotoLook } from './utils/photoLook'
 import type { ReactNode } from 'react'
 import type { Units } from './core/units'
 
@@ -248,6 +249,7 @@ export interface StyleTemplate {
   iconFinish?: IconFinish
   // Only the sticker styles carry one; any other style turns it off.
   sticker?: StickerSettings
+  photoLook?: PhotoLook
   // Saved templates have a group of their own.
   group?: TemplateGroup
   custom?: boolean
@@ -263,6 +265,7 @@ export interface TemplateParts {
   layout: boolean
   points: boolean
   effects: boolean
+  photo: boolean
 }
 
 export interface RouteTransform {

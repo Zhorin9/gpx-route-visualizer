@@ -1,6 +1,9 @@
 import { Image as KonvaImage } from 'react-konva'
 import type Konva from 'konva'
 import { coverLayout, coveringPosition, wheelSteps, zoomedBy } from '../utils/image'
+import { withPhotoLook } from '../utils/photoLook'
+import { selectSeed } from '../store/derived'
+import { useAppStore } from '../store/useAppStore'
 
 interface Props {
   image: HTMLImageElement | ImageBitmap | HTMLCanvasElement
@@ -14,6 +17,8 @@ interface Props {
 }
 
 export default function PannableCover({ image, box, zoom, offsetX, offsetY, onPan, onZoom, keepDragFromParent }: Props) {
+  const look = useAppStore((s) => s.photoLook)
+  const seed = useAppStore(selectSeed)
   const layout = coverLayout(image.width, image.height, box.w, box.h, zoom, offsetX, offsetY)
   const stopBubble = (e: Konva.KonvaEventObject<DragEvent>) => {
     if (keepDragFromParent) e.cancelBubble = true
@@ -21,7 +26,7 @@ export default function PannableCover({ image, box, zoom, offsetX, offsetY, onPa
 
   return (
     <KonvaImage
-      image={image}
+      image={withPhotoLook(image, look, seed)}
       x={box.x + layout.x}
       y={box.y + layout.y}
       width={layout.width}

@@ -22,6 +22,7 @@ export function createElementsSlice({ get, commit }: SliceContext): ElementsSlic
       return node.id
     },
     setIconFinish: (iconFinish) => commit('iconFinish', { iconFinish }),
+    updatePhotoLook: (patch) => commit('photoLook', (s) => ({ photoLook: { ...s.photoLook, ...patch } })),
     updateSticker: (patch) => commit('sticker', (s) => (s.sticker ? { sticker: { ...s.sticker, ...patch } } : {})),
     updateText: (id, patch) =>
       commit(`text:${id}:${Object.keys(patch).join()}`, (s) => ({

@@ -18,6 +18,7 @@ const PART_LABELS: { key: keyof TemplateParts; label: string }[] = [
   { key: 'layout', label: 'Układ zdjęć' },
   { key: 'points', label: 'Zdjęcia w punktach' },
   { key: 'effects', label: 'Efekty i ikony' },
+  { key: 'photo', label: 'Wygląd zdjęć' },
 ]
 
 // A collage has no route and no places to pin photos to.

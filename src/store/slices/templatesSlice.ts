@@ -3,6 +3,7 @@ import { frameStyleFor } from '../../utils/layouts'
 import { routeFields } from '../../utils/wrappers'
 import { joinTrack } from '../derived'
 import { pickDocument } from '../document'
+import { NO_PHOTO_LOOK } from '../../utils/photoLook'
 import type { GradientStyle, StyleTemplate, TemplateParts, WrapperField } from '../../types'
 import type { AppState, DocumentState, SliceContext, TemplatesSlice } from '../types'
 
@@ -74,6 +75,7 @@ export function withTemplate(s: TemplateTarget, template: StyleTemplate, parts: 
     ...(parts.route ? { routeStyle: { ...s.routeStyle, ...template.route, casing: template.route.casing } } : null),
     ...(parts.effects ? { iconFinish: template.iconFinish ?? 'sticker' } : null),
     ...(parts.colors ? { sticker: template.sticker ? { ...template.sticker } : null } : null),
+    ...(parts.photo ? { photoLook: { ...(template.photoLook ?? NO_PHOTO_LOOK) } } : null),
     ...(parts.points && template.pointStyle ? { pointStyle: { ...template.pointStyle } } : null),
   }
 }
@@ -91,7 +93,7 @@ export function createTemplatesSlice({ set, get, commit }: SliceContext): Templa
   return {
     customTemplates: [],
 
-    templateParts: { fonts: true, route: true, frame: true, colors: true, layout: false, points: true, effects: true },
+    templateParts: { fonts: true, route: true, frame: true, colors: true, layout: false, points: true, effects: true, photo: true },
     recentTemplates: [],
     favoriteTemplates: [],
     templatePreview: null,
@@ -169,6 +171,7 @@ export function createTemplatesSlice({ set, get, commit }: SliceContext): Templa
         titleEffect: title && { outline: title.outlineEnabled ? { color: title.outlineColor, width: title.outlineWidth } : undefined, hardShadow: title.hardShadow },
         statsEffect: { outline: s.statsStyle.outline, hardShadow: s.statsStyle.hardShadow },
         iconFinish: s.iconFinish,
+        photoLook: s.photoLook,
         ...(s.sticker ? { sticker: s.sticker } : null),
         ...(s.collage.bgKind === 'map' ? { map: { styleId: s.map.styleId, hillshade: s.map.hillshade, labels: s.map.labels } } : null),
         custom: true,

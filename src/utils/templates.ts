@@ -94,12 +94,12 @@ export const BUILT_IN_TEMPLATES: StyleTemplate[] = [
     gradient: flat('#efe6d2', 'none', 6), layoutKey: 'c1', pointStyle: points('polaroid'), iconFinish: 'ink' }),
 
   template({ id: 'retro70', name: 'Retro 70.', desc: 'żółty, czerwony cień', group: 'poster', fonts: { title: 'Shrikhand', data: 'Rubik', note: 'Rubik' },
-    titleUppercase: false, textColor: YELLOW, statsStyle: columns(32), route: line(YELLOW, 16, undefined, { casing: casing(12, RED) }), gradient: { ...BROWN, from: '#8b6f4a', to: '#4a3b28', grain: 28 },
+    titleUppercase: false, textColor: YELLOW, statsStyle: columns(32), route: line(YELLOW, 16, undefined, { casing: casing(12, RED) }), gradient: { ...BROWN, from: '#8b6f4a', to: '#4a3b28', grain: 28 }, photoLook: { grade: 'warm', fade: 0, grain: 28 },
     pointStyle: points('polaroid'), titleEffect: { outline: { color: RED, width: 6 }, hardShadow: shadow(15, RED) }, iconFinish: 'sticker' }),
   template({ id: 'dokument', name: 'Dokument', desc: 'maszyna do pisania', group: 'poster', fonts: { title: 'Special Elite', data: 'Special Elite', note: 'Special Elite' },
-    titleUppercase: false, statsStyle: columns(28), textColor: '#f3ef8a', route: line('#f3ef8a', 6), gradient: { ...BROWN, from: '#8a8378', to: '#4d4840', grain: 22 },
+    titleUppercase: false, statsStyle: columns(28), textColor: '#f3ef8a', route: line('#f3ef8a', 6), gradient: { ...BROWN, from: '#8a8378', to: '#4d4840', grain: 22 }, photoLook: { grade: 'cool', fade: 25, grain: 22 },
     pointStyle: points('label'), iconFinish: 'line' }),
   template({ id: 'gravel', name: 'Plakat gravel', desc: 'gruby żółty krój', group: 'poster', fonts: { title: 'Bagel Fat One', data: 'Rubik', note: 'Rubik' },
-    titleUppercase: true, statsStyle: columns(36), textColor: '#ffffff', titleColor: YELLOW, route: line(YELLOW, 22), gradient: { ...BROWN, from: '#9a7a52', to: '#5c4930' },
+    titleUppercase: true, statsStyle: columns(36), textColor: '#ffffff', titleColor: YELLOW, route: line(YELLOW, 22), gradient: { ...BROWN, from: '#9a7a52', to: '#5c4930' }, photoLook: { grade: 'vivid', fade: 0, grain: 0 },
     pointStyle: points('square'), titleEffect: { hardShadow: { dx: 0, dy: 9, color: 'rgba(120,80,0,0.45)' } }, iconFinish: 'sticker' }),
 ]
