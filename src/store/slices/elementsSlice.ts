@@ -2,14 +2,18 @@ import { FORMATS } from '../../core/formats/registry'
 import { makeText, makeWaypoint, nextId } from '../defaults'
 import type { ElementsSlice, SliceContext } from '../types'
 
+// A loose icon starts this wide, centred where a new text would start.
+const ICON_SIZE = 120
+
 // Derived from the list rather than a module counter, so ids stay unique after undo.
 export function createElementsSlice({ get, commit }: SliceContext): ElementsSlice {
   const slice: ElementsSlice = {
-    addText: () => {
+    addText: (icon) => {
       const s = get()
       const { w, h } = FORMATS[s.aspectKey]
       const base = makeText(nextId(s.texts), w, h)
-      const node = { ...base, x: base.x + Math.min(s.activeSlide, s.slides.length - 1) * w }
+      const shown = { ...base, x: base.x + Math.min(s.activeSlide, s.slides.length - 1) * w }
+      const node = icon ? { ...shown, icon, text: '', fontSize: ICON_SIZE, x: shown.x + 120, color: s.statsStyle.color } : shown
       commit('text:add', {
         texts: [...s.texts, node],
         selection: { kind: 'text', id: node.id },
@@ -17,6 +21,7 @@ export function createElementsSlice({ get, commit }: SliceContext): ElementsSlic
       })
       return node.id
     },
+    setIconFinish: (iconFinish) => commit('iconFinish', { iconFinish }),
     updateText: (id, patch) =>
       commit(`text:${id}:${Object.keys(patch).join()}`, (s) => ({
         texts: s.texts.map((t) => (t.id === id ? { ...t, ...patch } : t)),

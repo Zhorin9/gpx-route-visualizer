@@ -32,7 +32,7 @@ export default function WaypointLabel({ waypoint, anchor }: WaypointLabelProps) 
   return (
     <Group x={anchor.x} y={anchor.y + animation.offsetY} opacity={animation.opacity}>
       <LeaderLine element={layout.leader} offset={offset} color={waypoint.color} shadow={waypoint.shadowEnabled ?? true} />
-      <AnchorSymbol kind={waypoint.kind} color={waypoint.color} />
+      <AnchorSymbol kind={waypoint.kind} color={waypoint.color} icon={waypoint.icon} />
       <Group
         x={offset.x}
         y={offset.y}

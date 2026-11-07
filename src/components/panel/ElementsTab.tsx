@@ -6,6 +6,8 @@ import { IconMapPin, IconPlus, IconType } from '../icons'
 import TextEditor from './TextEditor'
 import PlaceEditor from './PlaceEditor'
 import ElementRow from './ElementRow'
+import IconSvg from '../place/IconSvg'
+import { iconById } from '../place/icons'
 import { canvasElement, canvasElements, type CanvasElementDefinition } from '../../core/canvas/registry'
 import { useHasRoute } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
@@ -66,8 +68,11 @@ export default function ElementsTab() {
   return (
     <>
       <div className="button-row">
-        <Button variant="primary" icon={<IconPlus />} onClick={addText}>
+        <Button variant="primary" icon={<IconPlus />} onClick={() => addText()}>
           Napis
+        </Button>
+        <Button icon={<IconPlus />} onClick={() => addText('star')}>
+          Ikona
         </Button>
         <Button pressed={adding} icon={<IconPlus />} disabled={!hasRoute} onClick={() => setAddingWaypoint(!adding)}>
           {adding ? 'Anuluj' : 'Miejscowość'}
@@ -83,9 +88,9 @@ export default function ElementsTab() {
           {texts.map((t) => (
             <ElementRow
               key={`t${t.id}`}
-              icon={<IconType />}
-              label={t.text || '(pusty)'}
-              meta="napis"
+              icon={t.icon ? <IconSvg icon={t.icon} /> : <IconType />}
+              label={t.icon ? (iconById(t.icon)?.label ?? 'Ikona') : t.text || '(pusty)'}
+              meta={t.icon ? 'ikona' : 'napis'}
               active={isSelected('text', t.id)}
               onClick={() => select({ kind: 'text', id: t.id })}
             />
@@ -102,7 +107,7 @@ export default function ElementsTab() {
           ))}
         </div>
         {texts.length === 0 && waypoints.length === 0 && (
-          <p className="hint">Dodaj napis albo miejscowość. Elementy przeciągasz na podglądzie, a dwuklik zmienia treść.</p>
+          <p className="hint">Dodaj napis, ikonę albo miejscowość. Elementy przeciągasz na podglądzie, a dwuklik zmienia treść.</p>
         )}
       </Section>
 

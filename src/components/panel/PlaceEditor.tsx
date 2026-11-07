@@ -10,6 +10,8 @@ import FileButton from '../ui/FileButton'
 import { IconFit, IconImage, IconTrash } from '../icons'
 import FontField from '../fields/FontField'
 import KindIcon from '../place/KindIcon'
+import IconField from '../fields/IconField'
+import IconFinishField from '../fields/IconFinishField'
 import { POINT_KIND_ORDER, POINT_KINDS } from '../place/pointKinds'
 import { DEFAULT_SLOT_CROP } from '../../store/defaults'
 import { useAppStore } from '../../store/useAppStore'
@@ -87,7 +89,19 @@ export default function PlaceEditor({ id }: { id: number }) {
     <>
       <Section title="Etykieta">
         <TextField label="Nazwa" value={selected.text} onChange={(text) => updateWaypoint(selected.id, { text })} />
-        <Segmented label="Rodzaj punktu" showLabel value={selected.kind} options={KIND_OPTIONS} onChange={(kind) => updateWaypoint(selected.id, { kind })} />
+        <Segmented
+          label="Rodzaj punktu"
+          showLabel
+          value={selected.kind}
+          options={KIND_OPTIONS}
+          onChange={(kind) => updateWaypoint(selected.id, { kind, ...(kind === 'icon' && !selected.icon ? { icon: 'coffee' as const } : null) })}
+        />
+        {selected.kind === 'icon' && (
+          <>
+            <IconField value={selected.icon} onChange={(icon) => updateWaypoint(selected.id, { icon })} />
+            <IconFinishField />
+          </>
+        )}
         <FontField value={selected.fontFamily} onChange={(fontFamily) => updateWaypoint(selected.id, { fontFamily })} />
         <SliderField
           label="Rozmiar"

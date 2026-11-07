@@ -18,6 +18,7 @@ import { SOURCE_ASPECT, hasManualLayout, slideCountIn } from '../../utils/reflow
 import { selectTrack } from '../../store/derived'
 import type { AspectKey, ExportFormat, SelectOption } from '../../types'
 import './ExportTab.css'
+import { iconById } from '../place/icons'
 
 type Scale = '1' | '2'
 
@@ -72,7 +73,7 @@ function FormatLayoutSection() {
   if (aspectKey === SOURCE_ASPECT) return null
 
   const rows = [
-    ...texts.map((t) => ({ key: `t${t.id}`, name: `Napis „${t.text.replace(/\s+/g, ' ').slice(0, 24)}”`, manual: Boolean(flags.texts[t.id]) })),
+    ...texts.map((t) => ({ key: `t${t.id}`, name: t.icon ? `Ikona ${iconById(t.icon)?.label ?? ''}` : `Napis „${t.text.replace(/\s+/g, ' ').slice(0, 24)}”`, manual: Boolean(flags.texts[t.id]) })),
     { key: 'route', name: 'Trasa', manual: flags.route },
   ]
 

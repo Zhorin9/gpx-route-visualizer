@@ -4,6 +4,7 @@ import RotationField from '../fields/RotationField'
 import ColorField from '../fields/ColorField'
 import CheckboxField from '../fields/CheckboxField'
 import ShadowField from '../fields/ShadowField'
+import IconEditor from './IconEditor'
 import TextField from '../fields/TextField'
 import Button from '../ui/Button'
 import Section from '../ui/Section'
@@ -16,6 +17,7 @@ export default function TextEditor({ id }: { id: number }) {
   const deleteText = useAppStore((s) => s.deleteText)
 
   if (!selected) return null
+  if (selected.icon) return <IconEditor node={selected} />
 
   return (
     <>

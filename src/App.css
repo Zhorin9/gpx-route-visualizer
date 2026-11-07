@@ -1703,3 +1703,31 @@
   font-size: 13px;
   border: 1px solid var(--accent);
 }
+
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.icon-option {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  padding: 0;
+  color: var(--text);
+  cursor: pointer;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.icon-option:hover {
+  border-color: var(--text-muted);
+}
+
+.icon-option.active {
+  color: var(--on-accent-soft);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}

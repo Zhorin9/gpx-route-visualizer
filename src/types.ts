@@ -1,3 +1,4 @@
+import type { IconId } from './components/place/icons'
 import type { ReactNode } from 'react'
 import type { Units } from './core/units'
 
@@ -118,6 +119,8 @@ export interface TextNode {
   shadowEnabled: boolean
   // In place of the soft shadow: a sharp copy underneath.
   hardShadow?: HardShadow
+  // Set: an icon stands in for the text, fontSize wide.
+  icon?: IconId
   // 'title': the track name, centred across the frame with the stats header a line below.
   role?: 'title'
   uppercase?: boolean
@@ -136,7 +139,7 @@ export interface TitleStyle {
   uppercase: boolean
 }
 
-export type WaypointKind = 'point' | 'pass' | 'peak' | 'lodging'
+export type WaypointKind = 'point' | 'pass' | 'peak' | 'lodging' | 'icon'
 
 export interface Waypoint {
   id: number
@@ -160,6 +163,8 @@ export interface Waypoint {
   photoCrop?: Pick<SlotAssignment, 'zoom' | 'offsetX' | 'offsetY'>
   // The planner's stop this label names; it follows the stop when the trip changes.
   stopId?: number
+  // Kind 'icon' only.
+  icon?: IconId
 }
 
 // 'label': no photo, the name alone over a rule.
