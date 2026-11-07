@@ -9,7 +9,7 @@ import { MOODS, moodOf } from '../model/mood'
 import { creditFor, mapStyles, mapStyle, OFM_TERMS, paletteFrom } from '../model/styles'
 import Segmented from '../../../components/ui/Segmented'
 import { selectTrack } from '../../../store/derived'
-import { seedOf } from '../sketch/frame'
+import { seedOf } from '../../../store/derived'
 import { DEFAULT_MAP, type MapSettings, type SketchSettings } from '../types'
 import type { SelectOption } from '../../../types'
 

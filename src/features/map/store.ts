@@ -4,7 +4,7 @@ import { mixHex, toneOf, type Tone } from '../../utils/color'
 import type { SliceContext } from '../../store/types'
 import { mapStyle } from './model/styles'
 import { sketchPalette } from './sketch/draw'
-import { seedOf } from './sketch/frame'
+import { seedOf } from '../../store/derived'
 import { fetchSketchLayers, type SketchLayers } from './sketch/tiles'
 import type { MapSettings } from './types'
 

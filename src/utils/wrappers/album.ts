@@ -19,7 +19,7 @@ export const album: WrapperDef = {
       ctx.fillStyle = c.paper
       ctx.fillRect(0, 0, w, h)
       // A whisper of grain, so it reads as paper rather than a flat colour.
-      const grain = ctx.createPattern(noiseTile(), 'repeat')
+      const grain = ctx.createPattern(noiseTile(1), 'repeat')
       if (grain) {
         ctx.globalAlpha = 0.06
         ctx.fillStyle = grain

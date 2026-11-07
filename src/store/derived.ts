@@ -33,6 +33,14 @@ const NO_PARTS: RoutePart[] = []
 // Usable directly as zustand selectors: the result keeps its identity while the source doesn't change.
 export const selectTrack = (s: SourceState): GpxTrack | null => joinTrack(s.routeSource, s.trackCache)?.track ?? null
 
+export const seedOf = memoOne((points: GpxPoint[]) => routeSeed(points))
+
+// Every seeded detail (grain, a pen's tremble) starts from the route, so a project looks the same each time.
+export const selectSeed = (s: SourceState): number => {
+  const points = selectTrack(s)?.points
+  return points ? seedOf(points) : 1
+}
+
 export const selectRouteParts = (s: SourceState): RoutePart[] => joinTrack(s.routeSource, s.trackCache)?.parts ?? NO_PARTS
 
 // Empty for a single file: one part is drawn in the route's own style, not as a day.
