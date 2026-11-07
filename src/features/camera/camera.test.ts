@@ -10,7 +10,12 @@ const headAt = (p: number) => ({ x: 100 + 880 * p + Math.sin(p * 400) * 6, y: 20
 const ctx = (progress: number, settings = DEFAULT_CAMERA): CameraContext => ({
   progress,
   headAt,
-  focus: { x: 540, y: 960 },
+  pathAt: headAt,
+  headShare: progress,
+  route: [headAt(0), headAt(1)],
+  area: { width: 1080, height: 1920 },
+  entering: 1,
+  leaving: 0,
   duration: 6,
   settings,
 })
