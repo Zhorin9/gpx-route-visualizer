@@ -7,7 +7,8 @@ export interface MapPalette {
 }
 
 export interface SketchSettings {
-  water: 'hatch' | 'wash'
+  // none: no sea or lakes at all, not even their shores.
+  water: 'hatch' | 'wash' | 'none'
   // How much the pen trembles, 0.5–2.
   roughness: number
   // Off: a see-through frame with only the lines and names (cutaways over footage).
