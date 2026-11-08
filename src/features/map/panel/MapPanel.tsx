@@ -63,6 +63,8 @@ export default function MapPanel() {
             <CheckboxField label="Nazwy miejscowości" checked={map.labels} onChange={(labels) => updateMap({ labels })} />
             {!map.labels && <p className="hint">Kropki miejscowości zostają, znikają ich nazwy, nazwy mórz i podpisy start i meta.</p>}
             <Segmented label="Woda" showLabel value={map.sketch.water} options={WATERS} onChange={(water) => updateMap({ sketch: { ...map.sketch, water } })} />
+            <CheckboxField label="Linia brzegu" checked={map.sketch.shores} onChange={(shores) => updateMap({ sketch: { ...map.sketch, shores } })} />
+            {map.sketch.water === 'none' && !map.sketch.shores && <p className="hint">Morza i jezior nie widać wcale: zostają ląd, drogi, rzeki i miejscowości.</p>}
             <SliderField
               label="Drżenie"
               unit="%"

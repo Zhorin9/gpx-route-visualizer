@@ -7,8 +7,10 @@ export interface MapPalette {
 }
 
 export interface SketchSettings {
-  // none: no sea or lakes at all, not even their shores.
+  // How the sea and lakes are marked inside their shores; none leaves them blank.
   water: 'hatch' | 'wash' | 'none'
+  // The coastline and lake outlines, apart from the water's marking.
+  shores: boolean
   // How much the pen trembles, 0.5–2.
   roughness: number
   // Off: a see-through frame with only the lines and names (cutaways over footage).
@@ -46,7 +48,7 @@ export interface MapSettings {
 
 export const DEFAULT_MAP: MapSettings = {
   kind: 'tiles',
-  sketch: { water: 'hatch', roughness: 1, paper: true, lines: true },
+  sketch: { water: 'hatch', shores: true, roughness: 1, paper: true, lines: true },
   styleId: 'liberty',
   palette: null,
   dim: 0,
