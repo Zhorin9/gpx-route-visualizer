@@ -49,7 +49,7 @@ function RouteEmpty() {
       actions={
         <>
           <FileButton accept={GPX_ACCEPT} onFiles={importFiles} variant="primary">
-            Wgraj plik
+            Dodaj plik GPX
           </FileButton>
           <Button onClick={() => setSubTab('route', TRIP_PAGE)}>Zaplanuj podróż</Button>
         </>
@@ -176,9 +176,9 @@ function PoiSection() {
   const selected = selection?.kind === 'waypoint' ? waypoints.find((w) => w.id === selection.id) : undefined
 
   return (
-    <Section title="Punkty zainteresowania">
+    <Section title="Miejsca na trasie">
       {waypoints.length > 0 && (
-        <div className="item-list" role="listbox" aria-label="Punkty zainteresowania">
+        <div className="item-list" role="listbox" aria-label="Miejsca na trasie">
           {waypoints.map((w) => (
             <ElementRow
               key={w.id}

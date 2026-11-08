@@ -19,8 +19,8 @@ export default function WrapperSection() {
   const on = wrapper.id !== 'none'
 
   return (
-    <Section title="Opakowanie">
-      <div className="layout-grid" role="radiogroup" aria-label="Opakowanie">
+    <Section title="Oprawa">
+      <div className="layout-grid" role="radiogroup" aria-label="Oprawa">
         {WRAPPER_OPTIONS.map(({ id, label }) => (
           <button key={id} type="button" role="radio" aria-checked={wrapper.id === id} className={wrapper.id === id ? 'wrapper-option active' : 'wrapper-option'} onClick={() => setWrapper(id)}>
             <span className={`wrapper-thumb wrapper-thumb-${id}`} style={{ aspectRatio: `${w} / ${h}` }} />

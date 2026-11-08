@@ -124,7 +124,7 @@ function InsetFields({ inset, onChange, disabled }: { inset: CardInset; onChange
       />
       {noWrapper && (
         <>
-          <p className="hint">Karta to cały projekt. Opakowanie Pocztówka dodaje papierowy brzeg, znaczek z datą i podpis miejsca.</p>
+          <p className="hint">Karta to cały projekt. Oprawa Pocztówka dodaje papierowy brzeg, znaczek z datą i podpis miejsca.</p>
           <Button onClick={() => setWrapper('postcard')} disabled={disabled}>
             Dodaj opakowanie Pocztówka
           </Button>
@@ -165,7 +165,7 @@ export default function VideoExportPanel() {
   const tooLong = length > MAX_SECONDS
   const formatOk = support?.find((s) => s.format === job.format)?.supported ?? false
 
-  if (!canAnimate) return <p className="hint">{collage ? 'Dodaj zdjęcia, aby zapisać animację kolażu.' : 'Wgraj plik GPX, aby zapisać animację trasy.'}</p>
+  if (!canAnimate) return <p className="hint">{collage ? 'Dodaj zdjęcia, aby zapisać animację kolażu.' : 'Dodaj plik GPX, aby zapisać animację trasy.'}</p>
   if (!animation.enabled) return <AnimationOff />
 
   const update = (patch: Partial<VideoJob>) => {

@@ -58,13 +58,13 @@ export default function StartScreen() {
   return (
     <main className="start-screen">
       <header className="start-screen-header">
-        <h1>GPX Route Visualizer</h1>
+        <h1>Tripcard</h1>
         <p>Od czego zaczynasz? Trasę z GPX i miejsca na mapie połączysz w jednym projekcie. Kolaż to same zdjęcia, bez mapy.</p>
       </header>
       <div className="start-screen-cards">
         <ModeCard
           kicker="Aktywność"
-          title="Wgraj trasę GPX"
+          title="Dodaj trasę GPX"
           body="Rower, bieg, wędrówka. Kolorowanie według prędkości lub nachylenia, profil wysokości i statystyki wyliczone z pliku."
           art={<path d="M4 70 C40 66 50 30 90 36 S140 66 180 40 S250 8 296 16" />}
           action={
@@ -102,7 +102,7 @@ export default function StartScreen() {
         <ModeCard
           kicker="Same zdjęcia"
           title="Kolaż ze zdjęć"
-          body="Wgraj zdjęcia, podziel kadr, przytnij. Bez mapy i bez GPX. Możesz z nich zrobić kolaż albo karuzelę."
+          body="Dodaj zdjęcia, podziel kadr, przytnij. Bez mapy i bez GPX. Możesz z nich zrobić kolaż albo karuzelę."
           art={
             <>
               <rect x="30" y="8" width="110" height="64" />

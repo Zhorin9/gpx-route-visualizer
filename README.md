@@ -1,4 +1,4 @@
-# GPX Route Visualizer
+# Tripcard
 
 Edytor grafik na Instagrama dla osób, które wracają z wyprawy rowerowej, pieszej albo samochodowej. Z plików GPX
 (Garmin, Strava, Komoot) i własnych zdjęć robi gotowe posty, story i karuzele: kolaż zdjęć, trasa narysowana na

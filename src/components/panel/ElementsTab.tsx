@@ -50,7 +50,7 @@ function WrapperFields() {
   const fields = wrapperFieldsOf(wrapper.id)
   if (!fields.length) return null
   return (
-    <Section title="Opakowanie">
+    <Section title="Oprawa">
       {fields.map((field) => (
         <TextField key={field} label={FIELD_LABELS[field]} value={wrapper.fields[field]} multiline={field === 'note'} onChange={(value) => updateWrapper({ fields: { [field]: value } })} />
       ))}

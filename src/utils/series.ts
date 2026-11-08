@@ -51,9 +51,9 @@ export const exportedSlides = (slides: Slide[]): number[] => slides.flatMap((sli
 export const roomForSlide = (slides: Slide[]) => exportedSlides(slides).length < MAX_EXPORT_SLIDES
 
 export function kindBlocker(kind: SlideKind, route: SeriesRoute | null): string | null {
-  if (kind === 'profile' && !route) return 'Wgraj GPX'
-  if (kind === 'profile' && !route?.hasElevation) return 'Wgraj GPX z wysokościami'
-  if (kind === 'summary' && !route) return 'Wgraj GPX'
+  if (kind === 'profile' && !route) return 'Dodaj GPX'
+  if (kind === 'profile' && !route?.hasElevation) return 'Dodaj GPX z wysokościami'
+  if (kind === 'summary' && !route) return 'Dodaj GPX'
   return null
 }
 
