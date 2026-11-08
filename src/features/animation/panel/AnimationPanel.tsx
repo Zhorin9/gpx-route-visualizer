@@ -65,7 +65,7 @@ export function AnimationTimingSection() {
   const setDrawDuration = useAppStore((s) => s.setDrawDuration)
   const setClip = useAppStore((s) => s.setClip)
   if (!canAnimate)
-    return <p className="hint">{collage ? 'Dodaj zdjęcia w zakładce Układ, aby je animować.' : 'Wgraj plik GPX albo zaplanuj podróż, aby animować trasę.'}</p>
+    return <p className="hint">{collage ? 'Dodaj zdjęcia w zakładce Układ, aby je animować.' : 'Dodaj plik GPX albo zaplanuj podróż, aby animować trasę.'}</p>
 
   const pacingNote = track ? PACINGS.find((p) => p.id === settings.pacing)?.unavailable?.(track) : null
 
@@ -114,7 +114,7 @@ export function AnimationTimingSection() {
         <Segmented label="Tempo" showLabel value={settings.pacing} options={PACING_OPTIONS} onChange={(pacing) => updateAnimation({ pacing })} />
         {pacingNote && <p className="hint">{pacingNote}</p>}
         {settings.pacing === 'bySpeed' && !pacingNote && <p className="hint">Szybkie zjazdy mijają szybko, podjazdy trwają dłużej. Postoje są pomijane.</p>}
-        <CheckboxField label="Duch reszty trasy" checked={settings.ghost} onChange={(ghost) => updateAnimation({ ghost })} />
+        <CheckboxField label="Pokaż resztę trasy (przygaszoną)" checked={settings.ghost} onChange={(ghost) => updateAnimation({ ghost })} />
         <CheckboxField label="Znacznik na końcu linii" checked={settings.headDot} onChange={(headDot) => updateAnimation({ headDot })} />
         {settings.headDot && (
           <>

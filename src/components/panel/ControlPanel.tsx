@@ -32,7 +32,7 @@ function StylePanel() {
     { id: 'presets', label: 'Szablony', Component: TemplatesPage },
     { id: 'colors', label: 'Kolory', Component: ColorsPage },
     { id: 'background', label: 'Tło', Component: BackgroundTab },
-    { id: 'wrapper', label: 'Opakowanie', Component: WrapperSection },
+    { id: 'wrapper', label: 'Oprawa', Component: WrapperSection },
     ...(series ? [{ id: 'slide', label: 'Ten slajd', Component: SlideStylePage }] : []),
   ]
   return <SubTabs tab="style" own={own} />
@@ -59,9 +59,7 @@ export default function ControlPanel() {
 
   return (
     <aside className="panel">
-      <div className="panel-header">
-        <h1>GPX Route Visualizer</h1>
-      </div>
+      <h1 className="visually-hidden">Tripcard</h1>
       <Tabs tabs={tabs} active={activeTab} onChange={setActiveTab} />
 
       <div className="tab-panel" role="tabpanel" id={tabPanelId(activeTab)} aria-labelledby={tabId(activeTab)} key={activeTab}>

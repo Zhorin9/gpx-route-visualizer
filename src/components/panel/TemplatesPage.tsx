@@ -144,7 +144,7 @@ function PreviewBar({ template }: { template: StyleTemplate }) {
           Wróć do poprzedniego
         </Button>
         <Button size="sm" variant="ghost" className="template-only" pressed={choosing} onClick={() => setChoosing(!choosing)}>
-          Tylko…
+          Wybierz części…
         </Button>
       </div>
       {choosing && (

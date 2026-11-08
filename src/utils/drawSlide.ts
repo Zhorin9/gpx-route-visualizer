@@ -84,7 +84,7 @@ function drawBackgroundAndPickInk(ctx: CanvasRenderingContext2D, slide: Slide, s
 function noRoute(ctx: CanvasRenderingContext2D, scene: SlideScene, ink: string) {
   const u = unit(scene)
   text(ctx, 'Brak trasy', scene.w / 2, scene.h / 2, font(scene.look.font, u * 0.06), ink, 'center', 'middle')
-  text(ctx, 'Wgraj GPX w zakładce Mapa', scene.w / 2, scene.h / 2 + u * 0.06, font(scene.look.font, u * 0.03), ink, 'center', 'middle')
+  text(ctx, 'Dodaj GPX w zakładce Mapa', scene.w / 2, scene.h / 2 + u * 0.06, font(scene.look.font, u * 0.03), ink, 'center', 'middle')
 }
 
 function drawProfile(ctx: CanvasRenderingContext2D, slide: Slide, scene: SlideScene, ink: string, accent: string) {
