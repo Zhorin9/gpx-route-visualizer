@@ -21,6 +21,7 @@ import Button from './ui/Button'
 import FileButton from './ui/FileButton'
 import StatusCard from './ui/StatusCard'
 import Toast from './ui/Toast'
+import TransparentNote from './TransparentNote'
 
 const VIEWPORT_PADDING = 24
 
@@ -28,7 +29,7 @@ type FrameMode = 'single' | 'carousel'
 const FORMAT_OPTIONS: SelectOption<AspectKey>[] = FORMAT_ORDER.map((value) => ({ value, label: FORMATS[value].label }))
 
 const MODE_OPTIONS: SelectOption<FrameMode>[] = [
-  { value: 'single', label: 'Kadr' },
+  { value: 'single', label: 'Jeden obraz' },
   { value: 'carousel', label: 'Karuzela' },
 ]
 
@@ -88,7 +89,7 @@ function CanvasToolbar() {
           </option>
         ))}
       </select>
-      {customLayout && <span className="tag-custom">własny układ</span>}
+      {customLayout && <span className="tag-custom">przesunięte ręcznie</span>}
       {parkedSlides > 0 && (
         <span className="toolbar-hint" role="status">
           Ten format ma jeden kadr. Pozostałe slajdy ({parkedSlides}) wrócą po przejściu na format Instagrama.
@@ -139,8 +140,8 @@ function SafeZoneToggle() {
       className="canvas-corner-btn"
       icon={<IconSafeZone />}
       pressed={shown}
-      aria-label="Strefy bezpieczne"
-      title="Strefy bezpieczne: obszary zasłaniane przez interfejs platformy (nie trafiają do eksportu)"
+      aria-label="Strefy zasłaniane"
+      title="Strefy zasłaniane przez Instagram lub YouTube (nie trafiają do eksportu)"
       onClick={() => setShown(!shown)}
     />
   )
@@ -173,7 +174,7 @@ function EmptyState({ onFiles }: { onFiles: (files: FileList | null) => void }) 
             Dodaj zdjęcia
           </FileButton>
           <FileButton accept={GPX_ACCEPT} onFiles={onFiles} icon={<IconUpload />}>
-            Wgraj GPX
+            Dodaj GPX
           </FileButton>
         </div>
       }
@@ -283,6 +284,7 @@ function FrameArea() {
             </div>
           )}
           {safeZone && <SafeZoneToggle />}
+          <TransparentNote />
         </div>
       </div>
       {canvasControls().map((Controls, i) => (
