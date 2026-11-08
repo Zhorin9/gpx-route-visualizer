@@ -1,5 +1,6 @@
 import { Layer, Rect, Shape } from 'react-konva'
 import type Konva from 'konva'
+import { selectSeed } from '../store/derived'
 import { useAppStore } from '../store/useAppStore'
 import { FORMATS } from '../core/formats/registry'
 import { gradientLine } from '../utils/color'
@@ -48,6 +49,7 @@ export default function BackgroundLayer() {
   const collage = useAppStore((s) => s.collage)
   const slideCount = useAppStore((s) => s.slides.length)
   const aspectKey = useAppStore((s) => s.aspectKey)
+  const seed = useAppStore(selectSeed)
 
   if (collage.bgKind !== 'color' && collage.bgKind !== 'gradient') return null
 
@@ -75,7 +77,7 @@ export default function BackgroundLayer() {
         fillLinearGradientColorStops={[0, gradient.from, 1, gradient.to]}
       />
       <Pattern kind={gradient.pattern ?? 'none'} width={width} height={h} slideWidth={w} />
-      {grainOpacity > 0 && <Rect width={width} height={h} fillPatternImage={noiseTile() as unknown as HTMLImageElement} fillPatternRepeat="repeat" opacity={grainOpacity} />}
+      {grainOpacity > 0 && <Rect width={width} height={h} fillPatternImage={noiseTile(seed) as unknown as HTMLImageElement} fillPatternRepeat="repeat" opacity={grainOpacity} />}
     </Layer>
   )
 }

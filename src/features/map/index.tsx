@@ -4,6 +4,7 @@ import { registerCanvasElement } from '../../core/canvas/registry'
 import { provideFrameUnderlay } from '../../core/export/frameSource'
 import { IconMapPin } from '../../components/icons'
 import { useAppStore } from '../../store/useAppStore'
+import { selectSeed } from '../../store/derived'
 import MapCreditNode from './canvas/MapCreditNode'
 import MapUnderlay from './canvas/MapUnderlay'
 import { ensureFontLoaded } from '../../utils/fonts'
@@ -51,7 +52,7 @@ export function registerMap() {
     const scene = currentMapScene()
     const state = useAppStore.getState()
     if (state.collage.bgKind !== 'map' || !scene) return null
-    const finish = (map: HTMLCanvasElement) => finishMap(map, scene.settings, FORMATS[state.aspectKey].w, scale, !mapIsSeeThrough(scene.settings))
+    const finish = (map: HTMLCanvasElement) => finishMap(map, scene.settings, FORMATS[state.aspectKey].w, scale, !mapIsSeeThrough(scene.settings), selectSeed(state))
     if (scene.settings.kind === 'sketch') return finish(await renderSketchImage(state, scene, scale))
     try {
       return finish(await renderMapImage(scene, width, height, scale))

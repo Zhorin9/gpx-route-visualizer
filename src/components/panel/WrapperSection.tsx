@@ -5,6 +5,7 @@ import { useActiveSlide, usePanorama } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { slideNumbers } from '../../utils/series'
 import { WRAPPER_OPTIONS } from '../../utils/wrappers'
+import './WrapperSection.css'
 
 export default function WrapperSection() {
   const wrapper = useAppStore((s) => s.wrapper)

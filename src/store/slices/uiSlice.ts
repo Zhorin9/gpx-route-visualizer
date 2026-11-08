@@ -58,11 +58,19 @@ export function createUiSlice({ set, get, commit }: SliceContext): UiSlice {
     centerView: 'map',
 
     // A page with its own workspace (Mapa → Przystanki → the map) opens on it; the frame is one click away.
-    setActiveTab: (tab) => set({ activeTab: tab, centerView: 'map' }),
+    // Leaving the templates, or reaching for the frame, keeps a previewed template.
+    setActiveTab: (tab) => {
+      get().keepPreview()
+      set({ activeTab: tab, centerView: 'map' })
+    },
     setCenterView: (view) => set({ centerView: view }),
-    setSubTab: (tab, page) => set((s) => ({ subTabs: { ...s.subTabs, [tab]: page }, centerView: 'map' })),
+    setSubTab: (tab, page) => {
+      get().keepPreview()
+      set((s) => ({ subTabs: { ...s.subTabs, [tab]: page }, centerView: 'map' }))
+    },
     setPreviewBackdrop: (value) => set({ previewBackdrop: value }),
-    select: (selection) =>
+    select: (selection) => {
+      get().keepPreview()
       set((s) => {
         if (!selection) return { selection: null }
         const { tab, page } = settingsTabFor(selection, s.activeTab)
@@ -73,7 +81,8 @@ export function createUiSlice({ set, get, commit }: SliceContext): UiSlice {
           ...(page ? { subTabs: { ...s.subTabs, [tab]: page } } : null),
           ...(selection.kind === 'slot' ? { activeSlide: selection.slide } : null),
         }
-      }),
+      })
+    },
     setAddingWaypoint: (value) => set({ addingWaypoint: value, ...(value ? { selection: null, routeEditable: false } : {}) }),
     setRouteEditable: (value) => set({ routeEditable: value, ...(value ? { addingWaypoint: false } : {}) }),
     setShowSafeZones: (value) => set({ showSafeZones: value }),

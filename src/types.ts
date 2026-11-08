@@ -1,3 +1,7 @@
+import type { IconFinish, IconId } from './components/place/icons'
+import type { StickerSettings } from './utils/sticker'
+import type { PhotoLook } from './utils/photoLook'
+import type { MapStickerSettings } from './features/map-sticker/model'
 import type { ReactNode } from 'react'
 import type { Units } from './core/units'
 
@@ -116,9 +120,58 @@ export interface TextNode {
   outlineColor: string
   outlineWidth: number
   shadowEnabled: boolean
+  // In place of the soft shadow: a sharp copy underneath.
+  hardShadow?: HardShadow
+  // Letters on a curve; the text is laid out as one line.
+  warp?: TextWarp
+  // In a video the text is typed out letter by letter from the start of the texts' bar.
+  typing?: TextTyping
+  // Set: a shape under the text, outlined in ink, as a sticker badge.
+  badge?: TextBadge
+  // Set: an icon stands in for the text, fontSize wide.
+  icon?: IconId
   // 'title': the track name, centred across the frame with the stats header a line below.
   role?: 'title'
   uppercase?: boolean
+}
+
+export interface HardShadow {
+  dx: number
+  dy: number
+  color: string
+}
+
+export type BadgeShape = 'burst' | 'star' | 'circle' | 'ribbon'
+
+export interface TextBadge {
+  shape: BadgeShape
+  // The shape's fill; a sticker style paints it in its colour.
+  color: string
+}
+
+export interface TextWarp {
+  kind: 'wave' | 'arc' | 'bulge'
+  amount: number
+  length?: number
+}
+
+export interface TextTyping {
+  // Characters a second.
+  cps: number
+}
+
+export interface TextOutline {
+  color: string
+  width: number
+}
+
+// What a style does to the glyphs of every text, beyond font and colour.
+export interface TextEffect {
+  outline?: TextOutline
+  hardShadow?: HardShadow
+  // The title only.
+  warp?: TextWarp
+  typing?: TextTyping
 }
 
 export interface TitleStyle {
@@ -128,7 +181,7 @@ export interface TitleStyle {
   uppercase: boolean
 }
 
-export type WaypointKind = 'point' | 'pass' | 'peak' | 'lodging'
+export type WaypointKind = 'point' | 'pass' | 'peak' | 'lodging' | 'icon'
 
 export interface Waypoint {
   id: number
@@ -152,6 +205,12 @@ export interface Waypoint {
   photoCrop?: Pick<SlotAssignment, 'zoom' | 'offsetX' | 'offsetY'>
   // The planner's stop this label names; it follows the stop when the trip changes.
   stopId?: number
+  // Kind 'icon' only.
+  icon?: IconId
+  // The icon stands at the end of the leader, where the name would be; a plain dot marks the place.
+  iconAsLabel?: boolean
+  // Unset: DEFAULT_ICON_SIZE.
+  iconSize?: number
 }
 
 // 'label': no photo, the name alone over a rule.
@@ -183,6 +242,28 @@ export interface RouteStyle {
   dotted: boolean
   // 0-100, higher = more simplified.
   schematicSimplify: number
+  // A dark line under the route and its copy shifted aside, as on a sticker.
+  casing?: RouteCasing
+  // Drawn by hand: how much the pen trembles (0.5–2), as on the sketch map, on any background.
+  pen?: number
+  // A second, thinner and fainter stroke beside the line, as a pen goes over it twice.
+  echo?: RouteEcho
+}
+
+export interface RouteEcho {
+  // Share of the line's width.
+  width: number
+  opacity: number
+  dx: number
+  dy: number
+}
+
+export interface RouteCasing {
+  // Added to the line's width, half on each side.
+  width: number
+  color: string
+  dx: number
+  dy: number
 }
 
 export type StylePreset = 'flat' | 'neon'
@@ -207,12 +288,24 @@ export interface StyleTemplate {
   pointStyle?: PointStyle
   // The map's colours come from the template's background and text.
   map?: { styleId?: string; hillshade?: boolean; labels?: boolean }
+  // Applied with the effects part; absent ones clear what an earlier style left.
+  titleEffect?: TextEffect
+  statsEffect?: TextEffect
+  iconFinish?: IconFinish
+  // Only the sticker styles carry one; any other style turns it off.
+  sticker?: StickerSettings
+  photoLook?: PhotoLook
+  // The start day and time in a corner, and a line over the title; applied with the effects.
+  stamp?: boolean
+  kicker?: boolean
+  // The route as a map sticker, in these colours; applied with the route.
+  mapSticker?: Omit<MapStickerSettings, 'shown' | 'size'>
   // Saved templates have a group of their own.
   group?: TemplateGroup
   custom?: boolean
 }
 
-export type TemplateGroup = 'basic' | 'natural' | 'retro' | 'dark'
+export type TemplateGroup = 'basic' | 'natural' | 'retro' | 'dark' | 'sticker' | 'poster'
 
 export interface TemplateParts {
   fonts: boolean
@@ -221,6 +314,8 @@ export interface TemplateParts {
   colors: boolean
   layout: boolean
   points: boolean
+  effects: boolean
+  photo: boolean
 }
 
 export interface RouteTransform {
@@ -249,6 +344,8 @@ export interface StatsStyle {
   spacing: number
   rotation: number
   shadow: boolean
+  hardShadow?: HardShadow
+  outline?: TextOutline
   // Hero arrangement only.
   heroKey: StatKey
   heroSecondary: boolean

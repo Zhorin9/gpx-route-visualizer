@@ -12,6 +12,7 @@ import { useRangeStats } from '../../../store/selectors'
 import { useAppStore } from '../../../store/useAppStore'
 import FontField from '../../../components/fields/FontField'
 import RotationField from '../../../components/fields/RotationField'
+import ShadowField from '../../../components/fields/ShadowField'
 import { formatNumber } from '../../../utils/format'
 import { distanceUnit, heightUnit } from '../../../core/units'
 import { STAT_DEFINITIONS, statDefinition, type StatDefinition } from '../model/definitions'
@@ -204,7 +205,7 @@ export default function StatsEditor() {
         )}
         <FontField value={style.fontFamily} onChange={(fontFamily) => updateStatsStyle({ fontFamily })} />
         <ColorField label="Kolor" value={style.color} onChange={(v) => updateStatsStyle({ color: v })} />
-        <CheckboxField label="Cień" checked={style.shadow} onChange={(shadow) => updateStatsStyle({ shadow })} />
+        <ShadowField soft={style.shadow} hard={style.hardShadow} onChange={({ soft, hard }) => updateStatsStyle({ shadow: soft, hardShadow: hard })} />
         <SliderField
           label="Wielkość"
           unit="px"

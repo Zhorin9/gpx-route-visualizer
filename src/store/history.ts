@@ -10,6 +10,7 @@ const STEP_LABELS: Record<string, string> = {
   'text:delete': 'usunięcie tekstu',
   'waypoint:add': 'dodanie miejscowości',
   'waypoint:delete': 'usunięcie miejscowości',
+  'waypoint:captions': 'dodanie podpisów trasy',
   'dataColor:palette': 'zmiana palety',
   'route:load': 'wczytanie trasy',
   mode: 'zmiana typu projektu',
@@ -56,6 +57,12 @@ const STEP_LABELS: Record<string, string> = {
   globalFont: 'zmiana czcionki',
   template: 'zastosowanie szablonu',
   photoTheme: 'zastosowanie kolorów ze zdjęć',
+  iconFinish: 'zmiana wykonania ikon',
+  sticker: 'zmiana koloru naklejki',
+  photoLook: 'zmiana wyglądu zdjęć',
+  stamp: 'zmiana daty w rogu',
+  kicker: 'zmiana nadtytułu',
+  mapSticker: 'zmiana naklejki mapy',
   wrapper: 'zmiana opakowania',
   travel: 'zmiana podróży',
   camera: 'zmiana kamery',
@@ -81,7 +88,9 @@ export function createHistory(set: SetState, get: GetState) {
 
   // Rapid repeats of the same action (slider drag, typing, arrow nudges)
   // collapse into one undo step; a different action always starts a new one.
+  // A step taken while a template is previewed keeps the template first, so neither is lost.
   const commit: Commit = (key, update) => {
+    get().keepPreview()
     const now = Date.now()
     if (key !== lastKey || now - lastAt > COALESCE_MS) {
       const s = get()
@@ -105,6 +114,7 @@ export function createHistory(set: SetState, get: GetState) {
     past: [],
     future: [],
     undo: () => {
+      get().endPreview()
       const s = get()
       const prev = s.past[s.past.length - 1]
       if (!prev) return
@@ -118,6 +128,7 @@ export function createHistory(set: SetState, get: GetState) {
       get().showToast(`Cofnięto: ${prev.label}`, 'redo')
     },
     redo: () => {
+      get().endPreview()
       const s = get()
       const next = s.future[0]
       if (!next) return

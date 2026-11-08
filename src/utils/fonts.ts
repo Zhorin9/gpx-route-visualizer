@@ -67,6 +67,11 @@ const FONTS: FontDef[] = [
   { family: 'Space Mono', group: 'data', weight: 400, boldWeight: 700, load: () => Promise.all([import('@fontsource/space-mono/400.css'), import('@fontsource/space-mono/700.css')]) },
   { family: 'Russo One', group: 'display', weight: 400, boldWeight: 400, load: () => import('@fontsource/russo-one/400.css') },
   { family: 'Teko', group: 'display', weight: 600, boldWeight: 700, load: () => Promise.all([import('@fontsource/teko/600.css'), import('@fontsource/teko/700.css')]) },
+  { family: 'Shrikhand', group: 'display', weight: 400, boldWeight: 400, load: () => import('@fontsource/shrikhand/400.css') },
+  { family: 'Bagel Fat One', group: 'display', weight: 400, boldWeight: 400, load: () => import('@fontsource/bagel-fat-one/400.css') },
+  { family: 'Special Elite', group: 'tech', weight: 400, boldWeight: 400, load: () => import('@fontsource/special-elite/400.css') },
+  { family: 'Sedgwick Ave Display', group: 'handwritten', weight: 400, boldWeight: 400, load: () => import('@fontsource/sedgwick-ave-display/400.css') },
+  { family: 'Rubik', group: 'sans', weight: 700, boldWeight: 800, load: () => Promise.all([import('@fontsource/rubik/500.css'), import('@fontsource/rubik/700.css'), import('@fontsource/rubik/800.css')]) },
 ]
 
 const FONTS_BY_FAMILY = new Map(FONTS.map((f) => [f.family, f]))

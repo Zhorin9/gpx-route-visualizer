@@ -42,5 +42,7 @@ export function steadyStyle(style: RouteStyle, zoom: number): RouteStyle {
     glowWidth: style.glowWidth / zoom,
     glowBlur: style.glowBlur / zoom,
     remainingWidth: style.remainingWidth / zoom,
+    echo: style.echo && { ...style.echo, dx: style.echo.dx / zoom, dy: style.echo.dy / zoom },
+    casing: style.casing && { ...style.casing, width: style.casing.width / zoom, dx: style.casing.dx / zoom, dy: style.casing.dy / zoom },
   }
 }

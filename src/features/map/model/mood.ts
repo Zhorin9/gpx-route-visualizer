@@ -29,16 +29,17 @@ export function vignetteCss(s: MapMood, slideWidth: number): CSSProperties | nul
   }
 }
 
-let grainUrl: string | null = null
+const grainUrls = new Map<number, string>()
 
 // The tile is laid at 256 frame pixels, in the preview and in files alike.
-export function grainCss(s: MapMood, pixel: number): CSSProperties | null {
+export function grainCss(s: MapMood, pixel: number, seed: number): CSSProperties | null {
   if (s.grain <= 0) return null
-  grainUrl ??= noiseTile().toDataURL()
-  return { backgroundImage: `url(${grainUrl})`, backgroundSize: `${256 * pixel}px`, opacity: s.grain, mixBlendMode: 'overlay' }
+  const url = grainUrls.get(seed) ?? noiseTile(seed).toDataURL()
+  grainUrls.set(seed, url)
+  return { backgroundImage: `url(${url})`, backgroundSize: `${256 * pixel}px`, opacity: s.grain, mixBlendMode: 'overlay' }
 }
 
-export function finishMap(map: HTMLCanvasElement, s: MapMood, slideWidth: number, scale: number, ground = true): HTMLCanvasElement {
+export function finishMap(map: HTMLCanvasElement, s: MapMood, slideWidth: number, scale: number, ground = true, seed = 1): HTMLCanvasElement {
   if (s.opacity >= 1 && s.vignette <= 0 && s.sepia <= 0 && s.grain <= 0) return map
   const { canvas: out, ctx } = newCanvas(map.width, map.height)
   if (!ctx) return map
@@ -73,7 +74,7 @@ export function finishMap(map: HTMLCanvasElement, s: MapMood, slideWidth: number
     }
   }
 
-  const pattern = s.grain > 0 ? ctx.createPattern(noiseTile(), 'repeat') : null
+  const pattern = s.grain > 0 ? ctx.createPattern(noiseTile(seed), 'repeat') : null
   if (pattern) {
     pattern.setTransform(new DOMMatrix().scale(scale))
     ctx.globalAlpha = s.grain

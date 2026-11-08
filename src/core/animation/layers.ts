@@ -18,6 +18,8 @@ interface AnimationHooks {
   countHead: () => number | null
   // The part of the route not drawn yet is shown as a ghost, whatever the route style says.
   ghost: () => boolean
+  // How many of a typed text's characters show; all of them outside a video.
+  typed: (length: number, cps: number) => number
 }
 
 let hooks: AnimationHooks = {
@@ -26,6 +28,7 @@ let hooks: AnimationHooks = {
   photo: () => STATIC_LAYER,
   countHead: () => null,
   ghost: () => false,
+  typed: (length) => length,
 }
 
 export function provideAnimation(value: AnimationHooks) {
@@ -37,3 +40,4 @@ export const usePointAnimation = (trackPos: number) => hooks.point(trackPos)
 export const usePhotoAnimation = (order: number, count: number) => hooks.photo(order, count)
 export const useCountHead = () => hooks.countHead()
 export const useForcedGhost = () => hooks.ghost()
+export const useTypedCount = (length: number, cps: number) => hooks.typed(length, cps)

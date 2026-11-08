@@ -4,6 +4,7 @@ import { useShallow } from 'zustand/react/shallow'
 import { FORMATS } from '../../../core/formats/registry'
 import { useViewTransform } from '../../../core/route/view'
 import { useTrackFit } from '../../../store/selectors'
+import { selectSeed } from '../../../store/derived'
 import { useAppStore } from '../../../store/useAppStore'
 import { ensureFontLoaded } from '../../../utils/fonts'
 import { asStyle, loadMapLibre, publishMapScene, styleKey } from '../maplibre'
@@ -130,10 +131,11 @@ export default function MapUnderlay({ previewScale }: { previewScale: number }) 
   const map = useAppStore((s) => s.map)
   const aspectKey = useAppStore((s) => s.aspectKey)
   const slideCount = useAppStore((s) => s.slides.length)
+  const seed = useAppStore(selectSeed)
   if (!on) return null
   const { w, h } = FORMATS[aspectKey]
   const vignette = vignetteCss(map, w * previewScale)
-  const grain = grainCss(map, previewScale)
+  const grain = grainCss(map, previewScale, seed)
   // The mood wraps the map always, so turning it on doesn't rebuild the map under it.
   return (
     <div className="map-underlay" style={{ width: w * slideCount * previewScale, height: h * previewScale, background: mapIsSeeThrough(map) ? undefined : map.ground }} aria-hidden="true">

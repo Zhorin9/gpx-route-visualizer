@@ -3,6 +3,10 @@ import FontField from '../fields/FontField'
 import RotationField from '../fields/RotationField'
 import ColorField from '../fields/ColorField'
 import CheckboxField from '../fields/CheckboxField'
+import ShadowField from '../fields/ShadowField'
+import WarpField from '../fields/WarpField'
+import BadgeField from '../fields/BadgeField'
+import IconEditor from './IconEditor'
 import TextField from '../fields/TextField'
 import Button from '../ui/Button'
 import Section from '../ui/Section'
@@ -15,6 +19,7 @@ export default function TextEditor({ id }: { id: number }) {
   const deleteText = useAppStore((s) => s.deleteText)
 
   if (!selected) return null
+  if (selected.icon) return <IconEditor node={selected} />
 
   return (
     <>
@@ -63,12 +68,31 @@ export default function TextEditor({ id }: { id: number }) {
         />
       </Section>
 
+      <Section title="Odznaka">
+        <BadgeField value={selected.badge} onChange={(badge) => updateText(selected.id, { badge })} />
+      </Section>
+
+      <Section title="Kształt i pisanie">
+        <WarpField value={selected.warp} onChange={(warp) => updateText(selected.id, { warp })} />
+        <CheckboxField label="Pisanie litera po literze" checked={!!selected.typing} onChange={(on) => updateText(selected.id, { typing: on ? { cps: 12 } : undefined })} />
+        {selected.typing && (
+          <>
+            <SliderField
+              label="Tempo"
+              unit="zn./s"
+              min={2}
+              max={40}
+              value={selected.typing.cps}
+              defaultValue={12}
+              onChange={(cps) => updateText(selected.id, { typing: { cps } })}
+            />
+            <p className="hint">Tylko w filmie: zaczyna się z paskiem napisów na osi czasu. Obraz pokazuje cały tekst.</p>
+          </>
+        )}
+      </Section>
+
       <Section title="Efekty">
-        <CheckboxField
-          label="Cień"
-          checked={selected.shadowEnabled}
-          onChange={(shadowEnabled) => updateText(selected.id, { shadowEnabled })}
-        />
+        <ShadowField soft={selected.shadowEnabled} hard={selected.hardShadow} onChange={({ soft, hard }) => updateText(selected.id, { shadowEnabled: soft, hardShadow: hard })} />
         <CheckboxField
           label="Obrys"
           checked={selected.outlineEnabled}

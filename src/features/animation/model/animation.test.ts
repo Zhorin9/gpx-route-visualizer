@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_ANIMATION, tracksFor } from '../types'
 import { PACINGS, constantPacing, easedPacing, pacingFor, speedPacing, type PacingContext } from './pacing'
-import { clipProgress, entranceState, layerAt, photoAt, totalDuration } from './timeline'
+import { clipProgress, entranceState, layerAt, photoAt, totalDuration, typedCount } from './timeline'
 import type { GpxPoint } from '../../../types'
 
 // 101 points, 100 m apart; the first half ridden at 10 km/h, the second at 30 km/h, with a 1 h stop in between.
@@ -42,6 +42,14 @@ describe('timeline', () => {
     expect(entranceState('slide', 0).offsetY).toBeGreaterThan(0)
     expect(entranceState('slide', 1)).toEqual({ opacity: 1, offsetY: 0 })
     expect(layerAt(DEFAULT_ANIMATION, 'route', 0)).toEqual({ opacity: 1, offsetY: 0 })
+  })
+})
+
+describe('typing', () => {
+  const clip = { start: 1, duration: 2 }
+
+  it('types from the start of the texts bar at its own pace, then holds the whole text', () => {
+    expect([0.5, 1, 1.5, 2, 9].map((t) => typedCount(clip, t, 12, 20))).toEqual([0, 0, 6, 12, 20])
   })
 })
 

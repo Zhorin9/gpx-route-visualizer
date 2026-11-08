@@ -106,7 +106,7 @@ describe('map background in the document', () => {
     expect(get().statsStyle.color).toBe('#2d2b2b')
 
     const topo = BUILT_IN_TEMPLATES.find((t) => t.id === 'topo')!
-    get().applyTemplate(topo, { fonts: false, route: false, frame: false, colors: true, layout: false, points: false })
+    get().applyTemplate(topo, { fonts: false, route: false, frame: false, colors: true, layout: false, points: false, effects: false, photo: false })
     expect(get().collage.bgKind).toBe('map')
     expect(get().map.palette?.land).toBe('#e9e4d3')
     expect(get().map.hillshade).toBe(true)

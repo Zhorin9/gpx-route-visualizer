@@ -9,6 +9,9 @@ import { useShallow } from 'zustand/react/shallow'
 import { useAppStore } from './useAppStore'
 import type { AspectKey, CarouselKind, Slide } from '../types'
 import { clamp } from '../utils/math'
+import { mixHex } from '../utils/color'
+import { stickerColor } from '../utils/sticker'
+import type { AppState } from './types'
 
 // The projection's padding lets the route come this close to what sits under it.
 const ROUTE_PAD_OVERLAP = 50
@@ -31,7 +34,8 @@ export function useProjectedTrack() {
   // On the sketch map the route trembles like its pen: 0.32% of the shorter side at roughness 1.
   const tremble = useAppStore((s) => {
     const { w, h } = FORMATS[s.aspectKey]
-    return s.collage.bgKind === 'map' && s.map.kind === 'sketch' ? Math.min(w, h) * 0.0032 * s.map.sketch.roughness : 0
+    const roughness = s.collage.bgKind === 'map' && s.map.kind === 'sketch' ? s.map.sketch.roughness : (s.routeStyle.pen ?? 0)
+    return Math.min(w, h) * 0.0032 * roughness
   })
   return projectTrack(track, boxW, boxH, tremble)
 }
@@ -72,6 +76,23 @@ export function usePhotoBackground() {
     const { w, h } = FORMATS[s.aspectKey]
     return photoCoversFrame(s.slides, s.carouselKind, w, h, s.collage.gap, s.collage.margin)
   })
+}
+
+// The colour the elements sit on, when one colour can stand for it; null over photos or nothing.
+function backgroundColor(s: AppState): string | null {
+  if (hasVisiblePhotos(s.slides, s.carouselKind)) return null
+  const { bgKind, gradient, bgColor } = s.collage
+  if (bgKind === 'gradient') return mixHex(gradient.from, gradient.to)
+  if (bgKind === 'color') return bgColor
+  if (bgKind === 'map') return s.map.palette?.land ?? null
+  return null
+}
+
+export const useBackgroundColor = () => useAppStore(backgroundColor)
+
+// A sticker style's colour for the element on this slide; null outside the sticker styles.
+export function useStickerColor(slide: number): string | null {
+  return useAppStore((s) => (s.sticker ? stickerColor(s.sticker, slide, backgroundColor(s)) : null))
 }
 
 // Anything opaque under the route: photos, a gradient or a map. Otherwise the export is transparent.

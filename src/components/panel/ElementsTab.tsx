@@ -6,6 +6,8 @@ import { IconMapPin, IconPlus, IconType } from '../icons'
 import TextEditor from './TextEditor'
 import PlaceEditor from './PlaceEditor'
 import ElementRow from './ElementRow'
+import IconSvg from '../place/IconSvg'
+import { iconById } from '../place/icons'
 import { canvasElement, canvasElements, type CanvasElementDefinition } from '../../core/canvas/registry'
 import { useHasRoute } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
@@ -18,6 +20,23 @@ function RegisteredElementRow({ def }: { def: CanvasElementDefinition }) {
   const select = useAppStore((s) => s.select)
   if (!available) return null
   return <ElementRow icon={def.icon} label={def.label} meta={def.meta} active={active} onClick={() => select({ kind: 'element', element: def.kind })} />
+}
+
+function ShowAgainButton({ def, useShowAgain }: { def: CanvasElementDefinition; useShowAgain: () => (() => void) | null }) {
+  const show = useShowAgain()
+  const select = useAppStore((s) => s.select)
+  if (!show) return null
+  return (
+    <Button
+      icon={<IconPlus />}
+      onClick={() => {
+        show()
+        select({ kind: 'element', element: def.kind })
+      }}
+    >
+      {def.label}
+    </Button>
+  )
 }
 
 function SelectedElementEditor({ kind }: { kind: string }) {
@@ -59,6 +78,7 @@ export default function ElementsTab() {
   const adding = useAppStore((s) => s.addingWaypoint)
   const select = useAppStore((s) => s.select)
   const addText = useAppStore((s) => s.addText)
+  const addRouteCaptions = useAppStore((s) => s.addRouteCaptions)
   const setAddingWaypoint = useAppStore((s) => s.setAddingWaypoint)
 
   const isSelected = (kind: 'text' | 'waypoint', id: number) => selection?.kind === kind && selection.id === id
@@ -66,13 +86,28 @@ export default function ElementsTab() {
   return (
     <>
       <div className="button-row">
-        <Button variant="primary" icon={<IconPlus />} onClick={addText}>
+        <Button variant="primary" icon={<IconPlus />} onClick={() => addText()}>
           Napis
+        </Button>
+        <Button icon={<IconPlus />} onClick={() => addText('icon')}>
+          Ikona
+        </Button>
+        <Button icon={<IconPlus />} onClick={() => addText('badge')}>
+          Odznaka
+        </Button>
+        <Button icon={<IconPlus />} title="Napis wygięty w łuk, np. nad ikoną aparatu" onClick={() => addText('arc')}>
+          Po łuku
         </Button>
         <Button pressed={adding} icon={<IconPlus />} disabled={!hasRoute} onClick={() => setAddingWaypoint(!adding)}>
           {adding ? 'Anuluj' : 'Miejscowość'}
         </Button>
+        {canvasElements().map((def) => def.useShowAgain && <ShowAgainButton key={def.kind} def={def} useShowAgain={def.useShowAgain} />)}
       </div>
+      {hasRoute && (
+        <Button size="sm" variant="ghost" icon={<IconPlus />} onClick={addRouteCaptions}>
+          Podpisy trasy: start, meta, dystans
+        </Button>
+      )}
       {adding && <p className="hint">Kliknij na trasie — etykieta przyklei się do najbliższego punktu.</p>}
 
       <Section title="Elementy na grafice">
@@ -83,9 +118,9 @@ export default function ElementsTab() {
           {texts.map((t) => (
             <ElementRow
               key={`t${t.id}`}
-              icon={<IconType />}
-              label={t.text || '(pusty)'}
-              meta="napis"
+              icon={t.icon ? <IconSvg icon={t.icon} /> : <IconType />}
+              label={t.icon ? (iconById(t.icon)?.label ?? 'Ikona') : t.text || '(pusty)'}
+              meta={t.icon ? 'ikona' : t.badge ? 'odznaka' : 'napis'}
               active={isSelected('text', t.id)}
               onClick={() => select({ kind: 'text', id: t.id })}
             />
@@ -102,7 +137,7 @@ export default function ElementsTab() {
           ))}
         </div>
         {texts.length === 0 && waypoints.length === 0 && (
-          <p className="hint">Dodaj napis albo miejscowość. Elementy przeciągasz na podglądzie, a dwuklik zmienia treść.</p>
+          <p className="hint">Dodaj napis, ikonę albo miejscowość. Elementy przeciągasz na podglądzie, a dwuklik zmienia treść.</p>
         )}
       </Section>
 

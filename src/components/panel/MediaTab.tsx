@@ -15,6 +15,7 @@ import LayoutCells from '../LayoutCells'
 import PhotoPool from './PhotoPool'
 import { MAX_SLIDES, MIN_CAROUSEL_SLIDES } from '../../store/defaults'
 import type { CarouselKind, FrameKind, LayoutGroup, LayoutKey, Photo, SelectOption, Slide, SlotCrop } from '../../types'
+import PhotoLookSection from './PhotoLookSection'
 
 const GROUP_OPTIONS: SelectOption<LayoutGroup>[] = [
   { value: 'grid', label: 'Siatki' },
@@ -238,6 +239,7 @@ export default function MediaTab() {
               {collage.fit === 'contain' && <p className="hint">W tym trybie zdjęcie jest widoczne w całości, więc nie da się go przesuwać ani przybliżać.</p>}
             </Section>
           )}
+          <PhotoLookSection />
         </>
       )}
 

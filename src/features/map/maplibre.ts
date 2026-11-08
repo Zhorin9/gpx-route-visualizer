@@ -74,7 +74,16 @@ async function hiddenMap(scale: number) {
 
 export const styleKey = (s: MapSettings) => JSON.stringify([s.styleId, s.palette, s.labels, s.hillshade])
 
-export async function renderMapImage(scene: MapScene, width: number, height: number, scale: number): Promise<HTMLCanvasElement> {
+// One hidden map serves every render (the background in a file, a map sticker), so they take turns.
+let turn: Promise<unknown> = Promise.resolve()
+
+export function renderMapImage(scene: MapScene, width: number, height: number, scale: number): Promise<HTMLCanvasElement> {
+  const run = turn.then(() => drawMap(scene, width, height, scale))
+  turn = run.catch(() => null)
+  return run
+}
+
+async function drawMap(scene: MapScene, width: number, height: number, scale: number): Promise<HTMLCanvasElement> {
   const h = await hiddenMap(scale)
   const key = styleKey(scene.settings)
   if (h.styleKey !== key) {

@@ -13,6 +13,7 @@ import CanvasElements from '../core/canvas/CanvasElements'
 import { stageUnderlays } from '../core/canvas/chrome'
 import BackgroundLayer from './BackgroundLayer'
 import EditableText from './EditableText'
+import LooseIcon from './place/LooseIcon'
 import RouteGroup from './RouteGroup'
 import PhotoLayer from './PhotoLayer'
 import SeriesLayer from './SeriesLayer'
@@ -30,6 +31,7 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
   const adding = useAppStore((s) => s.addingWaypoint)
   const showSafeZones = useAppStore((s) => s.showSafeZones)
   const texts = useAppStore((s) => s.texts)
+  const routeAsSticker = useAppStore((s) => s.mapSticker.shown)
   const select = useAppStore((s) => s.select)
   const hasRoute = useHasRoute()
   const slides = useAppStore((s) => s.slides)
@@ -150,7 +152,7 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
         <PhotoLayer />
         <SeriesLayer />
         <Layer>
-          {hasRoute && (
+          {hasRoute && !routeAsSticker && (
             <SlideBox slide={0}>
               <RouteGroup />
             </SlideBox>
@@ -159,7 +161,7 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
         <Layer>
           <CanvasElements />
           {texts.map((node) => (
-            <EditableText key={node.id} node={node} />
+            node.icon ? <LooseIcon key={node.id} node={node} /> : <EditableText key={node.id} node={node} />
           ))}
         </Layer>
         <WrapperLayer />

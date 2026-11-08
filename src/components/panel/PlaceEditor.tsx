@@ -10,6 +10,9 @@ import FileButton from '../ui/FileButton'
 import { IconFit, IconImage, IconTrash } from '../icons'
 import FontField from '../fields/FontField'
 import KindIcon from '../place/KindIcon'
+import IconField from '../fields/IconField'
+import { DEFAULT_ICON_SIZE } from '../place/placeLayout'
+import IconFinishField from '../fields/IconFinishField'
 import { POINT_KIND_ORDER, POINT_KINDS } from '../place/pointKinds'
 import { DEFAULT_SLOT_CROP } from '../../store/defaults'
 import { useAppStore } from '../../store/useAppStore'
@@ -87,10 +90,38 @@ export default function PlaceEditor({ id }: { id: number }) {
     <>
       <Section title="Etykieta">
         <TextField label="Nazwa" value={selected.text} onChange={(text) => updateWaypoint(selected.id, { text })} />
-        <Segmented label="Rodzaj punktu" showLabel value={selected.kind} options={KIND_OPTIONS} onChange={(kind) => updateWaypoint(selected.id, { kind })} />
+        <Segmented
+          label="Rodzaj punktu"
+          showLabel
+          wrap
+          value={selected.kind}
+          options={KIND_OPTIONS}
+          onChange={(kind) => updateWaypoint(selected.id, { kind, ...(kind === 'icon' && !selected.icon ? { icon: 'coffee' as const } : null) })}
+        />
+        {selected.kind === 'icon' && (
+          <>
+            <IconField value={selected.icon} onChange={(icon) => updateWaypoint(selected.id, { icon })} />
+            <CheckboxField
+              label="Ikona w miejscu napisu"
+              checked={!!selected.iconAsLabel}
+              onChange={(iconAsLabel) => updateWaypoint(selected.id, { iconAsLabel })}
+            />
+            {selected.iconAsLabel && <p className="hint">Na trasie zostaje punkt, a linia prowadzi do ikony.</p>}
+            <SliderField
+              label="Wielkość ikony"
+              unit="px"
+              min={16}
+              max={200}
+              value={selected.iconSize ?? DEFAULT_ICON_SIZE}
+              defaultValue={DEFAULT_ICON_SIZE}
+              onChange={(iconSize) => updateWaypoint(selected.id, { iconSize })}
+            />
+            <IconFinishField />
+          </>
+        )}
         <FontField value={selected.fontFamily} onChange={(fontFamily) => updateWaypoint(selected.id, { fontFamily })} />
         <SliderField
-          label="Rozmiar"
+          label="Wielkość napisu"
           unit="px"
           min={10}
           max={80}

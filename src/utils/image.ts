@@ -1,4 +1,4 @@
-import { clamp } from './math'
+import { clamp, seededRandom } from './math'
 // Enough for a 2× export of the tallest aspect (2160×3840) with zoom headroom.
 const MAX_SIDE = 4096
 const THUMB_SIDE = 160
@@ -84,21 +84,25 @@ export function containLayout(imgW: number, imgH: number, boxW: number, boxH: nu
   return { width, height, x: (boxW - width) / 2, y: (boxH - height) / 2 }
 }
 
-let noise: HTMLCanvasElement | null = null
+const noise = new Map<number, HTMLCanvasElement>()
 
-export function noiseTile(): HTMLCanvasElement {
-  if (noise) return noise
+// Grain from the project's seed, so the preview and every export of it show the same specks.
+export function noiseTile(seed: number): HTMLCanvasElement {
+  const known = noise.get(seed)
+  if (known) return known
   const size = 256
   const { canvas, ctx } = newCanvas(size, size)
   if (ctx) {
+    const random = seededRandom(seed)
     const data = ctx.createImageData(size, size)
     for (let i = 0; i < data.data.length; i += 4) {
-      const v = Math.random() * 255
+      const v = random() * 255
       data.data[i] = data.data[i + 1] = data.data[i + 2] = v
       data.data[i + 3] = 255
     }
     ctx.putImageData(data, 0, 0)
   }
-  noise = canvas
+  if (noise.size > 8) noise.clear()
+  noise.set(seed, canvas)
   return canvas
 }

@@ -1,6 +1,8 @@
+import { Fragment } from 'react'
 import { Line, Text } from 'react-konva'
 import DraggableElement from '../../../core/canvas/DraggableElement'
 import { useAppStore } from '../../../store/useAppStore'
+import { useStickerColor } from '../../../store/selectors'
 import { textColumn } from '../../../core/formats/registry'
 import { defaultStatsY, statsYBelowTitle } from '../../../utils/aspects'
 import { konvaFontStyle } from '../../../utils/fonts'
@@ -24,7 +26,9 @@ function arrangeInColumn(input: ArrangeInput) {
 
 export default function StatsHeaderNode() {
   const chips = useStatsChips()
-  const style = useAppStore((s) => s.statsStyle)
+  const ownStyle = useAppStore((s) => s.statsStyle)
+  const sticker = useStickerColor(0)
+  const style = sticker ? { ...ownStyle, color: sticker } : ownStyle
   const title = useAppStore((s) => s.texts.find((t) => t.role === 'title'))
   const chipOffsets = useAppStore((s) => s.statsLayout.chipOffsets)
   const aspectKey = useAppStore((s) => s.aspectKey)
@@ -48,27 +52,35 @@ export default function StatsHeaderNode() {
       ))}
       {box.texts.map((t) => {
         const base = t.dragBase
+        const glyphs = {
+          text: t.text,
+          x: t.x,
+          y: t.y,
+          width: t.width,
+          wrap: t.width ? 'none' : undefined,
+          ellipsis: Boolean(t.width),
+          fontFamily: style.fontFamily,
+          fontStyle,
+          fontSize: t.fontSize,
+          letterSpacing: t.letterSpacing,
+          opacity: t.opacity,
+          perfectDrawEnabled: false,
+        }
+        const { hardShadow: hard, outline } = style
+        const stroke = outline ? outline.width * 2 : 0
         return (
-          <Text
-            key={t.id}
-            text={t.text}
-            x={t.x}
-            y={t.y}
-            width={t.width}
-            wrap={t.width ? 'none' : undefined}
-            ellipsis={Boolean(t.width)}
-            fontFamily={style.fontFamily}
-            fontStyle={fontStyle}
-            fontSize={t.fontSize}
-            letterSpacing={t.letterSpacing}
-            opacity={t.opacity}
-            fill={style.color}
-            perfectDrawEnabled={false}
-            listening={Boolean(base)}
-            draggable={Boolean(base)}
-            onDragEnd={base ? (e) => setChipOffset(t.chipKey, { dx: e.target.x() - base.x, dy: e.target.y() - base.y }) : undefined}
-            {...(style.shadow && t.shadow ? TEXT_SHADOW : null)}
-          />
+          <Fragment key={t.id}>
+            {hard && <Text {...glyphs} x={t.x + hard.dx} y={t.y + hard.dy} fill={hard.color} stroke={hard.color} strokeWidth={stroke} lineJoin="round" listening={false} />}
+            {outline && <Text {...glyphs} fill={outline.color} stroke={outline.color} strokeWidth={stroke} lineJoin="round" listening={false} />}
+            <Text
+              {...glyphs}
+              fill={style.color}
+              listening={Boolean(base)}
+              draggable={Boolean(base)}
+              onDragEnd={base ? (e) => setChipOffset(t.chipKey, { dx: e.target.x() - base.x, dy: e.target.y() - base.y }) : undefined}
+              {...(style.shadow && !hard && t.shadow ? TEXT_SHADOW : null)}
+            />
+          </Fragment>
         )
       })}
     </DraggableElement>

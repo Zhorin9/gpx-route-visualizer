@@ -4,7 +4,7 @@ import { useAppStore } from '../../store/useAppStore'
 import { headFor } from './model/pacing'
 import { tripSchedule } from './model/schedule'
 import { clamp01 } from '../../utils/math'
-import { clipProgress, layerAt, photoAt } from './model/timeline'
+import { clipProgress, layerAt, photoAt, typedCount } from './model/timeline'
 import { usePlayback } from './playback'
 import { selectRouteParts, selectTrack } from '../../store/derived'
 
@@ -39,6 +39,12 @@ export function useAnimatedPhoto(order: number, count: number): LayerState {
   const settings = useAppStore((s) => s.animation)
   const collage = useAppStore((s) => s.mode === 'collage')
   return t == null || !collage ? STATIC_LAYER : photoAt(settings, order, count, t)
+}
+
+export function useTypedText(length: number, cps: number): number {
+  const t = useAnimationTime()
+  const clip = useAppStore((s) => s.animation.clips.header)
+  return t == null ? length : typedCount(clip, t, cps, length)
 }
 
 export function useCanAnimate(): boolean {

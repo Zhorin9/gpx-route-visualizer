@@ -8,6 +8,8 @@ import type { Waypoint } from '../../types'
 import SelectionOutline from '../SelectionOutline'
 import type { PlaceLayout } from './placeLayout'
 import { TEXT_SHADOW } from '../../core/canvas/shadows'
+import { useStickerColor } from '../../store/selectors'
+import { STICKER_INK } from '../../utils/sticker'
 
 const PRINT_INK = '#2b2620'
 const RULE_GAP = 8
@@ -27,7 +29,9 @@ function writtenOnMarker(area: NonNullable<PlaceLayout['nameOnMarker']>, fontSiz
   }
 }
 
-function standingFree(waypoint: Waypoint) {
+// In a sticker style a name is written in its colour with a thick ink edge, as on the board.
+function standingFree(waypoint: Waypoint, sticker: string | null) {
+  if (sticker) return { fontSize: waypoint.fontSize, fill: sticker, stroke: STICKER_INK, strokeWidth: waypoint.fontSize * 0.18, lineJoin: 'round' as const, fillAfterStrokeEnabled: true }
   return { fontSize: waypoint.fontSize, fill: waypoint.color, ...TEXT_SHADOW, shadowEnabled: waypoint.shadowEnabled ?? true }
 }
 
@@ -36,6 +40,7 @@ export default function PlaceName({ waypoint, layout, selected }: { waypoint: Wa
   const { hidden, edit } = useInlineTextEditor()
   const textRef = useRef<Konva.Text>(null)
   const area = layout.nameOnMarker
+  const sticker = useStickerColor(0)
 
   function startEditing(e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) {
     edit(e.target as Konva.Text, { value: waypoint.text, onCommit: (text) => updateWaypoint(waypoint.id, { text }) })
@@ -49,7 +54,7 @@ export default function PlaceName({ waypoint, layout, selected }: { waypoint: Wa
         text={waypoint.text}
         fontFamily={waypoint.fontFamily}
         fontStyle={konvaFontStyle(waypoint.fontFamily)}
-        {...(area ? writtenOnMarker(area, waypoint.fontSize) : standingFree(waypoint))}
+        {...(area ? writtenOnMarker(area, waypoint.fontSize) : standingFree(waypoint, sticker))}
         perfectDrawEnabled={false}
         visible={!hidden}
         onDblClick={startEditing}

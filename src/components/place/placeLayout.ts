@@ -27,12 +27,21 @@ function measureName(waypoint: Waypoint): Box {
   return { x: 0, y: 0, w: widest, h: lines.length * waypoint.fontSize }
 }
 
+export const DEFAULT_ICON_SIZE = 44
+
+export const iconLabel = (waypoint: Waypoint) => (waypoint.kind === 'icon' && waypoint.iconAsLabel && waypoint.icon ? waypoint.icon : null)
+
 export function placeLayout(waypoint: Waypoint, photo: Photo | undefined, style: PointStyle): PlaceLayout {
   const layout = layoutParts(waypoint, photo, style)
   return waypoint.leaderEnabled === false ? { ...layout, leader: null } : layout
 }
 
 function layoutParts(waypoint: Waypoint, photo: Photo | undefined, style: PointStyle): PlaceLayout {
+  if (iconLabel(waypoint)) {
+    const size = waypoint.iconSize ?? DEFAULT_ICON_SIZE
+    const box = { x: 0, y: 0, w: size, h: size }
+    return { marker: null, name: box, nameOnMarker: null, underlined: false, leader: { kind: 'text', box } }
+  }
   const name = measureName(waypoint)
   if (!photo || style.marker === 'label') {
     return { marker: null, name, nameOnMarker: null, underlined: Boolean(photo) && isNamed(waypoint), leader: isNamed(waypoint) ? { kind: 'text', box: name } : null }

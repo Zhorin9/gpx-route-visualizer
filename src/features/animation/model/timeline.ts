@@ -24,6 +24,11 @@ export function entranceState(entrance: Entrance, p: number): LayerState {
   return { opacity: e, offsetY: entrance === 'slide' ? (1 - e) * SLIDE_PX : 0 }
 }
 
+// Typing starts with the texts' bar and goes on at its own pace, whatever the bar's length.
+export function typedCount(clip: TrackClip, t: number, cps: number, length: number): number {
+  return Math.max(0, Math.min(length, Math.floor((t - clip.start) * cps)))
+}
+
 // The header and stats appear over their whole bar; the route's own bar is about drawing.
 export function layerAt(settings: AnimationSettings, track: AnimationTrackId, t: number): LayerState {
   if (track === 'route') return STATIC_LAYER

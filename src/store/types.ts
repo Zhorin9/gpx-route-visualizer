@@ -1,3 +1,8 @@
+import type { StickerSettings } from '../utils/sticker'
+import type { PhotoLook } from '../utils/photoLook'
+import type { MapStickerSettings } from '../features/map-sticker/model'
+import type { IconFinish } from '../components/place/icons'
+import type { TextKind } from './textKinds'
 import type {
   AspectKey,
   CarouselKind,
@@ -89,6 +94,18 @@ export interface DocumentState {
   wrapper: Wrapper
   // null until chosen on the start screen.
   mode: ProjectMode | null
+  // The template applied last, to tell whether the look has changed since.
+  templateId: string | null
+  iconFinish: IconFinish
+  // Set by the sticker styles: one colour for their elements, in place of each element's own.
+  sticker: StickerSettings | null
+  photoLook: PhotoLook
+  // The route's start day and time in a corner, as a camera stamps a frame.
+  stamp: boolean
+  // A short line over the title; its words stay when a style hides it.
+  kicker: { shown: boolean; text: string }
+  // The route as a sticker of the map around it; while shown, the route itself is not drawn.
+  mapSticker: MapStickerSettings
 }
 
 // undo and redo are the history's own; anything else brings its handler.
@@ -227,10 +244,19 @@ export interface StatsSlice {
 }
 
 export interface ElementsSlice {
-  addText: () => number
+  setIconFinish: (finish: IconFinish) => void
+  updateSticker: (patch: Partial<StickerSettings>) => void
+  updatePhotoLook: (patch: Partial<PhotoLook>) => void
+  setStamp: (on: boolean) => void
+  updateMapSticker: (patch: Partial<MapStickerSettings>) => void
+  setKicker: (patch: Partial<DocumentState['kicker']>) => void
+  // Besides a plain text: a loose icon, a badge or a text bent over an icon; all move and turn like a text.
+  addText: (kind?: TextKind) => number
   updateText: (id: number, patch: Partial<TextNode>) => void
   deleteText: (id: number) => void
   addWaypoint: (trackPos: number) => number
+  // Start, finish and the halfway distance as places, in one step.
+  addRouteCaptions: () => void
   updateWaypoint: (id: number, patch: Partial<Waypoint>) => void
   updatePointStyle: (patch: Partial<PointStyle>) => void
   deleteWaypoint: (id: number) => void
@@ -240,9 +266,27 @@ export interface ElementsSlice {
   nudgeSelection: (dx: number, dy: number) => void
 }
 
+export interface TemplatePreview {
+  template: StyleTemplate
+  // The document from before the preview; going back restores it.
+  base: DocumentState
+}
+
 export interface TemplatesSlice {
   customTemplates: StyleTemplate[]
+  // Preferences: the parts "Tylko…" applies, the last used and the favourite template ids.
+  templateParts: TemplateParts
+  recentTemplates: string[]
+  favoriteTemplates: string[]
+  // Outside the history: a template shown on the frame until applied or dropped.
+  templatePreview: TemplatePreview | null
   applyTemplate: (template: StyleTemplate, parts: TemplateParts) => void
+  previewTemplate: (template: StyleTemplate) => void
+  endPreview: () => void
+  // The previewed template as one undo step: on Zastosuj, and before anything else done meanwhile.
+  keepPreview: () => void
+  setTemplateParts: (parts: TemplateParts) => void
+  toggleFavoriteTemplate: (id: string) => void
   // The colours proposed from the photos, as one undo step; afterwards they are plain style values.
   applyPhotoTheme: (theme: PhotoTheme) => void
   // Empty fields are filled from the route.

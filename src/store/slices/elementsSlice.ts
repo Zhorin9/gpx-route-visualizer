@@ -1,15 +1,27 @@
 import { FORMATS } from '../../core/formats/registry'
 import { makeText, makeWaypoint, nextId } from '../defaults'
+import { TEXT_KINDS } from '../textKinds'
+import { selectTrack } from '../derived'
+import { routeCaptions } from '../../utils/routeCaptions'
+
+// Large, as on the board, the distance larger still; each stands off its point to its own side.
+const END_CAPTIONS = [
+  { dx: 30, dy: 40, fontSize: 40 },
+  { dx: 40, dy: -60, fontSize: 40 },
+]
+const DISTANCE_CAPTION = { dx: -200, dy: -40, fontSize: 52 }
 import type { ElementsSlice, SliceContext } from '../types'
+
 
 // Derived from the list rather than a module counter, so ids stay unique after undo.
 export function createElementsSlice({ get, commit }: SliceContext): ElementsSlice {
   const slice: ElementsSlice = {
-    addText: () => {
+    addText: (kind = 'text') => {
       const s = get()
       const { w, h } = FORMATS[s.aspectKey]
       const base = makeText(nextId(s.texts), w, h)
-      const node = { ...base, x: base.x + Math.min(s.activeSlide, s.slides.length - 1) * w }
+      const shown = { ...base, x: base.x + Math.min(s.activeSlide, s.slides.length - 1) * w }
+      const node = { ...shown, ...TEXT_KINDS[kind](s.statsStyle.color, shown) }
       commit('text:add', {
         texts: [...s.texts, node],
         selection: { kind: 'text', id: node.id },
@@ -17,6 +29,12 @@ export function createElementsSlice({ get, commit }: SliceContext): ElementsSlic
       })
       return node.id
     },
+    setIconFinish: (iconFinish) => commit('iconFinish', { iconFinish }),
+    updateMapSticker: (patch) => commit('mapSticker', (s) => ({ mapSticker: { ...s.mapSticker, ...patch } })),
+    setKicker: (patch) => commit('kicker', (s) => ({ kicker: { ...s.kicker, ...patch } })),
+    setStamp: (stamp) => commit('stamp', { stamp, ...(stamp ? null : { selection: null }) }),
+    updatePhotoLook: (patch) => commit('photoLook', (s) => ({ photoLook: { ...s.photoLook, ...patch } })),
+    updateSticker: (patch) => commit('sticker', (s) => (s.sticker ? { sticker: { ...s.sticker, ...patch } } : {})),
     updateText: (id, patch) =>
       commit(`text:${id}:${Object.keys(patch).join()}`, (s) => ({
         texts: s.texts.map((t) => (t.id === id ? { ...t, ...patch } : t)),
@@ -39,6 +57,19 @@ export function createElementsSlice({ get, commit }: SliceContext): ElementsSlic
         activeTab: s.activeTab === 'texts' ? 'texts' : 'route',
       })
       return node.id
+    },
+    addRouteCaptions: () => {
+      const s = get()
+      const points = selectTrack(s)?.points
+      if (!points) return
+      const first = nextId(s.waypoints)
+      const captions = routeCaptions(points, s.range, s.statsContent.units)
+      const added = captions.map(({ trackPos, text }, i) => ({
+        ...makeWaypoint(first + i, trackPos),
+        text,
+        ...(i === captions.length - 1 ? DISTANCE_CAPTION : END_CAPTIONS[i]),
+      }))
+      commit('waypoint:captions', { waypoints: [...s.waypoints, ...added] })
     },
     updateWaypoint: (id, patch) =>
       commit(`waypoint:${id}:${Object.keys(patch).join()}`, (s) => ({

@@ -182,7 +182,7 @@ function PoiSection() {
           {waypoints.map((w) => (
             <ElementRow
               key={w.id}
-              icon={<KindIcon kind={w.kind} />}
+              icon={<KindIcon kind={w.kind} icon={w.icon} />}
               label={w.text || '(pusty)'}
               meta={cum ? `km ${Math.round(cum[Math.min(cum.length - 1, Math.round(w.trackPos))])}` : ''}
               active={w.id === selected?.id}

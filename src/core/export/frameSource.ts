@@ -51,6 +51,8 @@ const nextPaint = () =>
 
 export async function beginStageFrames(): Promise<FrameSource> {
   const store = useAppStore
+  // What is on the frame is what gets saved, so a previewed template is kept.
+  store.getState().keepPreview()
   const before = store.getState()
   const snapshot = pickDocument(before)
   const { selection, routeEditable } = before

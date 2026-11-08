@@ -56,7 +56,8 @@ export default function useKeyboardShortcuts(): void {
         }
       }
       if (e.key === 'Escape') {
-        if (s.addingWaypoint) s.setAddingWaypoint(false)
+        if (s.templatePreview) s.endPreview()
+        else if (s.addingWaypoint) s.setAddingWaypoint(false)
         else if (s.routeEditable) s.setRouteEditable(false)
         else s.select(null)
         return

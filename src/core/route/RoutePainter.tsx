@@ -64,9 +64,63 @@ function SolidStroke({ segment, style, color }: { segment: RouteSegment; style: 
   )
 }
 
+// The shifted copy, then the outline: under every drawn segment, so a joint never covers the line before it.
+function Casing({ segments, style }: { segments: RouteSegment[]; style: RouteStyle }) {
+  const casing = style.casing
+  if (!casing) return null
+  const drawn = segments.filter((s) => s.role !== 'remaining' && s.points.length >= 4)
+  const line = (segment: RouteSegment, i: number, offset: boolean) => (
+    <Line
+      key={i}
+      points={segment.points}
+      x={offset ? casing.dx : 0}
+      y={offset ? casing.dy : 0}
+      stroke={casing.color}
+      strokeWidth={style.coreWidth + casing.width}
+      listening={false}
+      perfectDrawEnabled={false}
+      {...(segment.square ? SQUARE : ROUND)}
+    />
+  )
+  return (
+    <>
+      {casing.dx || casing.dy ? drawn.map((s, i) => line(s, i, true)) : null}
+      {drawn.map((s, i) => line(s, i + drawn.length, false))}
+    </>
+  )
+}
+
+// Under the line, so where they cross the line stays whole.
+function Echo({ segments, style }: { segments: RouteSegment[]; style: RouteStyle }) {
+  const echo = style.echo
+  if (!echo) return null
+  return (
+    <>
+      {segments
+        .filter((s) => s.role !== 'remaining' && s.points.length >= 4)
+        .map((segment, i) => (
+          <Line
+            key={i}
+            points={segment.points}
+            x={echo.dx}
+            y={echo.dy}
+            stroke={style.color}
+            strokeWidth={style.coreWidth * echo.width}
+            opacity={echo.opacity}
+            listening={false}
+            perfectDrawEnabled={false}
+            {...ROUND}
+          />
+        ))}
+    </>
+  )
+}
+
 export default function RoutePainter({ segments, style, coloring }: RoutePainterProps) {
   return (
     <>
+      <Casing segments={segments} style={style} />
+      <Echo segments={segments} style={style} />
       {segments.map((segment, i) => {
         if (segment.points.length < 4) return null
         if (segment.role === 'remaining') return <Ghost key={i} segment={segment} style={style} />

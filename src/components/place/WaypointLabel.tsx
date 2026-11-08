@@ -2,13 +2,16 @@ import { useState } from 'react'
 import { Group } from 'react-konva'
 import { usePointAnimation } from '../../core/animation/layers'
 import { useAppStore } from '../../store/useAppStore'
+import { useStickerColor } from '../../store/selectors'
+import { STICKER_INK } from '../../utils/sticker'
 import type { Point2D } from '../../utils/geometry'
 import type { Waypoint } from '../../types'
 import AnchorSymbol from './AnchorSymbol'
 import LeaderLine from './LeaderLine'
 import PinnedPhoto from './PinnedPhoto'
 import PlaceName from './PlaceName'
-import { placeLayout } from './placeLayout'
+import { iconLabel, placeLayout } from './placeLayout'
+import LabelIcon from './LabelIcon'
 
 export interface WaypointLabelProps {
   waypoint: Waypoint
@@ -23,16 +26,18 @@ export default function WaypointLabel({ waypoint, anchor }: WaypointLabelProps) 
   const select = useAppStore((s) => s.select)
   const updateWaypoint = useAppStore((s) => s.updateWaypoint)
   const animation = usePointAnimation(waypoint.trackPos)
+  const sticker = useStickerColor(0)
   const [dragged, setDragged] = useState<{ x: number; y: number } | null>(null)
 
   const layout = placeLayout(waypoint, photo, pointStyle)
+  const labelIcon = iconLabel(waypoint)
   const offset = dragged ?? { x: waypoint.dx, y: waypoint.dy }
   const selectThis = () => select({ kind: 'waypoint', id: waypoint.id })
 
   return (
     <Group x={anchor.x} y={anchor.y + animation.offsetY} opacity={animation.opacity}>
-      <LeaderLine element={layout.leader} offset={offset} color={waypoint.color} shadow={waypoint.shadowEnabled ?? true} />
-      <AnchorSymbol kind={waypoint.kind} color={waypoint.color} />
+      <LeaderLine element={layout.leader} offset={offset} color={sticker ? STICKER_INK : waypoint.color} shadow={waypoint.shadowEnabled ?? true} />
+      <AnchorSymbol kind={labelIcon ? 'point' : waypoint.kind} color={sticker ?? waypoint.color} icon={waypoint.icon} iconSize={waypoint.iconSize} />
       <Group
         x={offset.x}
         y={offset.y}
@@ -46,7 +51,11 @@ export default function WaypointLabel({ waypoint, anchor }: WaypointLabelProps) 
         }}
       >
         {layout.marker && <PinnedPhoto pinned={layout.marker} waypoint={waypoint} />}
-        <PlaceName waypoint={waypoint} layout={layout} selected={selected} />
+        {labelIcon ? (
+          <LabelIcon icon={labelIcon} size={layout.name.w} color={sticker ?? waypoint.color} selected={selected} />
+        ) : (
+          <PlaceName waypoint={waypoint} layout={layout} selected={selected} />
+        )}
       </Group>
     </Group>
   )

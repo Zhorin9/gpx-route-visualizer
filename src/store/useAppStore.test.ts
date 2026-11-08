@@ -3,7 +3,9 @@ import { registerCanvasElement } from '../core/canvas/registry'
 import { BUILT_IN_TEMPLATES } from '../utils/templates'
 import { selectRouteDays, selectTrack } from './derived'
 import { DOCUMENT_KEYS, pickDocument } from './document'
+import { lookChanged } from './slices/templatesSlice'
 import { useAppStore } from './useAppStore'
+import { makeText } from './defaults'
 
 const initial = useAppStore.getState()
 
@@ -232,7 +234,7 @@ describe('carousel', () => {
 
 describe('style templates', () => {
   const papier = BUILT_IN_TEMPLATES.find((t) => t.id === 'papier')!
-  const all = { fonts: true, route: true, frame: true, colors: true, layout: false, points: true }
+  const all = { fonts: true, route: true, frame: true, colors: true, layout: false, points: true, effects: true, photo: true }
 
   it('applies only the chosen parts and never touches texts content or photos', () => {
     useAppStore.setState({ photos: [fakePhoto(1)] })
@@ -281,6 +283,140 @@ describe('style templates', () => {
     expect(get().wrapper.fields.note).toBe('Tu złapał nas deszcz.')
     get().undo()
     expect(get().wrapper.id).toBe('none')
+  })
+
+  it('previews a template on the frame without a history step and goes back to the exact look', () => {
+    get().updateRouteStyle({ color: '#123456' })
+    const before = pickDocument(get())
+    const steps = get().past.length
+    get().previewTemplate(papier)
+    get().previewTemplate(BUILT_IN_TEMPLATES.find((t) => t.id === 'neon')!)
+    expect(get().routeStyle.color).toBe('#d8fff3')
+    expect(get().past).toHaveLength(steps)
+    get().endPreview()
+    expect(pickDocument(get())).toEqual(before)
+  })
+
+  it('applies a previewed template as one undo step', () => {
+    vi.advanceTimersByTime(1000)
+    get().previewTemplate(papier)
+    const steps = get().past.length
+    get().keepPreview()
+    expect(get().routeStyle.color).toBe('#8a3b24')
+    expect(get().templatePreview).toBeNull()
+    expect(get().past).toHaveLength(steps + 1)
+    get().undo()
+    expect(get().routeStyle.color).toBe(initial.routeStyle.color)
+  })
+
+  it('applies nothing, and records no step, when no part of the template is ticked', () => {
+    const none = Object.fromEntries(Object.keys(all).map((key) => [key, false])) as typeof all
+    get().setTemplateParts(none)
+    get().previewTemplate(papier)
+    const steps = get().past.length
+    get().keepPreview()
+    expect(get().past).toHaveLength(steps)
+    expect(get().templateId).toBeNull()
+  })
+
+  it('keeps a previewed template when something else is changed, as its own undo step', () => {
+    vi.advanceTimersByTime(1000)
+    get().previewTemplate(papier)
+    get().setWrapper('postcard')
+    expect(get().templatePreview).toBeNull()
+    expect(get().routeStyle.color).toBe('#8a3b24')
+    expect(get().wrapper.id).toBe('postcard')
+    get().undo()
+    expect(get().wrapper.id).toBe('none')
+    expect(get().routeStyle.color).toBe('#8a3b24')
+    get().undo()
+    expect(get().routeStyle.color).toBe(initial.routeStyle.color)
+  })
+
+  it('keeps a previewed template when another tab opens', () => {
+    get().previewTemplate(papier)
+    get().setSubTab('style', 'wrapper')
+    expect(get().templatePreview).toBeNull()
+    expect(get().templateId).toBe('papier')
+  })
+
+  it('remembers the last six templates, most recent first', () => {
+    for (const t of BUILT_IN_TEMPLATES.slice(0, 7)) get().applyTemplate(t, all)
+    get().applyTemplate(BUILT_IN_TEMPLATES[3], all)
+    expect(get().recentTemplates).toEqual([3, 6, 5, 4, 2, 1].map((i) => BUILT_IN_TEMPLATES[i].id))
+  })
+
+  it('marks the look as changed after a hand edit and clears it when the template is applied again', () => {
+    get().applyTemplate(papier, all)
+    expect(lookChanged(get(), papier, all)).toBe(false)
+    get().updateRouteStyle({ coreWidth: 12 })
+    expect(lookChanged(get(), papier, all)).toBe(true)
+    get().applyTemplate(papier, all)
+    expect(lookChanged(get(), papier, all)).toBe(false)
+  })
+
+  it('turns off what a sticker style left when another style is applied', () => {
+    get().addText()
+    const naklejka = BUILT_IN_TEMPLATES.find((t) => t.id === 'naklejka')!
+    get().applyTemplate(naklejka, all)
+    expect(get().sticker?.color).toBe('#f2b8f5')
+    expect(get().routeStyle.casing).toBeDefined()
+    expect(get().texts[0]).toMatchObject({ outlineEnabled: true, hardShadow: naklejka.titleEffect?.hardShadow })
+    get().applyTemplate(papier, all)
+    expect(get().sticker).toBeNull()
+    expect(get().routeStyle.casing).toBeUndefined()
+    expect(get().texts[0]).toMatchObject({ outlineEnabled: false, hardShadow: undefined })
+    expect(get().statsStyle.hardShadow).toBeUndefined()
+  })
+
+  it('leaves the photos alone unless asked, and lays the film look of a style on them when asked', () => {
+    const retro = BUILT_IN_TEMPLATES.find((t) => t.id === 'retro70')!
+    get().applyTemplate(retro, get().templateParts)
+    expect(get().photoLook.grade).toBe('none')
+    get().applyTemplate(retro, all)
+    expect(get().photoLook).toEqual({ grade: 'warm', fade: 0, grain: 28 })
+    get().applyTemplate(papier, all)
+    expect(get().photoLook.grade).toBe('none')
+  })
+
+  it('bends only the title of a wave style, types every text of a typing style, and clears both after', () => {
+    useAppStore.setState({ texts: [{ ...makeText(1, 0, 0), role: 'title' }, makeText(2, 0, 0)] })
+    const byId = (id: string) => BUILT_IN_TEMPLATES.find((t) => t.id === id)!
+    get().applyTemplate(byId('gravel'), all)
+    expect(get().texts.map((t) => t.warp?.kind)).toEqual(['wave', undefined])
+    get().applyTemplate(byId('dokument'), all)
+    expect(get().texts.map((t) => [t.warp, t.typing?.cps])).toEqual([[undefined, 12], [undefined, 12]])
+    get().applyTemplate(papier, all)
+    expect(get().texts.every((t) => !t.typing && !t.warp)).toBe(true)
+  })
+
+  it('leaves the ink outline of a badge, an icon and a bent caption to them when a style changes the texts', () => {
+    get().addText('badge')
+    get().addText('arc')
+    get().addText('icon')
+    const pieces = get().texts.map(({ outlineEnabled, hardShadow, warp }) => ({ outlineEnabled, hardShadow, warp }))
+    get().applyTemplate(papier, all)
+    expect(get().texts.map(({ outlineEnabled, hardShadow, warp }) => ({ outlineEnabled, hardShadow, warp }))).toEqual(pieces)
+  })
+
+  it('shows the kicker and the stamp with their styles, hides them with others, and keeps the kicker words', () => {
+    const byId = (id: string) => BUILT_IN_TEMPLATES.find((t) => t.id === id)!
+    get().applyTemplate(byId('gravel'), all)
+    expect(get().kicker.shown).toBe(true)
+    get().setKicker({ text: 'Nasz weekend' })
+    get().applyTemplate(byId('dokument'), all)
+    expect([get().stamp, get().kicker]).toEqual([true, { shown: false, text: 'Nasz weekend' }])
+    get().applyTemplate(papier, all)
+    expect(get().stamp).toBe(false)
+  })
+
+  it('shows the route as a map sticker with Notes z trasy at the size set by hand, and plain again with another style', () => {
+    const notes = BUILT_IN_TEMPLATES.find((t) => t.id === 'notes')!
+    get().updateMapSticker({ size: 0.7 })
+    get().applyTemplate(notes, all)
+    expect(get().mapSticker).toMatchObject({ shown: true, route: '#e9572b', size: 0.7 })
+    get().applyTemplate(papier, all)
+    expect(get().mapSticker.shown).toBe(false)
   })
 
   it('saves the current look as a custom template', () => {
@@ -436,7 +572,7 @@ describe('multi-day routes', () => {
   it('turns the track name into one centred title, styled by the template', async () => {
     vi.useRealTimers()
     const plakat = BUILT_IN_TEMPLATES.find((t) => t.id === 'plakat')!
-    get().applyTemplate(plakat, { fonts: true, route: false, frame: false, colors: true, layout: false, points: false })
+    get().applyTemplate(plakat, { fonts: true, route: false, frame: false, colors: true, layout: false, points: false, effects: false, photo: false })
     await get().loadGpxFile(gpx(50, 'Sardynia'))
     await get().loadGpxFile(gpx(51, 'Dzień 2'), true)
     const titles = get().texts.filter((t) => t.role === 'title')
@@ -543,7 +679,7 @@ describe('gradient background', () => {
 
   it('applies a template background', () => {
     const topo = BUILT_IN_TEMPLATES.find((t) => t.id === 'topo')!
-    get().applyTemplate(topo, { fonts: false, route: false, frame: false, colors: true, layout: false, points: false })
+    get().applyTemplate(topo, { fonts: false, route: false, frame: false, colors: true, layout: false, points: false, effects: false, photo: false })
     expect(get().collage.bgKind).toBe('gradient')
     expect(get().collage.gradient).toMatchObject({ from: topo.gradient.from, pattern: 'contours' })
   })
