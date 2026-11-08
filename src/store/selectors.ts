@@ -9,7 +9,7 @@ import { useShallow } from 'zustand/react/shallow'
 import { useAppStore } from './useAppStore'
 import type { AspectKey, CarouselKind, Slide } from '../types'
 import { clamp } from '../utils/math'
-import { mixHex } from '../utils/color'
+import { mixHex, toneOf } from '../utils/color'
 import { stickerColor } from '../utils/sticker'
 import type { AppState } from './types'
 
@@ -98,6 +98,12 @@ export function useStickerColor(slide: number): string | null {
 // Anything opaque under the route: photos, a gradient or a map. Otherwise the export is transparent.
 export function useHasBackground() {
   return useAppStore((s) => (s.collage.bgKind !== 'transparent' && !(s.collage.bgKind === 'map' && mapIsSeeThrough(s.map))) || hasVisiblePhotos(s.slides, s.carouselKind))
+}
+
+// Text takes the background's contrast, so dark text means dark ink overall (a sketch without paper):
+// the checkerboard under a see-through frame then turns light.
+export function useInkIsDark() {
+  return useAppStore((s) => toneOf(s.statsStyle.color) === 'dark')
 }
 
 // Nothing in the source format.

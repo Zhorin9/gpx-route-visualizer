@@ -6,7 +6,7 @@ import Section from '../../../components/ui/Section'
 import Segmented from '../../../components/ui/Segmented'
 import { IconCheckCircle, IconDownload } from '../../../components/icons'
 import { useVideoEncoding, type EncodeQuality, type FormatSupport, type VideoFormat } from '../../../services/video-encoding'
-import { useHasBackground } from '../../../store/selectors'
+import { useHasBackground, useInkIsDark } from '../../../store/selectors'
 import { useAppStore } from '../../../store/useAppStore'
 import { archiveBaseName, downloadFiles, type ExportFile } from '../../../utils/exportImage'
 import { formatNumber } from '../../../utils/format'
@@ -150,6 +150,7 @@ export default function VideoExportPanel() {
   const canAnimate = useCanAnimate()
   const collage = useAppStore((s) => s.mode === 'collage')
   const hasBackground = useHasBackground()
+  const inkIsDark = useInkIsDark()
   const onMap = useAppStore((s) => s.collage.bgKind === 'map')
   const currentAspect = useAppStore((s) => s.aspectKey)
   const animation = useAppStore((s) => s.animation)
@@ -213,7 +214,7 @@ export default function VideoExportPanel() {
   return (
     <>
       <div className="export-layout video-layout">
-        <section className="export-sheet video-preview" aria-label="Podgląd">
+        <section className={inkIsDark ? 'export-sheet video-preview light-checker' : 'export-sheet video-preview'} aria-label="Podgląd">
           <Thumbnails job={job} />
           <dl className="video-summary">
             <div>

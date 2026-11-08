@@ -2,7 +2,7 @@ import { useState, type DragEvent } from 'react'
 import { Stage, Layer } from 'react-konva'
 import type Konva from 'konva'
 import useGpxImport from '../hooks/useGpxImport'
-import { useActiveSlide, useHasBackground, useHasRoute, usePanorama } from '../store/selectors'
+import { useActiveSlide, useHasBackground, useHasRoute, useInkIsDark, usePanorama } from '../store/selectors'
 import { useAppStore } from '../store/useAppStore'
 import { FORMATS } from '../core/formats/registry'
 import { computeSlots, layoutDef, ribbonSlot, slotAt, slotCount } from '../utils/layouts'
@@ -57,7 +57,8 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
   const boxes = slides.map((_, i) => slideBox({ wrapper, slides, carouselKind }, i, w, h))
   const first = boxes[0]
   const isCheckerboard = !hasBackground && previewBackdrop === 'checkerboard'
-  const classes = ['stage-wrapper', isCheckerboard && 'checkerboard', adding && 'is-adding'].filter(Boolean).join(' ')
+  const lightChecker = useInkIsDark()
+  const classes = ['stage-wrapper', isCheckerboard && 'checkerboard', lightChecker && 'light-checker', adding && 'is-adding'].filter(Boolean).join(' ')
 
   function deselectAndPickSlide(e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) {
     const stage = e.target.getStage()

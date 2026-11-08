@@ -407,6 +407,11 @@
   background-color: var(--checker-b);
 }
 
+.light-checker {
+  --checker-a: #d6d2ce;
+  --checker-b: #e9e6e3;
+}
+
 .stage-wrapper.is-adding {
   cursor: crosshair;
 }
