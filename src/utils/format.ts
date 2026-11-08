@@ -1,12 +1,14 @@
-const LOCALE = 'pl-PL'
+import { currentLocale } from '../i18n'
 
-const numberFormats = new Map<number, Intl.NumberFormat>()
+const numberFormats = new Map<string, Intl.NumberFormat>()
 
 export function formatNumber(value: number, fractionDigits = 0): string {
-  let fmt = numberFormats.get(fractionDigits)
+  const locale = currentLocale()
+  const key = `${locale}|${fractionDigits}`
+  let fmt = numberFormats.get(key)
   if (!fmt) {
-    fmt = new Intl.NumberFormat(LOCALE, { minimumFractionDigits: fractionDigits, maximumFractionDigits: fractionDigits })
-    numberFormats.set(fractionDigits, fmt)
+    fmt = new Intl.NumberFormat(locale, { minimumFractionDigits: fractionDigits, maximumFractionDigits: fractionDigits })
+    numberFormats.set(key, fmt)
   }
   return fmt.format(value)
 }
@@ -32,15 +34,12 @@ export function formatDuration(ms: number): string {
   return h > 0 ? `${h}h ${m}m` : `${m}m`
 }
 
-const timeFormat = new Intl.DateTimeFormat(LOCALE, { hour: '2-digit', minute: '2-digit' })
-const dayFormat = new Intl.DateTimeFormat(LOCALE, { weekday: 'short', day: 'numeric', month: 'short' })
-
 export function formatClock(ms: number): string {
-  return timeFormat.format(ms)
+  return new Intl.DateTimeFormat(currentLocale(), { hour: '2-digit', minute: '2-digit' }).format(ms)
 }
 
 export function formatDay(date: Date): string {
-  return dayFormat.format(date)
+  return new Intl.DateTimeFormat(currentLocale(), { weekday: 'short', day: 'numeric', month: 'short' }).format(date)
 }
 
 export function slugify(text: string): string {

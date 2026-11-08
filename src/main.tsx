@@ -8,6 +8,7 @@ import '@fontsource/lora/600.css'
 import './index.css'
 // Shared styles first: a component's own stylesheet, imported with it, comes after and wins ties.
 import './App.css'
+import './i18n'
 import App from './App.tsx'
 import { registerFeatures } from './features/register'
 

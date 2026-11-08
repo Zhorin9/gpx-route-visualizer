@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import useDismiss from '../hooks/useDismiss'
 import { useAppStore } from '../store/useAppStore'
 import { IconChevron, IconRedo, IconSettings, IconUndo } from './icons'
@@ -8,6 +9,7 @@ import { exportedSlides } from '../utils/series'
 import { MODE_LABELS } from '../utils/modeChange'
 import Button from './ui/Button'
 import type { Units } from '../core/units'
+import { LANGUAGES, type Language } from '../i18n'
 
 function Choice<T extends string>({ label, value, options, onChange }: { label: string; value: T; options: { value: T; label: string }[]; onChange: (value: T) => void }) {
   return (
@@ -34,10 +36,17 @@ function Choice<T extends string>({ label, value, options, onChange }: { label: 
 function SettingsMenu() {
   const units = useAppStore((s) => s.statsContent.units)
   const updateStatsContent = useAppStore((s) => s.updateStatsContent)
+  const { t, i18n } = useTranslation()
   return (
-    <div className="settings-menu" role="dialog" aria-label="Ustawienia">
+    <div className="settings-menu" role="dialog" aria-label={t('topBar.settings')}>
+      <Choice<Language>
+        label={t('topBar.language')}
+        value={i18n.language as Language}
+        options={LANGUAGES.map((l) => ({ value: l, label: l.toUpperCase() }))}
+        onChange={(l) => void i18n.changeLanguage(l)}
+      />
       <Choice<Units>
-        label="Jednostki"
+        label={t('topBar.units')}
         value={units}
         options={[
           { value: 'metric', label: 'km · m' },
@@ -53,6 +62,7 @@ function ProjectMenu({ name }: { name: string }) {
   const mode = useAppStore((s) => s.mode)
   const [open, setOpen] = useState(false)
   const [changing, setChanging] = useState(false)
+  const { t } = useTranslation()
   const ref = useRef<HTMLDivElement>(null)
   const close = useCallback(() => setOpen(false), [])
   const closeDialog = useCallback(() => setChanging(false), [])
@@ -75,7 +85,7 @@ function ProjectMenu({ name }: { name: string }) {
               setChanging(true)
             }}
           >
-            Zmień typ…
+            {t('topBar.changeType')}
           </button>
         </div>
       )}
@@ -85,7 +95,8 @@ function ProjectMenu({ name }: { name: string }) {
 }
 
 export default function TopBar() {
-  const name = useAppStore((s) => s.texts.find((t) => t.role === 'title')?.text || s.routeSource?.name || 'Nowy projekt')
+  const { t } = useTranslation()
+  const name = useAppStore((s) => s.texts.find((n) => n.role === 'title')?.text || s.routeSource?.name || t('topBar.newProject'))
   const canUndo = useAppStore((s) => s.past.length > 0)
   const canRedo = useAppStore((s) => s.future.length > 0)
   const undo = useAppStore((s) => s.undo)
@@ -103,20 +114,20 @@ export default function TopBar() {
     <header className="top-bar">
       <ProjectMenu name={name} />
       <div className="top-bar-actions">
-        <Button size="icon" variant="ghost" title="Cofnij (Ctrl+Z)" aria-label="Cofnij" onClick={undo} disabled={!canUndo}>
+        <Button size="icon" variant="ghost" title={`${t('topBar.undo')} (Ctrl+Z)`} aria-label={t('topBar.undo')} onClick={undo} disabled={!canUndo}>
           <IconUndo />
         </Button>
-        <Button size="icon" variant="ghost" title="Ponów (Ctrl+Shift+Z)" aria-label="Ponów" onClick={redo} disabled={!canRedo}>
+        <Button size="icon" variant="ghost" title={`${t('topBar.redo')} (Ctrl+Shift+Z)`} aria-label={t('topBar.redo')} onClick={redo} disabled={!canRedo}>
           <IconRedo />
         </Button>
         <div className="settings" ref={menuRef}>
-          <button type="button" className={open ? 'settings-toggle open' : 'settings-toggle'} aria-label="Ustawienia" aria-expanded={open} onClick={() => setOpen(!open)}>
+          <button type="button" className={open ? 'settings-toggle open' : 'settings-toggle'} aria-label={t('topBar.settings')} aria-expanded={open} onClick={() => setOpen(!open)}>
             <IconSettings />
           </button>
           {open && <SettingsMenu />}
         </div>
         <Button variant="primary" onClick={() => setExporting(true)}>
-          {seriesCount ? `Eksportuj serię (${seriesCount})` : 'Pobierz'}
+          {seriesCount ? t('topBar.exportSeries', { count: seriesCount }) : t('topBar.download')}
         </Button>
       </div>
       {exporting && <ExportDialog onClose={closeExport} />}
