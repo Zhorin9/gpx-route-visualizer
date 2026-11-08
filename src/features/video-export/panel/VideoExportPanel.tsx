@@ -103,14 +103,16 @@ function InsetFields({ inset, onChange, disabled }: { inset: CardInset; onChange
   const setWrapper = useAppStore((s) => s.setWrapper)
   return (
     <>
-      <Segmented
-        label="Kadr nagrania"
-        showLabel
-        value={inset.frame}
-        options={ASPECT_OPTIONS}
-        onChange={(frame) => onChange({ ...inset, frame })}
-        disabled={disabled}
-      />
+      <div className="video-wide">
+        <Segmented
+          label="Kadr nagrania"
+          showLabel
+          value={inset.frame}
+          options={ASPECT_OPTIONS}
+          onChange={(frame) => onChange({ ...inset, frame })}
+          disabled={disabled}
+        />
+      </div>
       <Segmented label="Róg" showLabel value={inset.corner} options={CORNER_OPTIONS} onChange={(corner) => onChange({ ...inset, corner })} disabled={disabled} />
       <SliderField
         label="Wielkość karty"
@@ -124,13 +126,13 @@ function InsetFields({ inset, onChange, disabled }: { inset: CardInset; onChange
       />
       {noWrapper && (
         <>
-          <p className="hint">Karta to cały projekt. Oprawa Pocztówka dodaje papierowy brzeg, znaczek z datą i podpis miejsca.</p>
+          <p className="hint video-wide">Karta to cały projekt. Oprawa Pocztówka dodaje papierowy brzeg, znaczek z datą i podpis miejsca.</p>
           <Button onClick={() => setWrapper('postcard')} disabled={disabled}>
-            Dodaj opakowanie Pocztówka
+            Dodaj oprawę Pocztówka
           </Button>
         </>
       )}
-      <p className="hint">Karta wjeżdża na początku i zjeżdża na końcu, a reszta kadru jest przezroczysta.</p>
+      <p className="hint video-wide">Karta wjeżdża na początku i zjeżdża na końcu, a reszta kadru jest przezroczysta.</p>
     </>
   )
 }
@@ -210,140 +212,140 @@ export default function VideoExportPanel() {
 
   return (
     <>
-      <Section title="Plik wideo">
-        <Segmented label="Format" showLabel value={job.format} options={FORMAT_OPTIONS} onChange={(format) => update({ format })} disabled={rendering} />
-        {unsupported.map((s) => (
-          <p key={s.format} className="hint">
-            {FORMAT_LABELS[s.format]}: {s.reason}.
-          </p>
-        ))}
-        <Segmented
-          label={job.inset ? 'Proporcje karty' : 'Proporcje'}
-          showLabel
-          value={job.aspect}
-          options={ASPECT_OPTIONS}
-          onChange={(aspect) => update({ aspect })}
-          disabled={rendering}
-        />
-        <Segmented
-          label="Klatki na sekundę"
-          showLabel
-          value={String(job.fps)}
-          options={FPS[job.format].map((f) => ({ value: String(f), label: `${f} fps` }))}
-          onChange={(v) => update({ fps: Number(v) })}
-          disabled={rendering}
-        />
-        {job.format !== 'gif' && (
+      <div className="export-layout video-layout">
+        <section className="export-sheet video-preview" aria-label="Podgląd">
+          <Thumbnails job={job} />
+          <dl className="video-summary">
+            <div>
+              <dt>Długość</dt>
+              <dd>{formatTime(length)}</dd>
+            </div>
+            <div>
+              <dt>Klatka</dt>
+              <dd>
+                {width}×{height}
+              </dd>
+            </div>
+            <div>
+              <dt>Plik</dt>
+              <dd>~{formatBytes(estimate)}</dd>
+            </div>
+          </dl>
+          {slideCount > 1 && <p className="hint">Karuzela: osobny plik dla każdego z {slideCount} slajdów, razem w ZIP.</p>}
+        </section>
+
+        <div className="video-settings">
+          <Segmented label="Format" showLabel value={job.format} options={FORMAT_OPTIONS} onChange={(format) => update({ format })} disabled={rendering} />
           <Segmented
-            label="Rozdzielczość"
+            label="Klatki na sekundę"
             showLabel
-            value={String(job.scale)}
-            options={([1, 2] as const).map((s) => {
-              const frame = FORMATS[job.inset?.frame ?? job.aspect]
-              return { value: String(s), label: `${frame.w * s}×${frame.h * s}${s === 2 ? ' (4K)' : ''}` }
-            })}
-            onChange={(v) => update({ scale: v === '2' ? 2 : 1 })}
+            value={String(job.fps)}
+            options={FPS[job.format].map((f) => ({ value: String(f), label: `${f} fps` }))}
+            onChange={(v) => update({ fps: Number(v) })}
             disabled={rendering}
           />
-        )}
-        {job.format === 'gif' ? (
-          <CheckboxField label="Zapętlaj bez końca" checked={job.loopForever} onChange={(loopForever) => update({ loopForever })} disabled={rendering} />
-        ) : job.format === 'png' ? (
-          <>
+          {unsupported.map((s) => (
+            <p key={s.format} className="hint video-wide">
+              {FORMAT_LABELS[s.format]}: {s.reason}.
+            </p>
+          ))}
+          <div className="video-wide">
             <Segmented
-              label="Przebitka"
+              label={job.inset ? 'Proporcje karty' : 'Proporcje'}
               showLabel
-              value={job.inset ? 'card' : 'full'}
-              options={[
-                { value: 'full', label: 'Cały kadr' },
-                { value: 'card', label: 'Pocztówka w rogu' },
-              ]}
-              onChange={(v) => update({ inset: v === 'card' ? DEFAULT_INSET : null })}
+              value={job.aspect}
+              options={ASPECT_OPTIONS}
+              onChange={(aspect) => update({ aspect })}
               disabled={rendering}
             />
-            {job.inset ? (
-              <InsetFields inset={job.inset} onChange={(inset) => update({ inset })} disabled={rendering} />
-            ) : (
-              <p className="hint">
-                {hasBackground
-                  ? 'Tło jest pełne, więc klatki nie będą przezroczyste. Na przebitkę wybierz w zakładce Styl › Tło „Przezroczyste”.'
-                  : 'Klatki PNG z przezroczystością w ZIP. W DaVinci lub Premiere zaimportuj je jako sekwencję obrazów i połóż nad nagraniem.'}
-              </p>
-            )}
-          </>
-        ) : (
-          <>
-            <Segmented label="Jakość" showLabel value={job.quality} options={QUALITY_OPTIONS} onChange={(quality) => update({ quality })} disabled={rendering} />
-            <Segmented label="Powtórz w pliku" showLabel value={String(job.repeat)} options={REPEAT_OPTIONS} onChange={(v) => update({ repeat: Number(v) })} disabled={rendering} />
-          </>
-        )}
-        {!hasBackground && (job.format === 'mp4' || job.format === 'webm') && <p className="hint">Bez zdjęcia ani gradientu tło filmu będzie czarne.</p>}
-        {onMap && <p className="hint">Film z mapą renderuje się dłużej: każda klatka czeka, aż mapa wczyta się w pełnej rozdzielczości. Pozostały czas liczy się z tym.</p>}
-      </Section>
+          </div>
+          {job.format !== 'gif' && (
+            <Segmented
+              label="Rozdzielczość"
+              showLabel
+              value={String(job.scale)}
+              options={([1, 2] as const).map((s) => {
+                const frame = FORMATS[job.inset?.frame ?? job.aspect]
+                return { value: String(s), label: `${frame.w * s}×${frame.h * s}${s === 2 ? ' (4K)' : ''}` }
+              })}
+              onChange={(v) => update({ scale: v === '2' ? 2 : 1 })}
+              disabled={rendering}
+            />
+          )}
+          {job.format === 'gif' ? (
+            <CheckboxField label="Zapętlaj bez końca" checked={job.loopForever} onChange={(loopForever) => update({ loopForever })} disabled={rendering} />
+          ) : job.format === 'png' ? (
+            <>
+              <Segmented
+                label="Przebitka"
+                showLabel
+                value={job.inset ? 'card' : 'full'}
+                options={[
+                  { value: 'full', label: 'Cały kadr' },
+                  { value: 'card', label: 'Pocztówka w rogu' },
+                ]}
+                onChange={(v) => update({ inset: v === 'card' ? DEFAULT_INSET : null })}
+                disabled={rendering}
+              />
+              {job.inset ? (
+                <InsetFields inset={job.inset} onChange={(inset) => update({ inset })} disabled={rendering} />
+              ) : (
+                <p className="hint video-wide">
+                  {hasBackground
+                    ? 'Tło jest pełne, więc klatki nie będą przezroczyste. Na przebitkę wybierz w zakładce Styl › Tło „Przezroczyste”.'
+                    : 'Klatki PNG z przezroczystością w ZIP. W DaVinci lub Premiere zaimportuj je jako sekwencję obrazów i połóż nad nagraniem.'}
+                </p>
+              )}
+            </>
+          ) : (
+            <>
+              <Segmented label="Jakość" showLabel value={job.quality} options={QUALITY_OPTIONS} onChange={(quality) => update({ quality })} disabled={rendering} />
+              <Segmented label="Powtórz w pliku" showLabel value={String(job.repeat)} options={REPEAT_OPTIONS} onChange={(v) => update({ repeat: Number(v) })} disabled={rendering} />
+            </>
+          )}
+          {!hasBackground && (job.format === 'mp4' || job.format === 'webm') && <p className="hint video-wide">Bez zdjęcia ani gradientu tło filmu będzie czarne.</p>}
+          {onMap && <p className="hint video-wide">Film z mapą renderuje się dłużej: każda klatka czeka, aż mapa wczyta się w pełnej rozdzielczości.</p>}
+        </div>
+      </div>
 
-      <Section title="Podgląd">
-        <Thumbnails job={job} />
-        <dl className="video-summary">
-          <div>
-            <dt>Długość</dt>
-            <dd>{formatTime(length)}</dd>
-          </div>
-          <div>
-            <dt>Rozmiar klatki</dt>
-            <dd>
-              {width}×{height}
-            </dd>
-          </div>
-          <div>
-            <dt>Szacowany plik</dt>
-            <dd>~{formatBytes(estimate)}</dd>
-          </div>
-        </dl>
-        {slideCount > 1 && <p className="hint">Karuzela: osobny plik dla każdego z {slideCount} slajdów, razem w ZIP.</p>}
-        {tooLong && <p className="error">Film jest dłuższy niż minuta — Instagram go przytnie. Skróć oś czasu lub liczbę powtórzeń.</p>}
-
+      <footer className="export-footer">
         {rendering ? (
-          <div className="render-state" role="status">
-            <div className="render-head">
-              <span className="render-title">Renderowanie wideo</span>
-              <span>{pct}%</span>
-            </div>
+          <div className="video-progress" role="status">
             <div className="render-bar">
               <span style={{ width: `${pct}%` }} />
             </div>
-            <div className="render-meta">
-              <span>
-                Klatka {phase.progress.done} / {phase.progress.total}
-              </span>
-              {phase.etaS != null && <span>Pozostało ok. {Math.ceil(phase.etaS)} s</span>}
-            </div>
-            <Button onClick={() => abortRef.current?.abort()}>Anuluj</Button>
+            <span>
+              Renderowanie {pct}% · klatka {phase.progress.done} / {phase.progress.total}
+              {phase.etaS != null && ` · zostało ok. ${Math.ceil(phase.etaS)} s`}
+            </span>
           </div>
         ) : phase.kind === 'done' ? (
-          <div className="render-state" role="status">
-            <div className="render-head">
-              <IconCheckCircle />
-              <span className="render-title">Wideo gotowe</span>
-            </div>
-            <p className="render-meta">
-              {phase.files.length === 1 ? phase.files[0].name : `${phase.files.length} pliki w ZIP`} · {job.aspect} · {width} × {height} ·{' '}
-              {formatNumber(length, 1)} s · {formatBytes(phase.files.reduce((s, f) => s + f.blob.size, 0))}
-            </p>
-            <div className="button-row">
-              <Button variant="primary" icon={<IconDownload />} onClick={() => downloadFiles(phase.files, archiveBaseName(trackName))}>
-                Pobierz ponownie
-              </Button>
-              <Button variant="ghost" onClick={() => setPhase({ kind: 'idle' })}>
-                Zamknij
-              </Button>
-            </div>
-          </div>
+          <p className="export-result" role="status">
+            <IconCheckCircle />
+            Gotowe: {phase.files.length === 1 ? phase.files[0].name : `${phase.files.length} pliki w ZIP`} · {formatNumber(length, 1)} s ·{' '}
+            {formatBytes(phase.files.reduce((s, f) => s + f.blob.size, 0))}
+          </p>
+        ) : tooLong ? (
+          <p className="export-result is-error" role="alert">
+            Film jest dłuższy niż minuta i Instagram go przytnie. Skróć oś czasu lub liczbę powtórzeń.
+          </p>
         ) : (
-          <Button variant="primary" block disabled={!formatOk || tooLong || !support} onClick={start}>
+          <p className="export-result">
+            {FORMAT_LABELS[job.format]} · {formatTime(length)} · ~{formatBytes(estimate)}
+          </p>
+        )}
+        {rendering ? (
+          <Button onClick={() => abortRef.current?.abort()}>Anuluj</Button>
+        ) : phase.kind === 'done' ? (
+          <Button variant="primary" icon={<IconDownload />} onClick={() => downloadFiles(phase.files, archiveBaseName(trackName))}>
+            Pobierz ponownie
+          </Button>
+        ) : (
+          <Button variant="primary" icon={<IconDownload />} disabled={!formatOk || tooLong || !support} onClick={start}>
             Renderuj {FORMAT_LABELS[job.format]}
           </Button>
         )}
-      </Section>
+      </footer>
     </>
   )
 }
