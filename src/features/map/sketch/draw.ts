@@ -48,7 +48,7 @@ interface Stroke {
 }
 
 // Each object seeds its own strokes, so changing one feature leaves the others as they were.
-const inked = memoOne((shape: SketchShape | null, ends: [Pt, Pt] | null, seed: number, roughness: number, short: number, lines: boolean) => {
+const inked = memoOne((shape: SketchShape | null, ends: [Pt, Pt] | null, seed: number, roughness: number, short: number, lines: boolean, water: boolean) => {
   const amp = short * 0.004 * roughness
   const step = short * 0.006
   const S = (layer: number, i: number) => seed + layer * 1000 + i
@@ -78,13 +78,15 @@ const inked = memoOne((shape: SketchShape | null, ends: [Pt, Pt] | null, seed: n
       shape.roads.forEach((l, i) => pen(l, S(4, i), amp, short * 0.003, 'ink', 0.55, true))
       shape.rivers.forEach((l, i) => pen(l, S(2, i), amp, short * 0.0035, 'water'))
     }
-    shape.shores.forEach((l, i) => {
-      pen(l, S(1, i), amp, short * 0.0045, 'ink')
-      ;[0.02, 0.04].forEach((o, k) =>
-        ripples.push({ pts: jitter(offshore(l, short * o), S(1, 500 + i * 2 + k), amp * 1.5, step), width: short * 0.002, color: 'water', alpha: 0.6 - k * 0.25, dashed: true }),
-      )
-    })
-    shape.water.forEach((ring, i) => washed.push(jitter(ring, S(1, 700 + i), amp * 2.5, step)))
+    if (water) {
+      shape.shores.forEach((l, i) => {
+        pen(l, S(1, i), amp, short * 0.0045, 'ink')
+        ;[0.02, 0.04].forEach((o, k) =>
+          ripples.push({ pts: jitter(offshore(l, short * o), S(1, 500 + i * 2 + k), amp * 1.5, step), width: short * 0.002, color: 'water', alpha: 0.6 - k * 0.25, dashed: true }),
+        )
+      })
+      shape.water.forEach((ring, i) => washed.push(jitter(ring, S(1, 700 + i), amp * 2.5, step)))
+    }
     shape.places.forEach((p, i) => {
       if (p.kind !== 'water') pen(circle(p.at, short * 0.008), S(6, i), amp * 0.3, short * 0.0032, 'ink')
       labels.push({ name: p.name, at: p.at, sea: p.kind === 'water' })
@@ -137,7 +139,7 @@ function trace(ctx: CanvasRenderingContext2D, pts: Pt[], close = false) {
 
 export function drawSketch(ctx: CanvasRenderingContext2D, f: SketchFrame, scale: number) {
   const { shape, transform: t, width, height, short, palette, settings, seed } = f
-  const ink = inked(shape, f.ends, seed, settings.roughness, short, settings.lines)
+  const ink = inked(shape, f.ends, seed, settings.roughness, short, settings.lines, settings.water !== 'none')
   const colorOf = (c: Stroke['color']) => (c === 'ink' ? palette.ink : palette.water)
   // Widths are on the page; the view's scale is taken back out of them.
   const k = Math.abs(t.scaleX) || 1
@@ -171,7 +173,7 @@ export function drawSketch(ctx: CanvasRenderingContext2D, f: SketchFrame, scale:
   ctx.lineCap = 'round'
   ctx.lineJoin = 'round'
 
-  if (shape && shape.water.length) {
+  if (shape && shape.water.length && settings.water !== 'none') {
     toView(ctx, t, scale)
     if (settings.water === 'hatch') {
       ctx.save()

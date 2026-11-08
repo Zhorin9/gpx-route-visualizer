@@ -5,7 +5,7 @@ import Section from '../ui/Section'
 import Segmented from '../ui/Segmented'
 import { IconAlert, IconCheckCircle, IconDownload } from '../icons'
 import { plural } from '../../utils/format'
-import { useHasBackground, useHasRoute } from '../../store/selectors'
+import { useHasBackground, useHasRoute, useInkIsDark } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { FORMATS, FORMAT_ORDER } from '../../core/formats/registry'
 import { exportFileNames } from '../../utils/exportImage'
@@ -122,6 +122,7 @@ export default function ExportDialog({ onClose }: { onClose: () => void }) {
 function ImageExport() {
   const hasRoute = useHasRoute()
   const hasBackground = useHasBackground()
+  const inkIsDark = useInkIsDark()
   const exporting = useAppStore((s) => s.exporting)
   const { aspectKey, slides, parkedSlides } = useStoreAtRest()
   const trackName = useAppStore((s) => selectTrack(s)?.name ?? null)
@@ -179,7 +180,7 @@ function ImageExport() {
   return (
     <>
       <div className="export-layout">
-        <section className="export-sheet" aria-label="Formaty">
+        <section className={inkIsDark ? 'export-sheet light-checker' : 'export-sheet'} aria-label="Formaty">
           <div className="proof-grid">
             {FORMAT_ORDER.map((f) => (
               <ProofCard key={f} aspect={f} slides={slidesIn(f)} proof={proofs[f]} checked={picked.includes(f)} onToggle={() => toggle(f)} />

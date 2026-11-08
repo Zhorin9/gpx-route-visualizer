@@ -21,6 +21,7 @@ const KINDS: SelectOption<MapSettings['kind']>[] = [
 const WATERS: SelectOption<SketchSettings['water']>[] = [
   { value: 'hatch', label: 'Kreski' },
   { value: 'wash', label: 'Akwarela' },
+  { value: 'none', label: 'Brak' },
 ]
 
 export function MapCreditFields() {
