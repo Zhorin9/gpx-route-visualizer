@@ -242,6 +242,13 @@
   color: var(--text);
 }
 
+/* A laptop screen: smaller proofs keep the dialog free of scrolling. */
+@media (max-height: 820px) {
+  .proof-frame {
+    height: 120px;
+  }
+}
+
 @media (max-width: 760px) {
   .export-layout {
     grid-template-columns: minmax(0, 1fr);

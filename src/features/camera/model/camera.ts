@@ -65,7 +65,7 @@ function smoothedHead({ progress, headAt, duration, settings }: CameraContext): 
   return { x: x / (SAMPLES + 1), y: y / (SAMPLES + 1) }
 }
 
-export const middleOf = (area: CameraContext['area']): Point2D => ({ x: area.width / 2, y: area.height / 2 })
+const middleOf = (area: CameraContext['area']): Point2D => ({ x: area.width / 2, y: area.height / 2 })
 
 function followView(ctx: CameraContext): CameraView {
   const c = smoothedHead(ctx)

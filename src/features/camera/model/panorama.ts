@@ -20,14 +20,14 @@ const MIN_ZOOM = 0.6
 const MAX_ZOOM = 2.5
 const SAMPLES = 24
 
-export const easeInOutCubic = (p: number) => (p < 0.5 ? 4 * p ** 3 : 1 - (-2 * p + 2) ** 3 / 2)
+const easeInOutCubic = (p: number) => (p < 0.5 ? 4 * p ** 3 : 1 - (-2 * p + 2) ** 3 / 2)
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t
 
 const turn = (p: Point2D, deg: number) => rotate(p.x, p.y, deg)
 
 // The route's main axis (its first principal component) along the frame's longer side, start on the left or at the bottom.
-export function routeAngle(route: readonly Point2D[], landscape: boolean): number {
+function routeAngle(route: readonly Point2D[], landscape: boolean): number {
   if (route.length < 2) return 0
   const mx = route.reduce((a, p) => a + p.x, 0) / route.length
   const my = route.reduce((a, p) => a + p.y, 0) / route.length
@@ -77,7 +77,7 @@ export function wholeRouteView(ctx: CameraContext): CameraView {
 }
 
 // The window along the frame's longer side spans a set share of the route's extent that way.
-export function trackingZoom(ctx: CameraContext): number {
+function trackingZoom(ctx: CameraContext): number {
   const { bounds: b } = frameFor(ctx)
   const { area } = ctx
   const wanted = area.width >= area.height ? area.width / (WINDOW_SHARE * Math.max(b.maxX - b.minX, 1)) : area.height / (WINDOW_SHARE * Math.max(b.maxY - b.minY, 1))

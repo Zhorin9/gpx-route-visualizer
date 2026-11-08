@@ -59,6 +59,8 @@ export default function MapPanel() {
             {!map.sketch.paper && <p className="hint">Bez papieru zostają same kreski i nazwy na przezroczystym tle: na przebitkę wybierz w eksporcie wideo „PNG + alfa”.</p>}
             <CheckboxField label="Drogi i rzeki" checked={map.sketch.lines} onChange={(lines) => updateMap({ sketch: { ...map.sketch, lines } })} />
             {!map.sketch.lines && <p className="hint">Zostają miejscowości z kropkami, jeziora i morze.</p>}
+            <CheckboxField label="Nazwy miejscowości" checked={map.labels} onChange={(labels) => updateMap({ labels })} />
+            {!map.labels && <p className="hint">Kropki miejscowości zostają, znikają ich nazwy, nazwy mórz i podpisy start i meta.</p>}
             <Segmented label="Woda" showLabel value={map.sketch.water} options={WATERS} onChange={(water) => updateMap({ sketch: { ...map.sketch, water } })} />
             <SliderField
               label="Drżenie"

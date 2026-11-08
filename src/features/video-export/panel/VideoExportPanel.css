@@ -46,51 +46,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Rendering and its result: a heading with the number that matters, a hairline bar, the details. */
-.render-state {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding: var(--space-5);
-  border: 1px solid var(--border);
-}
-
-.render-state .btn {
-  align-self: flex-start;
-}
-
-.render-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  font-size: 15px;
-  font-variant-numeric: tabular-nums;
-}
-
-.render-title {
-  margin-right: auto;
-  font-family: var(--font-heading);
-  font-size: 22px;
-}
-
-.render-head > svg {
-  width: 28px;
-  height: 28px;
-  stroke-width: 1.5;
-  color: var(--accent-text);
-}
-
-.render-meta {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-2);
-  margin: 0;
-  font-size: var(--text-md);
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-}
-
 .render-bar {
   position: relative;
   height: 2px;
@@ -102,4 +57,47 @@
   height: 100%;
   background: var(--accent);
   transition: width 0.15s linear;
+}
+
+/* The dialog's two columns, as for images: the frames on the left, the settings beside them, nothing to scroll. */
+.video-layout {
+  grid-template-columns: 300px minmax(0, 1fr);
+}
+
+.video-preview .video-thumbs {
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+}
+
+.video-preview .video-thumb figcaption,
+.video-preview .video-summary dt {
+  color: var(--color-neutral-400);
+}
+
+.video-preview .video-summary dd {
+  color: var(--color-neutral-100);
+}
+
+.video-settings {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4) var(--space-5);
+  align-content: start;
+}
+
+.video-settings .hint {
+  margin: 0;
+}
+
+.video-wide {
+  grid-column: 1 / -1;
+}
+
+.video-progress {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: var(--text-md);
+  font-variant-numeric: tabular-nums;
 }

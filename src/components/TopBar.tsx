@@ -9,9 +9,7 @@ import { MODE_LABELS } from '../utils/modeChange'
 import Button from './ui/Button'
 import type { Units } from '../core/units'
 
-const SOON = 'Wkrótce'
-
-function Choice<T extends string>({ label, value, options, onChange }: { label: string; value: T; options: { value: T; label: string; soon?: boolean }[]; onChange?: (value: T) => void }) {
+function Choice<T extends string>({ label, value, options, onChange }: { label: string; value: T; options: { value: T; label: string }[]; onChange: (value: T) => void }) {
   return (
     <div className="settings-row">
       <span className="settings-label">{label}</span>
@@ -22,10 +20,8 @@ function Choice<T extends string>({ label, value, options, onChange }: { label: 
             type="button"
             role="radio"
             aria-checked={o.value === value}
-            disabled={o.soon}
-            title={o.soon ? SOON : undefined}
             className={o.value === value ? 'view-switch-opt active' : 'view-switch-opt'}
-            onClick={() => onChange?.(o.value)}
+            onClick={() => onChange(o.value)}
           >
             {o.label}
           </button>
@@ -35,26 +31,11 @@ function Choice<T extends string>({ label, value, options, onChange }: { label: 
   )
 }
 
-function SettingsMenu({ onClose }: { onClose: () => void }) {
+function SettingsMenu() {
   const units = useAppStore((s) => s.statsContent.units)
   const updateStatsContent = useAppStore((s) => s.updateStatsContent)
   return (
     <div className="settings-menu" role="dialog" aria-label="Ustawienia">
-      <Choice
-        label="Motyw"
-        value="light"
-        options={[
-          { value: 'light', label: 'Jasny' },
-          { value: 'dark', label: 'Ciemny', soon: true },
-          { value: 'auto', label: 'Auto', soon: true },
-        ]}
-      />
-      <div className="settings-row">
-        <span className="settings-label">Język</span>
-        <select className="settings-select" aria-label="Język" value="pl" disabled title={SOON} onChange={() => undefined}>
-          <option value="pl">Polski</option>
-        </select>
-      </div>
       <Choice<Units>
         label="Jednostki"
         value={units}
@@ -64,15 +45,6 @@ function SettingsMenu({ onClose }: { onClose: () => void }) {
         ]}
         onChange={(u) => updateStatsContent({ units: u })}
       />
-      <div className="settings-links">
-        <button type="button" disabled title={SOON} onClick={onClose}>
-          <span>Skróty klawiszowe</span>
-          <span className="text-muted">?</span>
-        </button>
-        <button type="button" disabled title={SOON} onClick={onClose}>
-          Pomoc i przewodnik
-        </button>
-      </div>
     </div>
   )
 }
@@ -85,11 +57,6 @@ function ProjectMenu({ name }: { name: string }) {
   const close = useCallback(() => setOpen(false), [])
   const closeDialog = useCallback(() => setChanging(false), [])
   useDismiss(open, ref, close)
-  const soon = (label: string) => (
-    <button key={label} type="button" role="menuitem" disabled title={SOON}>
-      {label}
-    </button>
-  )
 
   return (
     <div className="project-menu" ref={ref}>
@@ -100,8 +67,6 @@ function ProjectMenu({ name }: { name: string }) {
       {mode && <span className="tag tag-outline">{MODE_LABELS[mode]}</span>}
       {open && (
         <div className="project-menu-list" role="menu">
-          {soon('Zmień nazwę')}
-          {soon('Duplikuj projekt')}
           <button
             type="button"
             role="menuitem"
@@ -112,8 +77,6 @@ function ProjectMenu({ name }: { name: string }) {
           >
             Zmień typ…
           </button>
-          {soon('Historia wersji')}
-          {soon('Usuń projekt')}
         </div>
       )}
       {changing && mode && <ChangeModeDialog from={mode} onClose={closeDialog} />}
@@ -146,14 +109,11 @@ export default function TopBar() {
         <Button size="icon" variant="ghost" title="Ponów (Ctrl+Shift+Z)" aria-label="Ponów" onClick={redo} disabled={!canRedo}>
           <IconRedo />
         </Button>
-        <button type="button" className="tag tag-outline top-bar-ab" disabled title={`Porównanie wersji A/B — ${SOON.toLowerCase()}`}>
-          A/B
-        </button>
         <div className="settings" ref={menuRef}>
           <button type="button" className={open ? 'settings-toggle open' : 'settings-toggle'} aria-label="Ustawienia" aria-expanded={open} onClick={() => setOpen(!open)}>
             <IconSettings />
           </button>
-          {open && <SettingsMenu onClose={() => setOpen(false)} />}
+          {open && <SettingsMenu />}
         </div>
         <Button variant="primary" onClick={() => setExporting(true)}>
           {seriesCount ? `Eksportuj serię (${seriesCount})` : 'Pobierz'}

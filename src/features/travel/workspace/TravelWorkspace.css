@@ -159,15 +159,15 @@
   padding: 2px 6px;
   font-size: 12px;
   white-space: nowrap;
-  color: #24351f;
-  background: rgba(243, 242, 242, 0.9);
+  color: var(--map-ink);
+  background: color-mix(in srgb, var(--map-paper) 90%, transparent);
 }
 
 .trip-pin.via {
   width: 12px;
   height: 12px;
-  background: #f3f2f2;
-  border: 2px solid #24351f;
+  background: var(--map-paper);
+  border: 2px solid var(--map-ink);
   border-radius: 50%;
 }
 
@@ -177,9 +177,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #24351f;
-  background: #f3f2f2;
-  border: 1.5px solid #24351f;
+  color: var(--map-ink);
+  background: var(--map-paper);
+  border: 1.5px solid var(--map-ink);
   border-radius: 15px;
   pointer-events: none;
 }
