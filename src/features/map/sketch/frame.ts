@@ -33,6 +33,7 @@ export function sketchFrame(s: Pick<AppState, 'routeSource' | 'trackCache' | 'as
     short: Math.min(w, h),
     palette: sketchPalette(s.map),
     settings: s.map.sketch,
+    names: s.map.labels,
     seed,
   }
 }

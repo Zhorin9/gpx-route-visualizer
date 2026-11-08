@@ -35,6 +35,7 @@ export interface SketchFrame {
   short: number
   palette: SketchPalette
   settings: SketchSettings
+  names: boolean
   seed: number
 }
 
@@ -218,7 +219,7 @@ export function drawSketch(ctx: CanvasRenderingContext2D, f: SketchFrame, scale:
   ctx.setTransform(scale, 0, 0, scale, 0, 0)
   const size = short * 0.036
   ctx.textBaseline = 'alphabetic'
-  for (const label of ink.labels) {
+  for (const label of f.names ? ink.labels : []) {
     const { x, y } = applyTransform({ x: label.at[0], y: label.at[1] }, t)
     if (label.sea) {
       ctx.save()
