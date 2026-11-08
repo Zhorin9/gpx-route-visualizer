@@ -1,4 +1,5 @@
 import type { GpxPoint, Stop } from '../../../types'
+import i18n from '../../../i18n'
 import { cached, rateLimited, RouteError, type RouteProfile, type RouteRequest, type RoutingProvider } from './routing'
 
 const URL_BASE = 'https://brouter.de/brouter'
@@ -21,16 +22,16 @@ interface BRouterAnswer {
 
 // What the public instance answers when it gives up, in words a person can act on.
 function explain(status: number, text: string): string {
-  if (/no track found/i.test(text)) return 'Nie ma połączenia między tymi miejscami.'
-  if (/watchdog|killed/i.test(text)) return 'Odcinek jest za długi dla publicznego serwisu tras albo nie ma między tymi miejscami drogi.'
-  if (/not mapped|island|no route/i.test(text)) return 'Nie ma drogi między tymi miejscami.'
-  if (status === 429 || /limit/i.test(text)) return 'Serwis tras ma chwilowo za dużo zapytań. Spróbuj za minutę.'
-  return 'Serwis tras nie odpowiedział.'
+  if (/no track found/i.test(text)) return i18n.t('travel.errors.noConnection')
+  if (/watchdog|killed/i.test(text)) return i18n.t('travel.errors.tooLong')
+  if (/not mapped|island|no route/i.test(text)) return i18n.t('travel.errors.noRoad')
+  if (status === 429 || /limit/i.test(text)) return i18n.t('travel.errors.tooManyRequests')
+  return i18n.t('travel.errors.noAnswer')
 }
 
 export function parseBRouter(answer: BRouterAnswer, start: number): GpxPoint[] {
   const feature = answer.features?.[0]
-  if (!feature || feature.geometry.coordinates.length < 2) throw new RouteError('Nie ma drogi między tymi miejscami.')
+  if (!feature || feature.geometry.coordinates.length < 2) throw new RouteError(i18n.t('travel.errors.noRoad'))
   const { times } = feature.properties
   return feature.geometry.coordinates.map(([lon, lat, ele], i) => ({
     lat,
@@ -50,7 +51,7 @@ async function route({ stops, profile, options }: RouteRequest, signal: AbortSig
     response = await fetch(url, { signal })
   } catch (err) {
     if (signal.aborted) throw err
-    throw new RouteError('Brak połączenia z serwisem tras.')
+    throw new RouteError(i18n.t('travel.errors.offline'))
   }
   if (!response.ok) {
     const text = await response.text()

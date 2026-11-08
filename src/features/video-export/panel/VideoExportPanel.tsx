@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import CheckboxField from '../../../components/fields/CheckboxField'
 import SliderField from '../../../components/fields/SliderField'
 import Button from '../../../components/ui/Button'
@@ -19,24 +20,15 @@ import { frameCount, outputSize, playsInFile, renderThumbnails, renderVideo, typ
 import { selectTrack } from '../../../store/derived'
 import { DEFAULT_INSET, type CardInset, type InsetCorner } from '../cardInset'
 import type { SelectOption } from '../../../types'
+import type { TKey } from '../../../i18n'
 import './VideoExportPanel.css'
 
-const FORMAT_LABELS: Record<VideoFormat, string> = { mp4: 'MP4', webm: 'WebM', gif: 'GIF', png: 'PNG + alfa' }
+const FORMAT_LABELS: Record<VideoFormat, TKey> = { mp4: 'videoExport.formats.mp4', webm: 'videoExport.formats.webm', gif: 'videoExport.formats.gif', png: 'videoExport.formats.png' }
 const FPS: Record<VideoFormat, number[]> = { mp4: [24, 30, 60], webm: [24, 30, 60], gif: [10, 15, 20], png: [24, 25, 30] }
-const QUALITY_OPTIONS: SelectOption<EncodeQuality>[] = [
-  { value: 'low', label: 'Niska' },
-  { value: 'medium', label: 'Średnia' },
-  { value: 'high', label: 'Wysoka' },
-]
-const FORMAT_OPTIONS: SelectOption<VideoFormat>[] = (['mp4', 'webm', 'gif', 'png'] as const).map((f) => ({ value: f, label: FORMAT_LABELS[f] }))
-const ASPECT_OPTIONS = FORMAT_ORDER.map((a) => ({ value: a, label: FORMATS[a].exportName }))
+const QUALITIES: EncodeQuality[] = ['low', 'medium', 'high']
+const VIDEO_FORMATS: VideoFormat[] = ['mp4', 'webm', 'gif', 'png']
 const REPEAT_OPTIONS: SelectOption<string>[] = ['1', '2', '3'].map((v) => ({ value: v, label: `${v}×` }))
-const CORNER_OPTIONS: SelectOption<InsetCorner>[] = [
-  { value: 'tl', label: 'Lewy górny' },
-  { value: 'tr', label: 'Prawy górny' },
-  { value: 'bl', label: 'Lewy dolny' },
-  { value: 'br', label: 'Prawy dolny' },
-]
+const CORNERS: InsetCorner[] = ['tl', 'tr', 'bl', 'br']
 const THUMBS = 6
 const THUMB_H = 150
 // Reels and stories cap at a minute.
@@ -63,6 +55,7 @@ function useFormatSupport(width: number, height: number, fps: number) {
 }
 
 function Thumbnails({ job }: { job: VideoJob }) {
+  const { t } = useTranslation()
   const animation = useAppStore((s) => s.animation)
   const track = useAppStore(selectTrack)
   // Set from this panel too, for a card.
@@ -87,7 +80,7 @@ function Thumbnails({ job }: { job: VideoJob }) {
   if (!thumbs.length) return null
   const total = selectDuration(useAppStore.getState())
   return (
-    <div className="video-thumbs" aria-label="Klatki animacji">
+    <div className="video-thumbs" aria-label={t('videoExport.frames')}>
       {thumbs.map((src, i) => (
         <figure key={i} className={job.format === 'png' ? 'video-thumb see-through' : 'video-thumb'}>
           <img src={src} alt="" />
@@ -99,23 +92,24 @@ function Thumbnails({ job }: { job: VideoJob }) {
 }
 
 function InsetFields({ inset, onChange, disabled }: { inset: CardInset; onChange: (inset: CardInset) => void; disabled: boolean }) {
+  const { t } = useTranslation()
   const noWrapper = useAppStore((s) => s.wrapper.id === 'none')
   const setWrapper = useAppStore((s) => s.setWrapper)
   return (
     <>
       <div className="video-wide">
         <Segmented
-          label="Kadr nagrania"
+          label={t('videoExport.footageFrame')}
           showLabel
           value={inset.frame}
-          options={ASPECT_OPTIONS}
+          options={FORMAT_ORDER.map((a) => ({ value: a, label: t(FORMATS[a].exportName) }))}
           onChange={(frame) => onChange({ ...inset, frame })}
           disabled={disabled}
         />
       </div>
-      <Segmented label="Róg" showLabel value={inset.corner} options={CORNER_OPTIONS} onChange={(corner) => onChange({ ...inset, corner })} disabled={disabled} />
+      <Segmented label={t('videoExport.corner')} showLabel value={inset.corner} options={CORNERS.map((value) => ({ value, label: t(`videoExport.corners.${value}`) }))} onChange={(corner) => onChange({ ...inset, corner })} disabled={disabled} />
       <SliderField
-        label="Wielkość karty"
+        label={t('videoExport.cardSize')}
         value={Math.round(inset.size * 100)}
         min={30}
         max={90}
@@ -126,26 +120,28 @@ function InsetFields({ inset, onChange, disabled }: { inset: CardInset; onChange
       />
       {noWrapper && (
         <>
-          <p className="hint video-wide">Karta to cały projekt. Oprawa Pocztówka dodaje papierowy brzeg, znaczek z datą i podpis miejsca.</p>
+          <p className="hint video-wide">{t('videoExport.cardHint')}</p>
           <Button onClick={() => setWrapper('postcard')} disabled={disabled}>
-            Dodaj oprawę Pocztówka
+            {t('videoExport.addPostcard')}
           </Button>
         </>
       )}
-      <p className="hint video-wide">Karta wjeżdża na początku i zjeżdża na końcu, a reszta kadru jest przezroczysta.</p>
+      <p className="hint video-wide">{t('videoExport.cardMotionHint')}</p>
     </>
   )
 }
 
 function AnimationOff() {
+  const { t } = useTranslation()
   return (
-    <Section title="Wideo">
-      <p className="hint">Film zapisuje animację trasy, a ta jest wyłączona. Włącz ją w zakładce Animacja.</p>
+    <Section title={t('videoExport.section')}>
+      <p className="hint">{t('videoExport.animationOff')}</p>
     </Section>
   )
 }
 
 export default function VideoExportPanel() {
+  const { t } = useTranslation()
   const service = useVideoEncoding()
   const canAnimate = useCanAnimate()
   const collage = useAppStore((s) => s.mode === 'collage')
@@ -168,7 +164,7 @@ export default function VideoExportPanel() {
   const tooLong = length > MAX_SECONDS
   const formatOk = support?.find((s) => s.format === job.format)?.supported ?? false
 
-  if (!canAnimate) return <p className="hint">{collage ? 'Dodaj zdjęcia, aby zapisać animację kolażu.' : 'Dodaj plik GPX, aby zapisać animację trasy.'}</p>
+  if (!canAnimate) return <p className="hint">{t(collage ? 'videoExport.needPhotos' : 'videoExport.needGpx')}</p>
   if (!animation.enabled) return <AnimationOff />
 
   const update = (patch: Partial<VideoJob>) => {
@@ -201,7 +197,7 @@ export default function VideoExportPanel() {
       setPhase({ kind: 'idle' })
       if (!(e instanceof DOMException && e.name === 'AbortError')) {
         const reason = e instanceof Error ? e.message : String(e)
-        showToast(`Eksport nie powiódł się: ${reason}`, { label: 'Spróbuj ponownie', run: start }, true)
+        showToast(t('videoExport.failed', { reason }), { label: t('videoExport.retry'), run: start }, true)
       }
     } finally {
       abortRef.current = null
@@ -214,31 +210,31 @@ export default function VideoExportPanel() {
   return (
     <>
       <div className="export-layout video-layout">
-        <section className={inkIsDark ? 'export-sheet video-preview light-checker' : 'export-sheet video-preview'} aria-label="Podgląd">
+        <section className={inkIsDark ? 'export-sheet video-preview light-checker' : 'export-sheet video-preview'} aria-label={t('videoExport.preview')}>
           <Thumbnails job={job} />
           <dl className="video-summary">
             <div>
-              <dt>Długość</dt>
+              <dt>{t('videoExport.length')}</dt>
               <dd>{formatTime(length)}</dd>
             </div>
             <div>
-              <dt>Klatka</dt>
+              <dt>{t('videoExport.frameSize')}</dt>
               <dd>
                 {width}×{height}
               </dd>
             </div>
             <div>
-              <dt>Plik</dt>
+              <dt>{t('videoExport.file')}</dt>
               <dd>~{formatBytes(estimate)}</dd>
             </div>
           </dl>
-          {slideCount > 1 && <p className="hint">Karuzela: osobny plik dla każdego z {slideCount} slajdów, razem w ZIP.</p>}
+          {slideCount > 1 && <p className="hint">{t('videoExport.carousel', { slides: slideCount })}</p>}
         </section>
 
         <div className="video-settings">
-          <Segmented label="Format" showLabel value={job.format} options={FORMAT_OPTIONS} onChange={(format) => update({ format })} disabled={rendering} />
+          <Segmented label={t('videoExport.format')} showLabel value={job.format} options={VIDEO_FORMATS.map((value) => ({ value, label: t(FORMAT_LABELS[value]) }))} onChange={(format) => update({ format })} disabled={rendering} />
           <Segmented
-            label="Klatki na sekundę"
+            label={t('videoExport.fps')}
             showLabel
             value={String(job.fps)}
             options={FPS[job.format].map((f) => ({ value: String(f), label: `${f} fps` }))}
@@ -247,22 +243,22 @@ export default function VideoExportPanel() {
           />
           {unsupported.map((s) => (
             <p key={s.format} className="hint video-wide">
-              {FORMAT_LABELS[s.format]}: {s.reason}.
+              {t(FORMAT_LABELS[s.format])}: {s.reason}.
             </p>
           ))}
           <div className="video-wide">
             <Segmented
-              label={job.inset ? 'Proporcje karty' : 'Proporcje'}
+              label={t(job.inset ? 'videoExport.cardAspect' : 'videoExport.aspect')}
               showLabel
               value={job.aspect}
-              options={ASPECT_OPTIONS}
+              options={FORMAT_ORDER.map((a) => ({ value: a, label: t(FORMATS[a].exportName) }))}
               onChange={(aspect) => update({ aspect })}
               disabled={rendering}
             />
           </div>
           {job.format !== 'gif' && (
             <Segmented
-              label="Rozdzielczość"
+              label={t('videoExport.resolution')}
               showLabel
               value={String(job.scale)}
               options={([1, 2] as const).map((s) => {
@@ -274,16 +270,16 @@ export default function VideoExportPanel() {
             />
           )}
           {job.format === 'gif' ? (
-            <CheckboxField label="Zapętlaj bez końca" checked={job.loopForever} onChange={(loopForever) => update({ loopForever })} disabled={rendering} />
+            <CheckboxField label={t('videoExport.loopForever')} checked={job.loopForever} onChange={(loopForever) => update({ loopForever })} disabled={rendering} />
           ) : job.format === 'png' ? (
             <>
               <Segmented
-                label="Przebitka"
+                label={t('videoExport.overlay')}
                 showLabel
                 value={job.inset ? 'card' : 'full'}
                 options={[
-                  { value: 'full', label: 'Cały kadr' },
-                  { value: 'card', label: 'Pocztówka w rogu' },
+                  { value: 'full', label: t('videoExport.fullFrame') },
+                  { value: 'card', label: t('videoExport.cornerCard') },
                 ]}
                 onChange={(v) => update({ inset: v === 'card' ? DEFAULT_INSET : null })}
                 disabled={rendering}
@@ -293,19 +289,19 @@ export default function VideoExportPanel() {
               ) : (
                 <p className="hint video-wide">
                   {hasBackground
-                    ? 'Tło jest pełne, więc klatki nie będą przezroczyste. Na przebitkę wybierz w zakładce Styl › Tło „Przezroczyste”.'
-                    : 'Klatki PNG z przezroczystością w ZIP. W DaVinci lub Premiere zaimportuj je jako sekwencję obrazów i połóż nad nagraniem.'}
+                    ? t('videoExport.opaqueBackground')
+                    : t('videoExport.pngHint')}
                 </p>
               )}
             </>
           ) : (
             <>
-              <Segmented label="Jakość" showLabel value={job.quality} options={QUALITY_OPTIONS} onChange={(quality) => update({ quality })} disabled={rendering} />
-              <Segmented label="Powtórz w pliku" showLabel value={String(job.repeat)} options={REPEAT_OPTIONS} onChange={(v) => update({ repeat: Number(v) })} disabled={rendering} />
+              <Segmented label={t('videoExport.quality')} showLabel value={job.quality} options={QUALITIES.map((value) => ({ value, label: t(`videoExport.qualities.${value}`) }))} onChange={(quality) => update({ quality })} disabled={rendering} />
+              <Segmented label={t('videoExport.repeat')} showLabel value={String(job.repeat)} options={REPEAT_OPTIONS} onChange={(v) => update({ repeat: Number(v) })} disabled={rendering} />
             </>
           )}
-          {!hasBackground && (job.format === 'mp4' || job.format === 'webm') && <p className="hint video-wide">Bez zdjęcia ani gradientu tło filmu będzie czarne.</p>}
-          {onMap && <p className="hint video-wide">Film z mapą renderuje się dłużej: każda klatka czeka, aż mapa wczyta się w pełnej rozdzielczości.</p>}
+          {!hasBackground && (job.format === 'mp4' || job.format === 'webm') && <p className="hint video-wide">{t('videoExport.blackBackground')}</p>}
+          {onMap && <p className="hint video-wide">{t('videoExport.mapSlow')}</p>}
         </div>
       </div>
 
@@ -316,34 +312,34 @@ export default function VideoExportPanel() {
               <span style={{ width: `${pct}%` }} />
             </div>
             <span>
-              Renderowanie {pct}% · klatka {phase.progress.done} / {phase.progress.total}
-              {phase.etaS != null && ` · zostało ok. ${Math.ceil(phase.etaS)} s`}
+              {t('videoExport.progress', { pct, done: phase.progress.done, total: phase.progress.total })}
+              {phase.etaS != null && t('videoExport.eta', { seconds: Math.ceil(phase.etaS) })}
             </span>
           </div>
         ) : phase.kind === 'done' ? (
           <p className="export-result" role="status">
             <IconCheckCircle />
-            Gotowe: {phase.files.length === 1 ? phase.files[0].name : `${phase.files.length} pliki w ZIP`} · {formatNumber(length, 1)} s ·{' '}
+            {t('videoExport.done', { name: phase.files.length === 1 ? phase.files[0].name : t('videoExport.filesInZip', { count: phase.files.length }) })} · {formatNumber(length, 1)} s ·{' '}
             {formatBytes(phase.files.reduce((s, f) => s + f.blob.size, 0))}
           </p>
         ) : tooLong ? (
           <p className="export-result is-error" role="alert">
-            Film jest dłuższy niż minuta i Instagram go przytnie. Skróć oś czasu lub liczbę powtórzeń.
+            {t('videoExport.tooLong')}
           </p>
         ) : (
           <p className="export-result">
-            {FORMAT_LABELS[job.format]} · {formatTime(length)} · ~{formatBytes(estimate)}
+            {t(FORMAT_LABELS[job.format])} · {formatTime(length)} · ~{formatBytes(estimate)}
           </p>
         )}
         {rendering ? (
-          <Button onClick={() => abortRef.current?.abort()}>Anuluj</Button>
+          <Button onClick={() => abortRef.current?.abort()}>{t('videoExport.cancel')}</Button>
         ) : phase.kind === 'done' ? (
           <Button variant="primary" icon={<IconDownload />} onClick={() => downloadFiles(phase.files, archiveBaseName(trackName))}>
-            Pobierz ponownie
+            {t('videoExport.downloadAgain')}
           </Button>
         ) : (
           <Button variant="primary" icon={<IconDownload />} disabled={!formatOk || tooLong || !support} onClick={start}>
-            Renderuj {FORMAT_LABELS[job.format]}
+            {t('videoExport.render', { format: t(FORMAT_LABELS[job.format]) })}
           </Button>
         )}
       </footer>

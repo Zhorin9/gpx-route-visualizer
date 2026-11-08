@@ -8,8 +8,8 @@ import { KICKER_KIND } from './model'
 export function registerKicker() {
   registerCanvasElement({
     kind: KICKER_KIND,
-    label: 'Nadtytuł',
-    meta: 'nad tytułem',
+    label: 'kicker.label',
+    meta: 'kicker.meta',
     icon: <IconType />,
     order: 5,
     // Shown with no words it stays listed, so clearing the field mid-edit doesn't lose it.

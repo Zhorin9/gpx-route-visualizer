@@ -1,4 +1,5 @@
 import type { Offset, StatChip, StatKey, StatsArrangement, StatsStyle } from '../../../types'
+import type { TKey } from '../../../i18n'
 
 export type MeasureText = (text: string, fontFamily: string, fontSize: number, fontStyle: string) => number
 
@@ -37,7 +38,7 @@ export interface StatsBox {
 
 export interface StatsArrangementStrategy {
   id: StatsArrangement
-  label: string
+  label: TKey
   arrange: (input: ArrangeInput) => StatsBox
 }
 
@@ -53,7 +54,7 @@ const captionGap = (fontSize: number) => fontSize * LABEL_GAP_RATIO
 
 export const rowArrangement: StatsArrangementStrategy = {
   id: 'row',
-  label: 'W jednej linii',
+  label: 'stats.arrangement.row',
   arrange: ({ chips, style, fontStyle, chipOffsets, measure }) => {
     const texts: StatTextBox[] = []
     let cursor = 0
@@ -127,7 +128,7 @@ function captionedValue(chip: StatChip, style: StatsStyle, left: number, top: nu
 
 export const columnsArrangement: StatsArrangementStrategy = {
   id: 'columns',
-  label: 'Kolumny',
+  label: 'stats.arrangement.columns',
   arrange: (input) => {
     const { chips, style } = input
     const labelSize = captionSize(style.fontSize)
@@ -150,7 +151,7 @@ const GRID_ROW_GAP_RATIO = 0.45
 
 export const gridArrangement: StatsArrangementStrategy = {
   id: 'grid',
-  label: 'Siatka',
+  label: 'stats.arrangement.grid',
   arrange: ({ chips, style, fontStyle, frameW, measure }) => {
     const labelSize = captionSize(style.fontSize)
     const labelBlock = style.labels ? labelSize + captionGap(style.fontSize) : 0
@@ -188,7 +189,7 @@ const HERO_SECONDARY_RATIO = 0.6
 
 export const heroArrangement: StatsArrangementStrategy = {
   id: 'hero',
-  label: 'Jedna duża liczba',
+  label: 'stats.arrangement.hero',
   arrange: ({ chips, style, fontStyle, measure }) => {
     const hero = chips.find((c) => c.key === style.heroKey) ?? chips[0]
     const heroSize = Math.round(style.fontSize * HERO_RATIO)

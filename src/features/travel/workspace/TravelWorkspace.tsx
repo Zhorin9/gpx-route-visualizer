@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { Map as MapLibreMap, Marker } from 'maplibre-gl'
+import { useTranslation } from 'react-i18next'
+import i18n from '../../../i18n'
 import CenterViewSwitch from '../../../components/CenterViewSwitch'
 import { FORMATS } from '../../../core/formats/registry'
 import { selectRouteParts } from '../../../store/derived'
@@ -27,9 +29,9 @@ const DRAG_DELAY_MS = 400
 const PREVIEW_H = 176
 
 const LOOKS = [
-  { id: 'light', label: 'Jasna', style: { styleId: 'positron', hillshade: false } },
-  { id: 'topo', label: 'Topo', style: { styleId: 'liberty', hillshade: true } },
-  { id: 'satellite', label: 'Satelita', style: { styleId: 'satellite', hillshade: false } },
+  { id: 'light', label: 'travel.workspace.looks.light', style: { styleId: 'positron', hillshade: false } },
+  { id: 'topo', label: 'travel.workspace.looks.topo', style: { styleId: 'liberty', hillshade: true } },
+  { id: 'satellite', label: 'travel.workspace.looks.satellite', style: { styleId: 'satellite', hillshade: false } },
 ] as const
 
 type LookId = (typeof LOOKS)[number]['id']
@@ -54,7 +56,7 @@ function showPlaces(map: MapLibreMap, places: { lat: number; lon: number }[]) {
 function pinElement(stop: Stop, letter: string, selected: boolean): HTMLElement {
   const element = document.createElement('div')
   element.className = stop.via ? 'trip-pin via' : selected ? 'trip-pin selected' : 'trip-pin'
-  element.title = stop.via ? 'Punkt pośredni' : stop.name
+  element.title = stop.via ? i18n.t('travel.workspace.viaPoint') : stop.name
   if (!stop.via) {
     const dot = document.createElement('span')
     dot.className = 'trip-pin-dot'
@@ -78,6 +80,7 @@ function vehicleElement(vehicle: VehicleDef, angle: number, flip: boolean): HTML
 }
 
 export default function TravelWorkspace({ preview }: { preview: (box: { width: number; height: number }) => ReactNode }) {
+  const { t } = useTranslation()
   const { journey, change, addAt } = useTravelActions()
   const parts = useAppStore(selectRouteParts)
   const cache = useAppStore((s) => s.trackCache)
@@ -98,7 +101,7 @@ export default function TravelWorkspace({ preview }: { preview: (box: { width: n
   const data = useMemo(() => tripData(planned, cache, selectedLeg), [planned, cache, selectedLeg])
   const { w, h } = FORMATS[aspectKey]
   const frameW = w * slideCount
-  const frameLabel = slideCount > 1 ? `Karuzela ${slideCount} × ${aspectKey}` : `Kadr ${aspectKey}`
+  const frameLabel = slideCount > 1 ? t('travel.workspace.carousel', { n: slideCount, aspect: aspectKey }) : t('travel.workspace.frame', { aspect: aspectKey })
   const stops = named(journey.stops)
   const frameCorners = fit
     ? [lngLatAt(fit, transform, { x: 0, y: 0 }), lngLatAt(fit, transform, { x: frameW, y: h })].map(([lon, lat]) => ({ lon, lat }))
@@ -231,11 +234,11 @@ export default function TravelWorkspace({ preview }: { preview: (box: { width: n
         <CenterViewSwitch />
         <PlaceSearch
           inputId={TRAVEL_SEARCH_ID}
-          label="Szukaj miejsca lub współrzędnych"
+          label={t('travel.search.placeholder')}
           near={stops[stops.length - 1] ?? null}
           onPick={(place) => addAt({ name: place.name, lat: place.lat, lon: place.lon, via: false })}
         />
-        <div className="workspace-looks" role="radiogroup" aria-label="Wygląd mapy">
+        <div className="workspace-looks" role="radiogroup" aria-label={t('travel.workspace.looksLabel')}>
           {LOOKS.map((l) => (
             <button
               key={l.id}
@@ -248,7 +251,7 @@ export default function TravelWorkspace({ preview }: { preview: (box: { width: n
                 setLook(l.id)
               }}
             >
-              {l.label}
+              {t(l.label)}
             </button>
           ))}
         </div>
@@ -261,36 +264,36 @@ export default function TravelWorkspace({ preview }: { preview: (box: { width: n
         <div ref={ref} className="workspace-map-canvas" style={{ position: 'absolute', inset: 0 }} />
         {map && fit && <FrameOutline map={map} fit={fit} width={frameW} height={h} label={frameLabel} />}
         <div className="workspace-zoom">
-          <button type="button" aria-label="Przybliż" onClick={() => map?.zoomIn()}>
+          <button type="button" aria-label={t('travel.workspace.zoomIn')} onClick={() => map?.zoomIn()}>
             +
           </button>
-          <button type="button" aria-label="Oddal" onClick={() => map?.zoomOut()}>
+          <button type="button" aria-label={t('travel.workspace.zoomOut')} onClick={() => map?.zoomOut()}>
             −
           </button>
         </div>
         <div className="workspace-fit">
           <button type="button" disabled={!journey.stops.length} onClick={() => map && showPlaces(map, journey.stops)}>
-            Dopasuj do trasy
+            {t('travel.workspace.fitRoute')}
           </button>
           <button
             type="button"
             disabled={!frameCorners}
             onClick={() => map && frameCorners && showPlaces(map, frameCorners)}
           >
-            Dopasuj do kadru
+            {t('travel.workspace.fitFrame')}
           </button>
         </div>
-        <button type="button" className="workspace-preview" onClick={() => setCenterView('frame')} title="Przejdź do kadru">
+        <button type="button" className="workspace-preview" onClick={() => setCenterView('frame')} title={t('travel.workspace.toFrame')}>
           <span className="workspace-preview-frame" style={previewBox}>
             {preview(previewBox)}
           </span>
-          <span className="workspace-preview-label">Podgląd na żywo</span>
+          <span className="workspace-preview-label">{t('travel.workspace.livePreview')}</span>
         </button>
         <div className="workspace-hints">
-          <span>Kliknij mapę, aby dodać przystanek</span>
-          <span className="text-muted">Przeciągnij pinezkę, aby ją przesunąć</span>
-          <span className="text-muted">Przeciągnij linię, aby dodać punkt pośredni</span>
-          <span className="text-muted workspace-credit">{failed ? 'Mapa się nie wczytała, sprawdź połączenie' : creditFor({ ...lookDef.style })}</span>
+          <span>{t('travel.workspace.hintAdd')}</span>
+          <span className="text-muted">{t('travel.workspace.hintDragPin')}</span>
+          <span className="text-muted">{t('travel.workspace.hintDragLine')}</span>
+          <span className="text-muted workspace-credit">{failed ? t('travel.workspace.mapFailed') : creditFor({ ...lookDef.style })}</span>
         </div>
       </div>
     </div>

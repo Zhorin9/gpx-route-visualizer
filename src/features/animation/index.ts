@@ -20,7 +20,7 @@ export function registerAnimation() {
   addRouteDecoration(RouteHeadMarker)
   addRouteDecoration(CommitProbe)
   addCanvasControls(PlaybackBar)
-  registerPanelSection({ id: 'animation', label: 'Oś czasu', tab: 'animation', order: 10, Component: AnimationTimingSection })
+  registerPanelSection({ id: 'animation', label: 'animation.timeline.title', tab: 'animation', order: 10, Component: AnimationTimingSection })
   stopPreviewOnEdit()
 
   // Video export moves the clock frame by frame and waits until each moment is on the frame.

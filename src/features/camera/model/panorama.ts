@@ -123,7 +123,7 @@ export function trackingView(ctx: CameraContext, share: number): CameraView {
 
 export const panoramaCamera: CameraStrategy = {
   id: 'panorama',
-  label: 'Panorama',
+  label: 'camera.modes.panorama',
   viewAt: (ctx) => {
     if (ctx.settings.introOutro && ctx.entering < 1) {
       const start = trackingView(ctx, 0)

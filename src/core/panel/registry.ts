@@ -1,10 +1,11 @@
 import type { ComponentType } from 'react'
 import type { ProjectMode, TabKey } from '../../types'
+import type { TKey } from '../../i18n'
 
 // Follows the tab's own pages, in `order`.
 export interface PanelSection {
   id: string
-  label: string
+  label: TKey
   tab: TabKey
   // The project modes it shows in; every mode when unset.
   modes?: ProjectMode[]

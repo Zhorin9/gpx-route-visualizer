@@ -1,15 +1,16 @@
 import type { SelectOption } from '../types'
+import type { TKey } from '../i18n'
 
 type FontGroup = 'handwritten' | 'script' | 'display' | 'serif' | 'sans' | 'tech' | 'data'
 
-const GROUP_LABELS: Record<FontGroup, string> = {
-  handwritten: 'Odręczne',
-  script: 'Kaligrafia i kursywa',
-  display: 'Plakatowe i nagłówkowe',
-  serif: 'Szeryfowe, eleganckie',
-  sans: 'Nowoczesne bezszeryfowe',
-  tech: 'Techniczne i futurystyczne',
-  data: 'Do liczb i danych',
+const GROUP_LABELS: Record<FontGroup, TKey> = {
+  handwritten: 'fonts.handwritten',
+  script: 'fonts.script',
+  display: 'fonts.display',
+  serif: 'fonts.serif',
+  sans: 'fonts.sans',
+  tech: 'fonts.tech',
+  data: 'fonts.data',
 }
 
 interface FontDef {

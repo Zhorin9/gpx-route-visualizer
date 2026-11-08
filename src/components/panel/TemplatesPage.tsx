@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useShallow } from 'zustand/react/shallow'
 import { pickDocument } from '../../store/document'
 import CheckboxField from '../fields/CheckboxField'
@@ -9,18 +10,19 @@ import { IconMore } from '../icons'
 import useDismiss from '../../hooks/useDismiss'
 import { useAppStore } from '../../store/useAppStore'
 import { lookChanged } from '../../store/slices/templatesSlice'
-import { BUILT_IN_TEMPLATES } from '../../utils/templates'
+import { BUILT_IN_TEMPLATES, templateName } from '../../utils/templates'
 import type { StyleTemplate, TemplateGroup, TemplateParts } from '../../types'
+import type { TKey } from '../../i18n'
 import './TemplatesPage.css'
 
-const PART_LABELS: { key: keyof TemplateParts; label: string }[] = [
-  { key: 'fonts', label: 'Czcionki' },
-  { key: 'route', label: 'Kolor i styl trasy' },
-  { key: 'frame', label: 'Ramka zdjęć' },
-  { key: 'colors', label: 'Kolory kadru' },
-  { key: 'layout', label: 'Układ zdjęć' },
-  { key: 'points', label: 'Zdjęcia w punktach' },
-  { key: 'effects', label: 'Efekty i ikony' },
+const PART_LABELS: { key: keyof TemplateParts; label: TKey }[] = [
+  { key: 'fonts', label: 'templatesPage.partFonts' },
+  { key: 'route', label: 'templatesPage.partRoute' },
+  { key: 'frame', label: 'templatesPage.partFrame' },
+  { key: 'colors', label: 'templatesPage.partColors' },
+  { key: 'layout', label: 'templatesPage.partLayout' },
+  { key: 'points', label: 'templatesPage.partPoints' },
+  { key: 'effects', label: 'templatesPage.partEffects' },
 ]
 
 // A collage has no route and no places to pin photos to.
@@ -28,17 +30,17 @@ const ROUTE_PARTS: (keyof TemplateParts)[] = ['route', 'points']
 
 type Filter = 'recent' | 'favorite' | 'all' | TemplateGroup | 'custom'
 
-const FILTERS: { key: Filter; label: string }[] = [
-  { key: 'recent', label: 'Ostatnie' },
-  { key: 'favorite', label: 'Ulubione' },
-  { key: 'all', label: 'Wszystkie' },
-  { key: 'basic', label: 'Podstawowe' },
-  { key: 'natural', label: 'Naturalne' },
-  { key: 'retro', label: 'Retro' },
-  { key: 'dark', label: 'Ciemne' },
-  { key: 'sticker', label: 'Naklejki' },
-  { key: 'poster', label: 'Plakaty' },
-  { key: 'custom', label: 'Własne' },
+const FILTERS: { key: Filter; label: TKey }[] = [
+  { key: 'recent', label: 'templatesPage.filterRecent' },
+  { key: 'favorite', label: 'templatesPage.filterFavorite' },
+  { key: 'all', label: 'templatesPage.filterAll' },
+  { key: 'basic', label: 'templatesPage.filterBasic' },
+  { key: 'natural', label: 'templatesPage.filterNatural' },
+  { key: 'retro', label: 'templatesPage.filterRetro' },
+  { key: 'dark', label: 'templatesPage.filterDark' },
+  { key: 'sticker', label: 'templatesPage.filterSticker' },
+  { key: 'poster', label: 'templatesPage.filterPoster' },
+  { key: 'custom', label: 'templatesPage.filterCustom' },
 ]
 
 // Recent and favourite keep their own order; a group keeps the list's.
@@ -50,9 +52,8 @@ function filtered(templates: StyleTemplate[], filter: Filter, recent: string[], 
   return templates.filter((t) => (t.custom ? 'custom' : (t.group ?? 'basic')) === filter)
 }
 
-const countLabel = (shown: number, total: number) => `${shown} z ${total} ${total === 1 ? 'szablonu' : 'szablonów'}`
-
 function CardMenu({ template, onClose }: { template: StyleTemplate; onClose: () => void }) {
+  const { t } = useTranslation()
   const ref = useRef<HTMLDivElement>(null)
   const favorite = useAppStore((s) => s.favoriteTemplates.includes(template.id))
   const toggleFavorite = useAppStore((s) => s.toggleFavoriteTemplate)
@@ -65,11 +66,11 @@ function CardMenu({ template, onClose }: { template: StyleTemplate; onClose: () 
   return (
     <div ref={ref} className="template-menu" role="menu">
       <button type="button" role="menuitem" onClick={run(() => toggleFavorite(template.id))}>
-        {favorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}
+        {favorite ? t('templatesPage.unfavorite') : t('templatesPage.favorite')}
       </button>
       {template.custom && (
         <button type="button" role="menuitem" className="danger" onClick={run(() => deleteTemplate(template.id))}>
-          Usuń
+          {t('templatesPage.delete')}
         </button>
       )}
     </div>
@@ -77,13 +78,14 @@ function CardMenu({ template, onClose }: { template: StyleTemplate; onClose: () 
 }
 
 function SaveTemplate() {
+  const { t } = useTranslation()
   const saveTemplate = useAppStore((s) => s.saveTemplate)
   const [naming, setNaming] = useState(false)
   const [name, setName] = useState('')
   if (!naming)
     return (
       <Button size="sm" onClick={() => setNaming(true)}>
-        Zapisz obecny jako własny
+        {t('templatesPage.saveCurrent')}
       </Button>
     )
   return (
@@ -97,13 +99,13 @@ function SaveTemplate() {
       }}
     >
       <div className="field">
-        <input type="text" autoFocus placeholder="Nazwa szablonu" value={name} onChange={(e) => setName(e.target.value)} aria-label="Nazwa szablonu" />
+        <input type="text" autoFocus placeholder={t('templatesPage.templateName')} value={name} onChange={(e) => setName(e.target.value)} aria-label={t('templatesPage.templateName')} />
       </div>
       <Button variant="primary" type="submit">
-        Zapisz
+        {t('templatesPage.save')}
       </Button>
       <Button type="button" onClick={() => setNaming(false)}>
-        Anuluj
+        {t('templatesPage.cancel')}
       </Button>
     </form>
   )
@@ -118,6 +120,7 @@ function useLookChanged(template: StyleTemplate | undefined): boolean {
 }
 
 function PreviewBar({ template }: { template: StyleTemplate }) {
+  const { t } = useTranslation()
   const parts = useAppStore((s) => s.templateParts)
   const setParts = useAppStore((s) => s.setTemplateParts)
   const keepPreview = useAppStore((s) => s.keepPreview)
@@ -127,30 +130,30 @@ function PreviewBar({ template }: { template: StyleTemplate }) {
   const anyPart = Object.values(parts).some(Boolean)
   const grade = template.photoLook && !isPlainLook(template.photoLook) ? PHOTO_GRADES.find((g) => g.value === template.photoLook?.grade)?.label : null
   return (
-    <div className="template-preview-bar" role="region" aria-label="Podgląd szablonu">
+    <div className="template-preview-bar" role="region" aria-label={t('templatesPage.previewLabel')}>
       <div className="template-preview-head">
         <span>
-          Podgląd: <strong>{template.name}</strong>
+          {t('templatesPage.preview')} <strong>{templateName(template)}</strong>
         </span>
-        <span className="hint">kadr pokazuje ten styl</span>
+        <span className="hint">{t('templatesPage.previewHint')}</span>
       </div>
       {/* Photos keep their own colours unless asked: the style's film look is opt-in. */}
-      {grade && <CheckboxField label={`Nałóż też na zdjęcia (${grade.toLowerCase()})`} checked={parts.photo} onChange={(photo) => setParts({ ...parts, photo })} />}
+      {grade && <CheckboxField label={t('templatesPage.applyToPhotos', { grade: t(grade).toLowerCase() })} checked={parts.photo} onChange={(photo) => setParts({ ...parts, photo })} />}
       <div className="button-row">
         <Button variant="primary" size="sm" disabled={!anyPart} onClick={keepPreview}>
-          Zastosuj
+          {t('templatesPage.apply')}
         </Button>
         <Button size="sm" onClick={endPreview}>
-          Wróć do poprzedniego
+          {t('templatesPage.revert')}
         </Button>
         <Button size="sm" variant="ghost" className="template-only" pressed={choosing} onClick={() => setChoosing(!choosing)}>
-          Wybierz części…
+          {t('templatesPage.chooseParts')}
         </Button>
       </div>
       {choosing && (
         <div className="template-parts">
           {PART_LABELS.filter(({ key }) => !collageMode || !ROUTE_PARTS.includes(key)).map(({ key, label }) => (
-            <CheckboxField key={key} label={label} checked={parts[key]} onChange={(on) => setParts({ ...parts, [key]: on })} />
+            <CheckboxField key={key} label={t(label)} checked={parts[key]} onChange={(on) => setParts({ ...parts, [key]: on })} />
           ))}
         </div>
       )}
@@ -159,6 +162,7 @@ function PreviewBar({ template }: { template: StyleTemplate }) {
 }
 
 export default function TemplatesPage() {
+  const { t } = useTranslation()
   const customTemplates = useAppStore((s) => s.customTemplates)
   const recent = useAppStore((s) => s.recentTemplates)
   const favorite = useAppStore((s) => s.favoriteTemplates)
@@ -166,7 +170,7 @@ export default function TemplatesPage() {
   const previewTemplate = useAppStore((s) => s.previewTemplate)
   const keepPreview = useAppStore((s) => s.keepPreview)
   const templates = [...BUILT_IN_TEMPLATES, ...customTemplates]
-  const current = useAppStore((s) => templates.find((t) => t.id === s.templateId))
+  const current = useAppStore((s) => templates.find((x) => x.id === s.templateId))
   const changed = useLookChanged(preview ? undefined : current)
   const [filter, setFilter] = useState<Filter>(recent.length ? 'recent' : 'all')
   const [menuOf, setMenuOf] = useState<string | null>(null)
@@ -179,15 +183,15 @@ export default function TemplatesPage() {
     <div className="templates-page">
       <div className="template-current">
         <span>
-          Teraz: <strong>{current?.name ?? 'własny wygląd'}</strong>
+          {t('templatesPage.now')} <strong>{(current && templateName(current)) ?? t('templatesPage.customLook')}</strong>
         </span>
-        {changed && <span className="template-changed">zmieniony</span>}
+        {changed && <span className="template-changed">{t('templatesPage.changed')}</span>}
       </div>
 
-      <div className="template-filters" role="radiogroup" aria-label="Grupa szablonów">
+      <div className="template-filters" role="radiogroup" aria-label={t('templatesPage.groupLabel')}>
         {filters.map(({ key, label }) => (
           <button key={key} type="button" role="radio" aria-checked={key === filter} className={key === filter ? 'template-filter active' : 'template-filter'} onClick={() => setFilter(key)}>
-            {label}
+            {t(label)}
           </button>
         ))}
       </div>
@@ -201,17 +205,17 @@ export default function TemplatesPage() {
                 type="button"
                 className="template-card-body"
                 aria-pressed={template.id === onFrame}
-                title={`${template.desc}. Dwuklik: zastosuj`}
+                title={t('templatesPage.cardTitle', { desc: t(template.desc) })}
                 onClick={() => previewTemplate(template)}
                 onDoubleClick={keepPreview}
               >
                 <TemplateThumb template={template} />
-                <span className="template-card-name">{template.name}</span>
+                <span className="template-card-name">{templateName(template)}</span>
               </button>
               <button
                 type="button"
                 className="template-card-more"
-                aria-label={`Więcej: ${template.name}`}
+                aria-label={t('templatesPage.more', { name: templateName(template) })}
                 aria-haspopup="menu"
                 aria-expanded={menuOf === template.id}
                 // The open menu closes on a press elsewhere; its own button toggles it instead.
@@ -225,13 +229,13 @@ export default function TemplatesPage() {
           ))}
         </div>
       ) : (
-        <p className="hint">{filter === 'favorite' ? 'Dodaj szablon do ulubionych z menu na jego karcie.' : 'Tu pojawią się szablony, których używasz.'}</p>
+        <p className="hint">{filter === 'favorite' ? t('templatesPage.noFavorites') : t('templatesPage.noRecent')}</p>
       )}
 
       {preview && <PreviewBar template={preview.template} />}
 
       <div className="template-footer">
-        <span className="hint">{countLabel(shown.length, templates.length)}</span>
+        <span className="hint">{t('templatesPage.count', { shown: shown.length, count: templates.length })}</span>
         <SaveTemplate />
       </div>
     </div>

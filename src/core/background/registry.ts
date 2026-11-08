@@ -1,9 +1,10 @@
 import type { ComponentType } from 'react'
 import type { BackgroundKind } from '../../types'
+import type { TKey } from '../../i18n'
 
 export interface BackgroundKindDef {
   kind: BackgroundKind
-  label: string
+  label: TKey
   select: () => void
   Panel: ComponentType
 }

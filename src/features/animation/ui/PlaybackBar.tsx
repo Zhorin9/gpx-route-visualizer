@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useCanAnimate } from '../hooks'
 import { useAppStore } from '../../../store/useAppStore'
 import { selectDuration } from '../model/timeline'
@@ -19,6 +20,7 @@ function PlayIcon({ playing }: { playing: boolean }) {
 }
 
 export default function PlaybackBar() {
+  const { t: tr } = useTranslation()
   const canAnimate = useCanAnimate()
   const settings = useAppStore((s) => s.animation)
   const exporting = useAppStore((s) => s.exporting)
@@ -27,14 +29,14 @@ export default function PlaybackBar() {
   if (!canAnimate || !settings.enabled) return null
 
   return (
-    <div className="playback-bar" role="group" aria-label="Animacja">
-      <button type="button" className="playback-play" onClick={playing ? pause : play} disabled={exporting} aria-label={playing ? 'Pauza' : 'Odtwórz animację'}>
+    <div className="playback-bar" role="group" aria-label={tr('animation.playback.group')}>
+      <button type="button" className="playback-play" onClick={playing ? pause : play} disabled={exporting} aria-label={playing ? tr('animation.playback.pause') : tr('animation.playback.play')}>
         <PlayIcon playing={playing} />
       </button>
       <input
         type="range"
         className="playback-slider"
-        aria-label="Czas animacji"
+        aria-label={tr('animation.playback.time')}
         aria-valuetext={formatTime(t)}
         min={0}
         max={total}
@@ -51,7 +53,7 @@ export default function PlaybackBar() {
       </span>
       {previewing && !exporting && (
         <button type="button" className="link-btn" onClick={stop}>
-          Wróć do edycji
+          {tr('animation.playback.backToEditing')}
         </button>
       )}
     </div>

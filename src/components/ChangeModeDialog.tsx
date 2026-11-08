@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useAppStore } from '../store/useAppStore'
 import { MODE_LABELS, describeModeChange } from '../utils/modeChange'
 import Button from './ui/Button'
@@ -12,34 +13,35 @@ export default function ChangeModeDialog({ from, onClose }: { from: ProjectMode;
   const changeMode = useAppStore((s) => s.changeMode)
   const { keep, lose } = describeModeChange(to, { routeSource, waypoints, collage })
   const losing = lose.length > 0
+  const { t } = useTranslation()
 
   return (
-    <Dialog onClose={onClose} title={to === 'map' ? 'Dodać mapę do projektu?' : losing ? 'Usunąć trasę i zrobić kolaż?' : 'Zmienić projekt na kolaż?'}>
+    <Dialog onClose={onClose} title={to === 'map' ? t('changeModeDialog.addMapTitle') : losing ? t('changeModeDialog.removeRouteTitle') : t('changeModeDialog.toCollageTitle')}>
       <p className="mode-change-route">
-        {MODE_LABELS[from]} → {MODE_LABELS[to]}
+        {t(MODE_LABELS[from])} → {t(MODE_LABELS[to])}
       </p>
       <div className="mode-change-lists">
         <div>
-          <span className="mode-change-kicker">Zostaje</span>
+          <span className="mode-change-kicker">{t('changeModeDialog.stays')}</span>
           {keep.map((k) => (
             <span key={k}>{k}</span>
           ))}
         </div>
         <div>
-          <span className={losing ? 'mode-change-kicker loss' : 'mode-change-kicker'}>{losing ? 'Zniknie' : 'Znika'}</span>
-          {(losing ? lose : ['Nic nie znika']).map((l) => (
+          <span className={losing ? 'mode-change-kicker loss' : 'mode-change-kicker'}>{losing ? t('changeModeDialog.willGo') : t('changeModeDialog.goes')}</span>
+          {(losing ? lose : [t('changeModeDialog.nothingGoes')]).map((l) => (
             <span key={l}>{l}</span>
           ))}
         </div>
       </div>
       {losing && (
         <p className="mode-change-warn">
-          Kolaż nie ma trasy ani mapy, więc te dane zostaną usunięte z projektu. Czy na pewno chcesz kontynuować? Zaraz po zmianie możesz ją cofnąć.
+          {t('changeModeDialog.warning')}
         </p>
       )}
       <div className="dialog-actions">
         <Button variant="ghost" onClick={onClose}>
-          Anuluj
+          {t('changeModeDialog.cancel')}
         </Button>
         <Button
           variant="primary"
@@ -48,7 +50,7 @@ export default function ChangeModeDialog({ from, onClose }: { from: ProjectMode;
             onClose()
           }}
         >
-          {losing ? 'Tak, usuń trasę i zmień na Kolaż' : to === 'map' ? 'Zmień na Mapę' : 'Zmień na Kolaż'}
+          {losing ? t('changeModeDialog.confirmRemoveRoute') : to === 'map' ? t('changeModeDialog.toMap') : t('changeModeDialog.toCollage')}
         </Button>
       </div>
     </Dialog>

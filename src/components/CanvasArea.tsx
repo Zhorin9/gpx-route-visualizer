@@ -1,4 +1,5 @@
 import { useRef, useState, type DragEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import useElementSize from '../hooks/useElementSize'
 import useGpxImport, { GPX_ACCEPT } from '../hooks/useGpxImport'
 import { useActiveSlide, useHasPhotos, useHasRoute, useManualFlags, usePanorama, usePhotoBackground } from '../store/selectors'
@@ -7,7 +8,7 @@ import { FORMATS, FORMAT_ORDER } from '../core/formats/registry'
 import { gradientPresetName } from '../utils/gradients'
 import { layoutDef } from '../utils/layouts'
 import { hasManualLayout } from '../utils/reflow'
-import type { AspectKey, SelectOption } from '../types'
+import type { AspectKey } from '../types'
 import { canvasControls, workspaceFor } from '../core/canvas/chrome'
 import CanvasStage from './CanvasStage'
 import CenterViewSwitch from './CenterViewSwitch'
@@ -25,15 +26,8 @@ import TransparentNote from './TransparentNote'
 
 const VIEWPORT_PADDING = 24
 
-type FrameMode = 'single' | 'carousel'
-const FORMAT_OPTIONS: SelectOption<AspectKey>[] = FORMAT_ORDER.map((value) => ({ value, label: FORMATS[value].label }))
-
-const MODE_OPTIONS: SelectOption<FrameMode>[] = [
-  { value: 'single', label: 'Jeden obraz' },
-  { value: 'carousel', label: 'Karuzela' },
-]
-
 function CanvasToolbar() {
+  const { t } = useTranslation()
   const hasWorkspace = useAppStore((s) => workspaceFor(s) != null)
   const hasRoute = useHasRoute()
   const collage = useAppStore((s) => s.mode === 'collage')
@@ -54,13 +48,16 @@ function CanvasToolbar() {
     transform.x !== 0 || transform.y !== 0 || transform.scaleX !== 1 || transform.scaleY !== 1 || transform.rotation !== 0
 
   return (
-    <div className="canvas-toolbar" role="toolbar" aria-label="Narzędzia podglądu">
+    <div className="canvas-toolbar" role="toolbar" aria-label={t('canvasArea.toolbar')}>
       {hasWorkspace && <CenterViewSwitch />}
       {FORMATS[aspectKey].carousel && (
         <Segmented
-          label="Tryb kadru"
+          label={t('canvasArea.frameMode')}
           value={slideCount > 1 ? 'carousel' : 'single'}
-          options={MODE_OPTIONS}
+          options={[
+            { value: 'single', label: t('canvasArea.single') },
+            { value: 'carousel', label: t('canvasArea.carousel') },
+          ]}
           onChange={(mode) => setCarousel(mode === 'carousel')}
         />
       )}
@@ -72,34 +69,34 @@ function CanvasToolbar() {
           pressed={routeEditable}
           disabled={!hasRoute}
           onClick={() => setRouteEditable(!routeEditable)}
-          title="Przesuwaj, skaluj i obracaj trasę (Esc kończy)"
+          title={t('canvasArea.editRouteTitle')}
         >
-          Edytuj trasę
+          {t('canvasArea.editRoute')}
         </Button>
       )}
       {isTransformed && (
         <Button size="sm" variant="ghost" icon={<IconReset />} onClick={resetRouteTransform}>
-          Resetuj położenie
+          {t('canvasArea.resetPosition')}
         </Button>
       )}
-      <select className="toolbar-select" aria-label="Format kadru" title={useFrameSummary()} value={aspectKey} onChange={(e) => setAspectKey(e.target.value as AspectKey)}>
-        {FORMAT_OPTIONS.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
+      <select className="toolbar-select" aria-label={t('canvasArea.format')} title={useFrameSummary()} value={aspectKey} onChange={(e) => setAspectKey(e.target.value as AspectKey)}>
+        {FORMAT_ORDER.map((key) => (
+          <option key={key} value={key}>
+            {t(FORMATS[key].label)}
           </option>
         ))}
       </select>
-      {customLayout && <span className="tag-custom">przesunięte ręcznie</span>}
+      {customLayout && <span className="tag-custom">{t('canvasArea.movedManually')}</span>}
       {parkedSlides > 0 && (
         <span className="toolbar-hint" role="status">
-          Ten format ma jeden kadr. Pozostałe slajdy ({parkedSlides}) wrócą po przejściu na format Instagrama.
+          {t('canvasArea.parkedSlides', { count: parkedSlides })}
         </span>
       )}
       {adding && (
         <span className="toolbar-hint" role="status">
-          Kliknij na trasie, aby dodać miejscowość ·{' '}
+          {t('canvasArea.clickToAddPlace')} ·{' '}
           <button type="button" className="link-btn" onClick={() => setAddingWaypoint(false)}>
-            Anuluj (Esc)
+            {t('canvasArea.cancelEsc')}
           </button>
         </span>
       )}
@@ -109,28 +106,30 @@ function CanvasToolbar() {
 
 
 function useFrameSummary() {
+  const { t } = useTranslation()
   const aspectKey = useAppStore((s) => s.aspectKey)
   const slideCount = useAppStore((s) => s.slides.length)
   const collage = useAppStore((s) => s.collage)
   const { w, h } = FORMATS[aspectKey]
 
   const photoBackground = usePhotoBackground()
-  const mode = slideCount > 1 ? `Karuzela ${slideCount} × ${aspectKey}` : `Kadr ${aspectKey}`
+  const mode = slideCount > 1 ? t('canvasArea.summaryCarousel', { count: slideCount, aspect: aspectKey }) : t('canvasArea.summaryFrame', { aspect: aspectKey })
   const preset = gradientPresetName(collage.gradient)
   const background = photoBackground
-    ? 'zdjęcie'
+    ? t('canvasArea.bgPhoto')
     : collage.bgKind === 'gradient'
       ? preset
-        ? `gradient „${preset}”`
-        : 'gradient własny'
+        ? t('canvasArea.bgGradientPreset', { name: t(preset) })
+        : t('canvasArea.bgGradientCustom')
       : collage.bgKind === 'color'
-        ? `kolor ${collage.bgColor.toUpperCase()}`
-        : 'przezroczyste'
+        ? t('canvasArea.bgColor', { color: collage.bgColor.toUpperCase() })
+        : t('canvasArea.bgTransparent')
 
-  return `${mode} · tło: ${background} · ${w}×${h} px`
+  return `${mode} · ${t('canvasArea.background', { background })} · ${w}×${h} px`
 }
 
 function SafeZoneToggle() {
+  const { t } = useTranslation()
   const shown = useAppStore((s) => s.showSafeZones)
   const setShown = useAppStore((s) => s.setShowSafeZones)
   return (
@@ -140,46 +139,47 @@ function SafeZoneToggle() {
       className="canvas-corner-btn"
       icon={<IconSafeZone />}
       pressed={shown}
-      aria-label="Strefy zasłaniane"
-      title="Strefy zasłaniane przez Instagram lub YouTube (nie trafiają do eksportu)"
+      aria-label={t('canvasArea.safeZones')}
+      title={t('canvasArea.safeZonesTitle')}
       onClick={() => setShown(!shown)}
     />
   )
 }
 
 function EmptyState({ onFiles }: { onFiles: (files: FileList | null) => void }) {
+  const { t } = useTranslation()
   const collage = useAppStore((s) => s.mode === 'collage')
   if (collage) {
     return (
       <StatusCard
         icon={<IconImage />}
-        title="Kolaż czeka na zdjęcia"
+        title={t('canvasArea.collageEmptyTitle')}
         actions={
           <FileButton accept="image/*" multiple onFiles={onFiles} variant="primary" icon={<IconUpload />}>
-            Dodaj zdjęcia
+            {t('canvasArea.addPhotos')}
           </FileButton>
         }
       >
-        Przeciągnij tutaj zdjęcia albo wybierz je z dysku. Podział kadru i przycinanie ustawisz w zakładce Układ.
+        {t('canvasArea.collageEmptyBody')}
       </StatusCard>
     )
   }
   return (
     <StatusCard
       icon={<IconRoute />}
-      title="Zacznij od zdjęć lub trasy"
+      title={t('canvasArea.emptyTitle')}
       actions={
         <div className="button-row">
           <FileButton accept="image/*" multiple onFiles={onFiles} variant="primary" icon={<IconUpload />}>
-            Dodaj zdjęcia
+            {t('canvasArea.addPhotos')}
           </FileButton>
           <FileButton accept={GPX_ACCEPT} onFiles={onFiles} icon={<IconUpload />}>
-            Dodaj GPX
+            {t('canvasArea.addGpx')}
           </FileButton>
         </div>
       }
     >
-      Przeciągnij tutaj zdjęcia albo plik .gpx z Garmina, Stravy lub Komoot. Trasa jest opcjonalna — możesz pracować na samych zdjęciach.
+      {t('canvasArea.emptyBody')}
     </StatusCard>
   )
 }
@@ -205,6 +205,7 @@ export default function CanvasArea() {
 }
 
 function FrameArea() {
+  const { t } = useTranslation()
   const viewportRef = useRef<HTMLDivElement>(null)
   const { width, height } = useElementSize(viewportRef)
   const aspectKey = useAppStore((s) => s.aspectKey)
@@ -275,12 +276,12 @@ function FrameArea() {
           )}
           {exporting && (
             <div className="export-cover" role="status">
-              Przygotowuję pliki…
+              {t('canvasArea.preparingFiles')}
             </div>
           )}
           {dragging && (
             <div className="drop-indicator" aria-hidden="true">
-              {collage ? 'Upuść zdjęcia' : 'Upuść plik GPX lub zdjęcie'}
+              {collage ? t('canvasArea.dropPhotos') : t('canvasArea.dropGpxOrPhoto')}
             </div>
           )}
           {safeZone && <SafeZoneToggle />}

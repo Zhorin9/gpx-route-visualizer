@@ -1,6 +1,7 @@
 import { contrastRatio, toneOf } from '../color'
 import { boxPath, type ContentBox } from './box'
 import type { SlideLook, Wrapper, WrapperField } from '../../types'
+import type { TKey } from '../../i18n'
 
 export interface WrapperScene {
   w: number
@@ -11,7 +12,7 @@ export interface WrapperScene {
 }
 
 export interface WrapperDef {
-  label: string
+  label: TKey
   // In the order Teksty lists them.
   fields: WrapperField[]
   // Fractions of the slide's shorter side. side: a square or landscape slide, whose band goes beside the content.

@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 export interface RangeSliderFieldProps {
   label: string
   min: number
@@ -10,6 +12,7 @@ export interface RangeSliderFieldProps {
 
 // Two native range inputs keep keyboard and screen-reader support for free.
 export default function RangeSliderField({ label, min, max, start, end, onChange, describe }: RangeSliderFieldProps) {
+  const { t } = useTranslation()
   const span = max - min || 1
   const minGap = Math.max(1, Math.round(span / 1000))
   const startPct = ((start - min) / span) * 100
@@ -23,7 +26,7 @@ export default function RangeSliderField({ label, min, max, start, end, onChange
         <div className="range-slider-fill" style={{ left: `${startPct}%`, width: `${endPct - startPct}%` }} />
         <input
           type="range"
-          aria-label="Początek"
+          aria-label={t('rangeSliderField.start')}
           aria-valuetext={describe?.(start)}
           min={min}
           max={max}
@@ -32,7 +35,7 @@ export default function RangeSliderField({ label, min, max, start, end, onChange
         />
         <input
           type="range"
-          aria-label="Koniec"
+          aria-label={t('rangeSliderField.end')}
           aria-valuetext={describe?.(end)}
           min={min}
           max={max}

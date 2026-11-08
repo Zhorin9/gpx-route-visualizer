@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import TextField from '../fields/TextField'
 import Button from '../ui/Button'
 import Section from '../ui/Section'
@@ -15,14 +16,16 @@ import FontField from '../fields/FontField'
 import { FIELD_LABELS, wrapperFieldsOf } from '../../utils/wrappers'
 
 function RegisteredElementRow({ def }: { def: CanvasElementDefinition }) {
+  const { t } = useTranslation()
   const available = def.useIsAvailable()
   const active = useAppStore((s) => s.selection?.kind === 'element' && s.selection.element === def.kind)
   const select = useAppStore((s) => s.select)
   if (!available) return null
-  return <ElementRow icon={def.icon} label={def.label} meta={def.meta} active={active} onClick={() => select({ kind: 'element', element: def.kind })} />
+  return <ElementRow icon={def.icon} label={t(def.label)} meta={t(def.meta)} active={active} onClick={() => select({ kind: 'element', element: def.kind })} />
 }
 
 function ShowAgainButton({ def, useShowAgain }: { def: CanvasElementDefinition; useShowAgain: () => (() => void) | null }) {
+  const { t } = useTranslation()
   const show = useShowAgain()
   const select = useAppStore((s) => s.select)
   if (!show) return null
@@ -34,7 +37,7 @@ function ShowAgainButton({ def, useShowAgain }: { def: CanvasElementDefinition; 
         select({ kind: 'element', element: def.kind })
       }}
     >
-      {def.label}
+      {t(def.label)}
     </Button>
   )
 }
@@ -45,32 +48,35 @@ function SelectedElementEditor({ kind }: { kind: string }) {
 }
 
 function WrapperFields() {
+  const { t } = useTranslation()
   const wrapper = useAppStore((s) => s.wrapper)
   const updateWrapper = useAppStore((s) => s.updateWrapper)
   const fields = wrapperFieldsOf(wrapper.id)
   if (!fields.length) return null
   return (
-    <Section title="Oprawa">
+    <Section title={t('elementsTab.wrapper')}>
       {fields.map((field) => (
-        <TextField key={field} label={FIELD_LABELS[field]} value={wrapper.fields[field]} multiline={field === 'note'} onChange={(value) => updateWrapper({ fields: { [field]: value } })} />
+        <TextField key={field} label={t(FIELD_LABELS[field])} value={wrapper.fields[field]} multiline={field === 'note'} onChange={(value) => updateWrapper({ fields: { [field]: value } })} />
       ))}
     </Section>
   )
 }
 
 function GlobalFontPicker() {
+  const { t } = useTranslation()
   const statsFont = useAppStore((s) => s.statsStyle.fontFamily)
   const applyGlobalFont = useAppStore((s) => s.applyGlobalFont)
   const [family, setFamily] = useState(statsFont)
   return (
-    <Section title="Jedna czcionka dla wszystkiego">
+    <Section title={t('elementsTab.globalFont')}>
       <FontField value={family} onChange={setFamily} />
-      <Button onClick={() => applyGlobalFont(family)}>Zastosuj wszędzie</Button>
+      <Button onClick={() => applyGlobalFont(family)}>{t('elementsTab.applyEverywhere')}</Button>
     </Section>
   )
 }
 
 export default function ElementsTab() {
+  const { t } = useTranslation()
   const hasRoute = useHasRoute()
   const texts = useAppStore((s) => s.texts)
   const waypoints = useAppStore((s) => s.waypoints)
@@ -87,57 +93,57 @@ export default function ElementsTab() {
     <>
       <div className="button-row">
         <Button variant="primary" icon={<IconPlus />} onClick={() => addText()}>
-          Napis
+          {t('elementsTab.text')}
         </Button>
         <Button icon={<IconPlus />} onClick={() => addText('icon')}>
-          Ikona
+          {t('elementsTab.icon')}
         </Button>
         <Button icon={<IconPlus />} onClick={() => addText('badge')}>
-          Odznaka
+          {t('elementsTab.badge')}
         </Button>
-        <Button icon={<IconPlus />} title="Napis wygięty w łuk, np. nad ikoną aparatu" onClick={() => addText('arc')}>
-          Po łuku
+        <Button icon={<IconPlus />} title={t('elementsTab.arcHint')} onClick={() => addText('arc')}>
+          {t('elementsTab.arc')}
         </Button>
         <Button pressed={adding} icon={<IconPlus />} disabled={!hasRoute} onClick={() => setAddingWaypoint(!adding)}>
-          {adding ? 'Anuluj' : 'Miejscowość'}
+          {adding ? t('elementsTab.cancel') : t('elementsTab.place')}
         </Button>
         {canvasElements().map((def) => def.useShowAgain && <ShowAgainButton key={def.kind} def={def} useShowAgain={def.useShowAgain} />)}
       </div>
       {hasRoute && (
         <Button size="sm" variant="ghost" icon={<IconPlus />} onClick={addRouteCaptions}>
-          Podpisy trasy: start, meta, dystans
+          {t('elementsTab.routeCaptions')}
         </Button>
       )}
-      {adding && <p className="hint">Kliknij na trasie — etykieta przyklei się do najbliższego punktu.</p>}
+      {adding && <p className="hint">{t('elementsTab.addingHint')}</p>}
 
-      <Section title="Elementy na grafice">
-        <div className="item-list" role="listbox" aria-label="Elementy na grafice">
+      <Section title={t('elementsTab.elements')}>
+        <div className="item-list" role="listbox" aria-label={t('elementsTab.elements')}>
           {canvasElements().map((def) => (
             <RegisteredElementRow key={def.kind} def={def} />
           ))}
-          {texts.map((t) => (
+          {texts.map((text) => (
             <ElementRow
-              key={`t${t.id}`}
-              icon={t.icon ? <IconSvg icon={t.icon} /> : <IconType />}
-              label={t.icon ? (iconById(t.icon)?.label ?? 'Ikona') : t.text || '(pusty)'}
-              meta={t.icon ? 'ikona' : t.badge ? 'odznaka' : 'napis'}
-              active={isSelected('text', t.id)}
-              onClick={() => select({ kind: 'text', id: t.id })}
+              key={`t${text.id}`}
+              icon={text.icon ? <IconSvg icon={text.icon} /> : <IconType />}
+              label={text.icon ? t(iconById(text.icon)?.label ?? 'elementsTab.icon') : text.text || t('elementsTab.emptyText')}
+              meta={text.icon ? t('elementsTab.iconMeta') : text.badge ? t('elementsTab.badgeMeta') : t('elementsTab.textMeta')}
+              active={isSelected('text', text.id)}
+              onClick={() => select({ kind: 'text', id: text.id })}
             />
           ))}
           {waypoints.map((w) => (
             <ElementRow
               key={`w${w.id}`}
               icon={<IconMapPin />}
-              label={w.text || '(pusta)'}
-              meta="miejscowość"
+              label={w.text || t('elementsTab.emptyPlace')}
+              meta={t('elementsTab.placeMeta')}
               active={isSelected('waypoint', w.id)}
               onClick={() => select({ kind: 'waypoint', id: w.id })}
             />
           ))}
         </div>
         {texts.length === 0 && waypoints.length === 0 && (
-          <p className="hint">Dodaj napis, ikonę albo miejscowość. Elementy przeciągasz na podglądzie, a dwuklik zmienia treść.</p>
+          <p className="hint">{t('elementsTab.emptyHint')}</p>
         )}
       </Section>
 

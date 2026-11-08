@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import SliderField from '../fields/SliderField'
 import SelectField from '../fields/SelectField'
 import ColorField from '../fields/ColorField'
@@ -17,15 +18,14 @@ import { POINT_KIND_ORDER, POINT_KINDS } from '../place/pointKinds'
 import { DEFAULT_SLOT_CROP } from '../../store/defaults'
 import { useAppStore } from '../../store/useAppStore'
 import type { PhotoMarker, PointStyle, SelectOption, Waypoint, WaypointKind } from '../../types'
+import type { TKey } from '../../i18n'
 
-const KIND_OPTIONS: SelectOption<WaypointKind>[] = POINT_KIND_ORDER.map((kind) => ({ value: kind, label: POINT_KINDS[kind].label, icon: <KindIcon kind={kind} /> }))
-
-const MARKER_OPTIONS: SelectOption<PhotoMarker>[] = [
-  { value: 'polaroid', label: 'Polaroid' },
-  { value: 'circle', label: 'Kółko' },
-  { value: 'square', label: 'Ramka' },
-  { value: 'film', label: 'Klatka' },
-  { value: 'label', label: 'Etykieta' },
+const MARKER_OPTIONS: { value: PhotoMarker; label: TKey }[] = [
+  { value: 'polaroid', label: 'placeEditor.markerPolaroid' },
+  { value: 'circle', label: 'placeEditor.markerCircle' },
+  { value: 'square', label: 'placeEditor.markerFrame' },
+  { value: 'film', label: 'placeEditor.markerFilm' },
+  { value: 'label', label: 'placeEditor.markerLabel' },
 ]
 
 const SIZE_OPTIONS: SelectOption<PointStyle['size']>[] = [
@@ -35,30 +35,37 @@ const SIZE_OPTIONS: SelectOption<PointStyle['size']>[] = [
 ]
 
 function PointPhoto({ waypoint }: { waypoint: Waypoint }) {
+  const { t } = useTranslation()
   const photos = useAppStore((s) => s.photos)
   const pointStyle = useAppStore((s) => s.pointStyle)
   const updateWaypoint = useAppStore((s) => s.updateWaypoint)
   const updatePointStyle = useAppStore((s) => s.updatePointStyle)
   const loadPhotoFiles = useAppStore((s) => s.loadPhotoFiles)
-  const options: SelectOption[] = [{ value: '', label: 'Bez zdjęcia' }, ...photos.map((p) => ({ value: String(p.id), label: p.name }))]
+  const options: SelectOption[] = [{ value: '', label: t('placeEditor.noPhoto') }, ...photos.map((p) => ({ value: String(p.id), label: p.name }))]
   const has = photos.some((p) => p.id === waypoint.photoId)
   const crop = waypoint.photoCrop ?? DEFAULT_SLOT_CROP
   return (
     <>
       {photos.length > 0 && (
-        <SelectField label="Zdjęcie" value={has ? String(waypoint.photoId) : ''} options={options} onChange={(v) => updateWaypoint(waypoint.id, { photoId: v ? Number(v) : undefined, photoCrop: undefined })} />
+        <SelectField label={t('placeEditor.photo')} value={has ? String(waypoint.photoId) : ''} options={options} onChange={(v) => updateWaypoint(waypoint.id, { photoId: v ? Number(v) : undefined, photoCrop: undefined })} />
       )}
       <FileButton accept="image/*" icon={<IconImage />} onFiles={(files) => files?.length && void loadPhotoFiles([files[0]], { waypoint: waypoint.id })}>
-        {has ? 'Zmień zdjęcie z dysku' : 'Dodaj zdjęcie z dysku'}
+        {has ? t('placeEditor.changePhoto') : t('placeEditor.addPhoto')}
       </FileButton>
       {has && (
         <>
-          <Segmented label="Kształt" showLabel value={pointStyle.marker} options={MARKER_OPTIONS} onChange={(marker) => updatePointStyle({ marker })} />
+          <Segmented
+            label={t('placeEditor.shape')}
+            showLabel
+            value={pointStyle.marker}
+            options={MARKER_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))}
+            onChange={(marker) => updatePointStyle({ marker })}
+          />
           {pointStyle.marker !== 'label' && (
             <>
-              <Segmented label="Rozmiar zdjęcia" showLabel value={pointStyle.size} options={SIZE_OPTIONS} onChange={(size) => updatePointStyle({ size })} />
+              <Segmented label={t('placeEditor.photoSize')} showLabel value={pointStyle.size} options={SIZE_OPTIONS} onChange={(size) => updatePointStyle({ size })} />
               <SliderField
-                label="Przybliżenie kadru"
+                label={t('placeEditor.cropZoom')}
                 unit="%"
                 min={100}
                 max={400}
@@ -67,9 +74,9 @@ function PointPhoto({ waypoint }: { waypoint: Waypoint }) {
                 defaultValue={100}
                 onChange={(zoom) => updateWaypoint(waypoint.id, { photoCrop: { ...crop, zoom: zoom / 100 } })}
               />
-              <p className="hint">Przeciągnij zdjęcie na podglądzie, żeby przesunąć kadr; kółko myszy przybliża.</p>
+              <p className="hint">{t('placeEditor.cropHint')}</p>
               <Button size="sm" variant="ghost" icon={<IconFit />} disabled={!waypoint.photoCrop} onClick={() => updateWaypoint(waypoint.id, { photoCrop: undefined })}>
-                Wyśrodkuj kadr
+                {t('placeEditor.centerCrop')}
               </Button>
             </>
           )}
@@ -80,35 +87,38 @@ function PointPhoto({ waypoint }: { waypoint: Waypoint }) {
 }
 
 export default function PlaceEditor({ id }: { id: number }) {
+  const { t } = useTranslation()
   const selected = useAppStore((s) => s.waypoints.find((w) => w.id === id))
   const updateWaypoint = useAppStore((s) => s.updateWaypoint)
   const deleteWaypoint = useAppStore((s) => s.deleteWaypoint)
 
   if (!selected) return null
 
+  const kindOptions: SelectOption<WaypointKind>[] = POINT_KIND_ORDER.map((kind) => ({ value: kind, label: t(POINT_KINDS[kind].label), icon: <KindIcon kind={kind} /> }))
+
   return (
     <>
-      <Section title="Etykieta">
-        <TextField label="Nazwa" value={selected.text} onChange={(text) => updateWaypoint(selected.id, { text })} />
+      <Section title={t('placeEditor.labelSection')}>
+        <TextField label={t('placeEditor.name')} value={selected.text} onChange={(text) => updateWaypoint(selected.id, { text })} />
         <Segmented
-          label="Rodzaj punktu"
+          label={t('placeEditor.kind')}
           showLabel
           wrap
           value={selected.kind}
-          options={KIND_OPTIONS}
+          options={kindOptions}
           onChange={(kind) => updateWaypoint(selected.id, { kind, ...(kind === 'icon' && !selected.icon ? { icon: 'coffee' as const } : null) })}
         />
         {selected.kind === 'icon' && (
           <>
             <IconField value={selected.icon} onChange={(icon) => updateWaypoint(selected.id, { icon })} />
             <CheckboxField
-              label="Ikona w miejscu napisu"
+              label={t('placeEditor.iconAsLabel')}
               checked={!!selected.iconAsLabel}
               onChange={(iconAsLabel) => updateWaypoint(selected.id, { iconAsLabel })}
             />
-            {selected.iconAsLabel && <p className="hint">Na trasie zostaje punkt, a linia prowadzi do ikony.</p>}
+            {selected.iconAsLabel && <p className="hint">{t('placeEditor.iconAsLabelHint')}</p>}
             <SliderField
-              label="Wielkość ikony"
+              label={t('placeEditor.iconSize')}
               unit="px"
               min={16}
               max={200}
@@ -121,7 +131,7 @@ export default function PlaceEditor({ id }: { id: number }) {
         )}
         <FontField value={selected.fontFamily} onChange={(fontFamily) => updateWaypoint(selected.id, { fontFamily })} />
         <SliderField
-          label="Wielkość napisu"
+          label={t('placeEditor.textSize')}
           unit="px"
           min={10}
           max={80}
@@ -129,15 +139,15 @@ export default function PlaceEditor({ id }: { id: number }) {
           defaultValue={26}
           onChange={(fontSize) => updateWaypoint(selected.id, { fontSize })}
         />
-        <ColorField label="Kolor" value={selected.color} onChange={(color) => updateWaypoint(selected.id, { color })} />
-        <CheckboxField label="Cień" checked={selected.shadowEnabled ?? true} onChange={(shadowEnabled) => updateWaypoint(selected.id, { shadowEnabled })} />
-        <CheckboxField label="Linia do punktu na trasie" checked={selected.leaderEnabled ?? true} onChange={(leaderEnabled) => updateWaypoint(selected.id, { leaderEnabled })} />
+        <ColorField label={t('placeEditor.color')} value={selected.color} onChange={(color) => updateWaypoint(selected.id, { color })} />
+        <CheckboxField label={t('placeEditor.shadow')} checked={selected.shadowEnabled ?? true} onChange={(shadowEnabled) => updateWaypoint(selected.id, { shadowEnabled })} />
+        <CheckboxField label={t('placeEditor.leader')} checked={selected.leaderEnabled ?? true} onChange={(leaderEnabled) => updateWaypoint(selected.id, { leaderEnabled })} />
       </Section>
-      <Section title="Zdjęcie w punkcie">
+      <Section title={t('placeEditor.photoSection')}>
         <PointPhoto waypoint={selected} />
       </Section>
       <Button variant="danger" icon={<IconTrash />} onClick={() => deleteWaypoint(selected.id)}>
-        Usuń miejscowość
+        {t('placeEditor.delete')}
       </Button>
     </>
   )

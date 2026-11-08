@@ -1,4 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import i18n from '../../../i18n'
 import { IconSearch } from '../../../components/icons'
 import { placeAt, searchPlaces, searchPlacesExact, type Place } from '../providers/geocoding'
 
@@ -9,7 +11,7 @@ function parseCoordinates(text: string): Place | null {
   const lat = Number(m[1])
   const lon = Number(m[2])
   if (Math.abs(lat) > 90 || Math.abs(lon) > 180) return null
-  return { name: `${lat.toFixed(4)}, ${lon.toFixed(4)}`, detail: 'współrzędne', lat, lon }
+  return { name: `${lat.toFixed(4)}, ${lon.toFixed(4)}`, detail: i18n.t('travel.search.coordinates'), lat, lon }
 }
 
 // Suggestions appear a moment after typing stops; an older request is cancelled.
@@ -17,6 +19,7 @@ const DEBOUNCE_MS = 300
 
 // `inputId`: lets "+ Dodaj przystanek" in the panel put the cursor here.
 export default function PlaceSearch({ label, near, onPick, inputId }: { label: string; near: { lat: number; lon: number } | null; onPick: (place: Place) => void; inputId?: string }) {
+  const { t } = useTranslation()
   const ownId = useId()
   const id = inputId ?? ownId
   const [query, setQuery] = useState('')
@@ -63,9 +66,9 @@ export default function PlaceSearch({ label, near, onPick, inputId }: { label: s
           (places) => {
             setFound(places)
             setActive(0)
-            setError(places.length ? '' : 'Nie znaleziono takiego miejsca.')
+            setError(places.length ? '' : i18n.t('travel.search.notFound'))
           },
-          (err) => !controller.signal.aborted && setError(err instanceof Error ? err.message : 'Wyszukiwarka nie odpowiedziała.'),
+          (err) => !controller.signal.aborted && setError(err instanceof Error ? err.message : i18n.t('travel.search.noAnswer')),
         )
       },
       exact ? 0 : DEBOUNCE_MS,
@@ -103,7 +106,7 @@ export default function PlaceSearch({ label, near, onPick, inputId }: { label: s
         aria-controls={`${id}-list`}
         aria-activedescendant={rows ? `${id}-${active}` : undefined}
         aria-label={label}
-        placeholder="Szukaj miejsca lub współrzędnych"
+        placeholder={t('travel.search.placeholder')}
         value={query}
         onChange={(e) => {
           setQuery(e.target.value)
@@ -143,8 +146,8 @@ export default function PlaceSearch({ label, near, onPick, inputId }: { label: s
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => choose(options.length)}
             >
-              <span>Szukaj dokładniej: „{text}”</span>
-              <small>także polskie nazwy miejsc za granicą</small>
+              <span>{t('travel.search.exact', { text })}</span>
+              <small>{t('travel.search.exactHint')}</small>
             </li>
           )}
         </ul>

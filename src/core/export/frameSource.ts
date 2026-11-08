@@ -3,6 +3,7 @@ import { useAppStore } from '../../store/useAppStore'
 import { FORMATS } from '../formats/registry'
 import { UI_ONLY, stageHandle } from '../../utils/exportImage'
 import { reflowTo } from '../../utils/reflow'
+import i18n from '../../i18n'
 import { newCanvas } from '../../utils/image'
 import { slideBox } from '../../utils/wrappers'
 import type { AspectKey } from '../../types'
@@ -71,7 +72,7 @@ export async function beginStageFrames(): Promise<FrameSource> {
     },
     render: async (scale) => {
       const stage = stageHandle.current
-      if (!stage) throw new Error('Brak podglądu do wyrenderowania')
+      if (!stage) throw new Error(i18n.t('frameSource.noPreview'))
       const { aspectKey, slides } = store.getState()
       const below = await underlay?.(FORMATS[aspectKey].w * slides.length, FORMATS[aspectKey].h, scale)
       const uiNodes = stage.find(`.${UI_ONLY}`).filter((n) => n.visible())

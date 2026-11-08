@@ -1,6 +1,7 @@
 import { formatDistance, formatGain, formatHeight, formatSpeed } from '../../../core/units'
 import { formatDuration } from '../../../utils/format'
 import type { RangeStats, StatChip, StatKey, StatsContent } from '../../../types'
+import i18n, { type TKey } from '../../../i18n'
 
 // Only what a stat needs to produce its chip: no access to the rest of the store.
 export interface StatsContext {
@@ -10,9 +11,9 @@ export interface StatsContext {
 
 export interface StatDefinition {
   key: StatKey
-  label: string
+  label: TKey
   // Caption above the value in the column, grid and hero arrangements.
-  caption: string
+  caption: TKey
   // Data the stat cannot be computed without; the panel greys it out when the file lacks it.
   requires?: 'time' | 'elevation'
   // Null when there is nothing to show (no data, no label).
@@ -23,8 +24,8 @@ type OverridableKey = keyof StatsContent['overrides']
 
 interface NumericStat {
   key: OverridableKey
-  label: string
-  caption: string
+  label: TKey
+  caption: TKey
   requires?: StatDefinition['requires']
   // Null = the track has no data for it.
   compute: (stats: RangeStats) => number | null
@@ -44,41 +45,41 @@ function numericStat({ key, label, caption, requires, compute, format, timed }: 
       const value = compute(stats)
       if (!override && value == null) return null
       const text = override || (timed && stats.estimatedTime ? '~' : '') + format(value as number, content)
-      return { key, label: caption, text, value: text }
+      return { key, label: i18n.t(caption), text, value: text }
     },
   }
 }
 
 const day: StatDefinition = {
   key: 'day',
-  label: 'Etykieta dnia',
-  caption: 'Dzień',
+  label: 'stats.def.dayLabel',
+  caption: 'stats.caption.day',
   chip: ({ content }) =>
     content.dayLabel
-      ? { key: 'day', text: content.dayLabel, label: 'Dzień', value: content.dayLabel.replace(/^\s*dzie[ńn]\s*/i, '') || content.dayLabel }
+      ? { key: 'day', text: content.dayLabel, label: i18n.t('stats.caption.day'), value: content.dayLabel.replace(/^\s*dzie[ńn]\s*/i, '') || content.dayLabel }
       : null,
 }
 
 const distance = numericStat({
   key: 'distance',
-  label: 'Dystans',
-  caption: 'Dystans',
+  label: 'stats.def.distance',
+  caption: 'stats.caption.distance',
   compute: (s) => s.distanceKm,
   format: (km, c) => formatDistance(km, c.units, c.distancePrecision),
 })
 
 const elevation = numericStat({
   key: 'elevation',
-  label: 'Przewyższenie',
-  caption: 'Wznios',
+  label: 'stats.def.elevation',
+  caption: 'stats.caption.elevation',
   compute: (s) => s.elevationGainM,
   format: (m, c) => formatGain(m, c.units, c.elevationRoundTo),
 })
 
 const time = numericStat({
   key: 'time',
-  label: 'Czas całkowity',
-  caption: 'Czas',
+  label: 'stats.def.time',
+  caption: 'stats.caption.time',
   requires: 'time',
   timed: true,
   compute: (s) => (s.durationMs > 0 ? s.durationMs : null),
@@ -87,8 +88,8 @@ const time = numericStat({
 
 const movingTime = numericStat({
   key: 'movingTime',
-  label: 'Czas w ruchu',
-  caption: 'W ruchu',
+  label: 'stats.def.movingTime',
+  caption: 'stats.caption.movingTime',
   requires: 'time',
   timed: true,
   compute: (s) => (s.movingMs > 0 ? s.movingMs : null),
@@ -98,8 +99,8 @@ const movingTime = numericStat({
 // Over the moving time, as sports apps do; elapsed time would count the stops.
 const avgSpeed = numericStat({
   key: 'avgSpeed',
-  label: 'Średnia prędkość',
-  caption: 'Śr. prędkość',
+  label: 'stats.def.avgSpeed',
+  caption: 'stats.caption.avgSpeed',
   requires: 'time',
   timed: true,
   compute: (s) => (s.movingMs > 0 ? s.distanceKm / (s.movingMs / 3_600_000) : null),
@@ -108,8 +109,8 @@ const avgSpeed = numericStat({
 
 const maxElevation = numericStat({
   key: 'maxElevation',
-  label: 'Najwyższy punkt',
-  caption: 'Max wys.',
+  label: 'stats.def.maxElevation',
+  caption: 'stats.caption.maxElevation',
   requires: 'elevation',
   compute: (s) => s.maxElevationM,
   format: (m, c) => formatHeight(m, c.units, c.elevationRoundTo),

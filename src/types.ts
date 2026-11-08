@@ -4,6 +4,7 @@ import type { PhotoLook } from './utils/photoLook'
 import type { MapStickerSettings } from './features/map-sticker/model'
 import type { ReactNode } from 'react'
 import type { Units } from './core/units'
+import type { TKey } from './i18n'
 
 export interface GpxPoint {
   lat: number
@@ -272,7 +273,7 @@ export type StylePreset = 'flat' | 'neon'
 export interface StyleTemplate {
   id: string
   name: string
-  desc: string
+  desc: TKey
   // One pair per role: titles (texts), figures (stats header) and notes (place labels).
   fonts: { title: string; data: string; note: string }
   titleItalic?: boolean

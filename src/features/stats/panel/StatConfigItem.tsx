@@ -1,4 +1,5 @@
 import type { DragEvent, ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import CheckboxField from '../../../components/fields/CheckboxField'
 import { IconChevron } from '../../../components/icons'
 
@@ -23,19 +24,20 @@ export interface StatConfigItemProps {
 }
 
 export default function StatConfigItem({ label, checked, onToggle, unavailable, onMove, isFirst, isLast, dragProps, dropTarget, children }: StatConfigItemProps) {
+  const { t } = useTranslation()
   const classes = ['stat-config-item', dragProps && 'is-sortable', dropTarget && 'is-drop-target'].filter(Boolean).join(' ')
   return (
     <div className={classes} {...dragProps}>
       <div className="stat-config-head">
-        {dragProps && <span className="stat-grip" aria-hidden="true" title="Przeciągnij, aby zmienić kolejność" />}
+        {dragProps && <span className="stat-grip" aria-hidden="true" title={t('stats.panel.dragToReorder')} />}
         <CheckboxField label={label} checked={checked && !unavailable} onChange={onToggle} disabled={Boolean(unavailable)} />
         {unavailable && <span className="stat-config-note">{unavailable}</span>}
         {onMove && (
           <span className="stat-move">
-            <button type="button" className="day-icon-btn" aria-label={`${label}: wyżej`} disabled={isFirst} onClick={() => onMove(-1)}>
+            <button type="button" className="day-icon-btn" aria-label={t('stats.panel.moveUp', { label })} disabled={isFirst} onClick={() => onMove(-1)}>
               <IconChevron style={{ transform: 'rotate(180deg)' }} />
             </button>
-            <button type="button" className="day-icon-btn" aria-label={`${label}: niżej`} disabled={isLast} onClick={() => onMove(1)}>
+            <button type="button" className="day-icon-btn" aria-label={t('stats.panel.moveDown', { label })} disabled={isLast} onClick={() => onMove(1)}>
               <IconChevron />
             </button>
           </span>

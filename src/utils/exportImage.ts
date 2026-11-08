@@ -3,6 +3,7 @@ import { FORMATS } from '../core/formats/registry'
 import { slugify } from './format'
 import { newCanvas } from './image'
 import { createZip } from './zip'
+import i18n from '../i18n'
 import type { AspectKey, ExportFormat } from '../types'
 
 export const UI_ONLY = 'ui-only'
@@ -29,7 +30,7 @@ export function exportFileNames(
 }
 
 function canvasToBlob(canvas: HTMLCanvasElement, mime: string, quality = 0.92): Promise<Blob> {
-  return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Nie udało się zapisać obrazu'))), mime, quality))
+  return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error(i18n.t('exportImage.saveFailed')))), mime, quality))
 }
 
 export function cropSlide(ribbon: HTMLCanvasElement, index: number, aspectKey: AspectKey, scale: number, target?: HTMLCanvasElement): HTMLCanvasElement {

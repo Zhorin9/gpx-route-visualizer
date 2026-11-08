@@ -1,23 +1,26 @@
 import { useEffect, useReducer, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import Button from '../ui/Button'
 import Section from '../ui/Section'
 import { useAppStore } from '../../store/useAppStore'
 import { paletteFrom } from '../../features/map/model/styles'
 import { photoPalette, photoTheme, THEME_VARIANTS, type PhotoPalette, type PhotoTheme } from '../../utils/photoPalette'
 import type { Photo } from '../../types'
+import type { TKey } from '../../i18n'
 import './PhotoPaletteSection.css'
 
-const ROLES: { key: keyof PhotoTheme; label: string }[] = [
-  { key: 'route', label: 'Trasa' },
-  { key: 'bg', label: 'Tło' },
-  { key: 'text', label: 'Tekst' },
-  { key: 'accent', label: 'Akcent' },
+const ROLES: { key: keyof PhotoTheme; label: TKey }[] = [
+  { key: 'route', label: 'photoPaletteSection.route' },
+  { key: 'bg', label: 'photoPaletteSection.background' },
+  { key: 'text', label: 'photoPaletteSection.text' },
+  { key: 'accent', label: 'photoPaletteSection.accent' },
 ]
 
 // The last result, kept while the tab is closed: the library only changes when photos are added or removed.
 let cached: { photos: Photo[]; palette: PhotoPalette } | null = null
 
 function MapThumb({ theme }: { theme: PhotoTheme }) {
+  const { t } = useTranslation()
   const map = paletteFrom({ from: theme.bg, to: theme.bg }, theme.text)
   const route = 'M10 58 C22 40 34 50 44 34 S66 30 74 20 S98 22 110 10'
   return (
@@ -29,13 +32,14 @@ function MapThumb({ theme }: { theme: PhotoTheme }) {
       <path d={route} stroke={theme.accent} strokeWidth="6" opacity="0.45" />
       <path d={route} stroke={theme.route} strokeWidth="2.5" />
       <text x="10" y="13" fill={theme.text} fontSize="8" fontWeight="600" letterSpacing="0.1em">
-        TRASA
+        {t('photoPaletteSection.thumbRoute')}
       </text>
     </svg>
   )
 }
 
 export default function PhotoPaletteSection() {
+  const { t } = useTranslation()
   const photos = useAppStore((s) => s.photos)
   const applyPhotoTheme = useAppStore((s) => s.applyPhotoTheme)
   const [variant, setVariant] = useState(0)
@@ -56,13 +60,13 @@ export default function PhotoPaletteSection() {
 
   if (!photos.length)
     return (
-      <Section title="Z Twoich zdjęć">
-        <p className="hint">Dodaj zdjęcia w zakładce Zdjęcia, a zaproponuję kolory trasy, tła i tekstu dobrane do nich.</p>
+      <Section title={t('photoPaletteSection.title')}>
+        <p className="hint">{t('photoPaletteSection.noPhotosHint')}</p>
       </Section>
     )
 
   return (
-    <Section title="Z Twoich zdjęć">
+    <Section title={t('photoPaletteSection.title')}>
       {theme ? (
         <>
           <div className="photo-palette">
@@ -70,25 +74,25 @@ export default function PhotoPaletteSection() {
               {ROLES.map(({ key, label }) => (
                 <span key={key} className="photo-palette-swatch">
                   <span style={{ background: theme[key] }} title={theme[key]} />
-                  {label}
+                  {t(label)}
                 </span>
               ))}
             </div>
             <MapThumb theme={theme} />
           </div>
-          {palette.grey && <p className="hint">Zdjęcia mają mało koloru, propozycja oparta na odcieniach szarości.</p>}
+          {palette.grey && <p className="hint">{t('photoPaletteSection.greyHint')}</p>}
           <div className="button-row photo-palette-actions">
             <Button disabled={applied} onClick={() => applyPhotoTheme(theme)}>
-              {applied ? 'Zastosowano' : 'Zastosuj do kadru'}
+              {applied ? t('photoPaletteSection.applied') : t('photoPaletteSection.apply')}
             </Button>
             <button type="button" className="link-btn" onClick={() => setVariant((v) => (v + 1) % THEME_VARIANTS.length)}>
-              Inna propozycja
+              {t('photoPaletteSection.another')}
             </button>
           </div>
         </>
       ) : (
         <p className="hint" role="status">
-          Liczę kolory ze zdjęć…
+          {t('photoPaletteSection.computing')}
         </p>
       )}
     </Section>

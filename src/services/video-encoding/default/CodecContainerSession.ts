@@ -1,4 +1,5 @@
 import { EncodingFailedError, type EncodeOptions, type EncodingSession } from '../VideoEncodingService'
+import i18n from '../../../i18n'
 import type { ContainerMuxer, EncodedSample, FrameEncoder } from '../ports'
 import { FrameCanvas } from './frameCanvas'
 
@@ -37,8 +38,8 @@ export class CodecContainerSession implements EncodingSession {
   }
 
   private check() {
-    if (this.failure) throw new EncodingFailedError('Kodowanie wideo nie powiodło się', { cause: this.failure })
-    if (this.closed) throw new EncodingFailedError('Zapis wideo został przerwany')
+    if (this.failure) throw new EncodingFailedError(i18n.t('codecContainerSession.failed'), { cause: this.failure })
+    if (this.closed) throw new EncodingFailedError(i18n.t('codecContainerSession.aborted'))
   }
 
   async addFrame(frame: HTMLCanvasElement, timestampUs: number) {

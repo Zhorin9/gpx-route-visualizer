@@ -1,9 +1,10 @@
 import { mixHex } from '../../utils/color'
+import type { TKey } from '../../i18n'
 import { clamp, clamp01 } from '../../utils/math'
 
 export interface Palette {
   id: PaletteId
-  label: string
+  label: TKey
   // Low to high.
   stops: string[]
 }
@@ -11,9 +12,9 @@ export interface Palette {
 export type PaletteId = 'ember' | 'forest' | 'gold'
 
 export const PALETTES: readonly Palette[] = [
-  { id: 'ember', label: 'Żar', stops: ['#5a1a1a', '#a6301f', '#e0662a', '#f6a43a', '#ffe07a'] },
-  { id: 'forest', label: 'Las', stops: ['#17302a', '#2f5a47', '#4f8a5e', '#9cc58a', '#e3f2c4'] },
-  { id: 'gold', label: 'Złoto', stops: ['#4a3518', '#8a6326', '#c28d41', '#facb8d', '#fff4dc'] },
+  { id: 'ember', label: 'palettes.ember', stops: ['#5a1a1a', '#a6301f', '#e0662a', '#f6a43a', '#ffe07a'] },
+  { id: 'forest', label: 'palettes.forest', stops: ['#17302a', '#2f5a47', '#4f8a5e', '#9cc58a', '#e3f2c4'] },
+  { id: 'gold', label: 'palettes.gold', stops: ['#4a3518', '#8a6326', '#c28d41', '#facb8d', '#fff4dc'] },
 ]
 
 export function palette(id: PaletteId): Palette {

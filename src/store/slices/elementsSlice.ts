@@ -1,4 +1,5 @@
 import { FORMATS } from '../../core/formats/registry'
+import i18n from '../../i18n'
 import { makeText, makeWaypoint, nextId } from '../defaults'
 import { TEXT_KINDS } from '../textKinds'
 import { selectTrack } from '../derived'
@@ -44,7 +45,7 @@ export function createElementsSlice({ get, commit }: SliceContext): ElementsSlic
         texts: s.texts.filter((t) => t.id !== id),
         selection: s.selection?.kind === 'text' && s.selection.id === id ? null : s.selection,
       }))
-      get().showToast('Usunięto tekst', 'undo')
+      get().showToast(i18n.t('elementsSlice.textDeleted'), 'undo')
     },
 
     addWaypoint: (trackPos) => {
@@ -81,7 +82,7 @@ export function createElementsSlice({ get, commit }: SliceContext): ElementsSlic
         waypoints: s.waypoints.filter((w) => w.id !== id),
         selection: s.selection?.kind === 'waypoint' && s.selection.id === id ? null : s.selection,
       }))
-      get().showToast('Usunięto miejscowość', 'undo')
+      get().showToast(i18n.t('elementsSlice.waypointDeleted'), 'undo')
     },
 
     applyGlobalFont: (family) => {
@@ -91,7 +92,7 @@ export function createElementsSlice({ get, commit }: SliceContext): ElementsSlic
         texts: s.texts.map((t) => ({ ...t, fontFamily: family })),
         waypoints: s.waypoints.map((w) => ({ ...w, fontFamily: family })),
       }))
-      get().showToast('Zmieniono czcionkę wszędzie', 'undo')
+      get().showToast(i18n.t('elementsSlice.fontChanged'), 'undo')
     },
 
     setPlacement: (kind, placement) => commit(`element:move:${kind}`, (s) => ({ placements: { ...s.placements, [kind]: placement } })),

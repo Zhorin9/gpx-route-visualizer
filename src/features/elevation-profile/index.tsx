@@ -19,8 +19,8 @@ function useIsAvailable() {
 export function registerElevationProfile() {
   registerCanvasElement({
     kind: PROFILE_KIND,
-    label: 'Profil wysokości',
-    meta: 'wykres',
+    label: 'elevationProfile.label',
+    meta: 'elevationProfile.meta',
     icon: <IconMountain />,
     order: 20,
     useIsAvailable,
@@ -29,6 +29,6 @@ export function registerElevationProfile() {
     tab: 'route',
     subTab: 'profile',
   })
-  registerPanelSection({ id: 'profile', label: 'Profil', tab: 'route', order: 20, Component: ElevationProfileSection })
+  registerPanelSection({ id: 'profile', label: 'elevationProfile.section', tab: 'route', order: 20, Component: ElevationProfileSection })
   addRouteDecoration(ProfileRouteMarker)
 }

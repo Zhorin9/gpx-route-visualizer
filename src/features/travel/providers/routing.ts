@@ -1,3 +1,4 @@
+import i18n from '../../../i18n'
 import type { GpxPoint, RouteOption, Stop } from '../../../types'
 
 export type RouteProfile = 'car' | 'trekking' | 'road' | 'mtb' | 'hiking' | 'rail'
@@ -39,7 +40,7 @@ export function registerRoutingProvider(provider: RoutingProvider): void {
 // The first registered service is the default.
 export function routingProvider(id?: string): RoutingProvider {
   const found = providers.find((p) => p.id === id) ?? providers[0]
-  if (!found) throw new RouteError('Brak serwisu tras.')
+  if (!found) throw new RouteError(i18n.t('travel.errors.noService'))
   return found
 }
 

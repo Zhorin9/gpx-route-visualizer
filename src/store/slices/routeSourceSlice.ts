@@ -1,5 +1,6 @@
 import { defaultTitlePlace } from '../../utils/aspects'
 import { parseGpxText } from '../../utils/gpx'
+import i18n from '../../i18n'
 import { DAY_COLORS, DEFAULT_STATS_CONTENT, IDENTITY_TRANSFORM, makeTitle, nextId } from '../defaults'
 import { joinTrack } from '../derived'
 import type { RouteSource, RouteStyle, TrackPart } from '../../types'
@@ -38,8 +39,8 @@ export function createRouteSourceSlice({ set, get, commit }: SliceContext): Rout
       try {
         parsed = parseGpxText(await file.text())
       } catch (err) {
-        const reason = err instanceof Error ? err.message : 'nie jest plikiem GPX'
-        set({ gpxError: `Plik „${file.name}” ${reason}. Sprawdź, czy to eksport GPX z zegarka lub aplikacji.` })
+        const reason = err instanceof Error ? err.message : i18n.t('routeSourceSlice.notGpx')
+        set({ gpxError: i18n.t('routeSourceSlice.gpxError', { name: file.name, reason }) })
         return
       }
       const sourceKey = newSourceKey()

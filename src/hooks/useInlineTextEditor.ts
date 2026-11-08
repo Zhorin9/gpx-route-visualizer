@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type Konva from 'konva'
+import i18n from '../i18n'
 
 export interface EditOptions {
   value: string
@@ -24,7 +25,7 @@ export default function useInlineTextEditor() {
     const textarea = document.createElement('textarea')
     document.body.appendChild(textarea)
     textarea.value = value
-    textarea.setAttribute('aria-label', 'Edytuj tekst')
+    textarea.setAttribute('aria-label', i18n.t('useInlineTextEditor.editText'))
     Object.assign(textarea.style, {
       position: 'fixed',
       top: `${stageBox.top + absPos.y}px`,

@@ -1,6 +1,7 @@
 import { canvasElement } from '../../core/canvas/registry'
 import { INITIAL_DOCUMENT } from '../document'
 import { MODE_LABELS } from '../../utils/modeChange'
+import i18n from '../../i18n'
 import type { SliceContext, UiSlice } from '../types'
 import type { PanelTab, Selection } from '../../types'
 
@@ -40,7 +41,7 @@ export function createUiSlice({ set, get, commit }: SliceContext): UiSlice {
           : null
       commit('mode', { mode, ...dropRoute })
       set({ activeTab: mode === 'collage' ? 'media' : 'route', centerView: 'map', selection: null, addingWaypoint: false, routeEditable: false })
-      get().showToast(`Projekt zmieniony na ${MODE_LABELS[mode]}. Zdjęcia i teksty zachowane.`, 'undo')
+      get().showToast(i18n.t('uiSlice.modeChanged', { mode: i18n.t(MODE_LABELS[mode]) }), 'undo')
     },
     activeTab: 'media',
     subTabs: {},

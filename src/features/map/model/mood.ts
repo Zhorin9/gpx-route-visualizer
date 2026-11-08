@@ -2,14 +2,15 @@ import type { CSSProperties } from 'react'
 import { channels } from '../../../utils/color'
 import { newCanvas, noiseTile } from '../../../utils/image'
 import type { MapSettings } from '../types'
+import type { TKey } from '../../../i18n'
 
 export type MapMood = Pick<MapSettings, 'opacity' | 'ground' | 'vignette' | 'sepia' | 'grain' | 'blur'>
 
-export const MOODS: { id: string; label: string; mood: MapMood }[] = [
-  { id: 'full', label: 'Pełna', mood: { opacity: 1, ground: '#3a2a1c', vignette: 0.3, sepia: 0, grain: 0, blur: 0 } },
-  { id: 'ghost', label: 'Duch mapy', mood: { opacity: 0.25, ground: '#1f1a14', vignette: 1, sepia: 0, grain: 0, blur: 0 } },
-  { id: 'film', label: 'Taśma', mood: { opacity: 0.7, ground: '#11100e', vignette: 0.5, sepia: 0.5, grain: 0.16, blur: 0 } },
-  { id: 'depth', label: 'Głębia', mood: { opacity: 0.7, ground: '#ede6d6', vignette: 0, sepia: 0, grain: 0, blur: 2.5 } },
+export const MOODS: { id: string; label: TKey; mood: MapMood }[] = [
+  { id: 'full', label: 'map.moods.full', mood: { opacity: 1, ground: '#3a2a1c', vignette: 0.3, sepia: 0, grain: 0, blur: 0 } },
+  { id: 'ghost', label: 'map.moods.ghost', mood: { opacity: 0.25, ground: '#1f1a14', vignette: 1, sepia: 0, grain: 0, blur: 0 } },
+  { id: 'film', label: 'map.moods.film', mood: { opacity: 0.7, ground: '#11100e', vignette: 0.5, sepia: 0.5, grain: 0.16, blur: 0 } },
+  { id: 'depth', label: 'map.moods.depth', mood: { opacity: 0.7, ground: '#ede6d6', vignette: 0, sepia: 0, grain: 0, blur: 2.5 } },
 ]
 
 export const moodOf = (s: MapMood) =>

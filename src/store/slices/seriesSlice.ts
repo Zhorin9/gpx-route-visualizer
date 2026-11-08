@@ -1,4 +1,5 @@
 import { FORMATS } from '../../core/formats/registry'
+import i18n from '../../i18n'
 import { LIMIT_MESSAGE, MAX_EXPORT_SLIDES, applyToPhotoSlides, exportedSlides, followSlides, insertIndex, isExported, moveOrder, newSlide, roomForSlide, slideKind, slidePlace } from '../../utils/series'
 import { selectTrack } from '../derived'
 import { DEFAULT_SLOT_CROP } from '../defaults'
@@ -23,12 +24,12 @@ export function createSeriesSlice({ set, get, commit }: SliceContext): SeriesSli
   function prepareSeries(): boolean {
     const s = get()
     if (!roomForSlide(s.slides)) {
-      s.showToast(LIMIT_MESSAGE, undefined, true)
+      s.showToast(i18n.t(LIMIT_MESSAGE), undefined, true)
       return false
     }
     if (!FORMATS[s.aspectKey].carousel) {
       s.setAspectKey('4:5')
-      s.showToast('Seria slajdów powstaje w formacie Post 4:5.')
+      s.showToast(i18n.t('seriesSlice.seriesFormat'))
     }
     if (get().carouselKind !== 'slides') set({ carouselKind: 'slides' })
     return true
@@ -88,7 +89,7 @@ export function createSeriesSlice({ set, get, commit }: SliceContext): SeriesSli
       const slide = s.slides[index]
       if (!slide || index === 0) return
       if (!isExported(slide) && !roomForSlide(s.slides)) {
-        s.showToast(LIMIT_MESSAGE, undefined, true)
+        s.showToast(i18n.t(LIMIT_MESSAGE), undefined, true)
         return
       }
       commit('slide:skip', (st) => ({ slides: st.slides.map((sl, i) => (i === index ? { ...sl, skipped: !sl.skipped } : sl)) }))
@@ -108,7 +109,7 @@ export function createSeriesSlice({ set, get, commit }: SliceContext): SeriesSli
     // Each photo becomes a slide; the dialog says how many matched the route before they are made.
     importPhotoSlides: async (files) => {
       const { loaded, failed } = await readPhotoFiles(files)
-      set({ photoError: failed ? 'Nie udało się wczytać części zdjęć' : '' })
+      set({ photoError: failed ? i18n.t('mediaSlice.somePhotosFailed') : '' })
       if (loaded.length) set({ photoImport: loaded })
     },
 
@@ -135,7 +136,7 @@ export function createSeriesSlice({ set, get, commit }: SliceContext): SeriesSli
         order.splice(at, 0, ...made.map(() => -1))
         return { photos: [...s.photos, ...photos], ...reorder(s, [...s.slides.slice(0, at), ...made, ...s.slides.slice(at)], order, at) }
       })
-      if (loaded.length > room) get().showToast(`Pominięto ${loaded.length - room} z nowych slajdów: ${LIMIT_MESSAGE.toLowerCase()}`)
+      if (loaded.length > room) get().showToast(i18n.t('seriesSlice.skipped', { n: loaded.length - room, limit: i18n.t(LIMIT_MESSAGE).toLowerCase() }))
     },
 
     cancelPhotoSlides: () => set({ photoImport: null }),

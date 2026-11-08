@@ -1,5 +1,6 @@
 import type { AnimationTrackId } from '../../core/animation/layers'
 import type { ProjectMode, VehicleId } from '../../types'
+import type { TKey } from '../../i18n'
 
 export type PacingId = 'constant' | 'eased' | 'bySpeed'
 export type Entrance = 'fade' | 'slide'
@@ -55,12 +56,12 @@ export const DEFAULT_ANIMATION: AnimationSettings = {
   loop: true,
 }
 
-export const TRACK_LABELS: Record<AnimationTrackId, string> = {
-  route: 'Trasa',
-  header: 'Nagłówek',
-  waypoints: 'Punkty',
-  stats: 'Statystyki',
-  photos: 'Zdjęcia',
+export const TRACK_LABELS: Record<AnimationTrackId, TKey> = {
+  route: 'animation.tracks.route',
+  header: 'animation.tracks.header',
+  waypoints: 'animation.tracks.waypoints',
+  stats: 'animation.tracks.stats',
+  photos: 'animation.tracks.photos',
 }
 
 // A collage has no route: its photos come in one by one under the header.

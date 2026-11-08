@@ -1,4 +1,5 @@
 import { EncodingUnsupportedError, type EncodeOptions, type EncodingSession, type FormatSupport, type VideoEncodingService, type VideoFormat } from '../VideoEncodingService'
+import i18n from '../../../i18n'
 import type { VideoCodecId } from '../ports'
 import { WebCodecsFrameEncoder, targetBitrate } from './WebCodecsFrameEncoder'
 
@@ -11,15 +12,13 @@ const GIF_BYTES_PER_PIXEL = 0.25
 // A PNG frame of a line on a see-through background; a map behind it weighs several times more.
 const PNG_BYTES_PER_PIXEL = 0.07
 
-const NO_WEBCODECS = 'ta przeglądarka nie koduje wideo (brak WebCodecs)'
-
 export class DefaultVideoEncodingService implements VideoEncodingService {
   async capabilities(width: number, height: number, fps: number): Promise<FormatSupport[]> {
     const probe = (format: VideoFormat): EncodeOptions => ({ format, width, height, fps, loopCount: 0, quality: 'medium' })
     const video = async (format: 'mp4' | 'webm'): Promise<FormatSupport> => {
-      if (typeof VideoEncoder === 'undefined') return { format, supported: false, reason: NO_WEBCODECS }
+      if (typeof VideoEncoder === 'undefined') return { format, supported: false, reason: i18n.t('defaultVideoEncodingService.noWebCodecs') }
       const ok = await new WebCodecsFrameEncoder(CODECS[format]).isSupported(probe(format))
-      return ok ? { format, supported: true } : { format, supported: false, reason: `ta przeglądarka nie koduje ${format === 'mp4' ? 'H.264' : 'VP9'}` }
+      return ok ? { format, supported: true } : { format, supported: false, reason: i18n.t('defaultVideoEncodingService.noCodec', { codec: format === 'mp4' ? 'H.264' : 'VP9' }) }
     }
     return [await video('mp4'), await video('webm'), { format: 'gif', supported: true }, { format: 'png', supported: true }]
   }
@@ -41,7 +40,7 @@ export class DefaultVideoEncodingService implements VideoEncodingService {
       return new PngSequenceSession(options)
     }
     const encoder = new WebCodecsFrameEncoder(CODECS[options.format])
-    if (!(await encoder.isSupported(options))) throw new EncodingUnsupportedError(`Format ${options.format.toUpperCase()} nie jest obsługiwany w tej przeglądarce`)
+    if (!(await encoder.isSupported(options))) throw new EncodingUnsupportedError(i18n.t('defaultVideoEncodingService.unsupported', { format: options.format.toUpperCase() }))
     const [{ MediabunnyMuxer }, { CodecContainerSession }] = await Promise.all([import('./MediabunnyMuxer'), import('./CodecContainerSession')])
     return CodecContainerSession.start(options, encoder, new MediabunnyMuxer(options.format))
   }

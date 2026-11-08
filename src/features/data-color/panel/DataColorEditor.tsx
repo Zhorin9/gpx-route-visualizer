@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import CheckboxField from '../../../components/fields/CheckboxField'
 import { IconInfo } from '../../../components/icons'
 import SliderField from '../../../components/fields/SliderField'
@@ -12,25 +13,21 @@ import type { GpxTrack, SelectOption } from '../../../types'
 import type { DataColorSettings } from '../types'
 import { useActiveDataColor } from '../useDataColoring'
 
-const GLOW_OPTIONS: SelectOption<DataColorSettings['glow']>[] = [
-  { value: 'follow', label: 'Jak linia' },
-  { value: 'uniform', label: 'Jednolita' },
-]
+const GLOWS: DataColorSettings['glow'][] = ['follow', 'uniform']
 
-const RANGE_OPTIONS: SelectOption<DataColorSettings['rangeMode']>[] = [
-  { value: 'auto', label: 'Automatyczny' },
-  { value: 'manual', label: 'Własny' },
-]
+const RANGE_MODES: DataColorSettings['rangeMode'][] = ['auto', 'manual']
 
 function DataPalettePicker() {
+  const { t } = useTranslation()
   const current = useAppStore((s) => s.dataColor.palette)
   const inverted = useAppStore((s) => s.dataColor.inverted)
   const updateDataColor = useAppStore((s) => s.updateDataColor)
-  return <PalettePicker ariaLabel="Paleta" inverted={inverted} isActive={(p) => p.id === current} onPick={(p) => updateDataColor({ palette: p.id })} />
+  return <PalettePicker ariaLabel={t('dataColor.palette')} inverted={inverted} isActive={(p) => p.id === current} onPick={(p) => updateDataColor({ palette: p.id })} />
 }
 
 // In the source's own (metric) unit; the slider spans what the track contains.
 function ManualRange() {
+  const { t } = useTranslation()
   const settings = useAppStore((s) => s.dataColor)
   const updateDataColor = useAppStore((s) => s.updateDataColor)
   const active = useActiveDataColor()
@@ -49,13 +46,14 @@ function ManualRange() {
   const unit = source.unit('metric')
   return (
     <>
-      <SliderField label={`Od (${unit})`} min={min} max={max} step={step} value={Math.min(settings.min, settings.max)} onChange={(v) => updateDataColor({ min: v })} />
-      <SliderField label={`Do (${unit})`} min={min} max={max} step={step} value={Math.max(settings.min, settings.max)} onChange={(v) => updateDataColor({ max: v })} />
+      <SliderField label={t('dataColor.from', { unit })} min={min} max={max} step={step} value={Math.min(settings.min, settings.max)} onChange={(v) => updateDataColor({ min: v })} />
+      <SliderField label={t('dataColor.to', { unit })} min={min} max={max} step={step} value={Math.max(settings.min, settings.max)} onChange={(v) => updateDataColor({ max: v })} />
     </>
   )
 }
 
 function DataColorSettingsFields() {
+  const { t } = useTranslation()
   const settings = useAppStore((s) => s.dataColor)
   const glowEnabled = useAppStore((s) => s.routeStyle.glowEnabled)
   const track = useAppStore(selectTrack)
@@ -64,11 +62,11 @@ function DataColorSettingsFields() {
 
   const missing = DATA_SOURCES.flatMap((src) => {
     const why = track ? src.unavailable(track) : null
-    return why ? [`${src.label.toLowerCase()} (${why})`] : []
+    return why ? [`${t(src.label).toLowerCase()} (${t(why)})`] : []
   })
   const options: SelectOption<DataSourceId>[] = DATA_SOURCES.map((src) => ({
     value: src.id,
-    label: src.label,
+    label: t(src.label),
     disabled: track != null && src.unavailable(track) != null,
   }))
   const unavailable = settings.source !== 'none' && track ? dataSource(settings.source).unavailable(track) : null
@@ -83,34 +81,31 @@ function DataColorSettingsFields() {
     <>
       {settings.source !== 'none' && (
         <>
-          <Segmented label="Dane" showLabel value={settings.source} options={options} onChange={(source) => updateDataColor({ source })} />
+          <Segmented label={t('dataColor.data')} showLabel value={settings.source} options={options} onChange={(source) => updateDataColor({ source })} />
           {missing.length > 0 && (
             <p className="note">
               <IconInfo />
-              Niedostępne w tym pliku: {missing.join(', ')}.
+              {t('dataColor.missing', { list: missing.join(', ') })}
             </p>
           )}
         </>
       )}
-      {unavailable && <p className="hint">Ten plik GPX nie ma tych danych ({unavailable}) — trasa zostaje w jednym kolorze.</p>}
+      {unavailable && <p className="hint">{t('dataColor.unavailable', { reason: t(unavailable) })}</p>}
       {settings.source !== 'none' && !unavailable && (
         <>
           <DataPalettePicker />
-          <CheckboxField label="Odwróć kolory" checked={settings.inverted} onChange={(inverted) => updateDataColor({ inverted })} />
-          <Segmented label="Zakres wartości" showLabel value={settings.rangeMode} options={RANGE_OPTIONS} onChange={chooseRange} />
+          <CheckboxField label={t('dataColor.invert')} checked={settings.inverted} onChange={(inverted) => updateDataColor({ inverted })} />
+          <Segmented label={t('dataColor.range')} showLabel value={settings.rangeMode} options={RANGE_MODES.map((value) => ({ value, label: t(`dataColor.rangeModes.${value}`) }))} onChange={chooseRange} />
           {settings.rangeMode === 'manual' && <ManualRange />}
-          {glowEnabled && <Segmented label="Poświata" showLabel value={settings.glow} options={GLOW_OPTIONS} onChange={(glow) => updateDataColor({ glow })} />}
-          <CheckboxField label="Legenda na grafice" checked={settings.legend} onChange={(legend) => updateDataColor({ legend })} />
+          {glowEnabled && <Segmented label={t('dataColor.glow')} showLabel value={settings.glow} options={GLOWS.map((value) => ({ value, label: t(`dataColor.glows.${value}`) }))} onChange={(glow) => updateDataColor({ glow })} />}
+          <CheckboxField label={t('dataColor.legend')} checked={settings.legend} onChange={(legend) => updateDataColor({ legend })} />
         </>
       )}
     </>
   )
 }
 
-const MODE_OPTIONS: SelectOption<'single' | 'data'>[] = [
-  { value: 'single', label: 'Jeden kolor' },
-  { value: 'data', label: 'Wg danych' },
-]
+const MODES = ['single', 'data'] as const
 
 // Speed and heart rate tell the most about a ride.
 function firstAvailable(track: GpxTrack | null): DataSourceId {
@@ -118,24 +113,26 @@ function firstAvailable(track: GpxTrack | null): DataSourceId {
 }
 
 function LineColor() {
+  const { t } = useTranslation()
   const color = useAppStore((s) => s.routeStyle.color)
   const multiDay = useAppStore((s) => selectRouteDays(s).length > 1)
   const updateRouteStyle = useAppStore((s) => s.updateRouteStyle)
-  if (multiDay) return <p className="hint">Trasa ma kilka dni: każdy dzień ma własny kolor, ustawiany w podzakładce „Linia”.</p>
-  return <ColorField label="Kolor" value={color} onChange={(c) => updateRouteStyle({ color: c })} />
+  if (multiDay) return <p className="hint">{t('dataColor.multiDay')}</p>
+  return <ColorField label={t('dataColor.color')} value={color} onChange={(c) => updateRouteStyle({ color: c })} />
 }
 
 export function ColorPage() {
+  const { t } = useTranslation()
   const source = useAppStore((s) => s.dataColor.source)
   const track = useAppStore(selectTrack)
   const updateDataColor = useAppStore((s) => s.updateDataColor)
   const mode = source === 'none' ? 'single' : 'data'
   return (
-    <Section title="Kolor linii">
+    <Section title={t('dataColor.lineColor')}>
       <Segmented
-        label="Kolor linii"
+        label={t('dataColor.lineColor')}
         value={mode}
-        options={MODE_OPTIONS}
+        options={MODES.map((value) => ({ value, label: t(`dataColor.modes.${value}`) }))}
         onChange={(m) => updateDataColor({ source: m === 'single' ? 'none' : firstAvailable(track) })}
       />
       {mode === 'single' ? <LineColor /> : <DataColorSettingsFields />}
@@ -144,8 +141,9 @@ export function ColorPage() {
 }
 
 export default function ColorLegendEditor() {
+  const { t } = useTranslation()
   return (
-    <Section title="Legenda kolorów">
+    <Section title={t('dataColor.label')}>
       <DataColorSettingsFields />
     </Section>
   )

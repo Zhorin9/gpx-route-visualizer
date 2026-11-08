@@ -1,4 +1,5 @@
 import type { StickerSettings } from '../utils/sticker'
+import type { TKey } from '../i18n'
 import type { PhotoLook } from '../utils/photoLook'
 import type { MapStickerSettings } from '../features/map-sticker/model'
 import type { IconFinish } from '../components/place/icons'
@@ -298,7 +299,7 @@ export interface TemplatesSlice {
 
 export interface HistoryEntry {
   doc: DocumentState
-  label: string
+  label: TKey
 }
 
 export interface HistorySlice {

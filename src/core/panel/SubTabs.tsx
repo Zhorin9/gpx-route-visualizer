@@ -1,16 +1,19 @@
 import type { ComponentType } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useAppStore } from '../../store/useAppStore'
 import { panelSections } from './registry'
 import type { TabKey } from '../../types'
+import type { TKey } from '../../i18n'
 
 export interface OwnPage {
   id: string
-  label: string
+  label: TKey
   Component: ComponentType
 }
 
 // The open page is remembered per tab, so leaving and coming back keeps it.
 export default function SubTabs({ tab, own }: { tab: TabKey; own: OwnPage[] }) {
+  const { t } = useTranslation()
   const mode = useAppStore((s) => s.mode)
   const pages: OwnPage[] = [...own, ...panelSections(tab, mode)]
   const chosen = useAppStore((s) => s.subTabs[tab])
@@ -21,7 +24,7 @@ export default function SubTabs({ tab, own }: { tab: TabKey; own: OwnPage[] }) {
   return (
     <>
       {pages.length > 1 && (
-        <div className="subtabs" role="tablist" aria-label="Podzakładki">
+        <div className="subtabs" role="tablist" aria-label={t('subTabs.label')}>
           {pages.map((page) => (
             <button
               key={page.id}
@@ -31,12 +34,12 @@ export default function SubTabs({ tab, own }: { tab: TabKey; own: OwnPage[] }) {
               className={page.id === active.id ? 'subtab active' : 'subtab'}
               onClick={() => setSubTab(tab, page.id)}
             >
-              {page.label}
+              {t(page.label)}
             </button>
           ))}
         </div>
       )}
-      <div role="tabpanel" aria-label={active.label}>
+      <div role="tabpanel" aria-label={t(active.label)}>
         <active.Component />
       </div>
     </>

@@ -19,8 +19,8 @@ export function registerDataColor() {
   provideRouteColoring(useDataColoring)
   registerCanvasElement({
     kind: LEGEND_KIND,
-    label: 'Legenda kolorów',
-    meta: 'skala',
+    label: 'dataColor.label',
+    meta: 'dataColor.meta',
     icon: <IconPalette />,
     order: 30,
     useIsAvailable: useLegendAvailable,
@@ -29,5 +29,5 @@ export function registerDataColor() {
     tab: 'route',
     subTab: 'color',
   })
-  registerPanelSection({ id: 'color', label: 'Kolor', tab: 'route', order: 10, Component: ColorPage })
+  registerPanelSection({ id: 'color', label: 'dataColor.section', tab: 'route', order: 10, Component: ColorPage })
 }

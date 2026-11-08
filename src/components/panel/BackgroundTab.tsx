@@ -9,27 +9,30 @@ import { useAppStore } from '../../store/useAppStore'
 import { DEFAULT_COLLAGE } from '../../store/defaults'
 import { GRADIENT_PRESETS } from '../../utils/gradients'
 import { backgroundKind, backgroundKinds } from '../../core/background/registry'
-import type { BackgroundKind, BackgroundPattern, SelectOption } from '../../types'
+import { useTranslation } from 'react-i18next'
+import type { BackgroundKind, BackgroundPattern } from '../../types'
+import type { TKey } from '../../i18n'
 import './BackgroundTab.css'
 
-const BACKGROUND_OPTIONS: SelectOption<BackgroundKind>[] = [
-  { value: 'transparent', label: 'Przezroczyste' },
-  { value: 'color', label: 'Kolor' },
-  { value: 'gradient', label: 'Gradient' },
+const BACKGROUND_OPTIONS: { value: BackgroundKind; label: TKey }[] = [
+  { value: 'transparent', label: 'backgroundTab.transparent' },
+  { value: 'color', label: 'backgroundTab.color' },
+  { value: 'gradient', label: 'backgroundTab.gradient' },
 ]
 
-const PATTERN_OPTIONS: SelectOption<BackgroundPattern>[] = [
-  { value: 'none', label: 'Brak' },
-  { value: 'grid', label: 'Siatka' },
-  { value: 'contours', label: 'Poziomice' },
+const PATTERN_OPTIONS: { value: BackgroundPattern; label: TKey }[] = [
+  { value: 'none', label: 'backgroundTab.patternNone' },
+  { value: 'grid', label: 'backgroundTab.patternGrid' },
+  { value: 'contours', label: 'backgroundTab.patternContours' },
 ]
 
-const BACKDROP_OPTIONS: SelectOption<'checkerboard' | 'color'>[] = [
-  { value: 'checkerboard', label: 'Szachownica' },
-  { value: 'color', label: 'Kolor' },
+const BACKDROP_OPTIONS: { value: 'checkerboard' | 'color'; label: TKey }[] = [
+  { value: 'checkerboard', label: 'backgroundTab.checkerboard' },
+  { value: 'color', label: 'backgroundTab.color' },
 ]
 
 export default function BackgroundTab() {
+  const { t } = useTranslation()
   const collage = useAppStore((s) => s.collage)
   const updateBackground = useAppStore((s) => s.updateBackground)
   const hasPhotos = useHasPhotos()
@@ -42,16 +45,16 @@ export default function BackgroundTab() {
   const { gradient, bgKind } = collage
   const backdropIsColor = previewBackdrop !== 'checkerboard'
   // Kinds added by features (the map) follow the built-in ones and bring their own settings.
-  const kindOptions = collageMode ? BACKGROUND_OPTIONS : [...BACKGROUND_OPTIONS, ...backgroundKinds().map((k) => ({ value: k.kind, label: k.label }))]
+  const kindOptions = (collageMode ? BACKGROUND_OPTIONS : [...BACKGROUND_OPTIONS, ...backgroundKinds().map((k) => ({ value: k.kind, label: k.label }))]).map((o) => ({ ...o, label: t(o.label) }))
   const added = backgroundKind(bgKind)
 
   // A photo covers the whole frame: a colour or gradient underneath could never be seen.
   if (photoBackground) {
     return (
-      <Section title="Tło">
-        <p className="hint">Tłem jest zdjęcie wypełniające cały kadr, więc kolor ani gradient pod nim nie byłyby widoczne. Jasność zdjęcia zmienisz suwakiem „Przyciemnienie”.</p>
+      <Section title={t('backgroundTab.background')}>
+        <p className="hint">{t('backgroundTab.photoBackgroundHint')}</p>
         <Button block onClick={() => setActiveTab('media')}>
-          Przejdź do zdjęć
+          {t('backgroundTab.goToPhotos')}
         </Button>
       </Section>
     )
@@ -59,22 +62,22 @@ export default function BackgroundTab() {
 
   return (
     <>
-      {!collageMode && <p className="hint">Tło to osobna warstwa pod zdjęciami: zmiana układu go nie rusza, a zmiana tła nie rusza zdjęć.</p>}
+      {!collageMode && <p className="hint">{t('backgroundTab.layerHint')}</p>}
 
-      <Section title="Rodzaj tła">
-        <Segmented label="Rodzaj tła" value={bgKind} options={kindOptions} onChange={(kind) => (backgroundKind(kind)?.select ?? (() => updateBackground({ bgKind: kind })))()} />
+      <Section title={t('backgroundTab.kind')}>
+        <Segmented label={t('backgroundTab.kind')} value={bgKind} options={kindOptions} onChange={(kind) => (backgroundKind(kind)?.select ?? (() => updateBackground({ bgKind: kind })))()} />
         {bgKind === 'color' && (
           <>
-            <ColorField label="Kolor tła" value={collage.bgColor} onChange={(bgColor) => updateBackground({ bgColor })} />
-            <CheckboxField label="Automatyczny kontrast tekstu" checked={collage.autoContrast} onChange={(autoContrast) => updateBackground({ autoContrast })} />
-            <p className="hint">Kolor wypełnia cały kadr{hasPhotos ? ', a między zdjęciami widać go w przerwach i marginesach' : ''}. Grafikę zapiszesz jako PNG albo JPG.</p>
+            <ColorField label={t('backgroundTab.bgColor')} value={collage.bgColor} onChange={(bgColor) => updateBackground({ bgColor })} />
+            <CheckboxField label={t('backgroundTab.autoContrast')} checked={collage.autoContrast} onChange={(autoContrast) => updateBackground({ autoContrast })} />
+            <p className="hint">{hasPhotos ? t('backgroundTab.colorHintPhotos') : t('backgroundTab.colorHint')}</p>
           </>
         )}
         {bgKind === 'transparent' && (
           <p className="hint">
             {hasPhotos
-              ? 'Przerwy i marginesy kolażu zostają przezroczyste.'
-              : 'Eksport to przezroczysty PNG — gotowy do nałożenia na własne zdjęcie w Instagramie.'}
+              ? t('backgroundTab.transparentHintPhotos')
+              : t('backgroundTab.transparentHint')}
           </p>
         )}
       </Section>
@@ -83,8 +86,8 @@ export default function BackgroundTab() {
 
       {bgKind === 'gradient' && (
         <>
-          <Section title="Gotowe gradienty">
-            <div className="gradient-grid" role="group" aria-label="Gotowe gradienty">
+          <Section title={t('backgroundTab.gradientPresets')}>
+            <div className="gradient-grid" role="group" aria-label={t('backgroundTab.gradientPresets')}>
               {GRADIENT_PRESETS.map((preset) => {
                 const active = preset.from === gradient.from && preset.to === gradient.to
                 return (
@@ -96,36 +99,36 @@ export default function BackgroundTab() {
                     onClick={() => updateBackground({ gradient: { from: preset.from, to: preset.to } })}
                   >
                     <span className="gradient-swatch" style={{ background: `linear-gradient(172deg, ${preset.from}, ${preset.to})` }} />
-                    <span>{preset.name}</span>
+                    <span>{t(preset.name)}</span>
                   </button>
                 )
               })}
             </div>
           </Section>
 
-          <Section title="Dopracowanie">
-            <ColorField label="Kolor początkowy" value={gradient.from} onChange={(from) => updateBackground({ gradient: { from } })} />
-            <ColorField label="Kolor końcowy" value={gradient.to} onChange={(to) => updateBackground({ gradient: { to } })} />
-            <SliderField label="Kąt" unit="°" min={0} max={360} value={gradient.angle} defaultValue={DEFAULT_COLLAGE.gradient.angle} onChange={(angle) => updateBackground({ gradient: { angle } })} />
-            <SliderField label="Ziarno filmowe" unit="%" min={0} max={30} value={gradient.grain} defaultValue={DEFAULT_COLLAGE.gradient.grain} onChange={(grain) => updateBackground({ gradient: { grain } })} />
-            <CheckboxField label="Wygładź przejście" checked={gradient.smooth} onChange={(smooth) => updateBackground({ gradient: { smooth } })} />
-            <Segmented label="Wzór" showLabel value={gradient.pattern ?? 'none'} options={PATTERN_OPTIONS} onChange={(pattern) => updateBackground({ gradient: { pattern } })} />
-            <CheckboxField label="Automatyczny kontrast tekstu" checked={collage.autoContrast} onChange={(autoContrast) => updateBackground({ autoContrast })} />
-            <p className="hint">Na jasnym gradiencie napisy i trasa same przechodzą na ciemny kolor. „Wygładź” usuwa pasy w przejściu, ziarno nadaje papierowy charakter.</p>
+          <Section title={t('backgroundTab.refine')}>
+            <ColorField label={t('backgroundTab.fromColor')} value={gradient.from} onChange={(from) => updateBackground({ gradient: { from } })} />
+            <ColorField label={t('backgroundTab.toColor')} value={gradient.to} onChange={(to) => updateBackground({ gradient: { to } })} />
+            <SliderField label={t('backgroundTab.angle')} unit="°" min={0} max={360} value={gradient.angle} defaultValue={DEFAULT_COLLAGE.gradient.angle} onChange={(angle) => updateBackground({ gradient: { angle } })} />
+            <SliderField label={t('backgroundTab.grain')} unit="%" min={0} max={30} value={gradient.grain} defaultValue={DEFAULT_COLLAGE.gradient.grain} onChange={(grain) => updateBackground({ gradient: { grain } })} />
+            <CheckboxField label={t('backgroundTab.smooth')} checked={gradient.smooth} onChange={(smooth) => updateBackground({ gradient: { smooth } })} />
+            <Segmented label={t('backgroundTab.pattern')} showLabel value={gradient.pattern ?? 'none'} options={PATTERN_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))} onChange={(pattern) => updateBackground({ gradient: { pattern } })} />
+            <CheckboxField label={t('backgroundTab.autoContrast')} checked={collage.autoContrast} onChange={(autoContrast) => updateBackground({ autoContrast })} />
+            <p className="hint">{t('backgroundTab.gradientHint')}</p>
           </Section>
         </>
       )}
 
       {bgKind === 'transparent' && !hasPhotos && (
-        <Section title="Podgląd">
+        <Section title={t('backgroundTab.preview')}>
           <Segmented
-            label="Tło podglądu"
+            label={t('backgroundTab.previewBackdrop')}
             showLabel
             value={backdropIsColor ? 'color' : 'checkerboard'}
-            options={BACKDROP_OPTIONS}
+            options={BACKDROP_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))}
             onChange={(v) => setPreviewBackdrop(v === 'color' ? (backdropIsColor ? previewBackdrop : '#cfcccc') : 'checkerboard')}
           />
-          {backdropIsColor && <ColorField label="Kolor podglądu" value={previewBackdrop} onChange={setPreviewBackdrop} />}
+          {backdropIsColor && <ColorField label={t('backgroundTab.previewColor')} value={previewBackdrop} onChange={setPreviewBackdrop} />}
         </Section>
       )}
     </>

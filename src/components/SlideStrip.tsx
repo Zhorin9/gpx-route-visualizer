@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type DragEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import { IconMore, IconPlus } from './icons'
 import { useActiveSlide } from '../store/selectors'
 import { useAppStore } from '../store/useAppStore'
@@ -10,19 +11,19 @@ import { drawDataSlide } from '../utils/drawSlide'
 import { LIMIT_MESSAGE, kindBlocker, roomForSlide, slideLabel, slideNumbers } from '../utils/series'
 import useSlideScene from '../hooks/useSlideScene'
 import type { Slide, SlideKind } from '../types'
+import type { TKey } from '../i18n'
 import './SlideStrip.css'
 
 const THUMB_H = 72
 const RAIL_THUMB_W = 64
 const SLIDE_DRAG_TYPE = 'application/x-slide'
 const HINT_SEEN_KEY = 'gpx.slideStripHint'
-const REORDER_HINT = 'Przeciągnij slajd, aby zmienić kolejność. Pierwszy slajd to kadr edytora i zostaje na początku.'
 
-const ADD_KINDS: { kind: SlideKind | 'collage'; label: string }[] = [
-  { kind: 'photos', label: 'Puste zdjęcie' },
-  { kind: 'collage', label: 'Kolaż' },
-  { kind: 'profile', label: 'Profil' },
-  { kind: 'summary', label: 'Podsumowanie' },
+const ADD_KINDS: { kind: SlideKind | 'collage'; label: TKey }[] = [
+  { kind: 'photos', label: 'slideStrip.emptyPhoto' },
+  { kind: 'collage', label: 'slideStrip.collage' },
+  { kind: 'profile', label: 'slideStrip.profile' },
+  { kind: 'summary', label: 'slideStrip.summary' },
 ]
 
 function DataThumb({ slide, width, height }: { slide: Slide; width: number; height: number }) {
@@ -49,6 +50,7 @@ function SlideMenu({ index, count, at, onClose }: { index: number; count: number
   const moveSlide = useAppStore((s) => s.moveSlide)
   const toggleSkipSlide = useAppStore((s) => s.toggleSkipSlide)
   const removeSlide = useAppStore((s) => s.removeSlide)
+  const { t } = useTranslation()
   const ref = useRef<HTMLDivElement>(null)
   useDismiss(true, ref, onClose)
   const item = (label: string, action: () => void, opts: { hint?: string; disabled?: boolean; danger?: boolean } = {}) => (
@@ -69,11 +71,11 @@ function SlideMenu({ index, count, at, onClose }: { index: number; count: number
   const first = index === 0
   return (
     <div className="slide-menu" role="menu" ref={ref} style={at}>
-      {item('Duplikuj', () => duplicateSlide(index), { hint: 'Ctrl+D' })}
-      {item('Przenieś na początek', () => moveSlide(index, 1), { disabled: first || index === 1 })}
-      {item('Przenieś na koniec', () => moveSlide(index, count - 1), { disabled: first || index === count - 1 })}
-      {item(slide?.skipped ? 'Przywróć do eksportu' : 'Pomiń w eksporcie', () => toggleSkipSlide(index), { disabled: first })}
-      {item('Usuń', () => removeSlide(index), { hint: 'Del', disabled: first, danger: true })}
+      {item(t('slideStrip.duplicate'), () => duplicateSlide(index), { hint: 'Ctrl+D' })}
+      {item(t('slideStrip.moveToStart'), () => moveSlide(index, 1), { disabled: first || index === 1 })}
+      {item(t('slideStrip.moveToEnd'), () => moveSlide(index, count - 1), { disabled: first || index === count - 1 })}
+      {item(slide?.skipped ? t('slideStrip.restoreToExport') : t('slideStrip.skipInExport'), () => toggleSkipSlide(index), { disabled: first })}
+      {item(t('slideStrip.remove'), () => removeSlide(index), { hint: 'Del', disabled: first, danger: true })}
     </div>
   )
 }
@@ -82,14 +84,15 @@ function AddMenu({ at, onClose }: { at: CSSProperties; onClose: () => void }) {
   const addSeriesSlide = useAppStore((s) => s.addSeriesSlide)
   const importPhotoSlides = useAppStore((s) => s.importPhotoSlides)
   const { route } = useSlideScene()
+  const { t } = useTranslation()
   const ref = useRef<HTMLDivElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   useDismiss(true, ref, onClose)
   return (
     <div className="slide-menu" role="menu" ref={ref} style={at}>
       <button type="button" role="menuitem" onClick={() => fileRef.current?.click()}>
-        Zdjęcia…
-        <span className="text-muted">slajd na każde</span>
+        {t('slideStrip.photos')}
+        <span className="text-muted">{t('slideStrip.slideEach')}</span>
       </button>
       <input
         ref={fileRef}
@@ -117,7 +120,7 @@ function AddMenu({ at, onClose }: { at: CSSProperties; onClose: () => void }) {
               onClose()
             }}
           >
-            {label}
+            {t(label)}
             {blocker && <span className="text-muted">{blocker}</span>}
           </button>
         )
@@ -128,6 +131,7 @@ function AddMenu({ at, onClose }: { at: CSSProperties; onClose: () => void }) {
 
 function useFirstUseHint(slideCount: number) {
   const showToast = useAppStore((s) => s.showToast)
+  const { t } = useTranslation()
   useEffect(() => {
     if (slideCount < 2) return
     try {
@@ -136,8 +140,8 @@ function useFirstUseHint(slideCount: number) {
     } catch {
       return
     }
-    showToast(REORDER_HINT)
-  }, [slideCount, showToast])
+    showToast(t('slideStrip.reorderHint'))
+  }, [slideCount, showToast, t])
 }
 
 export default function SlideStrip({ vertical }: { vertical: boolean }) {
@@ -148,6 +152,7 @@ export default function SlideStrip({ vertical }: { vertical: boolean }) {
   const moveSlide = useAppStore((s) => s.moveSlide)
   const showToast = useAppStore((s) => s.showToast)
   const activeSlide = useActiveSlide()
+  const { t } = useTranslation()
   const [menu, setMenu] = useState<{ of: number | 'add'; at: CSSProperties } | null>(null)
   const [dropAt, setDropAt] = useState<number | null>(null)
   const closeMenu = useCallback(() => setMenu(null), [])
@@ -170,7 +175,7 @@ export default function SlideStrip({ vertical }: { vertical: boolean }) {
   }
 
   return (
-    <div className={vertical ? 'slide-strip vertical' : 'slide-strip'} role="group" aria-label="Slajdy serii">
+    <div className={vertical ? 'slide-strip vertical' : 'slide-strip'} role="group" aria-label={t('slideStrip.seriesSlides')}>
       <div className="slide-strip-list">
         {slides.map((slide, index) => {
           const n = numbers[index]
@@ -180,7 +185,7 @@ export default function SlideStrip({ vertical }: { vertical: boolean }) {
               key={index}
               className={classes.filter(Boolean).join(' ')}
               draggable={index > 0}
-              title={index > 0 ? 'Przeciągnij, aby zmienić kolejność' : undefined}
+              title={index > 0 ? t('slideStrip.dragToReorder') : undefined}
               onDragStart={(e) => {
                 e.dataTransfer.setData(SLIDE_DRAG_TYPE, String(index))
                 e.dataTransfer.effectAllowed = 'move'
@@ -208,7 +213,7 @@ export default function SlideStrip({ vertical }: { vertical: boolean }) {
                 type="button"
                 className="slide-thumb-body"
                 aria-pressed={index === activeSlide}
-                aria-label={`Slajd ${n ?? '(pominięty)'}: ${slideLabel(slide, index, mode)}`}
+                aria-label={`${n == null ? t('slideStrip.skippedSlide') : t('slideStrip.slide', { n })}: ${slideLabel(slide, index, mode)}`}
                 onClick={() => setActiveSlide(index)}
               >
                 <span className="slide-thumb-frame" style={thumb}>
@@ -217,7 +222,7 @@ export default function SlideStrip({ vertical }: { vertical: boolean }) {
                 </span>
                 <span className="slide-thumb-label">{slideLabel(slide, index, mode)}</span>
               </button>
-              <button type="button" className="slide-thumb-more" aria-label={`Więcej: slajd ${index + 1}`} aria-haspopup="menu" aria-expanded={menu?.of === index} onClick={(e) => toggleMenu(index, e.currentTarget)}>
+              <button type="button" className="slide-thumb-more" aria-label={t('slideStrip.more', { n: index + 1 })} aria-haspopup="menu" aria-expanded={menu?.of === index} onClick={(e) => toggleMenu(index, e.currentTarget)}>
                 <IconMore width={14} height={14} />
               </button>
               {menu?.of === index && <SlideMenu index={index} count={slides.length} at={menu.at} onClose={closeMenu} />}
@@ -228,11 +233,11 @@ export default function SlideStrip({ vertical }: { vertical: boolean }) {
           <button
             type="button"
             className={room ? 'slide-add' : 'slide-add full'}
-            aria-label="Dodaj slajd"
+            aria-label={t('slideStrip.addSlide')}
             aria-haspopup="menu"
             aria-expanded={menu?.of === 'add'}
             style={thumb}
-            onClick={(e) => (room ? toggleMenu('add', e.currentTarget) : showToast(LIMIT_MESSAGE))}
+            onClick={(e) => (room ? toggleMenu('add', e.currentTarget) : showToast(t(LIMIT_MESSAGE)))}
           >
             <IconPlus width={18} height={18} />
           </button>

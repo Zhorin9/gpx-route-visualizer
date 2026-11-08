@@ -1,5 +1,6 @@
 import { createZip, type ZipEntry } from '../../../utils/zip'
 import { EncodingFailedError, type EncodeOptions, type EncodingSession } from '../VideoEncodingService'
+import i18n from '../../../i18n'
 import { FrameCanvas } from './frameCanvas'
 
 // Frames being compressed while the next ones render; more would only hold memory.
@@ -19,20 +20,20 @@ export class PngSequenceSession implements EncodingSession {
   // toBlob copies the canvas when called, so the canvas is free for the next frame at once.
   private encode(name: string): Promise<ZipEntry> {
     return new Promise<Blob | null>((resolve) => this.canvas.canvas.toBlob(resolve, 'image/png')).then(async (blob) => {
-      if (!blob) throw new EncodingFailedError('Nie udało się zapisać klatki PNG')
+      if (!blob) throw new EncodingFailedError(i18n.t('pngSequenceSession.frameFailed'))
       return { name, data: new Uint8Array(await blob.arrayBuffer()) }
     })
   }
 
   async addFrame(frame: HTMLCanvasElement) {
-    if (this.aborted) throw new EncodingFailedError('Przerwano zapis klatek')
+    if (this.aborted) throw new EncodingFailedError(i18n.t('pngSequenceSession.aborted'))
     this.canvas.draw(frame)
     this.frames.push(this.encode(`klatka_${String(this.frames.length).padStart(5, '0')}.png`))
     if (this.frames.length > IN_FLIGHT) await this.frames[this.frames.length - 1 - IN_FLIGHT]
   }
 
   async finish(): Promise<Blob> {
-    if (this.aborted) throw new EncodingFailedError('Przerwano zapis klatek')
+    if (this.aborted) throw new EncodingFailedError(i18n.t('pngSequenceSession.aborted'))
     return createZip(await Promise.all(this.frames))
   }
 

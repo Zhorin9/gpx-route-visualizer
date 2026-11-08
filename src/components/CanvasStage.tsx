@@ -1,4 +1,5 @@
 import { useState, type DragEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Stage, Layer } from 'react-konva'
 import type Konva from 'konva'
 import useGpxImport from '../hooks/useGpxImport'
@@ -25,6 +26,7 @@ import type { SlotRect } from '../utils/layouts'
 import { clamp } from '../utils/math'
 
 export default function CanvasStage({ previewScale }: { previewScale: number }) {
+  const { t } = useTranslation()
   const aspectKey = useAppStore((s) => s.aspectKey)
   const hasBackground = useHasBackground()
   const previewBackdrop = useAppStore((s) => s.previewBackdrop)
@@ -181,14 +183,14 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
             transform: dragRect.rotation ? `rotate(${dragRect.rotation}deg)` : undefined,
           }}
         >
-          Upuść, aby dodać
+          {t('canvasStage.dropToAdd')}
         </div>
       )}
       {slideCount > 1 && (
         <div className="slide-dividers" aria-hidden="true">
           {slides.map((_, i) => (
             <div key={i} className={i === activeSlide ? 'slide-divider active' : 'slide-divider'} style={{ width: w * previewScale }}>
-              <span>{numbers[i] == null ? 'Pominięty slajd' : `Slajd ${numbers[i]}`}</span>
+              <span>{numbers[i] == null ? t('canvasStage.skippedSlide') : t('canvasStage.slide', { n: numbers[i] })}</span>
             </div>
           ))}
         </div>
@@ -200,16 +202,16 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
             style={{ left: activeSlide * w * previewScale + 6, width: w * previewScale - 12 }}
             aria-hidden="true"
           />
-          <span className="layout-preview-tag" style={{ left: (activeSlide + 0.5) * w * previewScale }}>Podgląd: {layoutDef(previewLayoutKey).label} — kliknij, aby zastosować</span>
+          <span className="layout-preview-tag" style={{ left: (activeSlide + 0.5) * w * previewScale }}>{t('canvasStage.layoutPreview', { layout: t(layoutDef(previewLayoutKey).label) })}</span>
         </>
       )}
       {safeZone && showSafeZones && (
         <div className="safe-zones" aria-hidden="true">
           <div className="safe-zone" style={{ height: safeZone.top * previewScale }}>
-            <span>{safeZone.topLabel}</span>
+            <span>{t(safeZone.topLabel)}</span>
           </div>
           <div className="safe-zone bottom" style={{ height: safeZone.bottom * previewScale }}>
-            <span>{safeZone.bottomLabel}</span>
+            <span>{t(safeZone.bottomLabel)}</span>
           </div>
           {safeZone.left > 0 && <div className="safe-zone side" style={{ left: 0, width: safeZone.left * previewScale }} />}
           {safeZone.right > 0 && <div className="safe-zone side right" style={{ right: 0, width: safeZone.right * previewScale }} />}

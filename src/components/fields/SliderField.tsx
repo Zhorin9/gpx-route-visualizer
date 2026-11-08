@@ -1,4 +1,5 @@
 import { useId, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { clamp } from '../../utils/math'
 
 export interface SliderFieldProps {
@@ -32,6 +33,7 @@ export default function SliderField({
 }: SliderFieldProps) {
   const id = useId()
   const [draft, setDraft] = useState<string | null>(null)
+  const { t } = useTranslation()
 
   function snap(v: number) {
     const hit = snapPoints?.find((p) => Math.abs(p - v) <= snapTolerance)
@@ -57,7 +59,7 @@ export default function SliderField({
           <input
             type="text"
             inputMode="decimal"
-            aria-label={`${label} – wartość`}
+            aria-label={t('sliderField.value', { label })}
             value={display}
             disabled={disabled}
             onChange={(e) => setDraft(e.target.value)}
@@ -79,7 +81,7 @@ export default function SliderField({
         value={value}
         disabled={disabled}
         style={{ '--fill': `${((clamp(value, min, max) - min) / (max - min || 1)) * 100}%` } as React.CSSProperties}
-        title={defaultValue != null ? 'Dwuklik przywraca wartość domyślną' : undefined}
+        title={defaultValue != null ? t('sliderField.resetHint') : undefined}
         onChange={(e) => onChange(snap(Number(e.target.value)))}
         onDoubleClick={() => defaultValue != null && onChange(defaultValue)}
       />

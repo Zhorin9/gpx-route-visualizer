@@ -1,4 +1,5 @@
 import { clamp, seededRandom } from './math'
+import i18n from '../i18n'
 // Enough for a 2× export of the tallest aspect (2160×3840) with zoom headroom.
 const MAX_SIDE = 4096
 const THUMB_SIDE = 160
@@ -25,7 +26,7 @@ async function decodeDownsized(file: Blob): Promise<HTMLCanvasElement> {
   const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' })
   const scale = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height))
   const { canvas, ctx } = newCanvas(Math.round(bitmap.width * scale), Math.round(bitmap.height * scale))
-  if (!ctx) throw new Error('Canvas 2D niedostępny')
+  if (!ctx) throw new Error(i18n.t('image.noCanvas'))
   ctx.imageSmoothingQuality = 'high'
   ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
   bitmap.close()

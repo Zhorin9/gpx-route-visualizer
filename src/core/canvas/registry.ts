@@ -1,12 +1,13 @@
 import type { ComponentType, ReactNode } from 'react'
 import type { AnimationTrackId } from '../animation/layers'
 import type { ElementKind, PanelTab } from '../../types'
+import type { TKey } from '../../i18n'
 
 export interface CanvasElementDefinition {
   kind: ElementKind
   // Shown in the "Elementy na grafice" list and the per-format layout summary.
-  label: string
-  meta: string
+  label: TKey
+  meta: TKey
   icon: ReactNode
   // Drawing order on the overlay layer; lower is drawn first.
   order: number

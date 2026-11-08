@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import FileButton from '../ui/FileButton'
 import Section from '../ui/Section'
 import SliderField from '../fields/SliderField'
@@ -8,6 +9,7 @@ import { useAppStore } from '../../store/useAppStore'
 export const PHOTO_DRAG_TYPE = 'application/x-gpx-photo'
 
 export default function PhotoPool() {
+  const { t } = useTranslation()
   const photos = useAppStore((s) => s.photos)
   const slides = useAppStore((s) => s.slides)
   const placePhoto = useAppStore((s) => s.placePhoto)
@@ -20,7 +22,7 @@ export default function PhotoPool() {
   const used = new Set(slides.flatMap((slide) => Object.values(slide.slots).map((a) => a.photoId)))
 
   return (
-    <Section title="Zdjęcia">
+    <Section title={t('photoPool.photos')}>
       {photos.length > 0 && (
         <div className="photo-pool">
           {photos.map((photo) => (
@@ -28,7 +30,7 @@ export default function PhotoPool() {
               <img
                 src={photo.thumb}
                 alt={photo.name}
-                title={`${photo.name} — kliknij, aby dodać do zaznaczonego slotu, lub przeciągnij na kadr`}
+                title={t('photoPool.thumbTitle', { name: photo.name })}
                 onClick={() => placePhoto(photo.id)}
                 draggable
                 className={used.has(photo.id) ? 'photo-pool-thumb used' : 'photo-pool-thumb'}
@@ -37,7 +39,7 @@ export default function PhotoPool() {
                   e.dataTransfer.effectAllowed = 'copy'
                 }}
               />
-              <button type="button" className="photo-pool-remove" aria-label={`Usuń zdjęcie ${photo.name}`} title="Usuń z projektu" onClick={() => removePhoto(photo.id)}>
+              <button type="button" className="photo-pool-remove" aria-label={t('photoPool.removePhoto', { name: photo.name })} title={t('photoPool.removeFromProject')} onClick={() => removePhoto(photo.id)}>
                 <IconClose width={12} height={12} />
               </button>
             </span>
@@ -50,14 +52,14 @@ export default function PhotoPool() {
         </p>
       )}
       <FileButton accept="image/*" multiple onFiles={importFiles} variant={photos.length ? 'secondary' : 'primary'} icon={<IconUpload />} block>
-        Dodaj zdjęcia
+        {t('photoPool.addPhotos')}
       </FileButton>
       <p className="hint">
         {photos.length
-          ? 'Kliknij zdjęcie, aby wstawić je do zaznaczonego slotu, albo przeciągnij je na kadr. Obwódka oznacza zdjęcie użyte w projekcie.'
-          : 'Wybierz zdjęcia z dysku albo przeciągnij je na podgląd. Wypełnią sloty po kolei.'}
+          ? t('photoPool.poolHint')
+          : t('photoPool.emptyHint')}
       </p>
-      {photos.length > 0 && <SliderField label="Przyciemnienie" unit="%" value={Math.round(dimOpacity * 100)} defaultValue={0} onChange={(v) => setDimOpacity(v / 100)} />}
+      {photos.length > 0 && <SliderField label={t('photoPool.dim')} unit="%" value={Math.round(dimOpacity * 100)} defaultValue={0} onChange={(v) => setDimOpacity(v / 100)} />}
     </Section>
   )
 }

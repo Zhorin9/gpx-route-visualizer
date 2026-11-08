@@ -16,8 +16,8 @@ function useShowStampAgain() {
 export function registerStamp() {
   registerCanvasElement({
     kind: STAMP_KIND,
-    label: 'Data i godzina',
-    meta: 'w rogu',
+    label: 'stamp.label',
+    meta: 'stamp.meta',
     icon: <IconInfo />,
     order: 80,
     useIsAvailable: useStampShown,
