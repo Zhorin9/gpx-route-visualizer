@@ -10,7 +10,7 @@ import { IconMore } from '../icons'
 import useDismiss from '../../hooks/useDismiss'
 import { useAppStore } from '../../store/useAppStore'
 import { lookChanged } from '../../store/slices/templatesSlice'
-import { BUILT_IN_TEMPLATES } from '../../utils/templates'
+import { BUILT_IN_TEMPLATES, templateName } from '../../utils/templates'
 import type { StyleTemplate, TemplateGroup, TemplateParts } from '../../types'
 import type { TKey } from '../../i18n'
 import './TemplatesPage.css'
@@ -133,7 +133,7 @@ function PreviewBar({ template }: { template: StyleTemplate }) {
     <div className="template-preview-bar" role="region" aria-label={t('templatesPage.previewLabel')}>
       <div className="template-preview-head">
         <span>
-          {t('templatesPage.preview')} <strong>{template.name}</strong>
+          {t('templatesPage.preview')} <strong>{templateName(template)}</strong>
         </span>
         <span className="hint">{t('templatesPage.previewHint')}</span>
       </div>
@@ -183,7 +183,7 @@ export default function TemplatesPage() {
     <div className="templates-page">
       <div className="template-current">
         <span>
-          {t('templatesPage.now')} <strong>{current?.name ?? t('templatesPage.customLook')}</strong>
+          {t('templatesPage.now')} <strong>{(current && templateName(current)) ?? t('templatesPage.customLook')}</strong>
         </span>
         {changed && <span className="template-changed">{t('templatesPage.changed')}</span>}
       </div>
@@ -210,12 +210,12 @@ export default function TemplatesPage() {
                 onDoubleClick={keepPreview}
               >
                 <TemplateThumb template={template} />
-                <span className="template-card-name">{template.name}</span>
+                <span className="template-card-name">{templateName(template)}</span>
               </button>
               <button
                 type="button"
                 className="template-card-more"
-                aria-label={t('templatesPage.more', { name: template.name })}
+                aria-label={t('templatesPage.more', { name: templateName(template) })}
                 aria-haspopup="menu"
                 aria-expanded={menuOf === template.id}
                 // The open menu closes on a press elsewhere; its own button toggles it instead.

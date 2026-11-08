@@ -1,6 +1,7 @@
 import { DEFAULT_COLLAGE, DEFAULT_ROUTE_STYLE, DEFAULT_STATS_STYLE } from '../store/defaults'
 import { STICKER_COLORS, STICKER_INK } from './sticker'
 import { DEFAULT_MAP_STICKER } from '../features/map-sticker/model'
+import i18n, { type TKey } from '../i18n'
 
 const { shown: _shown, size: _size, ...DEFAULT_MAP_STICKER_LOOK } = DEFAULT_MAP_STICKER
 import type { BackgroundPattern, HardShadow, PhotoMarker, RouteCasing, RouteStyle, StyleTemplate } from '../types'
@@ -40,6 +41,11 @@ const points = (marker: PhotoMarker) => ({ marker, size: 'M' as const })
 type TemplateDefaults = 'fonts' | 'titleUppercase' | 'statsStyle' | 'frame' | 'layoutKey'
 const template = (t: Omit<StyleTemplate, TemplateDefaults> & Partial<StyleTemplate>): StyleTemplate =>
   ({ fonts: FONTS, titleUppercase: true, statsStyle: columns(32), frame: NO_FRAME, layoutKey: 'g1', ...t })
+
+export function templateName(template: StyleTemplate): string {
+  const key = `templateNames.${template.id}`
+  return i18n.exists(key) ? i18n.t(key as TKey) : template.name
+}
 
 export const BUILT_IN_TEMPLATES: StyleTemplate[] = [
   template({ id: 'papier', name: 'Papier', desc: 'templates.papier', fonts: CINZEL, statsStyle: columns(DEFAULT_STATS_STYLE.fontSize - 6), textColor: '#3a2a1c',

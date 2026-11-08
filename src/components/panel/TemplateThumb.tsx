@@ -1,5 +1,6 @@
 import { useAppStore } from '../../store/useAppStore'
 import { FORMATS } from '../../core/formats/registry'
+import { templateName } from '../../utils/templates'
 import type { StyleTemplate } from '../../types'
 
 const ROUTE_PATH = 'M12 86C20 60 34 70 40 50S62 42 68 26S86 18 90 12'
@@ -20,7 +21,7 @@ export default function TemplateThumb({ template }: { template: StyleTemplate })
   return (
     <span className="template-thumb" style={{ background: thumbBackground(template), aspectRatio: `${w} / ${h}` }}>
       <span className="template-thumb-name" style={{ color: template.titleColor ?? textColor, fontFamily: `'${template.fonts.title}', serif` }}>
-        {template.name.split(' ')[0]}
+        {templateName(template).split(' ')[0]}
       </span>
       <svg viewBox="0 0 100 100" preserveAspectRatio="none" fill="none" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         {casing?.dx ? <path d={ROUTE_PATH} stroke={casing.color} strokeWidth={7} transform="translate(1.5 1.5)" vectorEffect="non-scaling-stroke" /> : null}
