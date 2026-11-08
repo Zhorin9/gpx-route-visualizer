@@ -39,7 +39,7 @@
   --border: var(--color-divider);
   --border-strong: color-mix(in srgb, var(--color-text) 35%, transparent);
   --text: var(--color-text);
-  --text-muted: color-mix(in srgb, var(--color-text) 62%, transparent);
+  --text-muted: color-mix(in srgb, var(--color-text) 70%, transparent);
   --accent: var(--color-accent);
   --accent-soft: var(--color-accent-100);
   --accent-strong: var(--color-accent-500);
@@ -59,6 +59,9 @@
   --thumb-outline: #ffffff;
   --checker-a: #3d3a37;
   --checker-b: #4a4643;
+  /* Pins and labels on the trip map; the same ink as the route drawn by MapLibre (tripLayers.ts). */
+  --map-ink: #24351f;
+  --map-paper: #f3f2f2;
 
   /* Animation timeline: one colour per kind of track. */
   --track-header: #8a6326;

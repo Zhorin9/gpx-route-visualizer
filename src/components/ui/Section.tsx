@@ -33,11 +33,11 @@ export default function Section({ title, children, actions, collapseId, startCol
         <header className="section-header">
           {title && collapseId ? (
             <button type="button" className="section-toggle" aria-expanded={!collapsed} onClick={toggle}>
-              <h3>{title}</h3>
+              <h2>{title}</h2>
               <IconChevron className={collapsed ? 'chevron collapsed' : 'chevron'} />
             </button>
           ) : (
-            title && <h3>{title}</h3>
+            title && <h2>{title}</h2>
           )}
           {actions}
         </header>

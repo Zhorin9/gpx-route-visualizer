@@ -18,7 +18,7 @@ export interface StickerSettings {
   color: string
 }
 
-export function mostContrasting(background: string): string {
+function mostContrasting(background: string): string {
   return STICKER_COLORS.reduce((best, c) => (contrastRatio(c.hex, background) > contrastRatio(best, background) ? c.hex : best), STICKER_COLORS[0].hex as string)
 }
 

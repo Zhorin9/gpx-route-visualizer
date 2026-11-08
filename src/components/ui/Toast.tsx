@@ -1,8 +1,10 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useAppStore } from '../../store/useAppStore'
 import type { ToastAction } from '../../store/types'
 
 const TOAST_MS = 5000
+// An offer to undo needs time to read and reach.
+const TOAST_WITH_ACTION_MS = 10000
 
 function resolveAction(action: ToastAction): { label: string; run: () => void; shortcut?: string } {
   const s = useAppStore.getState()
@@ -14,33 +16,46 @@ function resolveAction(action: ToastAction): { label: string; run: () => void; s
 export default function Toast() {
   const toast = useAppStore((s) => s.toast)
   const dismiss = useAppStore((s) => s.dismissToast)
+  const [heldId, setHeldId] = useState<number | null>(null)
+  const held = toast != null && heldId === toast.id
 
   useEffect(() => {
-    if (!toast) return
-    const timer = setTimeout(dismiss, TOAST_MS)
+    if (!toast || held) return
+    const timer = setTimeout(dismiss, toast.action ? TOAST_WITH_ACTION_MS : TOAST_MS)
     return () => clearTimeout(timer)
-  }, [toast, dismiss])
+  }, [toast, held, dismiss])
 
-  if (!toast) return null
-  const action = toast.action && resolveAction(toast.action)
+  const action = toast?.action && resolveAction(toast.action)
 
   return (
-    <div className={toast.error ? 'toast toast-error' : 'toast'} role={toast.error ? 'alert' : 'status'} key={toast.id}>
-      <span>{toast.message}</span>
-      {action && (
-        <button
-          type="button"
-          className="toast-action"
-          onClick={() => {
-            // The action may show a toast of its own (undo does), so this one goes first.
-            dismiss()
-            action.run()
-          }}
+    <div aria-live="polite">
+      {toast && (
+        <div
+          className={toast.error ? 'toast toast-error' : 'toast'}
+          role={toast.error ? 'alert' : undefined}
+          key={toast.id}
+          onMouseEnter={() => setHeldId(toast.id)}
+          onMouseLeave={() => setHeldId(null)}
+          onFocus={() => setHeldId(toast.id)}
+          onBlur={() => setHeldId(null)}
         >
-          {action.label}
-        </button>
+          <span>{toast.message}</span>
+          {action && (
+            <button
+              type="button"
+              className="toast-action"
+              onClick={() => {
+                // The action may show a toast of its own (undo does), so this one goes first.
+                dismiss()
+                action.run()
+              }}
+            >
+              {action.label}
+            </button>
+          )}
+          {action?.shortcut && <kbd className="toast-shortcut">{action.shortcut}</kbd>}
+        </div>
       )}
-      {action?.shortcut && <kbd className="toast-shortcut">{action.shortcut}</kbd>}
     </div>
   )
 }

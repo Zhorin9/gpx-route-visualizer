@@ -1,4 +1,4 @@
-import { useEffect, useId, type ReactNode } from 'react'
+import { useEffect, useId, useRef, type ReactNode } from 'react'
 import Button from './Button'
 import { IconClose } from '../icons'
 
@@ -12,12 +12,18 @@ interface Props {
 
 export default function Dialog({ title, onClose, className, closeButton, children }: Props) {
   const titleId = useId()
+  const ref = useRef<HTMLDialogElement>(null)
 
   useEffect(() => {
-    const escape = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
-    document.addEventListener('keydown', escape)
-    return () => document.removeEventListener('keydown', escape)
-  }, [onClose])
+    const dialog = ref.current
+    if (!dialog) return
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    dialog.showModal()
+    return () => {
+      dialog.close()
+      opener?.focus()
+    }
+  }, [])
 
   const heading = (
     <h2 id={titleId} className="dialog-title">
@@ -26,8 +32,17 @@ export default function Dialog({ title, onClose, className, closeButton, childre
   )
 
   return (
-    <div className="dialog-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className={className ? `dialog ${className}` : 'dialog'} role="dialog" aria-modal="true" aria-labelledby={titleId}>
+    <dialog
+      ref={ref}
+      className="dialog-backdrop"
+      aria-labelledby={titleId}
+      onCancel={(e) => {
+        e.preventDefault()
+        onClose()
+      }}
+      onMouseDown={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className={className ? `dialog ${className}` : 'dialog'}>
         {closeButton ? (
           <div className="dialog-head">
             {heading}
@@ -40,6 +55,6 @@ export default function Dialog({ title, onClose, className, closeButton, childre
         )}
         {children}
       </div>
-    </div>
+    </dialog>
   )
 }

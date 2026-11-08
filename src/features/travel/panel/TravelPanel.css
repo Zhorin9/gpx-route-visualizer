@@ -45,9 +45,9 @@
   align-items: center;
   justify-content: center;
   font-size: 11px;
-  color: #f3f2f2;
-  background: #24351f;
-  border: 2px solid #f3f2f2;
+  color: var(--map-paper);
+  background: var(--map-ink);
+  border: 2px solid var(--map-paper);
   border-radius: 12px;
 }
 

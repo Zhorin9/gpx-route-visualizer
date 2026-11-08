@@ -26,7 +26,7 @@ function recolor(s: Look, gradient: GradientStyle, text: string, title = text): 
 const isStickerPiece = (t: TextNode) => t.role !== 'title' && Boolean(t.badge || t.icon || t.warp)
 
 // The look a template gives the document; everything else is left as it is.
-export function withTemplate(s: TemplateTarget, template: StyleTemplate, parts: TemplateParts): Partial<DocumentState> {
+function withTemplate(s: TemplateTarget, template: StyleTemplate, parts: TemplateParts): Partial<DocumentState> {
   let statsStyle = s.statsStyle
   let collage = s.collage
   let texts = s.texts

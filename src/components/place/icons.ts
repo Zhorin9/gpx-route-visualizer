@@ -68,7 +68,7 @@ export const iconById = (id: IconId): IconDef | undefined => ICONS.find((i) => i
 // The look belongs to the style: a sticker (style colour, dark outline, hard shadow), a white-ish line, or ink on paper.
 export type IconFinish = 'sticker' | 'line' | 'ink'
 
-export const ICON_INK = '#241a26'
+const ICON_INK = '#241a26'
 
 export function iconPaint(finish: IconFinish, color: string, paper: string): { fill: string | undefined; stroke: string; shadow: boolean } {
   if (finish === 'line') return { fill: undefined, stroke: color, shadow: false }
