@@ -1,99 +1,157 @@
 # Tripcard
 
-Edytor grafik na Instagrama dla osób, które wracają z wyprawy rowerowej, pieszej albo samochodowej. Z plików GPX
-(Garmin, Strava, Komoot) i własnych zdjęć robi gotowe posty, story i karuzele: kolaż zdjęć, trasa narysowana na
-wierzchu, nagłówek ze statystykami i własne napisy. Wszystko działa w przeglądarce, bez konta i bez wysyłania
-zdjęć na serwer.
+A browser editor that turns a bike ride, hike, road trip or holiday into Instagram-ready graphics and short videos.
+Load GPX files from Garmin, Strava or Komoot, or plan the trip from stops on a map, add your photos, and get posts,
+stories, carousels and animated route videos: a photo collage, the route drawn on top, a stats header and your own
+captions. Everything runs in the browser, with no account, and photos never leave your computer.
 
-![Edytor: kolaż zdjęć z trasą i znacznikami kilometrów](docs/screenshots/editor.jpg)
+The interface is in Polish.
 
-## Po co to jest
+![Editor: a photo collage with the route and kilometre markers](docs/screenshots/editor.jpg)
 
-Relacja z wyprawy to zwykle kilka zdjęć i mapa z aplikacji treningowej. Złożenie z tego jednej, spójnej grafiki
-wymaga zwykle kilku programów. Tutaj robisz to w jednym miejscu:
+## Why
 
-- **GPX jest opcjonalny.** Możesz zrobić sam kolaż ze zdjęć, a trasę dodać, gdy jest potrzebna.
-- **Zdjęcia opcjonalne.** Bez zdjęć eksportujesz przezroczysty PNG z trasą, który nałożysz na zdjęcie w Instagramie.
-- **Jeden projekt, wiele formatów.** Ten sam układ wychodzi jako post 4:5, story 9:16 i kwadrat 1:1.
+A trip write-up is usually a handful of photos and a map from a training app, and putting them together into one
+coherent graphic takes several programs. Tripcard does it in one place:
 
-## Co potrafi
+- **GPX is optional.** Make a photo collage on its own and add the route when you need it, or plan the trip from
+  stops on a map without any file.
+- **Photos are optional.** With no photos you export a transparent PNG of the route to lay over a photo in Instagram.
+- **One project, many formats.** The same design comes out as a 4:5 post, a 9:16 story, a 1:1 square and a 16:9 frame.
 
-**Zdjęcia i układy**
-- Siatki (1–4 zdjęcia i warianty) oraz układy kreatywne w stylu scrapbooka z ramką polaroid.
-- Przesuwanie i przybliżanie zdjęcia w slocie, tryb „całe zdjęcie” z rozmytym tłem, odstępy, marginesy, ramki.
-- Taśma wgranych zdjęć: kliknij zdjęcie albo przeciągnij je na slot. Pliki można też upuścić prosto z dysku.
+## Getting started
 
-**Karuzela**
-- Jedno szerokie zdjęcie dzielone równo na 2–5 slajdów albo osobny układ dla każdego slajdu.
-- Trasa i napisy mogą przechodzić przez granice slajdów. Każdy slajd to osobny plik.
+The start screen offers three kinds of project:
 
-**Trasa**
-- Kilka plików GPX jako kolejne dni, każdy z własnym kolorem i stylem linii.
-- Trasa naturalna lub schematyczna (kąty proste), neon, przerywana linia, wybór fragmentu i postępu.
-- Znaczniki kilometrów (co 10, 25 albo 50 km) i punkty zainteresowania: przełęcz, szczyt, punkt.
-- Nagłówek ze statystykami: dystans, przewyższenie, czas (liczony osobno dla każdego dnia).
+- **Aktywność** (activity): load a GPX file; speed, gradient, elevation profile and stats are worked out from it.
+- **Podróż** (journey): pick places on a map and the means of travel between them; no file needed.
+- **Same zdjęcia** (photos only): a collage or carousel with no map and no route.
 
-**Napisy i styl**
-- Własne teksty z ponad 45 czcionkami pogrupowanymi tematycznie (w tym grupa „Do liczb i danych”), jedna czcionka dla całości jednym kliknięciem.
-- Sześć szablonów stylu (Kartograf, Pocztówka, Grań, Linia, Noc, Dziennik): każdy z parą czcionek na tytuł, liczby i opisy, własnym wyglądem trasy, ramką i tłem. Można też zapisać własny.
-- Tło kadru: kolor albo gradient (gotowe zestawy, kąt, ziarno filmowe, wygładzanie przejścia), z automatycznym kontrastem tekstu.
+`sample.gpx` in the repository is a short ride to try it with.
 
-![Szablony stylu](docs/screenshots/templates.jpg)
+## Features
 
-**Formaty i eksport**
-- Post 4:5 (1080×1350), story 9:16 (1080×1920) i kwadrat 1:1 (1080×1080), także w 2× rozdzielczości.
-- Każdy format ma własny układ: napisy i trasa układają się automatycznie, a w story omijają strefy interfejsu
-  Instagrama. Elementy przesunięte ręcznie zachowują pozycję w danym formacie.
-- Kilka formatów albo slajdów naraz trafia do jednego pliku ZIP. Jeden plik pobiera się bezpośrednio.
+**Photos and layouts**
+- Grids for 1–4 photos and their variants, plus scrapbook layouts with polaroid frames.
+- Pan and zoom a photo inside its slot, a "whole photo" mode over a blurred fill, gaps, margins and frames.
+- A strip of loaded photos: click a photo or drag it onto a slot. Files can also be dropped straight from the disk.
+- A film look for photos (grade, lifted blacks, grain) and a palette picked from your photos.
 
-![Eksport wielu formatów](docs/screenshots/export.jpg)
+**Carousels**
+- One wide photo split evenly into 2–5 slides (panorama), or a separate layout per slide (series).
+- The route and captions can run across slide borders. Each slide is its own file.
 
-![Karuzela z jednego zdjęcia](docs/screenshots/carousel.jpg)
+**Route**
+- Several GPX files as consecutive days, each with its own colour and line style.
+- A natural or schematic (right-angled) line, neon, dashed, hand-drawn, outlined or as a sticker, with the rest of
+  the route faded; choose the visible part and the drawing progress.
+- Colour along the route by elevation, gradient, speed or heart rate, with a legend.
+- Kilometre markers (every 10, 25 or 50 km) and places along the route with names, photos or one of 23 hand-drawn
+  icons.
+- An elevation profile and a stats header: distance, elevation gain, moving time, speed (per day where it applies).
 
-## Uruchomienie
+**Map background**
+- Map styles from OpenFreeMap (light, colourful, bold, dark, fiord) and Esri satellite imagery, with labels and
+  hill shading, or recoloured from the current style.
+- A hand-drawn **sketch** map: coastlines, lakes, rivers, roads and towns from OpenStreetMap, drawn with a trembling
+  pen. Paper, roads and rivers, place names, the coastline and the water's marking (hatching, watercolour or
+  none) can each be switched.
+- Moods that fade, tint or blur the map; a map sticker cut to the route's shape.
 
-Potrzebny jest Node.js.
+**Journey planning**
+- Search for places (Photon), click them on the map and reorder them.
+- Travel by car, bike, on foot, by train or by plane. A leg follows the roads (BRouter), runs straight or curves as
+  an arc; flights take the great-circle arc.
+
+**Text and style**
+- Captions in 53 self-hosted fonts grouped by theme, one font for everything in a click.
+- Text on a curve (wave, arc, bulge), outlines, hard shadows, typing animation, badges and route captions.
+- 26 style templates in six groups (basic, natural, retro, dark, stickers, posters). A click previews a template
+  on the frame; apply it whole or only some of its parts (fonts, route, frame, colours, layout, places, effects,
+  photo look). Save your own.
+- Backgrounds: transparent, a colour, a gradient (presets, angle, film grain, smoothing) or a map, with automatic
+  text contrast. Frames around the whole design: postcard, stamp, postmark, ticket and album; a date stamp and a
+  kicker line.
+
+**Animation and video**
+- The route draws itself over time, with the header, places and stats coming in on a timeline you can edit.
+- Pacing: constant, eased or by the recorded speed; a marker at the line's end.
+- Camera: static, following, fly-over or panorama.
+- Video export as MP4, WebM, GIF or a ZIP of transparent PNG frames (for DaVinci or Premiere), up to 4K, with an
+  optional postcard inset in a corner.
+
+**Formats and export**
+- Post 4:5 (1080×1350), story/reels 9:16 (1080×1920), square 1:1 (1080×1080) and 16:9 (1920×1080), also at 2×.
+- Each format has its own layout: captions and the route lay themselves out, and the story avoids Instagram's
+  interface. Anything moved by hand keeps its place in that format.
+- The download dialog shows the real design in every format. Several formats or slides go into one ZIP; a single
+  file downloads directly.
+
+![Style templates](docs/screenshots/templates.jpg)
+
+![Exporting several formats](docs/screenshots/export.jpg)
+
+![A carousel from one photo](docs/screenshots/carousel.jpg)
+
+## Running it
+
+You need Node.js.
 
 ```bash
 npm install
-npm run dev        # serwer deweloperski
-npm test           # testy (Vitest)
+npm run dev        # development server
+npm test           # tests (Vitest)
 npm run typecheck
 npm run lint
 npm run build
 ```
 
-Plik `sample.gpx` w repozytorium to krótki przykład do wypróbowania.
+## Stack
 
-## Technologie
+React 19, TypeScript, Vite, Konva (react-konva) for the scene, Zustand for state with undo and redo, MapLibre GL for
+map tiles, Mediabunny and gifenc for video, Vitest for tests. Fonts are self-hosted (`@fontsource`) and load only
+when used; the map library and the video muxer load on demand too.
 
-React 19, TypeScript, Vite, Konva (react-konva) do rysowania sceny, Zustand do stanu z cofaniem i ponawianiem,
-Vitest do testów. Czcionki są hostowane lokalnie (`@fontsource`).
+## Architecture
 
-## Architektura
+- `src/store/` — Zustand split into slices (`ui`, `media`, `route`, `routeSource`, `stats`, `elements`, `series`,
+  `templates`) and `history.ts` (undo/redo of the whole document). `INITIAL_DOCUMENT` in `store/document.ts` is the
+  one list of what a document is: history, the export snapshot and the template preview all take their keys from it.
+- `src/store/derived.ts` — memoised calculations (projection, stats, progress split); `selectors.ts` — hooks.
+- `src/features/` — self-contained features (animation, camera, data colouring, elevation profile, map, map
+  sticker, stamp, kicker, stats, travel, video export). Each registers its panel sections, canvas elements and
+  store slice through the registries in `src/core/`, so the app does not import them directly.
+- `src/core/` — the shared engine: formats, canvas element registry, route geometry and painting, background
+  kinds, the export frame source and the panel registry.
+- `src/services/video-encoding/` — the video encoding service behind a port, with a fake for tests.
+- `src/utils/` — pure domain functions with `*.test.ts` tests: GPX parser, geometry, photo layouts, format reflow,
+  templates, frames (`wrappers/`), export and ZIP.
+- `src/components/` — the Konva scene (`CanvasStage`, `PhotoLayer`, `RouteGroup`…), `panel/` for the panel tabs,
+  `fields/` and `ui/` for shared controls.
 
-- `src/store/` — Zustand podzielony na slices (`ui`, `media`, `route`, `stats`, `elements`, `templates`) i `history.ts`
-  (undo/redo całego dokumentu). `DocumentState` w `store/types.ts` definiuje, co obejmuje historia.
-- `src/store/derived.ts` — memoizowane obliczenia (projekcja, statystyki, podział postępu), `selectors.ts` — hooki.
-- `src/utils/` — czyste funkcje domenowe z testami `*.test.ts`: parser GPX, geometria, układy zdjęć (`layouts`),
-  przestawianie formatów (`reflow`), szablony (`templates`), eksport i ZIP (`exportImage`, `exportProject`, `zip`).
-- `src/components/` — scena Konva (`CanvasStage`, `PhotoLayer`, `NeonRouteGroup`, `StatsHeaderGroup`…),
-  `panel/` — zakładki panelu, `fields/` i `ui/` — wspólne kontrolki.
+Rules:
 
-Zasady:
+- Place labels are anchored as a position on the track (`trackPos`), not as pixels.
+- Editor-only elements are named `ui-only` and hidden when exporting.
+- The 4:5 layout is the source; the other formats are derived from it and manual changes are stored per format.
+- Only look-and-feel preferences and your own templates are kept in `localStorage` (`partialize` +
+  `version`/`migrate`). Photos and routes never leave the browser.
 
-- Etykiety miejsc są zakotwiczone jako pozycja na śladzie (`trackPos`), nie piksele.
-- Elementy tylko do edycji mają nazwę `ui-only` i są ukrywane przy eksporcie.
-- Układ w formacie 4:5 jest wzorcem; pozostałe formaty są z niego wyliczane, a ręczne poprawki zapamiętywane osobno.
-- W `localStorage` zapisywane są tylko preferencje wyglądu i własne szablony (`partialize` + `version`/`migrate`).
-  Zdjęcia i trasy nie opuszczają przeglądarki.
+## Shortcuts
 
-## Skróty
-
-| Skrót | Akcja |
+| Shortcut | Action |
 | --- | --- |
-| Ctrl+Z / Ctrl+Shift+Z, Ctrl+Y | cofnij / ponów |
-| Delete | usuń zaznaczony tekst lub miejsce |
-| Strzałki (+Shift) | przesuń zaznaczony element o 1 px (10 px) |
-| Esc | anuluj dodawanie punktu / zakończ edycję trasy / odznacz / zamknij pasek zdjęcia |
-| Dwuklik na tekście | edycja w miejscu (Enter zatwierdza, Esc anuluje) |
+| Ctrl+Z / Ctrl+Shift+Z, Ctrl+Y | undo / redo |
+| Delete, Backspace | delete the selected element |
+| Arrows (+Shift) | move the selected element by 1 px (10 px) |
+| Esc | leave a template preview / stop adding a place / finish editing the route / deselect |
+| Double-click on text | edit in place (Enter confirms, Esc cancels) |
+| ← / → | previous / next slide in a series |
+| Ctrl+D | duplicate the current slide in a series |
+| Delete (no selection) | remove the current slide in a series |
+
+## Map data
+
+Map tiles, the sketch's features and place search come from OpenFreeMap and OpenStreetMap, satellite imagery from
+Esri World Imagery (non-commercial use with attribution), and routing from BRouter. The map's credit stays on the
+graphic, as its licence requires; it can be moved, resized and recoloured.
