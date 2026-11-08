@@ -1,4 +1,5 @@
 import { useRef, type KeyboardEvent, type PointerEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { AnimationTrackId } from '../../../core/animation/layers'
 import { useAppStore } from '../../../store/useAppStore'
 import { selectDuration } from '../model/timeline'
@@ -14,6 +15,7 @@ const snap = (v: number) => Math.round(v / SNAP_S) * SNAP_S
 type DragMode = 'move' | 'resize'
 
 function TimelineTrack({ track, scale }: { track: AnimationTrackId; scale: number }) {
+  const { t } = useTranslation()
   const clip = useAppStore((s) => s.animation.clips[track])
   const setClip = useAppStore((s) => s.setClip)
   const laneRef = useRef<HTMLDivElement>(null)
@@ -44,7 +46,7 @@ function TimelineTrack({ track, scale }: { track: AnimationTrackId; scale: numbe
     else setClip(track, { ...clip, start: snap(Math.max(0, clip.start + step)) })
   }
 
-  const label = TRACK_LABELS[track]
+  const label = t(TRACK_LABELS[track])
   return (
     <div className="timeline-track">
       <span className="timeline-label">{label}</span>
@@ -54,12 +56,12 @@ function TimelineTrack({ track, scale }: { track: AnimationTrackId; scale: numbe
           style={{ left: `${(clip.start / scale) * 100}%`, width: `${(clip.duration / scale) * 100}%` }}
           role="slider"
           tabIndex={0}
-          aria-label={`${label}: początek ${clip.start.toFixed(1)} s, długość ${clip.duration.toFixed(1)} s`}
+          aria-label={t('animation.timeline.clipLabel', { label, start: clip.start.toFixed(1), duration: clip.duration.toFixed(1) })}
           aria-valuemin={0}
           aria-valuemax={scale}
           aria-valuenow={clip.start}
-          aria-valuetext={`od ${clip.start.toFixed(1)} s przez ${clip.duration.toFixed(1)} s`}
-          title="Przeciągnij, aby przesunąć; uchwyt z prawej zmienia długość. Strzałki przesuwają, Shift+strzałki zmieniają długość."
+          aria-valuetext={t('animation.timeline.clipValue', { start: clip.start.toFixed(1), duration: clip.duration.toFixed(1) })}
+          title={t('animation.timeline.clipHint')}
           onPointerDown={(e) => begin(e, 'move')}
           onPointerMove={move}
           onPointerUp={() => (drag.current = null)}
@@ -74,6 +76,7 @@ function TimelineTrack({ track, scale }: { track: AnimationTrackId; scale: numbe
 }
 
 export default function TimelineEditor() {
+  const { t: tr } = useTranslation()
   const t = usePlayback((s) => s.t)
   const previewing = usePlayback((s) => s.previewing)
   const seek = usePlayback((s) => s.seek)
@@ -94,13 +97,13 @@ export default function TimelineEditor() {
     <div className="timeline">
       <div className="timeline-track">
         <span className="timeline-label" />
-        <div className="timeline-ruler" onPointerDown={seekFromRuler} title="Kliknij, aby przejść do tej chwili">
+        <div className="timeline-ruler" onPointerDown={seekFromRuler} title={tr('animation.timeline.rulerHint')}>
           {ticks.map((s) => (
             <span key={s} className="timeline-tick" style={{ left: `${(s / scale) * 100}%` }}>
               {s}s
             </span>
           ))}
-          <span className="timeline-end" style={{ left: `${(total / scale) * 100}%` }} title={`Koniec: ${formatTime(total)}`} />
+          <span className="timeline-end" style={{ left: `${(total / scale) * 100}%` }} title={tr('animation.timeline.end', { time: formatTime(total) })} />
         </div>
       </div>
       {tracks.map((track) => (

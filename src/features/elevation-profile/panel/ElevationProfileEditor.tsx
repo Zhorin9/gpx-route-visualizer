@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import CheckboxField from '../../../components/fields/CheckboxField'
 import ColorField from '../../../components/fields/ColorField'
 import SliderField from '../../../components/fields/SliderField'
@@ -6,7 +7,7 @@ import Segmented from '../../../components/ui/Segmented'
 import { paletteStops } from '../../../core/data/palettes'
 import { dataSource, type DataSourceId } from '../../../core/data/sources'
 import { distanceUnit, formatGain, type Units } from '../../../core/units'
-import { formatNumber, plural } from '../../../utils/format'
+import { formatNumber } from '../../../utils/format'
 import { selectGroundInRange, selectTrack } from '../../../store/derived'
 import { useHasRoute } from '../../../store/selectors'
 import { useAppStore } from '../../../store/useAppStore'
@@ -17,31 +18,15 @@ import PalettePicker from '../../data-color/panel/PalettePicker'
 import type { SelectOption } from '../../../types'
 import './ElevationProfileEditor.css'
 
-const COLOR_MODE_OPTIONS: SelectOption<ProfileColorMode>[] = [
-  { value: 'route', label: 'Jak trasa' },
-  { value: 'palette', label: 'Własna paleta' },
-  { value: 'single', label: 'Jeden kolor' },
-]
+const COLOR_MODES: ProfileColorMode[] = ['route', 'palette', 'single']
 
 const COLOR_BY: DataSourceId[] = ['elevation', 'grade', 'speed', 'heartRate']
 
-const STYLE_OPTIONS: SelectOption<ProfileChartStyle>[] = [
-  { value: 'line', label: 'Linia' },
-  { value: 'area', label: 'Wypełnienie' },
-  { value: 'bars', label: 'Słupki' },
-  { value: 'steps', label: 'Schodki' },
-]
+const STYLES: ProfileChartStyle[] = ['line', 'area', 'bars', 'steps']
 
-const LAYOUT_OPTIONS: SelectOption<ProfileLayout>[] = [
-  { value: 'low', label: 'Niski pasek' },
-  { value: 'tall', label: 'Wysoki' },
-  { value: 'overlay', label: 'Nałożony na dół' },
-]
+const LAYOUTS: ProfileLayout[] = ['low', 'tall', 'overlay']
 
-const SCALE_OPTIONS: SelectOption<ProfileSettings['scale']>[] = [
-  { value: 'auto', label: 'Automatyczna' },
-  { value: 'zero', label: 'Od zera' },
-]
+const SCALES: ProfileSettings['scale'][] = ['auto', 'zero']
 
 const UNIT_OPTIONS: SelectOption<Units>[] = [
   { value: 'metric', label: 'm / km' },
@@ -49,23 +34,25 @@ const UNIT_OPTIONS: SelectOption<Units>[] = [
 ]
 
 function ClimbSummary() {
+  const { t } = useTranslation()
   const units = useAppStore((s) => s.statsContent.units)
   const data = useProfileData(64)
   if (!data) return null
-  if (!data.climbs.length) return <p className="hint">Brak podjazdów: żaden odcinek nie ma co najmniej 30 m wzniosu przy nachyleniu od 3%.</p>
+  if (!data.climbs.length) return <p className="hint">{t('elevationProfile.noClimbs')}</p>
   return (
     <p className="hint">
-      {data.climbs.length} {plural(data.climbs.length, 'podjazd', 'podjazdy', 'podjazdów')}:{data.climbs.map((c) => `${formatGain(c.gainM, units, 5)} (${formatNumber(c.avgGrade, 1)}%)`).join(', ')}
+      {t('elevationProfile.climbs', { count: data.climbs.length, list: data.climbs.map((c) => `${formatGain(c.gainM, units, 5)} (${formatNumber(c.avgGrade, 1)}%)`).join(', ') })}
     </p>
   )
 }
 
 function GradeColoringToggle() {
+  const { t } = useTranslation()
   const source = useAppStore((s) => s.dataColor.source)
   const updateDataColor = useAppStore((s) => s.updateDataColor)
   return (
     <CheckboxField
-      label="Koloruj trasę według nachylenia"
+      label={t('elevationProfile.colorRouteByGrade')}
       checked={source === 'grade'}
       onChange={(on) => updateDataColor({ source: on ? 'grade' : 'none' })}
     />
@@ -73,6 +60,7 @@ function GradeColoringToggle() {
 }
 
 function OwnPalette() {
+  const { t } = useTranslation()
   const settings = useAppStore((s) => s.profile)
   const units = useAppStore((s) => s.statsContent.units)
   const track = useAppStore(selectTrack)
@@ -80,7 +68,7 @@ function OwnPalette() {
   const data = useProfileData(64)
   if (!track) return null
 
-  const options = COLOR_BY.map((id) => ({ value: id, label: dataSource(id).label, disabled: dataSource(id).unavailable(track) != null }))
+  const options = COLOR_BY.map((id) => ({ value: id, label: t(dataSource(id).label), disabled: dataSource(id).unavailable(track) != null }))
   const source = paletteSource(track, settings.colorBy)
   const [lo, hi] = data ? sourceDomain(sampledSource(data, source), source) : [0, 1]
   const format = (v: number) => dataSource(source).format(v, units)
@@ -88,15 +76,16 @@ function OwnPalette() {
 
   return (
     <>
-      <Segmented label="Kolor według" showLabel value={source} options={options} onChange={(colorBy) => updateProfile({ colorBy })} />
-      <PalettePicker ariaLabel="Paleta profilu" isActive={(p) => JSON.stringify(paletteStops(p)) === stopsKey} onPick={(p) => updateProfile({ stops: paletteStops(p) })} />
-      <span className="field-label">Własny gradient</span>
+      <Segmented label={t('elevationProfile.colorBy')} showLabel value={source} options={options} onChange={(colorBy) => updateProfile({ colorBy })} />
+      <PalettePicker ariaLabel={t('elevationProfile.palette')} isActive={(p) => JSON.stringify(paletteStops(p)) === stopsKey} onPick={(p) => updateProfile({ stops: paletteStops(p) })} />
+      <span className="field-label">{t('elevationProfile.customGradient')}</span>
       <GradientStopsEditor stops={settings.stops} onChange={(stops) => updateProfile({ stops })} scale={[format(lo), format((lo + hi) / 2), format(hi)]} />
     </>
   )
 }
 
 function ElevationProfileSettings() {
+  const { t } = useTranslation()
   const settings = useAppStore((s) => s.profile)
   const units = useAppStore((s) => s.statsContent.units)
   const routeByData = useAppStore((s) => s.dataColor.source !== 'none')
@@ -107,14 +96,14 @@ function ElevationProfileSettings() {
 
   return (
     <>
-      <h6 className="subhead">Kolor profilu</h6>
-      <Segmented label="Kolor profilu" value={settings.colorMode} options={COLOR_MODE_OPTIONS} onChange={(colorMode) => updateProfile({ colorMode })} />
-      {settings.colorMode === 'route' && <p className="hint">{routeByData ? 'Profil ma kolory trasy według danych.' : 'Profil ma kolor linii trasy.'}</p>}
+      <h6 className="subhead">{t('elevationProfile.color')}</h6>
+      <Segmented label={t('elevationProfile.color')} value={settings.colorMode} options={COLOR_MODES.map((value) => ({ value, label: t(`elevationProfile.colorModes.${value}`) }))} onChange={(colorMode) => updateProfile({ colorMode })} />
+      {settings.colorMode === 'route' && <p className="hint">{t(routeByData ? 'elevationProfile.routeColorsByData' : 'elevationProfile.routeColor')}</p>}
       {settings.colorMode === 'palette' && <OwnPalette />}
-      {settings.colorMode === 'single' && <ColorField label="Kolor wykresu" value={settings.color} onChange={(color) => updateProfile({ color })} />}
+      {settings.colorMode === 'single' && <ColorField label={t('elevationProfile.chartColor')} value={settings.color} onChange={(color) => updateProfile({ color })} />}
       {filled && (
         <SliderField
-          label="Przezroczystość wypełnienia"
+          label={t('elevationProfile.fillOpacity')}
           unit="%"
           min={5}
           value={Math.round(settings.fillOpacity * 100)}
@@ -123,35 +112,35 @@ function ElevationProfileSettings() {
         />
       )}
 
-      <Segmented label="Styl" showLabel value={settings.style} options={STYLE_OPTIONS} onChange={(style) => updateProfile({ style })} />
-      <Segmented label="Wysokość i położenie" showLabel value={settings.layout} options={LAYOUT_OPTIONS} onChange={setProfileLayout} />
-      {placedByHand && <p className="hint">Wykres przesunięto ręcznie. Wybierz położenie, aby wrócić do ustawienia automatycznego.</p>}
+      <Segmented label={t('elevationProfile.style')} showLabel value={settings.style} options={STYLES.map((value) => ({ value, label: t(`elevationProfile.styles.${value}`) }))} onChange={(style) => updateProfile({ style })} />
+      <Segmented label={t('elevationProfile.layout')} showLabel value={settings.layout} options={LAYOUTS.map((value) => ({ value, label: t(`elevationProfile.layouts.${value}`) }))} onChange={setProfileLayout} />
+      {placedByHand && <p className="hint">{t('elevationProfile.placedByHand')}</p>}
 
-      <h6 className="subhead">Oznaczenia</h6>
-      <CheckboxField label="Najwyższy punkt" checked={settings.peak} onChange={(peak) => updateProfile({ peak })} />
-      <CheckboxField label="Start i meta" checked={settings.startFinish} onChange={(startFinish) => updateProfile({ startFinish })} />
-      <CheckboxField label={`Znaczniki co 10 ${distanceUnit(units)}`} checked={settings.kmTicks} onChange={(kmTicks) => updateProfile({ kmTicks })} />
-      <CheckboxField label="Zaznacz nachylenia powyżej progu" checked={settings.steep} onChange={(steep) => updateProfile({ steep })} />
+      <h6 className="subhead">{t('elevationProfile.markings')}</h6>
+      <CheckboxField label={t('elevationProfile.peak')} checked={settings.peak} onChange={(peak) => updateProfile({ peak })} />
+      <CheckboxField label={t('elevationProfile.startFinish')} checked={settings.startFinish} onChange={(startFinish) => updateProfile({ startFinish })} />
+      <CheckboxField label={t('elevationProfile.ticks', { unit: distanceUnit(units) })} checked={settings.kmTicks} onChange={(kmTicks) => updateProfile({ kmTicks })} />
+      <CheckboxField label={t('elevationProfile.steep')} checked={settings.steep} onChange={(steep) => updateProfile({ steep })} />
       {settings.steep && (
-        <SliderField label="Próg nachylenia" unit="%" min={2} max={20} value={settings.steepGrade} defaultValue={DEFAULT_PROFILE.steepGrade} onChange={(steepGrade) => updateProfile({ steepGrade })} />
+        <SliderField label={t('elevationProfile.steepGrade')} unit="%" min={2} max={20} value={settings.steepGrade} defaultValue={DEFAULT_PROFILE.steepGrade} onChange={(steepGrade) => updateProfile({ steepGrade })} />
       )}
-      <CheckboxField label="Suma przewyższeń" checked={settings.showTotal} onChange={(showTotal) => updateProfile({ showTotal })} />
-      <CheckboxField label="Wysokość min. i maks." checked={settings.showMinMax} onChange={(showMinMax) => updateProfile({ showMinMax })} />
+      <CheckboxField label={t('elevationProfile.showTotal')} checked={settings.showTotal} onChange={(showTotal) => updateProfile({ showTotal })} />
+      <CheckboxField label={t('elevationProfile.showMinMax')} checked={settings.showMinMax} onChange={(showMinMax) => updateProfile({ showMinMax })} />
       {settings.layout !== 'overlay' && (
-        <CheckboxField label="Dystans pod wykresem" checked={settings.showDistance} onChange={(showDistance) => updateProfile({ showDistance })} />
+        <CheckboxField label={t('elevationProfile.showDistance')} checked={settings.showDistance} onChange={(showDistance) => updateProfile({ showDistance })} />
       )}
-      <CheckboxField label="Podświetl podjazdy" checked={settings.highlightClimbs} onChange={(highlightClimbs) => updateProfile({ highlightClimbs })} />
+      <CheckboxField label={t('elevationProfile.highlightClimbs')} checked={settings.highlightClimbs} onChange={(highlightClimbs) => updateProfile({ highlightClimbs })} />
       {settings.highlightClimbs && (
         <>
-          <CheckboxField label="Wznios nad podjazdami" checked={settings.climbLabels} onChange={(climbLabels) => updateProfile({ climbLabels })} />
+          <CheckboxField label={t('elevationProfile.climbLabels')} checked={settings.climbLabels} onChange={(climbLabels) => updateProfile({ climbLabels })} />
           <ClimbSummary />
         </>
       )}
       <GradeColoringToggle />
-      <CheckboxField label="Znacznik na trasie i wykresie" checked={settings.marker} onChange={(marker) => updateProfile({ marker })} />
+      <CheckboxField label={t('elevationProfile.marker')} checked={settings.marker} onChange={(marker) => updateProfile({ marker })} />
       {settings.marker && (
         <SliderField
-          label="Położenie znacznika"
+          label={t('elevationProfile.markerAt')}
           unit="%"
           min={0}
           max={100}
@@ -165,15 +154,16 @@ function ElevationProfileSettings() {
 }
 
 function ElevationProfileAdvanced() {
+  const { t } = useTranslation()
   const settings = useAppStore((s) => s.profile)
   const units = useAppStore((s) => s.statsContent.units)
   const updateProfile = useAppStore((s) => s.updateProfile)
   const updateStatsContent = useAppStore((s) => s.updateStatsContent)
   return (
-    <Section title="Zaawansowane" collapseId="profile-advanced">
-      <Segmented label="Skala pionowa" showLabel value={settings.scale} options={SCALE_OPTIONS} onChange={(scale) => updateProfile({ scale })} />
+    <Section title={t('elevationProfile.advanced')} collapseId="profile-advanced">
+      <Segmented label={t('elevationProfile.scale')} showLabel value={settings.scale} options={SCALES.map((value) => ({ value, label: t(`elevationProfile.scales.${value}`) }))} onChange={(scale) => updateProfile({ scale })} />
       <SliderField
-        label="Przewyższenie (rozciągnięcie pionowe)"
+        label={t('elevationProfile.exaggeration')}
         unit="×"
         min={0.5}
         max={3}
@@ -182,17 +172,18 @@ function ElevationProfileAdvanced() {
         defaultValue={DEFAULT_PROFILE.exaggeration}
         onChange={(exaggeration) => updateProfile({ exaggeration })}
       />
-      <SliderField label="Wygładzanie śladu" min={0} max={10} value={settings.smoothing} defaultValue={DEFAULT_PROFILE.smoothing} onChange={(smoothing) => updateProfile({ smoothing })} />
-      <CheckboxField label="Siatka i etykiety osi" checked={settings.grid} onChange={(grid) => updateProfile({ grid })} />
+      <SliderField label={t('elevationProfile.smoothing')} min={0} max={10} value={settings.smoothing} defaultValue={DEFAULT_PROFILE.smoothing} onChange={(smoothing) => updateProfile({ smoothing })} />
+      <CheckboxField label={t('elevationProfile.grid')} checked={settings.grid} onChange={(grid) => updateProfile({ grid })} />
       {settings.layout !== 'overlay' && (
-        <SliderField label="Szerokość" unit="%" min={30} max={100} value={settings.widthPct} defaultValue={DEFAULT_PROFILE.widthPct} onChange={(widthPct) => updateProfile({ widthPct })} />
+        <SliderField label={t('elevationProfile.width')} unit="%" min={30} max={100} value={settings.widthPct} defaultValue={DEFAULT_PROFILE.widthPct} onChange={(widthPct) => updateProfile({ widthPct })} />
       )}
-      <Segmented label="Jednostki" showLabel value={units} options={UNIT_OPTIONS} onChange={(u) => updateStatsContent({ units: u })} />
+      <Segmented label={t('elevationProfile.units')} showLabel value={units} options={UNIT_OPTIONS} onChange={(u) => updateStatsContent({ units: u })} />
     </Section>
   )
 }
 
 export function ElevationProfileSection() {
+  const { t } = useTranslation()
   const hasRoute = useHasRoute()
   const enabled = useAppStore((s) => s.profile.enabled)
   const updateProfile = useAppStore((s) => s.updateProfile)
@@ -200,9 +191,9 @@ export function ElevationProfileSection() {
   if (!hasRoute) return null
   return (
     <>
-      <Section title="Profil wysokości" collapseId="profile">
-        <CheckboxField label="Pokaż profil wysokości" checked={enabled} onChange={(on) => updateProfile({ enabled: on })} />
-        {enabled && !ground && <p className="hint">Lot i linia prosta nie mają wysokości terenu, więc dla tego zakresu profil jest ukryty.</p>}
+      <Section title={t('elevationProfile.label')} collapseId="profile">
+        <CheckboxField label={t('elevationProfile.show')} checked={enabled} onChange={(on) => updateProfile({ enabled: on })} />
+        {enabled && !ground && <p className="hint">{t('elevationProfile.noGround')}</p>}
         {enabled && <ElevationProfileSettings />}
       </Section>
       {enabled && <ElevationProfileAdvanced />}
@@ -211,11 +202,12 @@ export function ElevationProfileSection() {
 }
 
 export default function ElevationProfileEditor() {
+  const { t } = useTranslation()
   const updateProfile = useAppStore((s) => s.updateProfile)
   const select = useAppStore((s) => s.select)
   return (
     <>
-      <Section title="Profil wysokości">
+      <Section title={t('elevationProfile.label')}>
         <ElevationProfileSettings />
         <button
           type="button"
@@ -225,7 +217,7 @@ export default function ElevationProfileEditor() {
             select(null)
           }}
         >
-          Usuń wykres z grafiki
+          {t('elevationProfile.remove')}
         </button>
       </Section>
       <ElevationProfileAdvanced />

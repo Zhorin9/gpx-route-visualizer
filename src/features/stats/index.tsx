@@ -8,8 +8,8 @@ import StatsEditor from './panel/StatsEditor'
 export function registerStats() {
   registerCanvasElement({
     kind: STATS_KIND,
-    label: 'Nagłówek ze statystykami',
-    meta: 'liczby',
+    label: 'stats.label',
+    meta: 'stats.meta',
     icon: <IconBarChart />,
     order: 10,
     useIsAvailable: useHasRoute,
@@ -18,5 +18,5 @@ export function registerStats() {
     tab: 'route',
     subTab: 'stats',
   })
-  registerPanelSection({ id: 'stats', label: 'Statystyki', tab: 'route', order: 30, Component: StatsEditor })
+  registerPanelSection({ id: 'stats', label: 'stats.section', tab: 'route', order: 30, Component: StatsEditor })
 }

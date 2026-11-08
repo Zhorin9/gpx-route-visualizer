@@ -1,4 +1,6 @@
 import { useState, type DragEvent } from 'react'
+import { useTranslation } from 'react-i18next'
+import type { TKey } from '../../../i18n'
 import CheckboxField from '../../../components/fields/CheckboxField'
 import TextField from '../../../components/fields/TextField'
 import { IconDownload, IconTrash } from '../../../components/icons'
@@ -9,7 +11,7 @@ import { selectRouteParts } from '../../../store/derived'
 import { useTrackCumKm } from '../../../store/selectors'
 import { useAppStore } from '../../../store/useAppStore'
 import { downloadBlob } from '../../../utils/exportImage'
-import { formatKm } from '../../../utils/format'
+import { formatKm, formatNumber } from '../../../utils/format'
 import { toGpxText } from '../../../utils/gpx'
 import { DEFAULT_LEG_S, DEFAULT_PAUSE_S } from '../../animation/model/schedule'
 import { vehicleFor } from '../../animation/vehicles'
@@ -22,7 +24,7 @@ import './TravelPanel.css'
 
 
 const LINE_ORDER: LineKind[] = ['road', 'straight', 'arc']
-const LINE_NAMES: Record<LineKind, string> = { road: 'Po drodze', straight: 'Prosta', arc: 'Łuk' }
+const LINE_NAMES: Record<LineKind, TKey> = { road: 'travel.lines.road', straight: 'travel.lines.straight', arc: 'travel.lines.arc' }
 
 // "2 h 10 m", or "45 m" under an hour.
 function formatSpan(ms: number): string {
@@ -31,18 +33,19 @@ function formatSpan(ms: number): string {
   return h ? `${h} h ${minutes % 60} m` : `${minutes} m`
 }
 
-const seconds = (value: number) => `${String(value).replace('.', ',')} s`
+const seconds = (value: number) => `${formatNumber(value, value % 1 ? 1 : 0)} s`
 
 function SecondsField({ label, value, min, max, onChange }: { label: string; value: number; min: number; max: number; onChange: (v: number) => void }) {
+  const { t } = useTranslation()
   return (
     <div className="seconds-field">
       <span>{label}</span>
       <span className="seconds-stepper">
-        <button type="button" aria-label={`${label}: krócej`} disabled={value <= min} onClick={() => onChange(Math.max(min, value - 0.5))}>
+        <button type="button" aria-label={t('travel.panel.shorter', { label })} disabled={value <= min} onClick={() => onChange(Math.max(min, value - 0.5))}>
           −
         </button>
         <span className="seconds-value">{seconds(value)}</span>
-        <button type="button" aria-label={`${label}: dłużej`} disabled={value >= max} onClick={() => onChange(Math.min(max, value + 0.5))}>
+        <button type="button" aria-label={t('travel.panel.longer', { label })} disabled={value >= max} onClick={() => onChange(Math.min(max, value + 0.5))}>
           +
         </button>
       </span>
@@ -51,11 +54,12 @@ function SecondsField({ label, value, min, max, onChange }: { label: string; val
 }
 
 function ModeGrid({ value, onChange }: { value: TravelModeId; onChange: (id: TravelModeId) => void }) {
+  const { t } = useTranslation()
   return (
-    <div className="mode-grid" role="radiogroup" aria-label="Środek transportu">
+    <div className="mode-grid" role="radiogroup" aria-label={t('travel.panel.mode')}>
       {travelModes().map((m) => (
         <button key={m.id} type="button" role="radio" aria-checked={m.id === value} className={m.id === value ? 'mode-opt active' : 'mode-opt'} onClick={() => onChange(m.id)}>
-          {m.label}
+          {t(m.label)}
         </button>
       ))}
     </div>
@@ -63,6 +67,7 @@ function ModeGrid({ value, onChange }: { value: TravelModeId; onChange: (id: Tra
 }
 
 function LegBox({ index, journey, change }: { index: number; journey: Journey; change: (j: Journey, label: string) => void }) {
+  const { t } = useTranslation()
   const leg = journey.legs[index]
   const plan = legPlans(journey)[index]
   const mode = travelMode(leg.mode)
@@ -74,12 +79,10 @@ function LegBox({ index, journey, change }: { index: number; journey: Journey; c
   const updatePart = useAppStore((s) => s.updatePart)
   return (
     <div className="leg-box">
-      <h6>
-        Odcinek {stopLetter(index)} → {stopLetter(index + 1)}
-      </h6>
+      <h6>{t('travel.panel.leg', { from: stopLetter(index), to: stopLetter(index + 1) })}</h6>
       {/* Another mode starts with its own line shape and keeps the leg's time. */}
       <ModeGrid value={leg.mode} onChange={(id) => change(setLeg(journey, index, { mode: id, ...(leg.duration ? { duration: leg.duration } : null) }), `mode:${index}`)} />
-      <div className="line-kinds" role="radiogroup" aria-label="Kształt linii">
+      <div className="line-kinds" role="radiogroup" aria-label={t('travel.panel.lineShape')}>
         {LINE_ORDER.map((kind) => {
           const allowed = mode.lines.includes(kind)
           return (
@@ -89,33 +92,33 @@ function LegBox({ index, journey, change }: { index: number; journey: Journey; c
               role="radio"
               aria-checked={kind === line}
               disabled={!allowed}
-              title={allowed ? undefined : `${mode.label}: tylko prosta albo łuk`}
+              title={allowed ? undefined : t('travel.panel.onlyStraightOrArc', { mode: t(mode.label) })}
               className={kind === line ? 'tag tag-accent' : 'tag tag-outline'}
               onClick={() => change(setLeg(journey, index, { ...leg, line: kind }), `line:${index}`)}
             >
-              {LINE_NAMES[kind]}
+              {t(LINE_NAMES[kind])}
             </button>
           )
         })}
       </div>
       {part && mode.vehicle !== 'dot' && (
         <Segmented
-          label="Znacznik"
+          label={t('travel.panel.marker')}
           showLabel
           value={part.vehicle === 'dot' ? 'dot' : 'mode'}
           options={[
-            { value: 'mode', label: vehicleFor(mode.vehicle).label },
-            { value: 'dot', label: 'Kropka' },
+            { value: 'mode', label: t(vehicleFor(mode.vehicle).label) },
+            { value: 'dot', label: t('animation.vehicles.dot') },
           ]}
           onChange={(v) => updatePart(part.id, { vehicle: v === 'dot' ? 'dot' : mode.vehicle })}
         />
       )}
-      <SecondsField label="Czas w animacji" value={leg.duration ?? DEFAULT_LEG_S} min={0.5} max={30} onChange={(duration) => change(setLeg(journey, index, { ...leg, duration }), `time:${index}`)} />
+      <SecondsField label={t('travel.panel.legTime')} value={leg.duration ?? DEFAULT_LEG_S} min={0.5} max={30} onChange={(duration) => change(setLeg(journey, index, { ...leg, duration }), `time:${index}`)} />
       {vias > 0 && plan && (
         <div className="leg-vias">
-          <span className="text-muted">Punkty pośrednie: {vias}</span>
+          <span className="text-muted">{t('travel.panel.vias', { n: vias })}</span>
           <button type="button" className="link-btn" onClick={() => change({ ...journey, stops: journey.stops.filter((s) => !s.via || !plan.stops.includes(s)) }, `vias:${index}`)}>
-            Usuń
+            {t('travel.panel.remove')}
           </button>
         </div>
       )}
@@ -124,31 +127,34 @@ function LegBox({ index, journey, change }: { index: number; journey: Journey; c
 }
 
 function StopBox({ stop, index, last, journey, change }: { stop: Stop; index: number; last: boolean; journey: Journey; change: (j: Journey, label: string) => void }) {
+  const { t } = useTranslation()
   const pause = stop.pause ?? (last ? 0 : DEFAULT_PAUSE_S)
   return (
     <div className="leg-box">
-      <h6>Przystanek {stopLetter(index)}</h6>
-      <TextField label="Nazwa" value={stop.name} onChange={(name) => change(updateStop(journey, stop.id, { name }), `name:${stop.id}`)} />
-      {index > 0 && <SecondsField label="Postój w animacji" value={pause} min={0} max={10} onChange={(p) => change(updateStop(journey, stop.id, { pause: p }), `pause:${stop.id}`)} />}
+      <h6>{t('travel.panel.stop', { letter: stopLetter(index) })}</h6>
+      <TextField label={t('travel.panel.name')} value={stop.name} onChange={(name) => change(updateStop(journey, stop.id, { name }), `name:${stop.id}`)} />
+      {index > 0 && <SecondsField label={t('travel.panel.stopPause')} value={pause} min={0} max={10} onChange={(p) => change(updateStop(journey, stop.id, { pause: p }), `pause:${stop.id}`)} />}
       <Button variant="danger" size="sm" icon={<IconTrash />} onClick={() => change(removeStop(journey, stop.id), 'remove')}>
-        Usuń przystanek
+        {t('travel.panel.removeStop')}
       </Button>
     </div>
   )
 }
 
 function NextLegBox() {
+  const { t } = useTranslation()
   const nextMode = useAppStore((s) => s.nextMode)
   const setNextMode = useAppStore((s) => s.setNextMode)
   return (
     <div className="leg-box">
-      <h6>Następny odcinek</h6>
+      <h6>{t('travel.panel.nextLeg')}</h6>
       <ModeGrid value={nextMode} onChange={setNextMode} />
     </div>
   )
 }
 
 function Advanced({ journey, change, legIndex, planned, cum }: { journey: Journey; change: (j: Journey, label: string) => void; legIndex: number | null; planned: RoutePart[]; cum: Float64Array | null }) {
+  const { t } = useTranslation()
   const setJourney = useAppStore((s) => s.setJourney)
   const parts = useAppStore(selectRouteParts)
   const cache = useAppStore((s) => s.trackCache)
@@ -160,65 +166,66 @@ function Advanced({ journey, change, legIndex, planned, cum }: { journey: Journe
   const totals = new Map<string, number>()
   for (const p of planned) {
     if (!p.plan || !cum) continue
-    const label = travelMode(p.plan.mode).label
+    const label = t(travelMode(p.plan.mode).label)
     totals.set(label, (totals.get(label) ?? 0) + cum[p.endIdx] - cum[p.startIdx])
   }
 
   function downloadGpx() {
     const points: GpxPoint[] = planned.flatMap((p) => cache[p.sourceKey] ?? [])
-    const name = stops.length > 1 ? `${stops[0].name} – ${stops[stops.length - 1].name}` : 'Podróż'
+    const name = stops.length > 1 ? `${stops[0].name} – ${stops[stops.length - 1].name}` : t('travel.panel.trip')
     downloadBlob(new Blob([toGpxText(name, points)], { type: 'application/gpx+xml' }), `${name}.gpx`)
   }
 
   return (
-    <Section title="Zaawansowane" collapseId="travel-advanced" startCollapsed>
+    <Section title={t('travel.panel.advanced')} collapseId="travel-advanced" startCollapsed>
       {leg && mode && legIndex != null && lineOf(leg) === 'road' && (
         <>
           {mode.profiles && (
             <Segmented
-              label="Rodzaj roweru"
+              label={t('travel.panel.bikeKind')}
               showLabel
               value={leg.profile ?? mode.profiles[0].id}
-              options={mode.profiles.map((p) => ({ value: p.id, label: p.label }))}
+              options={mode.profiles.map((p) => ({ value: p.id, label: t(p.label) }))}
               onChange={(profile) => change(setLeg(journey, legIndex, { ...leg, profile }), `profile:${legIndex}`)}
             />
           )}
           {mode.options?.map((option) => {
             const on = leg.options?.includes(option.id) ?? false
             const options = on ? (leg.options ?? []).filter((o) => o !== option.id) : [...(leg.options ?? []), option.id]
-            return <CheckboxField key={option.id} label={option.label} checked={on} onChange={() => change(setLeg(journey, legIndex, { ...leg, options }), `options:${legIndex}`)} />
+            return <CheckboxField key={option.id} label={t(option.label)} checked={on} onChange={() => change(setLeg(journey, legIndex, { ...leg, options }), `options:${legIndex}`)} />
           })}
-          {leg.mode === 'car' && <p className="hint">Trasa jedzie najszybszą drogą. Żeby poprowadzić ją inaczej (np. A1 przez Toruń), przeciągnij linię na mapie.</p>}
-          {leg.mode === 'train' && <p className="hint">Po torach, od stacji najbliższej każdemu przystankowi. Czas szacowany przy średnio {mode.avgSpeedKmh} km/h.</p>}
+          {leg.mode === 'car' && <p className="hint">{t('travel.panel.carHint')}</p>}
+          {leg.mode === 'train' && <p className="hint">{t('travel.panel.trainHint', { speed: mode.avgSpeedKmh })}</p>}
         </>
       )}
       {hasFiles && planned.length > 0 && (
         <Segmented
-          label="Miejsce podróży"
+          label={t('travel.panel.tripPlace')}
           showLabel
           value={parts[0]?.plan ? 'start' : 'end'}
           options={[
-            { value: 'start', label: 'Przed trasą z pliku' },
-            { value: 'end', label: 'Po trasie z pliku' },
+            { value: 'start', label: t('travel.panel.beforeFile') },
+            { value: 'end', label: t('travel.panel.afterFile') },
           ]}
           onChange={(v) => void setJourney(journey, 'place', { atStart: v === 'start' })}
         />
       )}
       {planned.length > 0 ? (
         <>
-          <p className="hint">{[...totals].map(([label, km]) => `${label} ${formatKm(km, 0)}`).join(' · ')}. Czas przejazdu jest szacowany.</p>
+          <p className="hint">{[...totals].map(([label, km]) => `${label} ${formatKm(km, 0)}`).join(' · ')}. {t('travel.panel.estimated')}</p>
           <Button icon={<IconDownload />} block onClick={downloadGpx} title={legPlans(journey).map(legName).join(', ')}>
-            Pobierz jako GPX
+            {t('travel.panel.downloadGpx')}
           </Button>
         </>
       ) : (
-        <p className="hint">Tu będą opcje odcinka (np. omijanie płatnych dróg) i zapis trasy do pliku GPX.</p>
+        <p className="hint">{t('travel.panel.advancedEmpty')}</p>
       )}
     </Section>
   )
 }
 
 export default function TravelPanel() {
+  const { t } = useTranslation()
   const { journey, change } = useTravelActions()
   const busy = useAppStore((s) => s.travelBusy)
   const error = useAppStore((s) => s.travelError)
@@ -248,10 +255,10 @@ export default function TravelPanel() {
 
   function stopMeta(stop: Stop, i: number): string {
     const last = i === stops.length - 1
-    if (i === 0) return 'start'
+    if (i === 0) return t('travel.panel.metaStart')
     const pause = stop.pause ?? (last ? 0 : DEFAULT_PAUSE_S)
-    const rest = pause > 0 ? `postój ${seconds(pause)}` : ''
-    return last ? ['meta', rest].filter(Boolean).join(' · ') : rest || 'bez postoju'
+    const rest = pause > 0 ? t('travel.panel.rest', { time: seconds(pause) }) : ''
+    return last ? [t('travel.panel.metaEnd'), rest].filter(Boolean).join(' · ') : rest || t('travel.panel.noRest')
   }
 
   function onDrop(e: DragEvent, index: number) {
@@ -268,10 +275,10 @@ export default function TravelPanel() {
 
   return (
     <div className="travel-panel">
-      <h6>Przystanki</h6>
-      {stops.length === 0 && <p className="hint">Zaplanuj trasę bez pliku GPX: dodaj miejsca, przez które prowadzi podróż, i wybierz, czym ją pokonujesz.</p>}
+      <h6>{t('travel.stops')}</h6>
+      {stops.length === 0 && <p className="hint">{t('travel.panel.empty')}</p>}
       {stops.length > 0 && (
-        <div className="trip-list" role="list" aria-label="Przystanki i odcinki">
+        <div className="trip-list" role="list" aria-label={t('travel.panel.list')}>
           {stops.map((stop, i) => [
             <div
               key={stop.id}
@@ -292,7 +299,7 @@ export default function TravelPanel() {
               <button
                 type="button"
                 className="trip-handle"
-                aria-label={`${stop.name}: zmień kolejność (strzałki w górę i w dół)`}
+                aria-label={t('travel.panel.reorder', { name: stop.name })}
                 onClick={(e) => e.stopPropagation()}
                 onKeyDown={(e) => {
                   const to = e.key === 'ArrowUp' ? i - 1 : e.key === 'ArrowDown' ? i + 1 : null
@@ -309,7 +316,7 @@ export default function TravelPanel() {
                 <span className="trip-leg-mark" aria-hidden="true" />
                 <span className="trip-text">
                   <span className="trip-title">
-                    {travelMode(journey.legs[i].mode).label} · {LINE_LABELS[lineOf(journey.legs[i])]}
+                    {t(travelMode(journey.legs[i].mode).label)} · {t(LINE_LABELS[lineOf(journey.legs[i])])}
                   </span>
                   <span className="trip-meta">{legMeta(i)}</span>
                 </span>
@@ -319,7 +326,7 @@ export default function TravelPanel() {
         </div>
       )}
       <button type="button" className="add-stop" onClick={addStop}>
-        + Dodaj przystanek (lub kliknij mapę)
+        {t('travel.panel.addStop')}
       </button>
 
       {selectedStop ? (
@@ -332,7 +339,7 @@ export default function TravelPanel() {
 
       {busy && (
         <p className="hint" role="status">
-          Wyznaczam trasę…
+          {t('travel.panel.routing')}
         </p>
       )}
       {error && (
@@ -350,7 +357,7 @@ export default function TravelPanel() {
           setCenterView('frame')
         }}
       >
-        Generuj trasę
+        {t('travel.panel.generate')}
       </Button>
 
       <Advanced journey={journey} change={change} legIndex={legIndex} planned={planned} cum={cum} />

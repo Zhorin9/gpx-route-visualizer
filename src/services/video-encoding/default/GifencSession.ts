@@ -1,5 +1,6 @@
 import { GIFEncoder, applyPalette, quantize, type Palette } from 'gifenc'
 import { EncodingFailedError, MIME_TYPES, type EncodeOptions, type EncodingSession } from '../VideoEncodingService'
+import i18n from '../../../i18n'
 import { FrameCanvas } from './frameCanvas'
 
 // A GIF has no separate codec and container, so this is a whole session on its own.
@@ -46,7 +47,7 @@ export class GifencSession implements EncodingSession {
   }
 
   async addFrame(frame: HTMLCanvasElement, timestampUs: number) {
-    if (this.aborted) throw new EncodingFailedError('Przerwano zapis GIF-a')
+    if (this.aborted) throw new EncodingFailedError(i18n.t('gifencSession.aborted'))
     const rgba = this.canvas.draw(frame).getImageData(0, 0, this.options.width, this.options.height).data
     this.palette ??= quantize(rgba, COLORS)
     this.writePending((timestampUs - this.lastUs) / 1000)
@@ -55,7 +56,7 @@ export class GifencSession implements EncodingSession {
   }
 
   async finish(): Promise<Blob> {
-    if (this.aborted) throw new EncodingFailedError('Przerwano zapis GIF-a')
+    if (this.aborted) throw new EncodingFailedError(i18n.t('gifencSession.aborted'))
     this.writePending(1000 / this.options.fps)
     this.gif.finish()
     return new Blob([this.gif.bytes()], { type: MIME_TYPES.gif })

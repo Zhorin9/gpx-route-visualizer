@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import Button from './ui/Button'
 import { IconClose, IconMinus, IconPlus, IconReplace, IconTrash, IconType, IconFit } from './icons'
 import { usePanorama, useSlideBox, useSlideSlots } from '../store/selectors'
@@ -26,6 +27,7 @@ export default function SlotToolbar({ previewScale }: { previewScale: number }) 
   const slideCount = useAppStore((s) => s.slides.length)
   const slots = useSlideSlots(selection?.kind === 'slot' ? selection.slide : 0)
   const box = useSlideBox(selection?.kind === 'slot' ? selection.slide : 0)
+  const { t } = useTranslation()
 
   if (selection?.kind !== 'slot') return null
   const own = slots[selection.index]
@@ -52,22 +54,22 @@ export default function SlotToolbar({ previewScale }: { previewScale: number }) 
   const canCaption = !panorama && (slot.kind === 'framed' || framed)
 
   return (
-    <div className="slot-toolbar" style={style} role="toolbar" aria-label="Zdjęcie w slocie">
+    <div className="slot-toolbar" style={style} role="toolbar" aria-label={t('slotToolbar.toolbar')}>
       <Button size="sm" variant="ghost" icon={<IconReplace />} onClick={() => requestPhoto({ slide, index })}>
-        {assignment ? 'Wymień' : 'Dodaj zdjęcie'}
+        {assignment ? t('slotToolbar.replace') : t('slotToolbar.addPhoto')}
       </Button>
       {assignment && (
         <>
           {canCrop && (
             <>
               <Button size="sm" variant="ghost" icon={<IconFit />} onClick={() => resetSlotCrop(slide, index)}>
-                Dopasuj
+                {t('slotToolbar.fit')}
               </Button>
               <span className="slot-toolbar-sep" />
               <Button
                 size="icon"
                 variant="ghost"
-                aria-label="Oddal"
+                aria-label={t('slotToolbar.zoomOut')}
                 disabled={zoom <= 1}
                 onClick={() => updateSlot(slide, index, { zoom: zoomedBy(zoom, -1) })}
               >
@@ -77,7 +79,7 @@ export default function SlotToolbar({ previewScale }: { previewScale: number }) 
               <Button
                 size="icon"
                 variant="ghost"
-                aria-label="Przybliż"
+                aria-label={t('slotToolbar.zoomIn')}
                 disabled={zoom >= 4}
                 onClick={() => updateSlot(slide, index, { zoom: zoomedBy(zoom, 1) })}
               >
@@ -88,16 +90,16 @@ export default function SlotToolbar({ previewScale }: { previewScale: number }) 
           )}
           {canCaption && (
             <Button size="sm" variant="ghost" icon={<IconType />} onClick={() => addCaption(slide, index)}>
-              Podpis
+              {t('slotToolbar.caption')}
             </Button>
           )}
-          <Button size="icon" variant="ghost" aria-label="Usuń zdjęcie ze slotu" onClick={() => clearSlot(slide, index)}>
+          <Button size="icon" variant="ghost" aria-label={t('slotToolbar.removePhoto')} onClick={() => clearSlot(slide, index)}>
             <IconTrash />
           </Button>
         </>
       )}
       <span className="slot-toolbar-sep" />
-      <Button size="icon" variant="ghost" aria-label="Zamknij pasek (Esc)" title="Zamknij (Esc)" onClick={() => select(null)}>
+      <Button size="icon" variant="ghost" aria-label={t('slotToolbar.closeBar')} title={t('slotToolbar.close')} onClick={() => select(null)}>
         <IconClose />
       </Button>
     </div>

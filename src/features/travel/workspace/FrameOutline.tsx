@@ -1,5 +1,6 @@
 import { useEffect, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import type { Map as MapLibreMap } from 'maplibre-gl'
+import { useTranslation } from 'react-i18next'
 import { lngLatAt } from '../../map/model/placement'
 import { panFrame, scaleFrame } from '../model/frame'
 import { useAppStore } from '../../../store/useAppStore'
@@ -7,6 +8,7 @@ import { mercatorX, mercatorY, type MercatorFit } from '../../../utils/gpx'
 import type { RouteTransform } from '../../../types'
 
 export default function FrameOutline({ map, fit, width, height, label }: { map: MapLibreMap; fit: MercatorFit; width: number; height: number; label: string }) {
+  const { t } = useTranslation()
   const transform = useAppStore((s) => s.routeTransform)
   const setRouteTransform = useAppStore((s) => s.setRouteTransform)
   // Drawn again as the map pans and zooms under it.
@@ -54,12 +56,12 @@ export default function FrameOutline({ map, fit, width, height, label }: { map: 
   return (
     <div className="frame-outline" style={{ left: tl.x, top: tl.y, width: w, height: h, transform: `rotate(${angle}deg)` }}>
       <button type="button" className="frame-outline-label" onPointerDown={(e) => track(e, (from, to, start) => panFrame(start, fit, shift(from, to)))}>
-        {label} · przeciągnij
+        {t('travel.workspace.drag', { label })}
       </button>
       <span
         className="frame-outline-handle"
         role="slider"
-        aria-label="Wielkość kadru na mapie"
+        aria-label={t('travel.workspace.frameSize')}
         aria-valuenow={Math.round(w)}
         onPointerDown={(e) =>
           track(e, (from, to, start) => {

@@ -1,3 +1,4 @@
+import i18n, { type TKey } from '../i18n'
 import { pickDocument } from './document'
 import type { AppState, Commit, DocumentState, GetState, HistorySlice, SetState } from './types'
 
@@ -5,72 +6,72 @@ const COALESCE_MS = 800
 const HISTORY_LIMIT = 100
 
 // What the undo toast calls a step: the whole commit key if listed, else its first segment.
-const STEP_LABELS: Record<string, string> = {
-  'text:add': 'dodanie tekstu',
-  'text:delete': 'usunięcie tekstu',
-  'waypoint:add': 'dodanie miejscowości',
-  'waypoint:delete': 'usunięcie miejscowości',
-  'waypoint:captions': 'dodanie podpisów trasy',
-  'dataColor:palette': 'zmiana palety',
-  'route:load': 'wczytanie trasy',
-  mode: 'zmiana typu projektu',
-  'route:append': 'dodanie dnia trasy',
-  'route:remove': 'usunięcie dnia trasy',
-  'slide:add': 'dodanie slajdu',
-  'slide:remove': 'usunięcie slajdu',
-  'slide:dup': 'duplikowanie slajdu',
-  'slide:move': 'zmiana kolejności slajdów',
-  'slide:skip': 'pominięcie slajdu',
-  'slide:apply': 'zastosowanie do slajdów ze zdjęciami',
-  'slide:apply:bg': 'zastosowanie tła do slajdów',
-  slide: 'zmiana slajdu',
-  'photos:slides': 'dodanie zdjęć jako slajdów',
-  'template:save': 'zapis szablonu',
-  'template:delete': 'usunięcie szablonu',
-  text: 'zmiana tekstu',
-  waypoint: 'zmiana miejscowości',
-  nudge: 'przesunięcie',
-  element: 'przesunięcie elementu',
-  route: 'zmiana trasy',
-  routeStyle: 'zmiana stylu trasy',
-  preset: 'zmiana stylu trasy',
-  dataColor: 'zmiana koloru trasy',
-  range: 'zmiana zakresu trasy',
-  progress: 'zmiana postępu trasy',
-  kmInterval: 'zmiana znaczników km',
-  profile: 'zmiana profilu wysokości',
-  stats: 'zmiana statystyk',
-  statsStyle: 'zmiana wyglądu statystyk',
-  statsContent: 'zmiana statystyk',
-  statVisible: 'zmiana statystyk',
-  statOverride: 'zmiana statystyk',
-  statOrder: 'zmiana kolejności statystyk',
-  photos: 'dodanie zdjęć',
-  slot: 'zmiana zdjęcia',
-  layout: 'zmiana układu',
-  collage: 'zmiana tła',
-  frame: 'zmiana ramek',
-  dim: 'zmiana przyciemnienia',
-  format: 'zmiana formatu',
-  carousel: 'zmiana karuzeli',
-  animation: 'zmiana animacji',
-  globalFont: 'zmiana czcionki',
-  template: 'zastosowanie szablonu',
-  photoTheme: 'zastosowanie kolorów ze zdjęć',
-  iconFinish: 'zmiana wykonania ikon',
-  sticker: 'zmiana koloru naklejki',
-  photoLook: 'zmiana wyglądu zdjęć',
-  stamp: 'zmiana daty w rogu',
-  kicker: 'zmiana nadtytułu',
-  mapSticker: 'zmiana naklejki mapy',
-  wrapper: 'zmiana opakowania',
-  travel: 'zmiana podróży',
-  camera: 'zmiana kamery',
-  map: 'zmiana mapy',
+const STEP_LABELS: Record<string, TKey> = {
+  'text:add': 'history.textAdd',
+  'text:delete': 'history.textDelete',
+  'waypoint:add': 'history.waypointAdd',
+  'waypoint:delete': 'history.waypointDelete',
+  'waypoint:captions': 'history.waypointCaptions',
+  'dataColor:palette': 'history.dataColorPalette',
+  'route:load': 'history.routeLoad',
+  mode: 'history.mode',
+  'route:append': 'history.routeAppend',
+  'route:remove': 'history.routeRemove',
+  'slide:add': 'history.slideAdd',
+  'slide:remove': 'history.slideRemove',
+  'slide:dup': 'history.slideDup',
+  'slide:move': 'history.slideMove',
+  'slide:skip': 'history.slideSkip',
+  'slide:apply': 'history.slideApply',
+  'slide:apply:bg': 'history.slideApplyBg',
+  slide: 'history.slide',
+  'photos:slides': 'history.photosSlides',
+  'template:save': 'history.templateSave',
+  'template:delete': 'history.templateDelete',
+  text: 'history.text',
+  waypoint: 'history.waypoint',
+  nudge: 'history.nudge',
+  element: 'history.element',
+  route: 'history.route',
+  routeStyle: 'history.routeStyle',
+  preset: 'history.routeStyle',
+  dataColor: 'history.dataColor',
+  range: 'history.range',
+  progress: 'history.progress',
+  kmInterval: 'history.kmInterval',
+  profile: 'history.profile',
+  stats: 'history.stats',
+  statsStyle: 'history.statsStyle',
+  statsContent: 'history.stats',
+  statVisible: 'history.stats',
+  statOverride: 'history.stats',
+  statOrder: 'history.statOrder',
+  photos: 'history.photos',
+  slot: 'history.slot',
+  layout: 'history.layout',
+  collage: 'history.collage',
+  frame: 'history.frame',
+  dim: 'history.dim',
+  format: 'history.format',
+  carousel: 'history.carousel',
+  animation: 'history.animation',
+  globalFont: 'history.globalFont',
+  template: 'history.template',
+  photoTheme: 'history.photoTheme',
+  iconFinish: 'history.iconFinish',
+  sticker: 'history.sticker',
+  photoLook: 'history.photoLook',
+  stamp: 'history.stamp',
+  kicker: 'history.kicker',
+  mapSticker: 'history.mapSticker',
+  wrapper: 'history.wrapper',
+  travel: 'history.travel',
+  camera: 'history.camera',
+  map: 'history.map',
 }
 
-function stepLabel(key: string): string {
-  return STEP_LABELS[key] ?? STEP_LABELS[key.split(':')[0]] ?? 'zmiana'
+function stepLabel(key: string): TKey {
+  return STEP_LABELS[key] ?? STEP_LABELS[key.split(':')[0]] ?? 'history.change'
 }
 
 // Undo/redo restores a snapshot, so a selection may point at something gone.
@@ -125,7 +126,7 @@ export function createHistory(set: SetState, get: GetState) {
         past: s.past.slice(0, -1),
         future: [{ doc: pickDocument(s), label: prev.label }, ...s.future].slice(0, HISTORY_LIMIT),
       })
-      get().showToast(`Cofnięto: ${prev.label}`, 'redo')
+      get().showToast(i18n.t('history.undone', { step: i18n.t(prev.label) }), 'redo')
     },
     redo: () => {
       get().endPreview()
@@ -139,7 +140,7 @@ export function createHistory(set: SetState, get: GetState) {
         past: [...s.past, { doc: pickDocument(s), label: next.label }].slice(-HISTORY_LIMIT),
         future: s.future.slice(1),
       })
-      get().showToast(`Ponowiono: ${next.label}`, 'undo')
+      get().showToast(i18n.t('history.redone', { step: i18n.t(next.label) }), 'undo')
     },
   }
 

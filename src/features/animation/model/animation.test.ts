@@ -80,7 +80,7 @@ describe('pacing', () => {
 
   it('falls back to even pacing without timestamps', () => {
     const untimed = { ...ctx, track: { name: null, points: points.map((p) => ({ ...p, time: null })) } }
-    expect(speedPacing.unavailable?.(untimed.track)).toMatch(/czasu/)
+    expect(speedPacing.unavailable?.(untimed.track)).toBe('animation.pacing.noTime')
     expect(speedPacing.headAt(0.5, untimed)).toBeCloseTo(50)
     expect(pacingFor('nope' as never).id).toBe('eased')
   })

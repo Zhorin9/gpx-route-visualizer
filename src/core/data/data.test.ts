@@ -48,9 +48,9 @@ describe('data sources', () => {
 
   it('says why a source cannot be used', () => {
     const flat = track(5, () => ({}))
-    expect(dataSource('speed').unavailable(flat)).toMatch(/czasu/)
-    expect(dataSource('heartRate').unavailable(flat)).toMatch(/tętna/)
-    expect(dataSource('grade').unavailable(flat)).toMatch(/wysokości/)
+    expect(dataSource('speed').unavailable(flat)).toBe('sources.noTime')
+    expect(dataSource('heartRate').unavailable(flat)).toBe('sources.noHeartRate')
+    expect(dataSource('grade').unavailable(flat)).toBe('sources.noElevation')
     expect(dataSource('heartRate').unavailable(track(5, () => ({ hr: 120 })))).toBeNull()
   })
 

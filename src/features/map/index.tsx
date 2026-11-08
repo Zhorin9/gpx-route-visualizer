@@ -5,6 +5,7 @@ import { provideFrameUnderlay } from '../../core/export/frameSource'
 import { IconMapPin } from '../../components/icons'
 import { useAppStore } from '../../store/useAppStore'
 import { selectSeed } from '../../store/derived'
+import i18n from '../../i18n'
 import MapCreditNode from './canvas/MapCreditNode'
 import MapUnderlay from './canvas/MapUnderlay'
 import { ensureFontLoaded } from '../../utils/fonts'
@@ -32,12 +33,12 @@ async function renderSketchImage(state: AppState, scene: MapScene, scale: number
 
 export function registerMap() {
   for (const style of BUILT_IN_STYLES) registerMapStyle(style)
-  registerBackgroundKind({ kind: 'map', label: 'Mapa', select: () => useAppStore.getState().showMapBackground(), Panel: MapPanel })
+  registerBackgroundKind({ kind: 'map', label: 'map.label', select: () => useAppStore.getState().showMapBackground(), Panel: MapPanel })
   addStageUnderlay(MapUnderlay)
   registerCanvasElement({
     kind: MAP_CREDIT_KIND,
-    label: 'Źródło mapy',
-    meta: 'wymagane',
+    label: 'map.credit',
+    meta: 'map.creditMeta',
     icon: <IconMapPin />,
     order: 90,
     useIsAvailable: useMapShown,
@@ -57,8 +58,8 @@ export function registerMap() {
     try {
       return finish(await renderMapImage(scene, width, height, scale))
     } catch {
-      if (window.confirm('Mapa się nie wczytała (brak połączenia?). Zapisać grafikę bez mapy?')) return null
-      throw new Error('Mapa się nie wczytała. Sprawdź połączenie i spróbuj ponownie.')
+      if (window.confirm(i18n.t('map.saveWithoutMap'))) return null
+      throw new Error(i18n.t('map.loadFailed'))
     }
   })
 }

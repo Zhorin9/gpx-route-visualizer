@@ -15,8 +15,8 @@ function useStickerShown() {
 export function registerMapSticker() {
   registerCanvasElement({
     kind: MAP_STICKER_KIND,
-    label: 'Naklejka mapy',
-    meta: 'trasa',
+    label: 'mapSticker.label',
+    meta: 'mapSticker.meta',
     icon: <IconRoute />,
     order: 20,
     useIsAvailable: useStickerShown,

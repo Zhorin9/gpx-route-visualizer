@@ -8,7 +8,7 @@ import type { Wrapper } from '../../types'
 const TILT = -11
 
 export const postmark: WrapperDef = {
-  label: 'Stempel',
+  label: 'wrappers.postmark',
   fields: ['place', 'title', 'date'],
   room: () => ({ l: 0, t: 0, r: 0, b: 0 }),
   draw: () => {},

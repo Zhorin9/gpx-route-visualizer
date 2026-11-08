@@ -4,6 +4,7 @@ import { routeFields } from '../../utils/wrappers'
 import { joinTrack } from '../derived'
 import { pickDocument } from '../document'
 import { NO_PHOTO_LOOK } from '../../utils/photoLook'
+import i18n from '../../i18n'
 import type { GradientStyle, StyleTemplate, TemplateParts, TextNode, WrapperField } from '../../types'
 import type { AppState, DocumentState, SliceContext, TemplatesSlice } from '../types'
 
@@ -153,8 +154,8 @@ export function createTemplatesSlice({ set, get, commit }: SliceContext): Templa
       const gradient = s.collage.bgKind === 'gradient' ? s.collage.gradient : { ...s.collage.gradient, from: s.collage.bgColor, to: s.collage.bgColor, grain: 0 }
       const template: StyleTemplate = {
         id: `custom-${Date.now()}`,
-        name: name.trim() || `Własny ${s.customTemplates.length + 1}`,
-        desc: 'Zapisany własny styl',
+        name: name.trim() || i18n.t('templatesSlice.customName', { n: s.customTemplates.length + 1 }),
+        desc: 'templatesSlice.customDesc',
         fonts: { title: titleFont, data: s.statsStyle.fontFamily, note: s.waypoints[0]?.fontFamily ?? s.statsStyle.fontFamily },
         titleItalic: title?.italic ?? s.titleStyle.italic,
         titleUppercase: s.titleStyle.uppercase,

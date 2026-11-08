@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Circle, Group, Image as KonvaImage, Layer, Line, Rect, Text } from 'react-konva'
 import type Konva from 'konva'
 import { hasVisiblePhotos, useActiveSlide, usePanorama } from '../store/selectors'
@@ -135,6 +136,7 @@ function EmptySlot({ inner, label, onPick }: { inner: Box; label: string; onPick
 }
 
 function SlotView({ slot, slide, frameOffsetX, collage, assignment, photo, selected, emptyLabel, order, count }: SlotViewProps) {
+  const { t } = useTranslation()
   const animation = usePhotoAnimation(order, count)
   const select = useAppStore((s) => s.select)
   const requestPhoto = useAppStore((s) => s.requestPhoto)
@@ -175,7 +177,7 @@ function SlotView({ slot, slide, frameOffsetX, collage, assignment, photo, selec
         {photo && assignment ? (
           <PhotoImage photo={photo} assignment={assignment} inner={inner} fit={collage.fit} slide={slide} index={slot.index} />
         ) : (
-          <EmptySlot inner={inner} label={emptyLabel ?? (slot.kind === 'backdrop' ? 'Dodaj zdjęcie tła' : 'Dodaj zdjęcie')} onPick={() => requestPhoto({ slide, index: slot.index })} />
+          <EmptySlot inner={inner} label={emptyLabel ?? (slot.kind === 'backdrop' ? t('photoLayer.addBackdropPhoto') : t('photoLayer.addPhoto'))} onPick={() => requestPhoto({ slide, index: slot.index })} />
         )}
       </Group>
       {selected && (
@@ -194,6 +196,7 @@ function SlotView({ slot, slide, frameOffsetX, collage, assignment, photo, selec
 }
 
 export default function PhotoLayer() {
+  const { t } = useTranslation()
   const aspectKey = useAppStore((s) => s.aspectKey)
   const slides = useAppStore((s) => s.slides)
   const collage = useAppStore((s) => s.collage)
@@ -225,7 +228,7 @@ export default function PhotoLayer() {
           assignment={assignment}
           photo={assignment ? photoById.get(assignment.photoId) : undefined}
           selected={selection?.kind === 'slot'}
-          emptyLabel="Dodaj zdjęcie na całą karuzelę"
+          emptyLabel={t('photoLayer.addPanoramaPhoto')}
           order={0}
           count={1}
         />

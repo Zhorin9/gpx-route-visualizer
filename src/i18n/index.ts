@@ -1,10 +1,11 @@
-import i18n from 'i18next'
+import i18n, { type ParseKeys } from 'i18next'
 import { initReactI18next } from 'react-i18next'
 import pl from './pl'
 import en from './en'
 
 export const LANGUAGES = ['pl', 'en'] as const
 export type Language = (typeof LANGUAGES)[number]
+export type TKey = ParseKeys
 
 const STORAGE_KEY = 'gpxVisualizer.language'
 const LOCALES: Record<Language, string> = { pl: 'pl-PL', en: 'en-GB' }

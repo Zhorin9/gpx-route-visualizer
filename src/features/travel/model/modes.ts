@@ -2,6 +2,7 @@ import type { GpxPoint, LineKind, RouteOption, Stop, TravelModeId, TravelPlan, V
 import { nearestRoad, nearestStation } from '../providers/geocoding'
 import { RouteError, routingProvider, type RouteProfile } from '../providers/routing'
 import { greatCircle, straightLines, withEstimatedTime } from './lines'
+import i18n, { type TKey } from '../../../i18n'
 
 export interface BuildContext {
   profile?: string
@@ -13,7 +14,7 @@ export interface BuildContext {
 
 export interface TravelMode {
   id: TravelModeId
-  label: string
+  label: TKey
   vehicle: VehicleId
   line: { dashed: boolean }
   // The default first.
@@ -22,8 +23,8 @@ export interface TravelMode {
   avgSpeedKmh: number
   // Heights in the points are the ground's, so climbing counts.
   groundElevation: boolean
-  profiles?: { id: RouteProfile; label: string }[]
-  options?: { id: RouteOption; label: string }[]
+  profiles?: { id: RouteProfile; label: TKey }[]
+  options?: { id: RouteOption; label: TKey }[]
   online: boolean
   build: (stops: Stop[], ctx: BuildContext) => Promise<GpxPoint[]>
 }
@@ -47,7 +48,7 @@ async function byRail(stops: Stop[], ctx: BuildContext): Promise<GpxPoint[]> {
   const stations = await Promise.all(
     stops.map(async (stop) => {
       const station = await nearestStation(stop, ctx.signal)
-      if (!station) throw new RouteError(`Brak stacji kolejowej w pobliżu: ${stop.via ? 'punkt pośredni' : stop.name}.`)
+      if (!station) throw new RouteError(i18n.t('travel.errors.noStation', { place: stop.via ? i18n.t('travel.errors.viaPoint') : stop.name }))
       return { ...stop, lat: station.lat, lon: station.lon }
     }),
   )
@@ -74,39 +75,39 @@ export function travelMode(id: TravelModeId): TravelMode {
 export const BUILT_IN_MODES: TravelMode[] = [
   {
     id: 'car',
-    label: 'Auto',
+    label: 'travel.modes.car',
     vehicle: 'car',
     line: { dashed: false },
     avgSpeedKmh: 80,
     groundElevation: true,
     lines: ['road', 'straight', 'arc'],
     options: [
-      { id: 'avoid_motorways', label: 'Unikaj autostrad i dróg ekspresowych' },
-      { id: 'avoid_toll', label: 'Unikaj płatnych odcinków' },
-      { id: 'avoid_unpaved', label: 'Unikaj dróg gruntowych' },
+      { id: 'avoid_motorways', label: 'travel.options.avoidMotorways' },
+      { id: 'avoid_toll', label: 'travel.options.avoidToll' },
+      { id: 'avoid_unpaved', label: 'travel.options.avoidUnpaved' },
     ],
     online: true,
     build: routed('car', true),
   },
   {
     id: 'bike',
-    label: 'Rower',
+    label: 'travel.modes.bike',
     vehicle: 'bike',
     line: { dashed: false },
     avgSpeedKmh: 18,
     groundElevation: true,
     lines: ['road', 'straight', 'arc'],
     profiles: [
-      { id: 'trekking', label: 'Trekking' },
-      { id: 'road', label: 'Szosa' },
-      { id: 'mtb', label: 'MTB' },
+      { id: 'trekking', label: 'travel.profiles.trekking' },
+      { id: 'road', label: 'travel.profiles.road' },
+      { id: 'mtb', label: 'travel.profiles.mtb' },
     ],
     online: true,
     build: routed('trekking'),
   },
   {
     id: 'plane',
-    label: 'Samolot',
+    label: 'travel.modes.plane',
     vehicle: 'plane',
     line: { dashed: true },
     avgSpeedKmh: 750,
@@ -117,7 +118,7 @@ export const BUILT_IN_MODES: TravelMode[] = [
   },
   {
     id: 'foot',
-    label: 'Pieszo',
+    label: 'travel.modes.foot',
     vehicle: 'walker',
     line: { dashed: false },
     avgSpeedKmh: 4.5,
@@ -128,7 +129,7 @@ export const BUILT_IN_MODES: TravelMode[] = [
   },
   {
     id: 'train',
-    label: 'Pociąg',
+    label: 'travel.modes.train',
     vehicle: 'train',
     line: { dashed: false },
     avgSpeedKmh: 95,
@@ -139,7 +140,7 @@ export const BUILT_IN_MODES: TravelMode[] = [
   },
 ]
 
-export const LINE_LABELS: Record<LineKind, string> = { road: 'po drodze', straight: 'prosta', arc: 'łuk' }
+export const LINE_LABELS: Record<LineKind, TKey> = { road: 'travel.lineLabels.road', straight: 'travel.lineLabels.straight', arc: 'travel.lineLabels.arc' }
 
 export const lineOf = (plan: Pick<TravelPlan, 'mode' | 'line'>): LineKind => plan.line ?? travelMode(plan.mode).lines[0]
 

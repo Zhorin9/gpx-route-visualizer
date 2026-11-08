@@ -1,20 +1,21 @@
 import { mixHex, toneOf, type Tone } from '../../../utils/color'
 import type { GradientStyle } from '../../../types'
 import type { MapPalette, MapSettings } from '../types'
+import i18n, { type TKey } from '../../../i18n'
 
 export interface MapStyleDef {
   id: string
-  label: string
+  label: TKey
   // A URL of an OpenMapTiles style a palette repaints, or an image style (satellite) none does.
   url: string | StyleJson
   tone: Tone
   credit: string
   // Terms of use, reviewed if the app ever stops being free.
-  terms: string
+  terms: TKey
 }
 
 const OFM_CREDIT = '© OpenFreeMap © OpenMapTiles, dane © OpenStreetMap'
-export const OFM_TERMS = 'OpenFreeMap: bez klucza i bez limitu, także komercyjnie; wymaga oznaczenia źródła.'
+export const OFM_TERMS: TKey = 'map.terms.openFreeMap'
 
 const styles: MapStyleDef[] = []
 
@@ -47,18 +48,18 @@ const SATELLITE: StyleJson = {
 }
 
 export const BUILT_IN_STYLES: MapStyleDef[] = [
-  { id: 'positron', label: 'Jasna', url: 'https://tiles.openfreemap.org/styles/positron', tone: 'light', credit: OFM_CREDIT, terms: OFM_TERMS },
-  { id: 'liberty', label: 'Kolorowa', url: 'https://tiles.openfreemap.org/styles/liberty', tone: 'light', credit: OFM_CREDIT, terms: OFM_TERMS },
-  { id: 'bright', label: 'Wyrazista', url: 'https://tiles.openfreemap.org/styles/bright', tone: 'light', credit: OFM_CREDIT, terms: OFM_TERMS },
-  { id: 'dark', label: 'Ciemna', url: 'https://tiles.openfreemap.org/styles/dark', tone: 'dark', credit: OFM_CREDIT, terms: OFM_TERMS },
-  { id: 'fiord', label: 'Fiord', url: 'https://tiles.openfreemap.org/styles/fiord', tone: 'dark', credit: OFM_CREDIT, terms: OFM_TERMS },
+  { id: 'positron', label: 'map.styles.positron', url: 'https://tiles.openfreemap.org/styles/positron', tone: 'light', credit: OFM_CREDIT, terms: OFM_TERMS },
+  { id: 'liberty', label: 'map.styles.liberty', url: 'https://tiles.openfreemap.org/styles/liberty', tone: 'light', credit: OFM_CREDIT, terms: OFM_TERMS },
+  { id: 'bright', label: 'map.styles.bright', url: 'https://tiles.openfreemap.org/styles/bright', tone: 'light', credit: OFM_CREDIT, terms: OFM_TERMS },
+  { id: 'dark', label: 'map.styles.dark', url: 'https://tiles.openfreemap.org/styles/dark', tone: 'dark', credit: OFM_CREDIT, terms: OFM_TERMS },
+  { id: 'fiord', label: 'map.styles.fiord', url: 'https://tiles.openfreemap.org/styles/fiord', tone: 'dark', credit: OFM_CREDIT, terms: OFM_TERMS },
   {
     id: 'satellite',
-    label: 'Satelita',
+    label: 'map.styles.satellite',
     url: SATELLITE,
     tone: 'dark',
     credit: 'Zdjęcia © Esri, Maxar, Earthstar Geographics',
-    terms: 'Esri World Imagery: bez klucza z oznaczeniem źródła, do użytku niekomercyjnego; przy zmianie licencji aplikacji wymaga przeglądu.',
+    terms: 'map.terms.esri',
   },
 ]
 
@@ -100,7 +101,7 @@ function fetchStyle(url: string): Promise<StyleJson> {
   let style = fetched.get(url)
   if (!style) {
     style = fetch(url).then((r) => {
-      if (!r.ok) throw new Error('Nie udało się wczytać stylu mapy.')
+      if (!r.ok) throw new Error(i18n.t('map.styleFailed'))
       return r.json() as Promise<StyleJson>
     })
     style.catch(() => fetched.delete(url))

@@ -10,7 +10,7 @@ export function perforation(length: number, step: number): number[] {
 }
 
 export const stamp: WrapperDef = {
-  label: 'Znaczek',
+  label: 'wrappers.stamp',
   fields: ['place', 'date'],
   room: () => ({ l: 0.11, t: 0.11, r: 0.11, b: 0.2 }),
   draw(ctx, b, scene) {

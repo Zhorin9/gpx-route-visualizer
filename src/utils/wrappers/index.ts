@@ -7,22 +7,23 @@ import { drawPostmark, postmark } from './postmark'
 import { stamp } from './stamp'
 import { ticket } from './ticket'
 import type { CarouselKind, Slide, Wrapper, WrapperField, WrapperId } from '../../types'
+import type { TKey } from '../../i18n'
 
 export { fromBox, intoBox } from './box'
 export { routeFields } from './routeFields'
 
-export const FIELD_LABELS: Record<WrapperField, string> = {
-  title: 'Tytuł',
-  place: 'Miejsce',
-  from: 'Start',
-  to: 'Meta',
-  date: 'Data (z GPX)',
-  note: 'Notatka',
+export const FIELD_LABELS: Record<WrapperField, TKey> = {
+  title: 'wrappers.fieldTitle',
+  place: 'wrappers.fieldPlace',
+  from: 'wrappers.fieldFrom',
+  to: 'wrappers.fieldTo',
+  date: 'wrappers.fieldDate',
+  note: 'wrappers.fieldNote',
 }
 
 const WRAPPERS: Record<Exclude<WrapperId, 'none'>, WrapperDef> = { postcard, stamp, postmark, ticket, album }
 
-export const WRAPPER_OPTIONS: { id: WrapperId; label: string }[] = [{ id: 'none', label: 'Brak' }, ...Object.entries(WRAPPERS).map(([id, def]) => ({ id: id as WrapperId, label: def.label }))]
+export const WRAPPER_OPTIONS: { id: WrapperId; label: TKey }[] = [{ id: 'none', label: 'wrappers.none' }, ...Object.entries(WRAPPERS).map(([id, def]) => ({ id: id as WrapperId, label: def.label }))]
 
 export const wrapperFieldsOf = (id: WrapperId): WrapperField[] => (id === 'none' ? [] : WRAPPERS[id].fields)
 

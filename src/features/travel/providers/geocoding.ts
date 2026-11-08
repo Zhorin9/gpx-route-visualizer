@@ -1,3 +1,5 @@
+import i18n from '../../../i18n'
+
 export interface Place {
   name: string
   // Region and country, to tell two places of the same name apart.
@@ -50,7 +52,7 @@ function parseNominatim(answer: NominatimPlace[]): Place[] {
 
 async function ask<T>(url: string, signal: AbortSignal, parse: (answer: T) => Place[]): Promise<Place[]> {
   const response = await fetch(url, { signal })
-  if (!response.ok) throw new Error('Wyszukiwarka miejsc nie odpowiedziała.')
+  if (!response.ok) throw new Error(i18n.t('travel.search.noAnswer'))
   return parse(await response.json())
 }
 

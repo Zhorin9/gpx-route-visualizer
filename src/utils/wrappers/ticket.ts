@@ -7,7 +7,7 @@ const STUB = 0.24
 const SIDE = 0.3
 
 export const ticket: WrapperDef = {
-  label: 'Bilet',
+  label: 'wrappers.ticket',
   fields: ['title', 'from', 'to', 'date'],
   room: (side) => (side ? { l: 0.09, t: 0.09, b: 0.09, r: 0.09 + SIDE } : { l: 0.09, t: 0.09, r: 0.09, b: 0.09 + STUB }),
   draw(ctx, b, scene) {

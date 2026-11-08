@@ -10,5 +10,5 @@ export function registerTravel() {
   for (const mode of BUILT_IN_MODES) registerTravelMode(mode)
   registerRoutingProvider(brouter)
   addWorkspace({ tab: 'route', page: 'stops', Component: TravelWorkspace })
-  registerPanelSection({ id: 'stops', label: 'Przystanki', tab: 'route', order: 40, Component: TravelPanel })
+  registerPanelSection({ id: 'stops', label: 'travel.stops', tab: 'route', order: 40, Component: TravelPanel })
 }

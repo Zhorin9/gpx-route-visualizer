@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useAppStore } from '../../store/useAppStore'
+import i18n from '../../i18n'
 import type { ToastAction } from '../../store/types'
 
 const TOAST_MS = 5000
@@ -8,8 +9,8 @@ const TOAST_WITH_ACTION_MS = 10000
 
 function resolveAction(action: ToastAction): { label: string; run: () => void; shortcut?: string } {
   const s = useAppStore.getState()
-  if (action === 'undo') return { label: 'Cofnij', run: s.undo, shortcut: 'Ctrl+Z' }
-  if (action === 'redo') return { label: 'Ponów', run: s.redo, shortcut: 'Ctrl+Shift+Z' }
+  if (action === 'undo') return { label: i18n.t('toast.undo'), run: s.undo, shortcut: 'Ctrl+Z' }
+  if (action === 'redo') return { label: i18n.t('toast.redo'), run: s.redo, shortcut: 'Ctrl+Shift+Z' }
   return action
 }
 

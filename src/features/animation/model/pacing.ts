@@ -1,3 +1,4 @@
+import type { TKey } from '../../../i18n'
 import { posAtDistance } from '../../../utils/geometry'
 import { MOVING_MIN_KMH } from '../../../utils/gpx'
 import { memoOne } from '../../../utils/memo'
@@ -18,10 +19,10 @@ export interface PacingContext {
 
 export interface PacingStrategy {
   id: PacingId
-  label: string
+  label: TKey
   headAt: (progress: number, ctx: PacingContext) => number
   // Why the strategy falls back to even pacing for this track, if it does.
-  unavailable?: (track: GpxTrack) => string | null
+  unavailable?: (track: GpxTrack) => TKey | null
 }
 
 const byDistance = (p: number, { cumKm, range }: PacingContext) =>
@@ -29,13 +30,13 @@ const byDistance = (p: number, { cumKm, range }: PacingContext) =>
 
 export const constantPacing: PacingStrategy = {
   id: 'constant',
-  label: 'Stałe',
+  label: 'animation.pacing.constant',
   headAt: byDistance,
 }
 
 export const easedPacing: PacingStrategy = {
   id: 'eased',
-  label: 'Łagodne',
+  label: 'animation.pacing.eased',
   headAt: (p, ctx) => byDistance(easeInOut(p), ctx),
 }
 
@@ -61,8 +62,8 @@ const hasTime = (track: GpxTrack) => track.points.some((p) => p.time != null)
 // As fast as the ride itself: quick descents fly by, climbs take their time.
 export const speedPacing: PacingStrategy = {
   id: 'bySpeed',
-  label: 'Wg prędkości',
-  unavailable: (track) => (hasTime(track) ? null : 'brak czasu w pliku — tempo stałe'),
+  label: 'animation.pacing.bySpeed',
+  unavailable: (track) => (hasTime(track) ? null : 'animation.pacing.noTime'),
   headAt: (p, ctx) => {
     const clock = movingClock(ctx.track, ctx.cumKm, ctx.range, ctx.breaks)
     if (!clock) return byDistance(p, ctx)

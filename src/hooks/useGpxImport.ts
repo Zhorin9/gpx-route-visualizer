@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useAppStore } from '../store/useAppStore'
 
 export const GPX_ACCEPT = '.gpx,application/gpx+xml'
@@ -12,11 +13,12 @@ export default function useGpxImport() {
   const loadGpxFile = useAppStore((s) => s.loadGpxFile)
   const loadPhotoFiles = useAppStore((s) => s.loadPhotoFiles)
   const showToast = useAppStore((s) => s.showToast)
+  const { t } = useTranslation()
 
   function importFiles(files: FileList | File[] | null | undefined, target?: { slide: number; index: number }) {
     const all = Array.from(files ?? [])
     const tracks = all.filter(isGpx)
-    if (tracks.length && useAppStore.getState().mode === 'collage') showToast('Kolaż jest bez trasy: plik GPX wgrasz w nowym projekcie z trasą.', undefined, true)
+    if (tracks.length && useAppStore.getState().mode === 'collage') showToast(t('useGpxImport.collageNoRoute'), undefined, true)
     else for (const file of tracks) void loadGpxFile(file)
     const photos = all.filter((f) => f.type.startsWith('image/'))
     if (photos.length) void loadPhotoFiles(photos, target)

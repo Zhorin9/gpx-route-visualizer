@@ -6,25 +6,26 @@ import { layoutDef } from './layouts'
 import { memoOne } from './memo'
 import type { CollageStyle, GpxPoint, Photo, PhotoGeo, ProjectMode, RouteStyle, Slide, SlideBackground, SlideKind, SlideLook, SlideOverlays, StatsStyle, SummaryFigure, TitleStyle } from '../types'
 import { clamp } from './math'
+import i18n, { type TKey } from '../i18n'
 
 // Instagram's limit per post.
 export const MAX_EXPORT_SLIDES = 20
-export const LIMIT_MESSAGE = 'Seria ma 20 slajdów do eksportu. Usuń lub pomiń slajd, aby dodać nowy.'
+export const LIMIT_MESSAGE: TKey = 'series.limit'
 
 export const DEFAULT_OVERLAYS: SlideOverlays = { miniMap: 'off', marker: false }
 export const DEFAULT_BACKGROUND: SlideBackground = { source: 'style', color: '#2b3a30', fromSlide: null, blur: 0, dim: 45 }
 export const DEFAULT_FIGURES: SummaryFigure[] = ['distance', 'moving', 'gain']
 
 // In the order they are offered and drawn.
-export const FIGURE_LABELS: Record<SummaryFigure, string> = {
-  distance: 'Dystans',
-  moving: 'Czas w ruchu',
-  duration: 'Czas całkowity',
-  gain: 'Przewyższenie',
-  avgSpeed: 'Średnia prędkość',
-  highest: 'Najwyższy punkt',
-  climb: 'Najtrudniejszy podjazd',
-  days: 'Dni',
+export const FIGURE_LABELS: Record<SummaryFigure, TKey> = {
+  distance: 'series.distance',
+  moving: 'series.moving',
+  duration: 'series.duration',
+  gain: 'series.gain',
+  avgSpeed: 'series.avgSpeed',
+  highest: 'series.highest',
+  climb: 'series.climb',
+  days: 'series.days',
 }
 
 export const SUMMARY_FIGURES = Object.keys(FIGURE_LABELS) as SummaryFigure[]
@@ -32,11 +33,11 @@ export const SUMMARY_FIGURES = Object.keys(FIGURE_LABELS) as SummaryFigure[]
 export const slideKind = (slide: Slide): SlideKind => slide.kind ?? 'photos'
 
 export function slideLabel(slide: Slide, index: number, mode: ProjectMode | null): string {
-  if (index === 0) return mode === 'collage' ? 'Kolaż' : 'Mapa'
+  if (index === 0) return i18n.t(mode === 'collage' ? 'series.collage' : 'series.map')
   const kind = slideKind(slide)
-  if (kind === 'profile') return 'Profil'
-  if (kind === 'summary') return 'Podsumowanie'
-  return layoutDef(slide.layoutKey).cells.length > 1 ? 'Kolaż' : 'Zdjęcie'
+  if (kind === 'profile') return i18n.t('series.profile')
+  if (kind === 'summary') return i18n.t('series.summary')
+  return i18n.t(layoutDef(slide.layoutKey).cells.length > 1 ? 'series.collage' : 'series.photo')
 }
 
 export const isExported = (slide: Slide) => !slide.skipped
@@ -51,9 +52,9 @@ export const exportedSlides = (slides: Slide[]): number[] => slides.flatMap((sli
 export const roomForSlide = (slides: Slide[]) => exportedSlides(slides).length < MAX_EXPORT_SLIDES
 
 export function kindBlocker(kind: SlideKind, route: SeriesRoute | null): string | null {
-  if (kind === 'profile' && !route) return 'Dodaj GPX'
-  if (kind === 'profile' && !route?.hasElevation) return 'Dodaj GPX z wysokościami'
-  if (kind === 'summary' && !route) return 'Dodaj GPX'
+  if (kind === 'profile' && !route) return i18n.t('series.addGpx')
+  if (kind === 'profile' && !route?.hasElevation) return i18n.t('series.addGpxElevation')
+  if (kind === 'summary' && !route) return i18n.t('series.addGpx')
   return null
 }
 
@@ -189,11 +190,11 @@ export function seriesWarnings(slides: Slide[], photos: Map<number, Photo>, poin
     const n = numbers[i]
     if (i === 0 || n == null) return []
     const kind = slideKind(slide)
-    if (kind !== 'photos') return points ? [] : [`Slajd ${n}: ${kind === 'profile' ? 'profil' : 'podsumowanie'} bez trasy`]
+    if (kind !== 'photos') return points ? [] : [i18n.t(kind === 'profile' ? 'series.profileNoRoute' : 'series.summaryNoRoute', { n })]
     const out: string[] = []
-    if (Object.keys(slide.slots).length < layoutDef(slide.layoutKey).cells.length) out.push(`Slajd ${n}: puste miejsce na zdjęcie`)
+    if (Object.keys(slide.slots).length < layoutDef(slide.layoutKey).cells.length) out.push(i18n.t('series.emptySlot', { n }))
     const overlays = slide.overlays ?? DEFAULT_OVERLAYS
-    if ((overlays.marker || overlays.miniMap !== 'off') && !slidePlace(slide, photos, points)) out.push(`Slajd ${n}: nakładka bez miejsca na trasie`)
+    if ((overlays.marker || overlays.miniMap !== 'off') && !slidePlace(slide, photos, points)) out.push(i18n.t('series.overlayNoPlace', { n }))
     return out
   })
 }

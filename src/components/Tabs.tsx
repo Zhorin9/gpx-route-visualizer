@@ -1,4 +1,5 @@
 import { useRef, type KeyboardEvent, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { tabId, tabPanelId } from './tabIds'
 
 export interface TabDef<K extends string> {
@@ -17,10 +18,11 @@ export interface TabsProps<K extends string> {
 
 export default function Tabs<K extends string>({ tabs, active, onChange }: TabsProps<K>) {
   const listRef = useRef<HTMLDivElement>(null)
+  const { t } = useTranslation()
 
   // WAI-ARIA tabs pattern: arrow keys move between tabs.
   function handleKeyDown(e: KeyboardEvent) {
-    const index = tabs.findIndex((t) => t.key === active)
+    const index = tabs.findIndex((tab) => tab.key === active)
     let next = -1
     if (e.key === 'ArrowRight') next = (index + 1) % tabs.length
     else if (e.key === 'ArrowLeft') next = (index - 1 + tabs.length) % tabs.length
@@ -33,7 +35,7 @@ export default function Tabs<K extends string>({ tabs, active, onChange }: TabsP
   }
 
   return (
-    <div className="tabs" role="tablist" aria-label="Sekcje ustawień" ref={listRef} onKeyDown={handleKeyDown}>
+    <div className="tabs" role="tablist" aria-label={t('tabs.sections')} ref={listRef} onKeyDown={handleKeyDown}>
       {tabs.map((tab) => {
         const selected = tab.key === active
         return (

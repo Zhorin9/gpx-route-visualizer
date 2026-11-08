@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import Button from './Button'
 import { IconClose } from '../icons'
 
@@ -13,6 +14,7 @@ interface Props {
 export default function Dialog({ title, onClose, className, closeButton, children }: Props) {
   const titleId = useId()
   const ref = useRef<HTMLDialogElement>(null)
+  const { t } = useTranslation()
 
   useEffect(() => {
     const dialog = ref.current
@@ -46,7 +48,7 @@ export default function Dialog({ title, onClose, className, closeButton, childre
         {closeButton ? (
           <div className="dialog-head">
             {heading}
-            <Button size="icon" variant="ghost" aria-label="Zamknij" onClick={onClose}>
+            <Button size="icon" variant="ghost" aria-label={t('dialog.close')} onClick={onClose}>
               <IconClose />
             </Button>
           </div>

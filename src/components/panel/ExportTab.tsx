@@ -1,10 +1,10 @@
 import { createContext, use, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import Button from '../ui/Button'
 import Dialog from '../ui/Dialog'
 import Section from '../ui/Section'
 import Segmented from '../ui/Segmented'
 import { IconAlert, IconCheckCircle, IconDownload } from '../icons'
-import { plural } from '../../utils/format'
 import { useHasBackground, useHasRoute, useInkIsDark } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { FORMATS, FORMAT_ORDER } from '../../core/formats/registry'
@@ -28,10 +28,6 @@ const FORMAT_OPTIONS: SelectOption<ExportFormat>[] = [
   { value: 'jpg', label: 'JPG' },
 ]
 
-function filesLabel(count: number) {
-  return `${count} ${plural(count, 'plik', 'pliki', 'plików')}`
-}
-
 interface ProofCardProps {
   aspect: AspectKey
   slides: number
@@ -41,6 +37,7 @@ interface ProofCardProps {
 }
 
 function ProofCard({ aspect, slides, proof, checked, onToggle }: ProofCardProps) {
+  const { t } = useTranslation()
   const { w, h, exportName } = FORMATS[aspect]
   // Only a proof that arrives while the card is shown develops; one already drawn just appears.
   const [develops] = useState(!proof)
@@ -51,29 +48,32 @@ function ProofCard({ aspect, slides, proof, checked, onToggle }: ProofCardProps)
         {proof && <img src={proof} alt="" className={develops ? 'develops' : undefined} />}
         {checked && <IconCheckCircle className="proof-check" />}
       </span>
-      <span className="proof-name">{exportName}</span>
+      <span className="proof-name">{t(exportName)}</span>
       <span className="proof-meta">
         {w}×{h}
-        {slides > 1 && ` · ${slides} ${plural(slides, 'slajd', 'slajdy', 'slajdów')}`}
+        {slides > 1 && ` · ${t('exportTab.slides', { count: slides })}`}
       </span>
     </label>
   )
 }
 
 function ElementStateRow({ name, manual }: { name: string; manual: boolean }) {
+  const { t } = useTranslation()
   return (
     <li className={manual ? 'manual' : undefined}>
       <span>{name}</span>
-      <span className="element-state-tag">{manual ? 'Ręcznie' : 'Auto'}</span>
+      <span className="element-state-tag">{manual ? t('exportTab.manual') : t('exportTab.auto')}</span>
     </li>
   )
 }
 
 function CanvasElementStateRow({ def, manual }: { def: CanvasElementDefinition; manual: boolean }) {
-  return def.useIsAvailable() ? <ElementStateRow name={def.label} manual={manual} /> : null
+  const { t } = useTranslation()
+  return def.useIsAvailable() ? <ElementStateRow name={t(def.label)} manual={manual} /> : null
 }
 
 function FormatLayoutSection() {
+  const { t } = useTranslation()
   const atRest = useStoreAtRest()
   const { aspectKey, texts } = atRest
   const resetFormatLayout = useAppStore((s) => s.resetFormatLayout)
@@ -83,12 +83,16 @@ function FormatLayoutSection() {
   if (aspectKey === SOURCE_ASPECT) return null
 
   const rows = [
-    ...texts.map((t) => ({ key: `t${t.id}`, name: t.icon ? `Ikona ${iconById(t.icon)?.label ?? ''}` : `Napis „${t.text.replace(/\s+/g, ' ').slice(0, 24)}”`, manual: Boolean(flags.texts[t.id]) })),
-    { key: 'route', name: 'Trasa', manual: flags.route },
+    ...texts.map((text) => {
+      const icon = text.icon && iconById(text.icon)
+      const name = text.icon ? t('exportTab.iconRow', { name: icon ? t(icon.label) : '' }) : t('exportTab.textRow', { text: text.text.replace(/\s+/g, ' ').slice(0, 24) })
+      return { key: `t${text.id}`, name, manual: Boolean(flags.texts[text.id]) }
+    }),
+    { key: 'route', name: t('exportTab.route'), manual: flags.route },
   ]
 
   return (
-    <Section title={`Układ w ${aspectKey}`} collapseId="export-layout" startCollapsed>
+    <Section title={t('exportTab.layoutIn', { aspect: aspectKey })} collapseId="export-layout" startCollapsed>
       <ul className="element-states">
         {canvasElements().map((def) => (
           <CanvasElementStateRow key={def.kind} def={def} manual={Boolean(flags.elements[def.kind])} />
@@ -98,9 +102,9 @@ function FormatLayoutSection() {
         ))}
       </ul>
       <Button disabled={!manual} onClick={resetFormatLayout}>
-        Przywróć układ automatyczny
+        {t('exportTab.resetLayout')}
       </Button>
-      <p className="hint">Elementy „Ręcznie” zachowują tu swoją pozycję, „Auto” układają się według {SOURCE_ASPECT}.</p>
+      <p className="hint">{t('exportTab.layoutHint', { aspect: SOURCE_ASPECT })}</p>
     </Section>
   )
 }
@@ -109,17 +113,19 @@ function FormatLayoutSection() {
 const ProofsContext = createContext<Partial<Record<AspectKey, string>>>({})
 
 export default function ExportDialog({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation()
   const proofs = useFormatProofs(FORMAT_ORDER)
   return (
-    <Dialog title="Pobierz" onClose={onClose} className="export-dialog" closeButton>
+    <Dialog title={t('exportTab.download')} onClose={onClose} className="export-dialog" closeButton>
       <ProofsContext value={proofs}>
-        <SubTabs tab="export" own={[{ id: 'image', label: 'Obraz', Component: ImageExport }]} />
+        <SubTabs tab="export" own={[{ id: 'image', label: 'exportTab.image', Component: ImageExport }]} />
       </ProofsContext>
     </Dialog>
   )
 }
 
 function ImageExport() {
+  const { t } = useTranslation()
   const hasRoute = useHasRoute()
   const hasBackground = useHasBackground()
   const inkIsDark = useInkIsDark()
@@ -148,10 +154,10 @@ function ImageExport() {
   const warnings = seriesWarnings(slides, new Map(photos.map((p) => [p.id, p])), points)
   const zipped = fileNames.length > 1
   const summary = !hasContent
-    ? 'Dodaj zdjęcia lub plik GPX, aby móc pobrać grafikę.'
+    ? t('exportTab.noContent')
     : zipped
-      ? `${filesLabel(fileNames.length)} w jednym ZIP`
-      : (fileNames[0] ?? 'Zaznacz co najmniej jeden format.')
+      ? t('exportTab.filesInOneZip', { count: fileNames.length })
+      : (fileNames[0] ?? t('exportTab.pickFormat'))
 
   const scaleOptions: SelectOption<Scale>[] = [
     { value: '1', label: `${w}×${h}` },
@@ -168,10 +174,10 @@ function ImageExport() {
     setDownloading(true)
     try {
       await exportProject(formats, fileScale, format, baseName)
-      setResult({ ok: true, text: `Gotowe: ${zipped ? `${filesLabel(fileNames.length)} w ZIP` : fileNames[0]} w pobranych plikach.` })
+      setResult({ ok: true, text: t('exportTab.done', { what: zipped ? t('exportTab.filesInZip', { count: fileNames.length }) : fileNames[0] }) })
     } catch (err) {
-      const reason = err instanceof Error ? err.message : 'nieznany błąd'
-      setResult({ ok: false, text: `Nie udało się pobrać (${reason}). Spróbuj ponownie albo wybierz mniejszą rozdzielczość.` })
+      const reason = err instanceof Error ? err.message : t('exportTab.unknownError')
+      setResult({ ok: false, text: t('exportTab.failed', { reason }) })
     } finally {
       setDownloading(false)
     }
@@ -180,28 +186,28 @@ function ImageExport() {
   return (
     <>
       <div className="export-layout">
-        <section className={inkIsDark ? 'export-sheet light-checker' : 'export-sheet'} aria-label="Formaty">
+        <section className={inkIsDark ? 'export-sheet light-checker' : 'export-sheet'} aria-label={t('exportTab.formats')}>
           <div className="proof-grid">
             {FORMAT_ORDER.map((f) => (
               <ProofCard key={f} aspect={f} slides={slidesIn(f)} proof={proofs[f]} checked={picked.includes(f)} onToggle={() => toggle(f)} />
             ))}
           </div>
-          <p className="hint">Kliknij kadr, żeby go dodać lub usunąć. Napisy i trasa układają się same w każdym formacie, a story omija strefy interfejsu.</p>
+          <p className="hint">{t('exportTab.formatsHint')}</p>
         </section>
 
         <div className="export-settings">
-          <Section title="Plik">
-            <Segmented label="Rozdzielczość" value={scale} options={scaleOptions} onChange={setScale} />
-            <Segmented label="Format pliku" value={format} options={FORMAT_OPTIONS} onChange={setFormat} disabled={!hasBackground} />
+          <Section title={t('exportTab.file')}>
+            <Segmented label={t('exportTab.resolution')} value={scale} options={scaleOptions} onChange={setScale} />
+            <Segmented label={t('exportTab.fileFormat')} value={format} options={FORMAT_OPTIONS} onChange={setFormat} disabled={!hasBackground} />
             <p className="hint">
               {hasBackground
-                ? 'JPG jest mniejszy, PNG zachowuje pełną jakość.'
-                : 'Bez zdjęcia tła zapisujemy przezroczysty PNG — nałożysz go na zdjęcie w Instagramie.'}
+                ? t('exportTab.jpgHint')
+                : t('exportTab.transparentHint')}
             </p>
           </Section>
 
           {zipped && (
-            <Section title="Pliki">
+            <Section title={t('exportTab.files')}>
               <ul className="export-files">
                 {fileNames.map((name) => (
                   <li key={name}>{name}</li>
@@ -211,13 +217,13 @@ function ImageExport() {
           )}
 
           {warnings.length > 0 && (
-            <Section title="Do sprawdzenia">
+            <Section title={t('exportTab.toCheck')}>
               <ul className="export-files export-warnings">
                 {warnings.map((w) => (
                   <li key={w}>{w}</li>
                 ))}
               </ul>
-              <p className="hint">To tylko ostrzeżenia: serię możesz pobrać i tak.</p>
+              <p className="hint">{t('exportTab.warningsHint')}</p>
             </Section>
           )}
 
@@ -237,7 +243,7 @@ function ImageExport() {
           </p>
         )}
         <Button variant="primary" icon={<IconDownload />} disabled={!canExport} onClick={download}>
-          {downloading ? 'Przygotowuję…' : zipped ? 'Pobierz ZIP' : `Pobierz ${format.toUpperCase()}`}
+          {downloading ? t('exportTab.preparing') : t('exportTab.downloadFormat', { format: zipped ? 'ZIP' : format.toUpperCase() })}
         </Button>
       </footer>
     </>

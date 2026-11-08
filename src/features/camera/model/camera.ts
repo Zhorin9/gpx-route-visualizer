@@ -3,6 +3,7 @@ import type { Point2D } from '../../../utils/geometry'
 import { easeInOut } from '../../animation/model/timeline'
 import { clamp01 } from '../../../utils/math'
 import { panoramaCamera } from './panorama'
+import type { TKey } from '../../../i18n'
 
 export type CameraId = 'static' | 'follow' | 'flyover' | 'panorama'
 
@@ -45,7 +46,7 @@ export interface CameraContext {
 // Pure in the moment, so preview, scrubbing and export show the same view at the same time.
 export interface CameraStrategy {
   id: CameraId
-  label: string
+  label: TKey
   viewAt: (ctx: CameraContext) => CameraView | null
 }
 
@@ -80,13 +81,13 @@ function between(to: CameraView, t: number, focus: Point2D): CameraView {
   return { x: focus.x + (to.x - focus.x) * w, y: focus.y + (to.y - focus.y) * w, zoom, focusX: focus.x, focusY: focus.y }
 }
 
-const staticCamera: CameraStrategy = { id: 'static', label: 'Statyczna', viewAt: () => null }
+const staticCamera: CameraStrategy = { id: 'static', label: 'camera.modes.static', viewAt: () => null }
 
-export const followCamera: CameraStrategy = { id: 'follow', label: 'Śledzenie', viewAt: followView }
+export const followCamera: CameraStrategy = { id: 'follow', label: 'camera.modes.follow', viewAt: followView }
 
 export const flyoverCamera: CameraStrategy = {
   id: 'flyover',
-  label: 'Przelot',
+  label: 'camera.modes.flyover',
   viewAt: (ctx) => {
     const a = Math.max(0.01, ctx.settings.approach)
     const t = Math.min(1, ctx.progress / a, (1 - ctx.progress) / a)

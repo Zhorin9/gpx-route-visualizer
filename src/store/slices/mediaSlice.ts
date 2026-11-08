@@ -1,4 +1,5 @@
 import { FORMATS } from '../../core/formats/registry'
+import i18n from '../../i18n'
 import { loadPhoto } from '../../utils/image'
 import { computeSlots, frameInsets, frameStyleFor, hasVisiblePhotos, isPanorama, layoutDef, slotCount } from '../../utils/layouts'
 import { INK, PAPER, mixHex, toneOf, type Tone } from '../../utils/color'
@@ -76,7 +77,7 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
 
     loadPhotoFiles: async (files, target) => {
       const { loaded, failed } = await readPhotoFiles(files)
-      set({ photoError: failed ? 'Nie udało się wczytać części zdjęć' : '' })
+      set({ photoError: failed ? i18n.t('mediaSlice.somePhotosFailed') : '' })
       if (!loaded.length) return
 
       commit('photos:add', (s) => {
@@ -132,7 +133,7 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
           }
         }
       }
-      if (!target) return s.showToast('Wszystkie sloty są zajęte — zaznacz slot, aby go podmienić')
+      if (!target) return s.showToast(i18n.t('mediaSlice.slotsFull'))
       s.assignPhoto(target.slide, target.index, photoId)
     },
 

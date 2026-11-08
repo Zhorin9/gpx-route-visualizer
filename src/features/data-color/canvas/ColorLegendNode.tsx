@@ -1,4 +1,5 @@
 import { Rect, Text } from 'react-konva'
+import { useTranslation } from 'react-i18next'
 import DraggableElement from '../../../core/canvas/DraggableElement'
 import { dataSource } from '../../../core/data/sources'
 import { useAppStore } from '../../../store/useAppStore'
@@ -16,6 +17,7 @@ const LABEL = 22
 const GAP = 10
 
 export default function ColorLegendNode() {
+  const { t } = useTranslation()
   const active = useActiveDataColor()
   const aspectKey = useAppStore((s) => s.aspectKey)
   const units = useAppStore((s) => s.statsContent.units)
@@ -32,7 +34,7 @@ export default function ColorLegendNode() {
   const [lo, hi] = active.domain
   const low = source.format(lo, units)
   const high = source.format(hi, units)
-  const title = `${source.label.toUpperCase()} · ${source.unit(units)}`
+  const title = `${t(source.label).toUpperCase()} · ${source.unit(units)}`
   const stops = active.bins.flatMap((c, i) => [i / Math.max(1, active.bins.length - 1), c])
 
   const { h, safeZone } = FORMATS[aspectKey]

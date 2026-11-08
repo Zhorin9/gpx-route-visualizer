@@ -1,11 +1,12 @@
 import type { GpxPoint, GpxTrack, RangeStats, TrackDay } from '../types'
 import { clamp } from './math'
+import i18n from '../i18n'
 
 // Not `gpxparser`: it throws under strict-mode ES modules for real exported tracks.
 export function parseGpxText(xmlText: string): GpxTrack {
   const doc = new DOMParser().parseFromString(xmlText, 'application/xml')
   if (doc.getElementsByTagName('parsererror').length) {
-    throw new Error('nie jest poprawnym plikiem XML')
+    throw new Error(i18n.t('gpx.invalidXml'))
   }
 
   // Tracks are what devices record; planned routes (<rte>) are a fallback.
@@ -32,7 +33,7 @@ export function parseGpxText(xmlText: string): GpxTrack {
   }
 
   if (points.length < 2) {
-    throw new Error('nie zawiera punktów trasy')
+    throw new Error(i18n.t('gpx.noPoints'))
   }
 
   const nameEl = doc.getElementsByTagName('trk')[0]?.getElementsByTagName('name')[0] ?? doc.getElementsByTagName('name')[0]

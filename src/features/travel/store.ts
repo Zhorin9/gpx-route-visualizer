@@ -1,3 +1,4 @@
+import i18n from '../../i18n'
 import { IDENTITY_TRANSFORM, makeTitle, makeWaypoint, nextId } from '../../store/defaults'
 import { joinTrack, type JoinedTrack } from '../../store/derived'
 import { newSourceKey, settleParts } from '../../store/slices/routeSourceSlice'
@@ -103,7 +104,7 @@ export function createTravelSlice({ set, get, commit }: SliceContext): TravelSli
           } catch (err) {
             if (controller.signal.aborted) throw err
             // The leg stays on the route as a straight line; the person picks another way for it.
-            errors.push(`${legName(plan)}: ${err instanceof Error ? err.message : 'nie udało się wyznaczyć trasy.'} Narysowano linię prostą, wybierz inny środek transportu.`)
+            errors.push(i18n.t('travel.errors.legFailed', { leg: legName(plan), reason: err instanceof Error ? err.message : i18n.t('travel.errors.routeFailed') }))
             const straight: TravelPlan = { ...plan, line: 'straight' }
             return { plan: straight, points: await buildLeg(straight, ctx, start) }
           }

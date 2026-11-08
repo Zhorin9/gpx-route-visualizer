@@ -6,7 +6,7 @@ import { clipOutsideBox, colors, noShadow, shadow, type WrapperDef } from './pai
 const NOTE = 0.09
 
 export const album: WrapperDef = {
-  label: 'Album',
+  label: 'wrappers.album',
   fields: ['note'],
   room: (_, fields) => ({ l: 0.08, t: 0.08, r: 0.08, b: 0.08 + (fields.note ? NOTE : 0) }),
   rotation: -1.5,

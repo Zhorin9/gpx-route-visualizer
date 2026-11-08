@@ -15,16 +15,18 @@ import LayoutCells from '../LayoutCells'
 import PhotoPool from './PhotoPool'
 import { MAX_SLIDES, MIN_CAROUSEL_SLIDES } from '../../store/defaults'
 import type { CarouselKind, FrameKind, LayoutGroup, LayoutKey, Photo, SelectOption, Slide, SlotCrop } from '../../types'
+import type { TKey } from '../../i18n'
+import { useTranslation } from 'react-i18next'
 import PhotoLookSection from './PhotoLookSection'
 
-const GROUP_OPTIONS: SelectOption<LayoutGroup>[] = [
-  { value: 'grid', label: 'Siatki' },
-  { value: 'creative', label: 'Kreatywne / scrapbook' },
+const GROUP_OPTIONS: { value: LayoutGroup; label: TKey }[] = [
+  { value: 'grid', label: 'mediaTab.groupGrid' },
+  { value: 'creative', label: 'mediaTab.groupCreative' },
 ]
 
-const CAROUSEL_KIND_OPTIONS: SelectOption<CarouselKind>[] = [
-  { value: 'panorama', label: 'Jedno zdjęcie' },
-  { value: 'slides', label: 'Osobne układy' },
+const CAROUSEL_KIND_OPTIONS: { value: CarouselKind; label: TKey }[] = [
+  { value: 'panorama', label: 'mediaTab.onePhoto' },
+  { value: 'slides', label: 'mediaTab.separateLayouts' },
 ]
 
 const SLIDE_COUNT_OPTIONS: SelectOption<string>[] = Array.from({ length: MAX_SLIDES - MIN_CAROUSEL_SLIDES + 1 }, (_, i) => {
@@ -32,19 +34,19 @@ const SLIDE_COUNT_OPTIONS: SelectOption<string>[] = Array.from({ length: MAX_SLI
   return { value: n, label: n }
 })
 
-const FRAME_OPTIONS: SelectOption<FrameKind>[] = [
-  { value: 'equal', label: 'Równa' },
-  { value: 'polaroid', label: 'Polaroid' },
+const FRAME_OPTIONS: { value: FrameKind; label: TKey }[] = [
+  { value: 'equal', label: 'mediaTab.frameEqual' },
+  { value: 'polaroid', label: 'mediaTab.framePolaroid' },
 ]
 
-const FIT_OPTIONS: SelectOption<'cover' | 'contain'>[] = [
-  { value: 'cover', label: 'Przytnij' },
-  { value: 'contain', label: 'Całe + rozmyte tło' },
+const FIT_OPTIONS: { value: 'cover' | 'contain'; label: TKey }[] = [
+  { value: 'cover', label: 'mediaTab.fitCover' },
+  { value: 'contain', label: 'mediaTab.fitContain' },
 ]
 
-const OUTPUT_OPTIONS: SelectOption<'single' | 'carousel'>[] = [
-  { value: 'single', label: 'Jeden kadr' },
-  { value: 'carousel', label: 'Karuzela' },
+const OUTPUT_OPTIONS: { value: 'single' | 'carousel'; label: TKey }[] = [
+  { value: 'single', label: 'mediaTab.single' },
+  { value: 'carousel', label: 'mediaTab.carousel' },
 ]
 
 const THUMB_W = 76
@@ -67,6 +69,7 @@ function LayoutThumb({
   onApply: () => void
   onPreview: (on: boolean) => void
 }) {
+  const { t } = useTranslation()
   return (
     <button
       type="button"
@@ -81,12 +84,13 @@ function LayoutThumb({
       <span className="layout-thumb-box" style={{ width: size.w, height: size.h }}>
         <LayoutCells def={def} slide={slide} photos={photos} width={size.w} height={size.h} margin={3} outlineFramed />
       </span>
-      <span className="layout-thumb-label">{def.label}</span>
+      <span className="layout-thumb-label">{t(def.label)}</span>
     </button>
   )
 }
 
 export default function MediaTab() {
+  const { t } = useTranslation()
   const hasPhotos = useHasPhotos()
   const slides = useAppStore((s) => s.slides)
   const photos = useAppStore((s) => s.photos)
@@ -123,17 +127,17 @@ export default function MediaTab() {
   }
 
   const carouselSection = slides.length > 1 && (
-    <Section title="Karuzela">
-      <Segmented label="Sposób podziału" showLabel value={carouselKind} options={CAROUSEL_KIND_OPTIONS} onChange={setCarouselKind} />
+    <Section title={t('mediaTab.carousel')}>
+      <Segmented label={t('mediaTab.splitMode')} showLabel value={carouselKind} options={CAROUSEL_KIND_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))} onChange={setCarouselKind} />
       {panorama ? (
         <>
-          <Segmented label="Liczba slajdów" showLabel value={String(slides.length)} options={SLIDE_COUNT_OPTIONS} onChange={(n) => setSlideCount(Number(n))} />
+          <Segmented label={t('mediaTab.slideCount')} showLabel value={String(slides.length)} options={SLIDE_COUNT_OPTIONS} onChange={(n) => setSlideCount(Number(n))} />
           <p className="hint">
-            Wybierz jedno szerokie zdjęcie — zostanie podzielone równo na slajdy w miejscach linii przerywanych. Przeciągnij, aby przesunąć kadr, kółkiem myszy przybliżysz.
+            {t('mediaTab.panoramaHint')}
           </p>
         </>
       ) : (
-        <p className="hint">Każdy slajd ma własny układ i zdjęcia. Wybierz slajd na pasku slajdów.</p>
+        <p className="hint">{t('mediaTab.slidesHint')}</p>
       )}
     </Section>
   )
@@ -149,9 +153,9 @@ export default function MediaTab() {
       {!collageMode && carouselSection}
 
       {!panorama && (
-        <Section collapseId="layout" title={`${collageMode ? 'Podział kadru' : 'Układ'}${slides.length > 1 ? ` — slajd ${activeSlide + 1}` : ''}`}>
-          <Segmented label="Rodzaj układów" value={group} options={GROUP_OPTIONS} onChange={setGroup} />
-          <div className="layout-grid" role="group" aria-label="Układy zdjęć">
+        <Section collapseId="layout" title={`${collageMode ? t('mediaTab.frameSplit') : t('mediaTab.layout')}${slides.length > 1 ? t('mediaTab.slideSuffix', { n: activeSlide + 1 }) : ''}`}>
+          <Segmented label={t('mediaTab.layoutGroup')} value={group} options={GROUP_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))} onChange={setGroup} />
+          <div className="layout-grid" role="group" aria-label={t('mediaTab.photoLayouts')}>
             {LAYOUTS.filter((l) => l.group === group && (layoutFits(l, format.w, format.h) || l.key === slide.layoutKey)).map((def) => (
               <LayoutThumb
                 key={def.key}
@@ -165,7 +169,7 @@ export default function MediaTab() {
               />
             ))}
           </div>
-          <p className="hint">Najedź na układ, aby zobaczyć go na kadrze. Zmiana układu zachowuje zdjęcia.</p>
+          <p className="hint">{t('mediaTab.layoutHint')}</p>
         </Section>
         )}
 
@@ -173,9 +177,9 @@ export default function MediaTab() {
         <>
           {!panorama && (
             <>
-              <Section title="Odstępy">
+              <Section title={t('mediaTab.spacing')}>
                 <SliderField
-                  label="Przerwa"
+                  label={t('mediaTab.gap')}
                   unit="px"
                   min={0}
                   max={60}
@@ -184,7 +188,7 @@ export default function MediaTab() {
                   onChange={(gap) => updateCollage({ gap })}
                 />
                 <SliderField
-                  label="Margines"
+                  label={t('mediaTab.margin')}
                   unit="px"
                   min={0}
                   max={150}
@@ -193,7 +197,7 @@ export default function MediaTab() {
                   onChange={(margin) => updateCollage({ margin })}
                 />
                 <p className="hint">
-                  Kolor lub gradient pod zdjęciami ustawisz w zakładce{' '}
+                  {t('mediaTab.backgroundHint')}{' '}
                   <button
                     type="button"
                     className="link-btn"
@@ -202,21 +206,21 @@ export default function MediaTab() {
                       setSubTab('style', 'background')
                     }}
                   >
-                    Styl → Tło
+                    {t('mediaTab.styleBackground')}
                   </button>
                   .
                 </p>
               </Section>
 
-              <Section title="Ramka zdjęć">
+              <Section title={t('mediaTab.frame')}>
                 {!isCreative && (
-                  <CheckboxField label="Ramka wokół zdjęć" checked={frame.enabled} onChange={(enabled) => updateFrame({ enabled })} />
+                  <CheckboxField label={t('mediaTab.frameAround')} checked={frame.enabled} onChange={(enabled) => updateFrame({ enabled })} />
                 )}
                 {showFrameControls && (
                   <>
-                    <ColorField label="Kolor ramki" value={frame.color} onChange={(color) => updateFrame({ color })} />
+                    <ColorField label={t('mediaTab.frameColor')} value={frame.color} onChange={(color) => updateFrame({ color })} />
                     <SliderField
-                      label="Grubość"
+                      label={t('mediaTab.thickness')}
                       unit="px"
                       min={4}
                       max={60}
@@ -224,7 +228,7 @@ export default function MediaTab() {
                       defaultValue={DEFAULT_COLLAGE.frame.thickness}
                       onChange={(thickness) => updateFrame({ thickness })}
                     />
-                    <Segmented label="Styl ramki" value={frame.style} options={FRAME_OPTIONS} onChange={(style) => updateFrame({ style })} />
+                    <Segmented label={t('mediaTab.frameStyle')} value={frame.style} options={FRAME_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))} onChange={(style) => updateFrame({ style })} />
                   </>
                 )}
               </Section>
@@ -234,9 +238,9 @@ export default function MediaTab() {
           {collageMode ? (
             <CropSection />
           ) : (
-            <Section title="Dopasowanie">
-              <Segmented label="Dopasowanie zdjęcia do slotu" value={collage.fit} options={FIT_OPTIONS} onChange={(fit) => updateCollage({ fit })} />
-              {collage.fit === 'contain' && <p className="hint">W tym trybie zdjęcie jest widoczne w całości, więc nie da się go przesuwać ani przybliżać.</p>}
+            <Section title={t('mediaTab.fit')}>
+              <Segmented label={t('mediaTab.fitLabel')} value={collage.fit} options={FIT_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))} onChange={(fit) => updateCollage({ fit })} />
+              {collage.fit === 'contain' && <p className="hint">{t('mediaTab.containHint')}</p>}
             </Section>
           )}
           <PhotoLookSection />
@@ -245,11 +249,11 @@ export default function MediaTab() {
 
       {collageMode && (
         <>
-          <Section title="Wyjście">
+          <Section title={t('mediaTab.output')}>
             {format.carousel ? (
-              <Segmented label="Wyjście" value={slides.length > 1 ? 'carousel' : 'single'} options={OUTPUT_OPTIONS} onChange={(out) => setCarousel(out === 'carousel')} />
+              <Segmented label={t('mediaTab.output')} value={slides.length > 1 ? 'carousel' : 'single'} options={OUTPUT_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))} onChange={(out) => setCarousel(out === 'carousel')} />
             ) : (
-              <p className="hint">Ten format ma jeden kadr. Karuzelę zrobisz w formacie Instagrama.</p>
+              <p className="hint">{t('mediaTab.singleFrameHint')}</p>
             )}
           </Section>
           {carouselSection}
@@ -260,6 +264,7 @@ export default function MediaTab() {
 }
 
 function CropSection() {
+  const { t } = useTranslation()
   const slides = useAppStore((s) => s.slides)
   const fit = useAppStore((s) => s.collage.fit)
   const selection = useAppStore((s) => s.selection)
@@ -271,14 +276,14 @@ function CropSection() {
   const value = current.every((c) => c === current[0]) ? current[0] : undefined
 
   return (
-    <Section title="Przycinanie">
-      <Segmented label={target ? 'Przytnij zaznaczone zdjęcie' : 'Przytnij wszystkie zdjęcia'} showLabel value={value ?? ('' as SlotCrop)} options={CROP_OPTIONS} onChange={(crop) => setCrop(crop, target)} />
+    <Section title={t('mediaTab.crop')}>
+      <Segmented label={target ? t('mediaTab.cropSelected') : t('mediaTab.cropAll')} showLabel value={value ?? ('' as SlotCrop)} options={CROP_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))} onChange={(crop) => setCrop(crop, target)} />
       <p className="hint">
         {value === 'manual'
-          ? 'Przeciągnij zdjęcie w slocie, aby je przesunąć; kółkiem myszy przybliżysz.'
+          ? t('mediaTab.cropManualHint')
           : target
-            ? 'Kliknij puste miejsce obok kadru, aby ustawić wszystkie zdjęcia naraz.'
-            : 'Kliknij zdjęcie na kadrze, aby przyciąć tylko je.'}
+            ? t('mediaTab.cropAllHint')
+            : t('mediaTab.cropOneHint')}
       </p>
     </Section>
   )

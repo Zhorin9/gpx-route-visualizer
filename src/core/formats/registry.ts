@@ -1,5 +1,6 @@
 import { columnLayout, insetBelow, stretchLayout, type LayoutStrategy } from './layouts'
 import type { AspectKey } from '../../types'
+import type { TKey } from '../../i18n'
 
 // Bands of the frame covered by the platform's own interface, in frame pixels.
 export interface SafeZone {
@@ -8,8 +9,8 @@ export interface SafeZone {
   bottom: number
   left: number
   // What covers the top and bottom bands, shown on them in the editor.
-  topLabel: string
-  bottomLabel: string
+  topLabel: TKey
+  bottomLabel: TKey
 }
 
 export interface FormatDef {
@@ -17,10 +18,10 @@ export interface FormatDef {
   w: number
   h: number
   // Format switcher above the frame.
-  label: string
+  label: TKey
   // Export panels.
-  exportName: string
-  note: string
+  exportName: TKey
+  note: TKey
   // Several slides side by side; without it only the first slide is shown and exported.
   carousel: boolean
   // Drawn in the editor (never exported) and kept clear by the automatic layout.
@@ -40,31 +41,31 @@ export interface Columns {
 }
 
 export const FORMATS: Record<AspectKey, FormatDef> = {
-  '4:5': { key: '4:5', w: 1080, h: 1350, label: 'Post 4:5', exportName: 'Post 4:5', note: 'feed', carousel: true, safeZone: null, columns: null, layout: stretchLayout },
+  '4:5': { key: '4:5', w: 1080, h: 1350, label: 'formats.post', exportName: 'formats.postExport', note: 'formats.postNote', carousel: true, safeZone: null, columns: null, layout: stretchLayout },
   '9:16': {
     key: '9:16',
     w: 1080,
     h: 1920,
-    label: 'Story 9:16',
-    exportName: 'Story / Reels 9:16',
-    note: 'strefy bezpieczne',
+    label: 'formats.story',
+    exportName: 'formats.storyExport',
+    note: 'formats.storyNote',
     carousel: true,
     // Instagram's profile bar and reply box.
-    safeZone: { top: 250, right: 0, bottom: 340, left: 0, topLabel: 'Pasek profilu Instagrama', bottomLabel: 'Pole odpowiedzi' },
+    safeZone: { top: 250, right: 0, bottom: 340, left: 0, topLabel: 'formats.storyTop', bottomLabel: 'formats.storyBottom' },
     columns: null,
     layout: stretchLayout,
   },
-  '1:1': { key: '1:1', w: 1080, h: 1080, label: 'Kwadrat 1:1', exportName: 'Kwadrat 1:1', note: 'siatka profilu', carousel: true, safeZone: null, columns: null, layout: stretchLayout },
+  '1:1': { key: '1:1', w: 1080, h: 1080, label: 'formats.square', exportName: 'formats.squareExport', note: 'formats.squareNote', carousel: true, safeZone: null, columns: null, layout: stretchLayout },
   '16:9': {
     key: '16:9',
     w: 1920,
     h: 1080,
-    label: 'YouTube 16:9',
-    exportName: 'YouTube / film 16:9',
-    note: 'strefa odtwarzacza',
+    label: 'formats.youtube',
+    exportName: 'formats.youtubeExport',
+    note: 'formats.youtubeNote',
     carousel: false,
     // Title-safe margin of 5% on every side; the player bar covers the bottom ~12%.
-    safeZone: { top: 54, right: 96, bottom: 130, left: 96, topLabel: 'Margines tytułowy', bottomLabel: 'Pasek odtwarzacza YouTube' },
+    safeZone: { top: 54, right: 96, bottom: 130, left: 96, topLabel: 'formats.youtubeTop', bottomLabel: 'formats.youtubeBottom' },
     columns: { routeW: 1152, side: { x: 1152, y: 140, w: 672 }, footH: 270 },
     layout: columnLayout,
   },

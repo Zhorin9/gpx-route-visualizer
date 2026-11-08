@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useCountHead } from '../../core/animation/layers'
 import { rangeStats, selectRouteParts, selectTrack } from '../../store/derived'
 import { useDayBreaks, useRangeStats } from '../../store/selectors'
@@ -14,6 +15,8 @@ export function useStatsChips(): StatChip[] {
   const content = useAppStore((s) => s.statsContent)
   // While the line is drawn, the figures count up with it.
   const head = useCountHead()
+  // Captions are drawn in the current language.
+  useTranslation()
   const stats = head != null && full ? rangeStats(track, { start: range.start, end: Math.max(range.start, Math.floor(head)) }, breaks, parts) : full
   return stats ? buildChips({ stats, content }) : []
 }

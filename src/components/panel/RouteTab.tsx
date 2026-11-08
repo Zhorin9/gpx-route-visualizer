@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import ColorField from '../fields/ColorField'
 import Button from '../ui/Button'
 import FileButton from '../ui/FileButton'
@@ -19,25 +20,27 @@ import { useHasRoute, useTrackCumKm } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { formatKm } from '../../utils/format'
 import { selectTrack, selectRouteDays } from '../../store/derived'
-import type { KmInterval, RoutePart, SelectOption } from '../../types'
+import type { KmInterval, RoutePart } from '../../types'
+import type { TKey } from '../../i18n'
 import './RouteTab.css'
 
 // The trip planner's page, added by the travel feature.
 const TRIP_PAGE = 'stops'
 
-const KM_OPTIONS: SelectOption<string>[] = [
-  { value: '10', label: 'Co 10' },
-  { value: '25', label: 'Co 25' },
-  { value: '50', label: 'Co 50' },
-  { value: '0', label: 'Wył.' },
+const KM_OPTIONS: { value: string; label: TKey }[] = [
+  { value: '10', label: 'routeTab.every10' },
+  { value: '25', label: 'routeTab.every25' },
+  { value: '50', label: 'routeTab.every50' },
+  { value: '0', label: 'routeTab.off' },
 ]
 
-const LINE_OPTIONS: SelectOption<'solid' | 'dashed'>[] = [
-  { value: 'solid', label: 'Ciągła' },
-  { value: 'dashed', label: 'Kreskowana' },
+const LINE_OPTIONS: { value: 'solid' | 'dashed'; label: TKey }[] = [
+  { value: 'solid', label: 'routeTab.solid' },
+  { value: 'dashed', label: 'routeTab.dashed' },
 ]
 
 function RouteEmpty() {
+  const { t } = useTranslation()
   const gpxError = useAppStore((s) => s.gpxError)
   const setSubTab = useAppStore((s) => s.setSubTab)
   const { importFiles } = useGpxImport()
@@ -45,28 +48,29 @@ function RouteEmpty() {
   return (
     <StatusCard
       icon={<IconUpload />}
-      title="Dodaj trasę"
+      title={t('routeTab.emptyTitle')}
       actions={
         <>
           <FileButton accept={GPX_ACCEPT} onFiles={importFiles} variant="primary">
-            Dodaj plik GPX
+            {t('routeTab.addGpx')}
           </FileButton>
-          <Button onClick={() => setSubTab('route', TRIP_PAGE)}>Zaplanuj podróż</Button>
+          <Button onClick={() => setSubTab('route', TRIP_PAGE)}>{t('routeTab.planTrip')}</Button>
         </>
       }
     >
-      Przeciągnij plik GPX na podgląd albo wybierz go z dysku. Bez pliku zaplanujesz trasę z przystanków.
+      {t('routeTab.emptyText')}
     </StatusCard>
   )
 }
 
 function GpxFileButton() {
+  const { t } = useTranslation()
   const gpxError = useAppStore((s) => s.gpxError)
   const { importFiles } = useGpxImport()
   return (
     <>
       <FileButton accept={GPX_ACCEPT} onFiles={importFiles} icon={<IconUpload />} block>
-        Zmień plik GPX
+        {t('routeTab.changeGpx')}
       </FileButton>
       {gpxError && (
         <p className="error" role="alert">
@@ -78,6 +82,7 @@ function GpxFileButton() {
 }
 
 function RoutesSection() {
+  const { t } = useTranslation()
   const track = useAppStore(selectTrack)
   const days = useAppStore(selectRouteDays)
   const routeStyle = useAppStore((s) => s.routeStyle)
@@ -92,15 +97,15 @@ function RoutesSection() {
   const multi = days.length > 1
   // A planned leg is named by its places; a file is one day of the trip.
   const rows: { id: number; name: string; km: number; color: string; visible: boolean }[] = multi
-    ? days.map((d, i) => ({ id: d.id, name: d.plan ? d.name : `Dzień ${i + 1} · ${d.name}`, km: cum[d.endIdx] - cum[d.startIdx], color: d.color, visible: d.visible }))
-    : [{ id: 0, name: track.name ?? 'Trasa bez nazwy', km: cum[cum.length - 1], color: routeStyle.color, visible: true }]
+    ? days.map((d, i) => ({ id: d.id, name: d.plan ? d.name : t('routeTab.dayName', { n: i + 1, name: d.name }), km: cum[d.endIdx] - cum[d.startIdx], color: d.color, visible: d.visible }))
+    : [{ id: 0, name: track.name ?? t('routeTab.unnamedRoute'), km: cum[cum.length - 1], color: routeStyle.color, visible: true }]
   const total = multi ? cum[cum.length - 1] : 0
   const selected: RoutePart | undefined = multi ? (days.find((d) => d.id === selectedId) ?? days[0]) : undefined
 
   return (
-    <Section title="Trasy">
-      {multi && <p className="hint">Razem {formatKm(total, 1)}</p>}
-      <div className="item-list" role="listbox" aria-label="Trasy">
+    <Section title={t('routeTab.routes')}>
+      {multi && <p className="hint">{t('routeTab.total', { km: formatKm(total, 1) })}</p>}
+      <div className="item-list" role="listbox" aria-label={t('routeTab.routes')}>
         {rows.map((row, i) => (
           <div key={row.id} className={multi && row.id === selected?.id ? 'day-row active' : 'day-row'}>
             <button type="button" className="day-row-main" disabled={!multi} aria-selected={multi && row.id === selected?.id} onClick={() => setSelectedId(row.id)}>
@@ -113,12 +118,12 @@ function RoutesSection() {
                 <button
                   type="button"
                   className="day-icon-btn"
-                  aria-label={row.visible ? `Ukryj dzień ${i + 1}` : `Pokaż dzień ${i + 1}`}
+                  aria-label={row.visible ? t('routeTab.hideDay', { n: i + 1 }) : t('routeTab.showDay', { n: i + 1 })}
                   onClick={() => updatePart(row.id, { visible: !row.visible })}
                 >
                   {row.visible ? <IconEye /> : <IconEyeOff />}
                 </button>
-                <button type="button" className="day-icon-btn" aria-label={`Usuń dzień ${i + 1}`} onClick={() => removePart(row.id)}>
+                <button type="button" className="day-icon-btn" aria-label={t('routeTab.removeDay', { n: i + 1 })} onClick={() => removePart(row.id)}>
                   <IconClose width={14} height={14} />
                 </button>
               </>
@@ -136,37 +141,44 @@ function RoutesSection() {
           for (const file of Array.from(files ?? [])) await loadGpxFile(file, true)
         }}
       >
-        Dodaj plik GPX (kolejny dzień)
+        {t('routeTab.addGpxDay')}
       </FileButton>
 
       {selected && (
         <>
-          <h6 className="subhead">Zaznaczony: {selected.plan ? selected.name : `Dzień ${days.indexOf(selected) + 1}`}</h6>
-          <ColorField label="Kolor linii" value={selected.color} onChange={(color) => updatePart(selected.id, { color })} />
+          <h6 className="subhead">{t('routeTab.selected', { name: selected.plan ? selected.name : t('routeTab.day',{ n: days.indexOf(selected) + 1 }) })}</h6>
+          <ColorField label={t('routeTab.lineColor')} value={selected.color} onChange={(color) => updatePart(selected.id, { color })} />
           <Segmented
-            label="Styl linii"
+            label={t('routeTab.lineStyle')}
             value={selected.dashed ? 'dashed' : 'solid'}
-            options={LINE_OPTIONS}
+            options={LINE_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))}
             onChange={(v) => updatePart(selected.id, { dashed: v === 'dashed' })}
           />
         </>
       )}
-      {!multi && <p className="hint">Kolor linii ustawisz w podzakładce „Kolor”.</p>}
+      {!multi && <p className="hint">{t('routeTab.lineColorHint')}</p>}
     </Section>
   )
 }
 
 function MarkersSection() {
+  const { t } = useTranslation()
   const interval = useAppStore((s) => s.kmInterval)
   const setKmInterval = useAppStore((s) => s.setKmInterval)
   return (
-    <Section title="Znaczniki kilometrów">
-      <Segmented label="Znaczniki kilometrów" value={String(interval)} options={KM_OPTIONS} onChange={(v) => setKmInterval(Number(v) as KmInterval)} />
+    <Section title={t('routeTab.kmMarkers')}>
+      <Segmented
+        label={t('routeTab.kmMarkers')}
+        value={String(interval)}
+        options={KM_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))}
+        onChange={(v) => setKmInterval(Number(v) as KmInterval)}
+      />
     </Section>
   )
 }
 
 function PoiSection() {
+  const { t } = useTranslation()
   const waypoints = useAppStore((s) => s.waypoints)
   const selection = useAppStore((s) => s.selection)
   const adding = useAppStore((s) => s.addingWaypoint)
@@ -176,14 +188,14 @@ function PoiSection() {
   const selected = selection?.kind === 'waypoint' ? waypoints.find((w) => w.id === selection.id) : undefined
 
   return (
-    <Section title="Miejsca na trasie">
+    <Section title={t('routeTab.places')}>
       {waypoints.length > 0 && (
-        <div className="item-list" role="listbox" aria-label="Miejsca na trasie">
+        <div className="item-list" role="listbox" aria-label={t('routeTab.places')}>
           {waypoints.map((w) => (
             <ElementRow
               key={w.id}
               icon={<KindIcon kind={w.kind} icon={w.icon} />}
-              label={w.text || '(pusty)'}
+              label={w.text || t('routeTab.emptyPlace')}
               meta={cum ? `km ${Math.round(cum[Math.min(cum.length - 1, Math.round(w.trackPos))])}` : ''}
               active={w.id === selected?.id}
               onClick={() => select({ kind: 'waypoint', id: w.id })}
@@ -192,7 +204,7 @@ function PoiSection() {
         </div>
       )}
       <Button pressed={adding} icon={<IconPlus />} block onClick={() => setAddingWaypoint(!adding)}>
-        {adding ? 'Anuluj' : 'Dodaj punkt — kliknij na trasie'}
+        {adding ? t('routeTab.cancel') : t('routeTab.addPoint')}
       </Button>
     </Section>
   )
@@ -222,5 +234,5 @@ export default function RouteTab() {
     const trip = planning && panelSections('route', mode).find((p) => p.id === TRIP_PAGE)
     return trip ? <trip.Component /> : <RouteEmpty />
   }
-  return <SubTabs tab="route" own={[{ id: 'line', label: 'Linia', Component: RouteLinePage }]} />
+  return <SubTabs tab="route" own={[{ id: 'line', label: 'routeTab.line', Component: RouteLinePage }]} />
 }

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import RangeSliderField from '../fields/RangeSliderField'
 import SliderField from '../fields/SliderField'
 import Section from '../ui/Section'
@@ -8,6 +9,7 @@ import { formatDay, formatDuration, formatElevation, formatKm } from '../../util
 import { selectTrack } from '../../store/derived'
 
 export default function RangeTab() {
+  const { t } = useTranslation()
   const track = useAppStore(selectTrack)
   const range = useAppStore((s) => s.range)
   const setRange = useAppStore((s) => s.setRange)
@@ -26,8 +28,8 @@ export default function RangeTab() {
   return (
     <>
       {days.length > 0 && (
-        <Section title="Dzień wyprawy">
-          <div className="chip-list" role="radiogroup" aria-label="Dzień wyprawy">
+        <Section title={t('rangeTab.tripDay')}>
+          <div className="chip-list" role="radiogroup" aria-label={t('rangeTab.tripDay')}>
             <button
               type="button"
               role="radio"
@@ -35,7 +37,7 @@ export default function RangeTab() {
               className={isFull ? 'chip active' : 'chip'}
               onClick={() => setRange({ start: 0, end: lastIndex })}
             >
-              Cała trasa
+              {t('rangeTab.wholeRoute')}
             </button>
             {days.map((day, i) => {
               const active = range.start === day.startIdx && range.end === day.endIdx
@@ -48,19 +50,19 @@ export default function RangeTab() {
                   className={active ? 'chip active' : 'chip'}
                   onClick={() => selectDay(i)}
                 >
-                  Dzień {i + 1}
+                  {t('rangeTab.day', { n: i + 1 })}
                   <small>{formatDay(day.date)}</small>
                 </button>
               )
             })}
           </div>
-          <p className="hint">Wybranie dnia ustawia też numer w etykiecie nagłówka.</p>
+          <p className="hint">{t('rangeTab.dayHint')}</p>
         </Section>
       )}
 
-      <Section title="Widoczny fragment">
+      <Section title={t('rangeTab.visiblePart')}>
         <RangeSliderField
-          label="Zakres"
+          label={t('rangeTab.range')}
           min={0}
           max={lastIndex}
           start={range.start}
@@ -71,24 +73,24 @@ export default function RangeTab() {
         {stats && (
           <dl className="stat-readout">
             <div>
-              <dt>Dystans</dt>
+              <dt>{t('rangeTab.distance')}</dt>
               <dd>{formatKm(stats.distanceKm, 1)}</dd>
             </div>
             <div>
-              <dt>Przewyższenie</dt>
+              <dt>{t('rangeTab.elevationGain')}</dt>
               <dd>{formatElevation(stats.elevationGainM, 1)}</dd>
             </div>
             <div>
-              <dt>Czas</dt>
+              <dt>{t('rangeTab.time')}</dt>
               <dd>{formatDuration(stats.durationMs)}</dd>
             </div>
           </dl>
         )}
       </Section>
 
-      <Section title="Postęp">
+      <Section title={t('rangeTab.progress')}>
         <SliderField
-          label="Przejechane"
+          label={t('rangeTab.covered')}
           unit="%"
           value={progress}
           defaultValue={100}
@@ -96,9 +98,7 @@ export default function RangeTab() {
           disabled={isSchematic}
         />
         <p className="hint">
-          {isSchematic
-            ? 'W trybie schematycznym cała trasa jest rysowana jedną linią — postęp nie ma zastosowania.'
-            : 'Część trasy po tym punkcie jest rysowana jako „pozostała” (jej wygląd ustawisz niżej, w sekcji „Pozostała trasa”).'}
+          {isSchematic ? t('rangeTab.schematicHint') : t('rangeTab.progressHint')}
         </p>
       </Section>
     </>

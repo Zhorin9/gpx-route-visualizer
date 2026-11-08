@@ -1,4 +1,5 @@
 import { useState, type DragEvent, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import useGpxImport, { GPX_ACCEPT } from '../hooks/useGpxImport'
 import { useAppStore } from '../store/useAppStore'
 import { FORMATS } from '../core/formats/registry'
@@ -41,6 +42,7 @@ function ModeCard({ kicker, title, body, art, action, note, onDropFiles }: { kic
 export default function StartScreen() {
   const startProject = useAppStore((s) => s.startProject)
   const { importFiles } = useGpxImport()
+  const { t } = useTranslation()
 
   const setLayout = useAppStore((s) => s.setLayout)
   const format = useAppStore((s) => FORMATS[s.aspectKey])
@@ -59,26 +61,26 @@ export default function StartScreen() {
     <main className="start-screen">
       <header className="start-screen-header">
         <h1>Tripcard</h1>
-        <p>Od czego zaczynasz? Trasę z GPX i miejsca na mapie połączysz w jednym projekcie. Kolaż to same zdjęcia, bez mapy.</p>
+        <p>{t('startScreen.intro')}</p>
       </header>
       <div className="start-screen-cards">
         <ModeCard
-          kicker="Aktywność"
-          title="Dodaj trasę GPX"
-          body="Rower, bieg, wędrówka. Kolorowanie według prędkości lub nachylenia, profil wysokości i statystyki wyliczone z pliku."
+          kicker={t('startScreen.activityKicker')}
+          title={t('startScreen.activityTitle')}
+          body={t('startScreen.activityBody')}
           art={<path d="M4 70 C40 66 50 30 90 36 S140 66 180 40 S250 8 296 16" />}
           action={
             <FileButton accept={GPX_ACCEPT} variant="primary" onFiles={start('map')}>
-              Wybierz plik .gpx
+              {t('startScreen.chooseGpx')}
             </FileButton>
           }
-          note="lub przeciągnij tutaj"
+          note={t('startScreen.orDragHere')}
           onDropFiles={start('map')}
         />
         <ModeCard
-          kicker="Podróż"
-          title="Zaznacz miejsca na mapie"
-          body="Wakacje i wyjazdy. Klikasz miejsca, wybierasz pojazd między nimi: samochód, samolot, pociąg, rower, pieszo. Bez pliku."
+          kicker={t('startScreen.tripKicker')}
+          title={t('startScreen.tripTitle')}
+          body={t('startScreen.tripBody')}
           art={
             <>
               <path d="M30 60 Q80 0 130 40 T230 30 T280 56" strokeDasharray="2 6" />
@@ -94,15 +96,15 @@ export default function StartScreen() {
           }
           action={
             <Button variant="primary" onClick={() => start('map', 'stops')()}>
-              Otwórz mapę
+              {t('startScreen.openMap')}
             </Button>
           }
-          note="miejsca wyszukasz lub klikniesz"
+          note={t('startScreen.tripNote')}
         />
         <ModeCard
-          kicker="Same zdjęcia"
-          title="Kolaż ze zdjęć"
-          body="Dodaj zdjęcia, podziel kadr, przytnij. Bez mapy i bez GPX. Możesz z nich zrobić kolaż albo karuzelę."
+          kicker={t('startScreen.collageKicker')}
+          title={t('startScreen.collageTitle')}
+          body={t('startScreen.collageBody')}
           art={
             <>
               <rect x="30" y="8" width="110" height="64" />
@@ -113,10 +115,10 @@ export default function StartScreen() {
           }
           action={
             <FileButton accept="image/*" multiple variant="primary" onFiles={start('collage')}>
-              Wybierz zdjęcia
+              {t('startScreen.choosePhotos')}
             </FileButton>
           }
-          note="lub przeciągnij tutaj"
+          note={t('startScreen.orDragHere')}
           onDropFiles={start('collage')}
         />
       </div>

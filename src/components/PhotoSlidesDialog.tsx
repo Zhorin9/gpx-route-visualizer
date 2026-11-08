@@ -1,7 +1,7 @@
+import { useTranslation } from 'react-i18next'
 import { selectTrack } from '../store/derived'
 import { useDayBreaks } from '../store/selectors'
 import { useAppStore } from '../store/useAppStore'
-import { plural } from '../utils/format'
 import { formatDistance } from '../core/units'
 import { matchGeo, seriesRoute } from '../utils/series'
 import Button from './ui/Button'
@@ -13,6 +13,7 @@ export default function PhotoSlidesDialog() {
   const cancel = useAppStore((s) => s.cancelPhotoSlides)
   const units = useAppStore((s) => s.statsContent.units)
   const route = seriesRoute(useAppStore((s) => selectTrack(s)?.points ?? null), useDayBreaks())
+  const { t } = useTranslation()
 
   if (!loaded) return null
   const places = loaded.flatMap((p) => {
@@ -23,16 +24,16 @@ export default function PhotoSlidesDialog() {
   const n = loaded.length
 
   return (
-    <Dialog onClose={cancel} title={`${n} ${plural(n, 'zdjęcie', 'zdjęcia', 'zdjęć')} do serii`}>
+    <Dialog onClose={cancel} title={t('photoSlidesDialog.title', { count: n })}>
       {route ? (
         <>
           <p>
-            {places.length} z {n} dopasowano do trasy według EXIF (miejsce lub czas zrobienia).
+            {t('photoSlidesDialog.matched', { matched: places.length, count: n })}
           </p>
           <ul className="photo-slides-summary">
             {places.length > 0 && (
               <li>
-                <span>{places.length} z lokalizacją lub czasem</span>
+                <span>{t('photoSlidesDialog.withPlace', { count: places.length })}</span>
                 <span className="text-muted">
                   {formatDistance(Math.min(...places), units, 0)} – {formatDistance(Math.max(...places), units, 0)}
                 </span>
@@ -40,23 +41,23 @@ export default function PhotoSlidesDialog() {
             )}
             {missing > 0 && (
               <li>
-                <span>{missing} bez dopasowania</span>
-                <span className="text-muted">miejsce ustawisz w zakładce Zdjęcia</span>
+                <span>{t('photoSlidesDialog.unmatched', { count: missing })}</span>
+                <span className="text-muted">{t('photoSlidesDialog.unmatchedHint')}</span>
               </li>
             )}
           </ul>
-          <p className="hint">Slajdy ułożą się wzdłuż trasy. Kolejność zmienisz, przeciągając je na pasku.</p>
+          <p className="hint">{t('photoSlidesDialog.alongRoute')}</p>
         </>
       ) : (
-        <p className="hint">Bez trasy zdjęcia nie mają z czym się zgrać: slajdy powstaną w kolejności wyboru, bez mini-mapy i kilometra.</p>
+        <p className="hint">{t('photoSlidesDialog.noRoute')}</p>
       )}
       <div className="dialog-actions">
         <Button variant="ghost" onClick={cancel}>
-          Anuluj
+          {t('photoSlidesDialog.cancel')}
         </Button>
-        {route && <Button onClick={() => confirm(false)}>Pomiń dopasowanie</Button>}
+        {route && <Button onClick={() => confirm(false)}>{t('photoSlidesDialog.skipMatching')}</Button>}
         <Button variant="primary" onClick={() => confirm(true)}>
-          Utwórz {n} {plural(n, 'slajd', 'slajdy', 'slajdów')}
+          {t('photoSlidesDialog.create', { count: n })}
         </Button>
       </div>
     </Dialog>

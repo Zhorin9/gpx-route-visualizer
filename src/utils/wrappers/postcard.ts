@@ -20,7 +20,7 @@ function stampField(ctx: CanvasRenderingContext2D, x: number, y: number, w: numb
 }
 
 export const postcard: WrapperDef = {
-  label: 'Pocztówka',
+  label: 'wrappers.postcard',
   fields: ['place', 'date', 'note'],
   room: (side) => (side ? { l: 0.06, t: 0.06, b: 0.06, r: 0.1 + SIDE } : { l: 0.06, t: 0.06, r: 0.06, b: 0.1 + BAND }),
   draw(ctx, b, scene) {

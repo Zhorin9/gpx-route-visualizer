@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { HexColorPicker, HexColorInput } from 'react-colorful'
+import { useTranslation } from 'react-i18next'
 import { IconEyedropper } from '../icons'
 
 const supportsEyeDropper = typeof window !== 'undefined' && 'EyeDropper' in window
@@ -15,6 +16,7 @@ export default function ColorField({ label, value, onChange }: ColorFieldProps) 
   const wrapperRef = useRef<HTMLDivElement>(null)
   const swatchRef = useRef<HTMLButtonElement>(null)
   const popoverId = useId()
+  const { t } = useTranslation()
 
   useEffect(() => {
     if (!open) return
@@ -59,9 +61,9 @@ export default function ColorField({ label, value, onChange }: ColorFieldProps) 
           aria-expanded={open}
           aria-controls={popoverId}
         />
-        <HexColorInput color={value} onChange={onChange} prefixed className="color-hex-input" aria-label={`${label} – kod HEX`} />
+        <HexColorInput color={value} onChange={onChange} prefixed className="color-hex-input" aria-label={t('colorField.hex', { label })} />
         {supportsEyeDropper && (
-          <button type="button" className="icon-btn" title="Pobierz kolor z ekranu" aria-label="Pobierz kolor z ekranu" onClick={pickFromScreen}>
+          <button type="button" className="icon-btn" title={t('colorField.pick')} aria-label={t('colorField.pick')} onClick={pickFromScreen}>
             <IconEyedropper />
           </button>
         )}

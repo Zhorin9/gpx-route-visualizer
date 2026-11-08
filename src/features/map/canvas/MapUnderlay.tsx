@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { Map as MapLibreMap } from 'maplibre-gl'
+import { useTranslation } from 'react-i18next'
 import { useShallow } from 'zustand/react/shallow'
 import { FORMATS } from '../../../core/formats/registry'
 import { useViewTransform } from '../../../core/route/view'
@@ -17,6 +18,7 @@ import { drawnTone } from '../store'
 import { mapIsSeeThrough } from '../types'
 
 function LiveMap({ previewScale }: { previewScale: number }) {
+  const { t } = useTranslation()
   const settings = useAppStore((s) => s.map)
   const aspectKey = useAppStore((s) => s.aspectKey)
   const slideCount = useAppStore((s) => s.slides.length)
@@ -90,7 +92,7 @@ function LiveMap({ previewScale }: { previewScale: number }) {
       {/* Sized inline: MapLibre's own stylesheet makes its container relative. */}
       <div ref={ref} className="map-underlay-map" style={{ position: 'absolute', inset: 0, filter: mapFilter(settings, previewScale) }} />
       {settings.dim !== 0 && <div className="map-underlay-dim" style={{ background: settings.dim > 0 ? '#000' : '#fff', opacity: Math.abs(settings.dim) }} />}
-      {status !== 'ready' && <span className={dark ? 'map-status dark' : 'map-status'}>{status === 'error' ? 'Mapa niedostępna, sprawdź połączenie' : 'Wczytuję mapę…'}</span>}
+      {status !== 'ready' && <span className={dark ? 'map-status dark' : 'map-status'}>{t(status === 'error' ? 'map.unavailable' : 'map.loading')}</span>}
     </div>
   )
 }

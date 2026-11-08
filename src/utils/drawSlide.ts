@@ -8,6 +8,7 @@ import { percentile } from '../core/data/smoothing'
 import { distanceIn, distanceUnit, formatDistance, formatGain, formatHeight, formatSpeed, type Units } from '../core/units'
 import { DEFAULT_BACKGROUND, DEFAULT_FIGURES, FIGURE_LABELS, slideKind, type SeriesRoute } from './series'
 import type { FigureSize, Photo, Slide, SlideLook, SummaryFigure } from '../types'
+import i18n from '../i18n'
 
 // Instagram's own interface covers about this much of the top and bottom of a post.
 const SAFE_BAND = 0.08
@@ -83,8 +84,8 @@ function drawBackgroundAndPickInk(ctx: CanvasRenderingContext2D, slide: Slide, s
 
 function noRoute(ctx: CanvasRenderingContext2D, scene: SlideScene, ink: string) {
   const u = unit(scene)
-  text(ctx, 'Brak trasy', scene.w / 2, scene.h / 2, font(scene.look.font, u * 0.06), ink, 'center', 'middle')
-  text(ctx, 'Dodaj GPX w zakładce Mapa', scene.w / 2, scene.h / 2 + u * 0.06, font(scene.look.font, u * 0.03), ink, 'center', 'middle')
+  text(ctx, i18n.t('drawSlide.noRoute'), scene.w / 2, scene.h / 2, font(scene.look.font, u * 0.06), ink, 'center', 'middle')
+  text(ctx, i18n.t('drawSlide.addGpx'), scene.w / 2, scene.h / 2 + u * 0.06, font(scene.look.font, u * 0.03), ink, 'center', 'middle')
 }
 
 function drawProfile(ctx: CanvasRenderingContext2D, slide: Slide, scene: SlideScene, ink: string, accent: string) {
@@ -93,7 +94,7 @@ function drawProfile(ctx: CanvasRenderingContext2D, slide: Slide, scene: SlideSc
   const pad = u * 0.08
   const route = scene.route
   if (!route) return noRoute(ctx, scene, ink)
-  text(ctx, 'Profil wysokości', pad, h * SAFE_BAND + pad * 0.4, font(look.font, u * 0.06), ink, 'left', 'top')
+  text(ctx, i18n.t('drawSlide.profile'), pad, h * SAFE_BAND + pad * 0.4, font(look.font, u * 0.06), ink, 'left', 'top')
   if (!route.hasElevation) {
     text(ctx, 'Trasa nie ma wysokości', w / 2, h / 2, font(look.font, u * 0.035), ink, 'center', 'middle')
     return
@@ -131,7 +132,7 @@ function drawProfile(ctx: CanvasRenderingContext2D, slide: Slide, scene: SlideSc
     ctx.lineWidth = u * 0.01
     ctx.stroke()
     const size = u * 0.034
-    text(ctx, `Najtrudniejszy podjazd: ${formatNumber(climb.avgGrade, 1)}%`, pad, chart.y - size * 3.2, font(look.font, size, true), ink)
+    text(ctx, i18n.t('drawSlide.hardestClimb', { grade: formatNumber(climb.avgGrade, 1) }), pad, chart.y - size * 3.2, font(look.font, size, true), ink)
     const from = Math.round(distanceIn(route.cumKm[climb.startIdx], scene.units))
     const to = Math.round(distanceIn(route.cumKm[climb.endIdx], scene.units))
     text(ctx, `${distanceUnit(scene.units)} ${from}–${to} · ${formatDistance(climb.lengthKm, scene.units, 1)} · ${formatGain(climb.gainM, scene.units)}`, pad, chart.y - size * 1.8, font(look.font, size * 0.85), ink)
@@ -198,7 +199,7 @@ function drawSummary(ctx: CanvasRenderingContext2D, slide: Slide, scene: SlideSc
     ctx.font = font(look.font, size)
     // A long value in a narrow column gets smaller rather than running into the next one.
     const fitted = Math.min(size, (size * colW) / Math.max(1, ctx.measureText(value).width))
-    text(ctx, FIGURE_LABELS[figure].toUpperCase(), x, y, font(look.font, Math.max(u * 0.02, size * 0.26)), ink, 'left', 'top')
+    text(ctx, i18n.t(FIGURE_LABELS[figure]).toUpperCase(), x, y, font(look.font, Math.max(u * 0.02, size * 0.26)), ink, 'left', 'top')
     text(ctx, value, x, y + size * 0.36, font(look.font, fitted), ink, 'left', 'top')
   })
 

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import SliderField from '../fields/SliderField'
 import FontField from '../fields/FontField'
 import RotationField from '../fields/RotationField'
@@ -14,7 +15,8 @@ import { IconTrash } from '../icons'
 import { useAppStore } from '../../store/useAppStore'
 
 export default function TextEditor({ id }: { id: number }) {
-  const selected = useAppStore((s) => s.texts.find((t) => t.id === id))
+  const { t } = useTranslation()
+  const selected = useAppStore((s) => s.texts.find((x) => x.id === id))
   const updateText = useAppStore((s) => s.updateText)
   const deleteText = useAppStore((s) => s.deleteText)
 
@@ -23,23 +25,23 @@ export default function TextEditor({ id }: { id: number }) {
 
   return (
     <>
-      <Section title="Treść">
-        <TextField label="Tekst" multiline value={selected.text} onChange={(text) => updateText(selected.id, { text })} />
+      <Section title={t('textEditor.content')}>
+        <TextField label={t('textEditor.text')} multiline value={selected.text} onChange={(text) => updateText(selected.id, { text })} />
         <FontField value={selected.fontFamily} onChange={(fontFamily) => updateText(selected.id, { fontFamily })} />
         <div className="button-row">
-          <Button pressed={selected.bold} aria-label="Pogrubienie" onClick={() => updateText(selected.id, { bold: !selected.bold })}>
+          <Button pressed={selected.bold} aria-label={t('textEditor.bold')} onClick={() => updateText(selected.id, { bold: !selected.bold })}>
             <strong>B</strong>
           </Button>
-          <Button pressed={selected.italic} aria-label="Kursywa" onClick={() => updateText(selected.id, { italic: !selected.italic })}>
+          <Button pressed={selected.italic} aria-label={t('textEditor.italic')} onClick={() => updateText(selected.id, { italic: !selected.italic })}>
             <em>I</em>
           </Button>
         </div>
-        <ColorField label="Kolor" value={selected.color} onChange={(color) => updateText(selected.id, { color })} />
+        <ColorField label={t('textEditor.color')} value={selected.color} onChange={(color) => updateText(selected.id, { color })} />
       </Section>
 
-      <Section title="Układ">
+      <Section title={t('textEditor.layout')}>
         <SliderField
-          label="Rozmiar"
+          label={t('textEditor.size')}
           unit="px"
           min={12}
           max={160}
@@ -48,7 +50,7 @@ export default function TextEditor({ id }: { id: number }) {
           onChange={(fontSize) => updateText(selected.id, { fontSize })}
         />
         <SliderField
-          label="Odstępy liter"
+          label={t('textEditor.letterSpacing')}
           unit="px"
           min={-2}
           max={30}
@@ -58,7 +60,7 @@ export default function TextEditor({ id }: { id: number }) {
         />
         <RotationField value={selected.rotation} onChange={(rotation) => updateText(selected.id, { rotation })} />
         <SliderField
-          label="Krycie"
+          label={t('textEditor.opacity')}
           unit="%"
           min={10}
           max={100}
@@ -68,45 +70,45 @@ export default function TextEditor({ id }: { id: number }) {
         />
       </Section>
 
-      <Section title="Odznaka">
+      <Section title={t('textEditor.badge')}>
         <BadgeField value={selected.badge} onChange={(badge) => updateText(selected.id, { badge })} />
       </Section>
 
-      <Section title="Kształt i pisanie">
+      <Section title={t('textEditor.shapeAndTyping')}>
         <WarpField value={selected.warp} onChange={(warp) => updateText(selected.id, { warp })} />
-        <CheckboxField label="Pisanie litera po literze" checked={!!selected.typing} onChange={(on) => updateText(selected.id, { typing: on ? { cps: 12 } : undefined })} />
+        <CheckboxField label={t('textEditor.typing')} checked={!!selected.typing} onChange={(on) => updateText(selected.id, { typing: on ? { cps: 12 } : undefined })} />
         {selected.typing && (
           <>
             <SliderField
-              label="Tempo"
-              unit="zn./s"
+              label={t('textEditor.speed')}
+              unit={t('textEditor.speedUnit')}
               min={2}
               max={40}
               value={selected.typing.cps}
               defaultValue={12}
               onChange={(cps) => updateText(selected.id, { typing: { cps } })}
             />
-            <p className="hint">Tylko w filmie: zaczyna się z paskiem napisów na osi czasu. Obraz pokazuje cały tekst.</p>
+            <p className="hint">{t('textEditor.typingHint')}</p>
           </>
         )}
       </Section>
 
-      <Section title="Efekty">
+      <Section title={t('textEditor.effects')}>
         <ShadowField soft={selected.shadowEnabled} hard={selected.hardShadow} onChange={({ soft, hard }) => updateText(selected.id, { shadowEnabled: soft, hardShadow: hard })} />
         <CheckboxField
-          label="Obrys"
+          label={t('textEditor.outline')}
           checked={selected.outlineEnabled}
           onChange={(outlineEnabled) => updateText(selected.id, { outlineEnabled })}
         />
         {selected.outlineEnabled && (
           <>
             <ColorField
-              label="Kolor obrysu"
+              label={t('textEditor.outlineColor')}
               value={selected.outlineColor}
               onChange={(outlineColor) => updateText(selected.id, { outlineColor })}
             />
             <SliderField
-              label="Grubość obrysu"
+              label={t('textEditor.outlineWidth')}
               unit="px"
               min={0.5}
               max={10}
@@ -120,7 +122,7 @@ export default function TextEditor({ id }: { id: number }) {
       </Section>
 
       <Button variant="danger" icon={<IconTrash />} onClick={() => deleteText(selected.id)}>
-        Usuń tekst
+        {t('textEditor.delete')}
       </Button>
     </>
   )

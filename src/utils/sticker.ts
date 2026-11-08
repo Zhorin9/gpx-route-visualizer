@@ -3,12 +3,12 @@ import { contrastRatio } from './color'
 export const STICKER_INK = '#241a26'
 
 export const STICKER_COLORS = [
-  { name: 'Róż', hex: '#f2b8f5' },
-  { name: 'Limonka', hex: '#d7f25a' },
-  { name: 'Pomarańcz', hex: '#ff8a3d' },
-  { name: 'Błękit', hex: '#8fd8ff' },
-  { name: 'Żółty', hex: '#ffe14d' },
-  { name: 'Biały', hex: '#fbf7ee' },
+  { name: 'sticker.pink', hex: '#f2b8f5' },
+  { name: 'sticker.lime', hex: '#d7f25a' },
+  { name: 'sticker.orange', hex: '#ff8a3d' },
+  { name: 'sticker.blue', hex: '#8fd8ff' },
+  { name: 'sticker.yellow', hex: '#ffe14d' },
+  { name: 'sticker.white', hex: '#fbf7ee' },
 ] as const
 
 // One colour for the title, dates, figures, route and icons of a sticker style.

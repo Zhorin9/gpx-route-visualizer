@@ -74,7 +74,7 @@ function ProjectMenu({ name }: { name: string }) {
         {name}
         <IconChevron width={14} height={14} />
       </button>
-      {mode && <span className="tag tag-outline">{MODE_LABELS[mode]}</span>}
+      {mode && <span className="tag tag-outline">{t(MODE_LABELS[mode])}</span>}
       {open && (
         <div className="project-menu-list" role="menu">
           <button

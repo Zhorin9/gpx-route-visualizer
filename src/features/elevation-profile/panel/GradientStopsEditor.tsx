@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import ColorField from '../../../components/fields/ColorField'
 import Button from '../../../components/ui/Button'
 import { mixStops, stopsCss, type GradientStop } from '../../../core/data/palettes'
@@ -12,6 +13,7 @@ export interface GradientStopsEditorProps {
 }
 
 export default function GradientStopsEditor({ stops, onChange, scale }: GradientStopsEditorProps) {
+  const { t } = useTranslation()
   const barRef = useRef<HTMLDivElement>(null)
   const [selected, setSelected] = useState<number | null>(null)
   const current = selected != null && selected < stops.length ? selected : null
@@ -49,7 +51,7 @@ export default function GradientStopsEditor({ stops, onChange, scale }: Gradient
             type="button"
             className={i === current ? 'stop-handle active' : 'stop-handle'}
             style={{ left: `${s.at * 100}%`, background: s.color }}
-            aria-label={`Kolor ${i + 1} z ${stops.length}, ${Math.round(s.at * 100)}%`}
+            aria-label={t('elevationProfile.stopHandle', { index: i + 1, total: stops.length, at: Math.round(s.at * 100) })}
             onPointerDown={(e) => {
               e.currentTarget.setPointerCapture(e.pointerId)
               setSelected(i)
@@ -69,13 +71,13 @@ export default function GradientStopsEditor({ stops, onChange, scale }: Gradient
           <span key={i}>{label}</span>
         ))}
       </div>
-      <p className="hint">Przeciągnij uchwyt, aby przesunąć kolor. Kliknij pasek, aby dodać kolor.</p>
+      <p className="hint">{t('elevationProfile.stopsHint')}</p>
       {current != null && (
         <div className="stops-selected">
-          <ColorField label="Kolor uchwytu" value={stops[current].color} onChange={(color) => onChange(stops.map((s, k) => (k === current ? { ...s, color } : s)))} />
+          <ColorField label={t('elevationProfile.stopColor')} value={stops[current].color} onChange={(color) => onChange(stops.map((s, k) => (k === current ? { ...s, color } : s)))} />
           {stops.length > 2 && (
             <Button variant="ghost" onClick={() => remove(current)}>
-              Usuń kolor
+              {t('elevationProfile.removeStop')}
             </Button>
           )}
         </div>

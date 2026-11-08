@@ -601,8 +601,8 @@ describe('sub-tabs', () => {
   it('opens the page a registered element names, and the Linia page for a waypoint', () => {
     registerCanvasElement({
       kind: 'probe',
-      label: 'Probe',
-      meta: '',
+      label: 'subTabs.label',
+      meta: 'subTabs.label',
       icon: null,
       order: 99,
       useIsAvailable: () => true,
@@ -640,7 +640,7 @@ describe('tab switching on selection', () => {
   })
 
   it('keeps an element picked from Napisy in Napisy', () => {
-    registerCanvasElement({ kind: 'probe', label: 'Probe', meta: '', icon: null, order: 99, useIsAvailable: () => true, Node: () => null, Editor: () => null, tab: 'route', subTab: 'stats' })
+    registerCanvasElement({ kind: 'probe', label: 'subTabs.label', meta: 'subTabs.label', icon: null, order: 99, useIsAvailable: () => true, Node: () => null, Editor: () => null, tab: 'route', subTab: 'stats' })
     get().setActiveTab('texts')
     get().select({ kind: 'element', element: 'probe' })
     expect(get().activeTab).toBe('texts')

@@ -1,5 +1,6 @@
 import { rotate } from './geometry'
 import type { CarouselKind, FrameKind, LayoutGroup, LayoutKey, Slide } from '../types'
+import type { TKey } from '../i18n'
 
 export type SlotKind = 'cell' | 'backdrop' | 'framed'
 
@@ -15,7 +16,7 @@ interface LayoutCell {
 
 export interface LayoutDef {
   key: LayoutKey
-  label: string
+  label: TKey
   group: LayoutGroup
   cells: LayoutCell[]
   orientation?: 'portrait' | 'landscape'
@@ -28,31 +29,31 @@ const framed = (x: number, y: number, w: number, h: number, rotation?: number): 
   ({ x, y, w, h, ...(rotation !== undefined && { rotation }), kind: 'framed' })
 const BACKDROP: LayoutCell = { x: 0, y: 0, w: 1, h: 1, kind: 'backdrop' }
 
-const grid = (key: LayoutKey, label: string, cells: LayoutCell[], orientation?: LayoutDef['orientation']): LayoutDef =>
+const grid = (key: LayoutKey, label: TKey, cells: LayoutCell[], orientation?: LayoutDef['orientation']): LayoutDef =>
   ({ key, label, group: 'grid', cells, ...(orientation && { orientation }) })
-const creative = (key: LayoutKey, label: string, cells: LayoutCell[]): LayoutDef => ({ key, label, group: 'creative', cells })
+const creative = (key: LayoutKey, label: TKey, cells: LayoutCell[]): LayoutDef => ({ key, label, group: 'creative', cells })
 
 export const LAYOUTS: LayoutDef[] = [
-  grid('g1', '1 zdjęcie', [cell(0, 0, 1, 1)]),
-  grid('g2h', '2 poziome', [cell(0, 0, 1, 0.5), cell(0, 0.5, 1, 0.5)]),
-  grid('g2v', '2 pionowe', [cell(0, 0, 0.5, 1), cell(0.5, 0, 0.5, 1)]),
-  grid('g2v1h', '2 pionowe + 1 poziome', [cell(0, 0, 0.5, 0.5), cell(0.5, 0, 0.5, 0.5), cell(0, 0.5, 1, 0.5)]),
-  grid('g22', '2×2', [cell(0, 0, 0.5, 0.5), cell(0.5, 0, 0.5, 0.5), cell(0, 0.5, 0.5, 0.5), cell(0.5, 0.5, 0.5, 0.5)]),
-  grid('g1b2s', '1 duże + 2 małe', [cell(0, 0, 1, 0.62), cell(0, 0.62, 0.5, 0.38), cell(0.5, 0.62, 0.5, 0.38)]),
-  grid('g2s1b', '2 małe + 1 duże', [cell(0, 0, 0.5, 0.38), cell(0.5, 0, 0.5, 0.38), cell(0, 0.38, 1, 0.62)]),
-  grid('g3h', '3 poziome', [cell(0, 0, 1, T), cell(0, T, 1, T), cell(0, 2 * T, 1, T)], 'portrait'),
-  grid('g3v', '3 pionowe', [cell(0, 0, T, 1), cell(T, 0, T, 1), cell(2 * T, 0, T, 1)]),
-  grid('g4v', '4 pionowe', [0, 0.25, 0.5, 0.75].map((x) => cell(x, 0, 0.25, 1))),
-  grid('g23', '2×3', [0, T, 2 * T].flatMap((y) => [cell(0, y, 0.5, T), cell(0.5, y, 0.5, T)]), 'portrait'),
-  grid('g1b3s', '1 duże + 3 małe', [cell(0, 0, 1, 0.6), cell(0, 0.6, T, 0.4), cell(T, 0.6, T, 0.4), cell(2 * T, 0.6, T, 0.4)]),
-  grid('g3s1b', '3 małe + 1 duże', [cell(0, 0, T, 0.4), cell(T, 0, T, 0.4), cell(2 * T, 0, T, 0.4), cell(0, 0.4, 1, 0.6)]),
-  grid('w1b2s', '1 duże + 2 małe obok', [cell(0, 0, 2 * T, 1), cell(2 * T, 0, T, 0.5), cell(2 * T, 0.5, T, 0.5)], 'landscape'),
+  grid('g1', 'layouts.g1', [cell(0, 0, 1, 1)]),
+  grid('g2h', 'layouts.g2h', [cell(0, 0, 1, 0.5), cell(0, 0.5, 1, 0.5)]),
+  grid('g2v', 'layouts.g2v', [cell(0, 0, 0.5, 1), cell(0.5, 0, 0.5, 1)]),
+  grid('g2v1h', 'layouts.g2v1h', [cell(0, 0, 0.5, 0.5), cell(0.5, 0, 0.5, 0.5), cell(0, 0.5, 1, 0.5)]),
+  grid('g22', 'layouts.g22', [cell(0, 0, 0.5, 0.5), cell(0.5, 0, 0.5, 0.5), cell(0, 0.5, 0.5, 0.5), cell(0.5, 0.5, 0.5, 0.5)]),
+  grid('g1b2s', 'layouts.g1b2s', [cell(0, 0, 1, 0.62), cell(0, 0.62, 0.5, 0.38), cell(0.5, 0.62, 0.5, 0.38)]),
+  grid('g2s1b', 'layouts.g2s1b', [cell(0, 0, 0.5, 0.38), cell(0.5, 0, 0.5, 0.38), cell(0, 0.38, 1, 0.62)]),
+  grid('g3h', 'layouts.g3h', [cell(0, 0, 1, T), cell(0, T, 1, T), cell(0, 2 * T, 1, T)], 'portrait'),
+  grid('g3v', 'layouts.g3v', [cell(0, 0, T, 1), cell(T, 0, T, 1), cell(2 * T, 0, T, 1)]),
+  grid('g4v', 'layouts.g4v', [0, 0.25, 0.5, 0.75].map((x) => cell(x, 0, 0.25, 1))),
+  grid('g23', 'layouts.g23', [0, T, 2 * T].flatMap((y) => [cell(0, y, 0.5, T), cell(0.5, y, 0.5, T)]), 'portrait'),
+  grid('g1b3s', 'layouts.g1b3s', [cell(0, 0, 1, 0.6), cell(0, 0.6, T, 0.4), cell(T, 0.6, T, 0.4), cell(2 * T, 0.6, T, 0.4)]),
+  grid('g3s1b', 'layouts.g3s1b', [cell(0, 0, T, 0.4), cell(T, 0, T, 0.4), cell(2 * T, 0, T, 0.4), cell(0, 0.4, 1, 0.6)]),
+  grid('w1b2s', 'layouts.w1b2s', [cell(0, 0, 2 * T, 1), cell(2 * T, 0, T, 0.5), cell(2 * T, 0.5, T, 0.5)], 'landscape'),
   // Leaves the side column of the landscape layout to the title and stats.
-  grid('w1p', 'Zdjęcie z pasem na tekst', [cell(0, 0, 0.6, 1)], 'landscape'),
-  creative('c1', 'Tło + ramka na środku', [BACKDROP, framed(0.18, 0.26, 0.64, 0.48)]),
-  creative('c2', 'Tło + ramka w rogu', [BACKDROP, framed(0.5, 0.55, 0.42, 0.36)]),
-  creative('c3', 'Tło + duża na dole', [BACKDROP, framed(0.08, 0.36, 0.84, 0.56)]),
-  creative('c4', 'Scrapbook ×3', [framed(0.08, 0.06, 0.56, 0.46, -2), framed(0.4, 0.3, 0.52, 0.4, 2.5), framed(0.14, 0.58, 0.58, 0.36, -1.5)]),
+  grid('w1p', 'layouts.w1p', [cell(0, 0, 0.6, 1)], 'landscape'),
+  creative('c1', 'layouts.c1', [BACKDROP, framed(0.18, 0.26, 0.64, 0.48)]),
+  creative('c2', 'layouts.c2', [BACKDROP, framed(0.5, 0.55, 0.42, 0.36)]),
+  creative('c3', 'layouts.c3', [BACKDROP, framed(0.08, 0.36, 0.84, 0.56)]),
+  creative('c4', 'layouts.c4', [framed(0.08, 0.06, 0.56, 0.46, -2), framed(0.4, 0.3, 0.52, 0.4, 2.5), framed(0.14, 0.58, 0.58, 0.36, -1.5)]),
 ]
 
 const LAYOUT_BY_KEY = new Map(LAYOUTS.map((l) => [l.key, l]))

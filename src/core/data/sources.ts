@@ -3,16 +3,17 @@ import { heightIn, heightUnit, distanceIn, speedUnit, type Units } from '../unit
 import { windowMean, windowSlope } from './smoothing'
 import type { GpxTrack } from '../../types'
 import { clamp } from '../../utils/math'
+import type { TKey } from '../../i18n'
 
 // One value per track point, for route colouring and the elevation chart.
 export interface DataSource {
   id: DataSourceId
-  label: string
+  label: TKey
   unit: (units: Units) => string
   // Shown value for a raw (metric) one: legend ends, chart labels.
   format: (value: number, units: Units) => string
   // Why the source can't be used with this file, or null.
-  unavailable: (track: GpxTrack) => string | null
+  unavailable: (track: GpxTrack) => TKey | null
   compute: (track: GpxTrack, cumKm: Float64Array) => Float32Array
 }
 
@@ -51,20 +52,20 @@ function timeAxis(track: GpxTrack): Float64Array {
 
 const elevationSource: DataSource = {
   id: 'elevation',
-  label: 'Wysokość',
+  label: 'sources.elevation',
   unit: heightUnit,
   format: (m, units) => `${formatNumber(heightIn(m, units))} ${heightUnit(units)}`,
-  unavailable: (t) => (hasElevation(t) ? null : 'brak wysokości w pliku'),
+  unavailable: (t) => (hasElevation(t) ? null : 'sources.noElevation'),
   compute: smoothedElevation,
 }
 
 // Percent, from elevation smoothed first and measured over ±50 m of road.
 export const gradeSource: DataSource = {
   id: 'grade',
-  label: 'Nachylenie',
+  label: 'sources.grade',
   unit: () => '%',
   format: (g) => `${g > 0 ? '+' : ''}${formatNumber(g, Math.abs(g) < 10 ? 1 : 0)}%`,
-  unavailable: (t) => (hasElevation(t) ? null : 'brak wysokości w pliku'),
+  unavailable: (t) => (hasElevation(t) ? null : 'sources.noElevation'),
   compute: (track, cumKm) => {
     const slope = windowSlope(smoothedElevation(track, cumKm), cumKm, GRADE_WINDOW_KM)
     // metres per km → percent
@@ -75,10 +76,10 @@ export const gradeSource: DataSource = {
 // km/h over ±15 s, then averaged over 30 s.
 export const speedSource: DataSource = {
   id: 'speed',
-  label: 'Prędkość',
+  label: 'sources.speed',
   unit: speedUnit,
   format: (kmh, units) => `${formatNumber(distanceIn(kmh, units), 0)} ${speedUnit(units)}`,
-  unavailable: (t) => (hasTime(t) ? null : 'brak czasu w pliku'),
+  unavailable: (t) => (hasTime(t) ? null : 'sources.noTime'),
   compute: (track, cumKm) => {
     const time = timeAxis(track)
     const kmPerMs = windowSlope(cumKm, time, SPEED_WINDOW_MS)
@@ -89,10 +90,10 @@ export const speedSource: DataSource = {
 
 const heartRateSource: DataSource = {
   id: 'heartRate',
-  label: 'Tętno',
+  label: 'sources.heartRate',
   unit: () => 'bpm',
   format: (bpm) => `${formatNumber(bpm)} bpm`,
-  unavailable: (t) => (t.points.some((p) => p.hr != null) ? null : 'brak tętna w pliku'),
+  unavailable: (t) => (t.points.some((p) => p.hr != null) ? null : 'sources.noHeartRate'),
   compute: (track) => windowMean(
     track.points.map((p) => p.hr ?? NaN),
     timeAxis(track),

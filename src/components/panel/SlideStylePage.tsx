@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import CheckboxField from '../fields/CheckboxField'
 import ColorField from '../fields/ColorField'
 import FontField from '../fields/FontField'
@@ -12,15 +13,17 @@ import { useActiveSlide } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { slotCount } from '../../utils/layouts'
 import { DEFAULT_BACKGROUND, slideLabel, slideKind, slideNumbers } from '../../utils/series'
-import type { SelectOption, SlideBackground } from '../../types'
+import type { SlideBackground } from '../../types'
+import type { TKey } from '../../i18n'
 
-const BACKGROUND_OPTIONS: SelectOption<SlideBackground['source']>[] = [
-  { value: 'style', label: 'Styl' },
-  { value: 'color', label: 'Kolor' },
-  { value: 'photo', label: 'Zdjęcie' },
+const BACKGROUND_OPTIONS: { value: SlideBackground['source']; label: TKey }[] = [
+  { value: 'style', label: 'slideStylePage.sourceStyle' },
+  { value: 'color', label: 'slideStylePage.sourceColor' },
+  { value: 'photo', label: 'slideStylePage.sourcePhoto' },
 ]
 
 export default function SlideStylePage() {
+  const { t } = useTranslation()
   const index = useActiveSlide()
   const slides = useAppStore((s) => s.slides)
   const mode = useAppStore((s) => s.mode)
@@ -30,7 +33,7 @@ export default function SlideStylePage() {
   const [confirming, setConfirming] = useState(false)
   const slide = slides[index]
   if (!slide || index === 0 || slideKind(slide) === 'photos') {
-    return <p className="hint">Własne tło i kolory mają slajdy Profil i Podsumowanie. Zaznacz taki slajd na pasku slajdów. Zdjęcia biorą tło z zakładki Styl → Tło.</p>
+    return <p className="hint">{t('slideStylePage.unsupportedHint')}</p>
   }
   const bg = slide.background ?? DEFAULT_BACKGROUND
   const look = slide.ownLook
@@ -41,54 +44,60 @@ export default function SlideStylePage() {
 
   return (
     <>
-      <Section title={`Tło slajdu ${numbers[index] ?? '—'} · ${slideLabel(slide, index, mode)}`}>
-        <Segmented label="Źródło tła" showLabel value={bg.source} options={BACKGROUND_OPTIONS} onChange={(source) => setBg({ source })} />
-        {bg.source === 'color' && <ColorField label="Kolor tła" value={bg.color} onChange={(color) => setBg({ color })} />}
+      <Section title={t('slideStylePage.backgroundTitle', { n: numbers[index] ?? '—', name: slideLabel(slide, index, mode) })}>
+        <Segmented
+          label={t('slideStylePage.backgroundSource')}
+          showLabel
+          value={bg.source}
+          options={BACKGROUND_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))}
+          onChange={(source) => setBg({ source })}
+        />
+        {bg.source === 'color' && <ColorField label={t('slideStylePage.backgroundColor')} value={bg.color} onChange={(color) => setBg({ color })} />}
         {bg.source === 'photo' && (
           <>
             <SelectField
-              label="Zdjęcie z"
+              label={t('slideStylePage.photoFrom')}
               value={String(bg.fromSlide ?? '')}
               onChange={(v) => setBg({ fromSlide: v === '' ? null : Number(v) })}
               options={[
-                { value: '', label: 'Pierwszego zdjęcia serii' },
-                ...photoSlides.map((i) => ({ value: String(i), label: `Slajd ${numbers[i] ?? '—'} · ${slideLabel(slides[i], i, mode)}` })),
+                { value: '', label: t('slideStylePage.firstPhoto') },
+                ...photoSlides.map((i) => ({ value: String(i), label: t('slideStylePage.slideOption', { n: numbers[i] ?? '—', name: slideLabel(slides[i], i, mode) }) })),
               ]}
             />
-            <SliderField label="Rozmycie (0 = ostre zdjęcie)" unit="%" value={bg.blur} defaultValue={0} onChange={(blur) => setBg({ blur })} />
-            <SliderField label="Przyciemnienie" unit="%" value={bg.dim} defaultValue={DEFAULT_BACKGROUND.dim} onChange={(dim) => setBg({ dim })} />
-            <p className="hint">Przyciemnienie trzyma czytelność wykresu i tekstu na jasnym zdjęciu.</p>
+            <SliderField label={t('slideStylePage.blur')} unit="%" value={bg.blur} defaultValue={0} onChange={(blur) => setBg({ blur })} />
+            <SliderField label={t('slideStylePage.dim')} unit="%" value={bg.dim} defaultValue={DEFAULT_BACKGROUND.dim} onChange={(dim) => setBg({ dim })} />
+            <p className="hint">{t('slideStylePage.dimHint')}</p>
           </>
         )}
         {sameKind > 0 && (
           <Button block onClick={() => applyBackgroundToKind(index)}>
-            Zastosuj do slajdów tego typu ({sameKind})
+            {t('slideStylePage.applyToKind', { n: sameKind })}
           </Button>
         )}
       </Section>
 
-      <Section title="Styl">
+      <Section title={t('slideStylePage.style')}>
         <CheckboxField
-          label="Ten slajd ma własny styl (wyjątek)"
+          label={t('slideStylePage.ownLook')}
           checked={!!look}
           onChange={(on) => (on ? updateSlide(index, { ownLook: projectLook }) : setConfirming(true))}
         />
         {look ? (
           <>
-            <ColorField label="Papier" value={look.paper} onChange={(paper) => updateSlide(index, { ownLook: { ...look, paper } })} />
-            <ColorField label="Tekst" value={look.ink} onChange={(ink) => updateSlide(index, { ownLook: { ...look, ink } })} />
-            <ColorField label="Akcent" value={look.accent} onChange={(accent) => updateSlide(index, { ownLook: { ...look, accent } })} />
+            <ColorField label={t('slideStylePage.paper')} value={look.paper} onChange={(paper) => updateSlide(index, { ownLook: { ...look, paper } })} />
+            <ColorField label={t('slideStylePage.text')} value={look.ink} onChange={(ink) => updateSlide(index, { ownLook: { ...look, ink } })} />
+            <ColorField label={t('slideStylePage.accent')} value={look.accent} onChange={(accent) => updateSlide(index, { ownLook: { ...look, accent } })} />
             <FontField value={look.font} onChange={(font) => updateSlide(index, { ownLook: { ...look, font } })} />
           </>
         ) : (
-          <p className="hint">Slajd bierze kolory i czcionkę z projektu (tło, kolor trasy i czcionka tytułu), więc zmiany stylu projektu odświeżają go razem z resztą.</p>
+          <p className="hint">{t('slideStylePage.projectLookHint')}</p>
         )}
         {confirming && (
-          <div className="inline-confirm" role="alertdialog" aria-label="Wrócić do stylu projektu?">
-            <span>Wrócić do stylu projektu? Własne kolory i czcionka tego slajdu zostaną odrzucone.</span>
+          <div className="inline-confirm" role="alertdialog" aria-label={t('slideStylePage.revertQuestion')}>
+            <span>{t('slideStylePage.revertConfirm')}</span>
             <div className="button-row">
               <Button variant="ghost" onClick={() => setConfirming(false)}>
-                Anuluj
+                {t('slideStylePage.cancel')}
               </Button>
               <Button
                 variant="primary"
@@ -97,7 +106,7 @@ export default function SlideStylePage() {
                   setConfirming(false)
                 }}
               >
-                Wróć do stylu projektu
+                {t('slideStylePage.revert')}
               </Button>
             </div>
           </div>

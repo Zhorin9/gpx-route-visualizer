@@ -1,4 +1,5 @@
 import { newCanvas, noiseTile } from './image'
+import type { TKey } from '../i18n'
 
 export type PhotoGrade = 'none' | 'warm' | 'cool' | 'faded' | 'bw' | 'vivid'
 
@@ -11,12 +12,12 @@ export interface PhotoLook {
 
 export const NO_PHOTO_LOOK: PhotoLook = { grade: 'none', fade: 0, grain: 0 }
 
-export const PHOTO_GRADES: { value: PhotoGrade; label: string }[] = [
-  { value: 'warm', label: 'Ciepły film' },
-  { value: 'cool', label: 'Chłodny poranek' },
-  { value: 'faded', label: 'Wyblakłe lato' },
-  { value: 'bw', label: 'Czarno-biały' },
-  { value: 'vivid', label: 'Ostry kontrast' },
+export const PHOTO_GRADES: { value: PhotoGrade; label: TKey }[] = [
+  { value: 'warm', label: 'photoLook.warm' },
+  { value: 'cool', label: 'photoLook.cool' },
+  { value: 'faded', label: 'photoLook.faded' },
+  { value: 'bw', label: 'photoLook.bw' },
+  { value: 'vivid', label: 'photoLook.vivid' },
 ]
 
 // The style board's CSS filters; cool also gets its blue-grey veil.
