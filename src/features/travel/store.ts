@@ -23,7 +23,17 @@ export interface TravelSlice {
   travelSelection: TravelSelection | null
   // How the leg to the next added stop is travelled while the trip has one stop.
   nextMode: TravelModeId
+  // The leg the next stop goes into, from the search or a click on the map; null adds it at the end.
+  travelInsert: number | null
+  // The stop the next click on the map moves.
+  travelPick: number | null
+  // The first leg the route service couldn't route.
+  travelFailedLeg: number | null
+  // The trip as changed, shown while its new legs are being routed.
+  travelPending: Journey | null
   selectTravel: (selection: TravelSelection | null) => void
+  setTravelInsert: (index: number | null) => void
+  setTravelPick: (id: number | null) => void
   setNextMode: (mode: TravelModeId) => void
   // `atStart` places the trip before the GPX files (a flight to the start).
   setJourney: (journey: Journey, label: string, options?: { atStart?: boolean }) => Promise<void>
@@ -82,7 +92,13 @@ export function createTravelSlice({ set, get, commit }: SliceContext): TravelSli
     travelError: '',
     travelSelection: null,
     nextMode: 'car',
+    travelInsert: null,
+    travelPick: null,
+    travelFailedLeg: null,
+    travelPending: null,
     selectTravel: (travelSelection) => set({ travelSelection }),
+    setTravelInsert: (travelInsert) => set({ travelInsert, travelPick: null }),
+    setTravelPick: (travelPick) => set({ travelPick, travelInsert: null }),
     setNextMode: (nextMode) => set({ nextMode }),
 
     setJourney: async (journey, label, options) => {
@@ -91,11 +107,11 @@ export function createTravelSlice({ set, get, commit }: SliceContext): TravelSli
       const controller = (running = new AbortController())
       const oldPlans = (get().routeSource?.parts ?? []).filter((p) => p.plan)
       const start = morning()
-      const errors: string[] = []
-      set({ travelBusy: true, travelError: '' })
+      const errors: { leg: number; text: string }[] = []
+      set({ travelBusy: true, travelError: '', travelFailedLeg: null, travelPending: journey })
 
       const built = await Promise.all(
-        legPlans(journey).map(async (plan): Promise<{ plan: TravelPlan; reuse?: TrackPart; points?: GpxPoint[] }> => {
+        legPlans(journey).map(async (plan, leg): Promise<{ plan: TravelPlan; reuse?: TrackPart; points?: GpxPoint[] }> => {
           const reuse = oldPlans.find((p) => sameLeg(p.plan as TravelPlan, plan))
           if (reuse) return { plan, reuse }
           const ctx = { profile: plan.profile, options: plan.options, signal: controller.signal }
@@ -104,7 +120,7 @@ export function createTravelSlice({ set, get, commit }: SliceContext): TravelSli
           } catch (err) {
             if (controller.signal.aborted) throw err
             // The leg stays on the route as a straight line; the person picks another way for it.
-            errors.push(i18n.t('travel.errors.legFailed', { leg: legName(plan), reason: err instanceof Error ? err.message : i18n.t('travel.errors.routeFailed') }))
+            errors.push({ leg, text: i18n.t('travel.errors.legFailed', { leg: legName(plan), reason: err instanceof Error ? err.message : i18n.t('travel.errors.routeFailed') }) })
             const straight: TravelPlan = { ...plan, line: 'straight' }
             return { plan: straight, points: await buildLeg(straight, ctx, start) }
           }
@@ -145,7 +161,8 @@ export function createTravelSlice({ set, get, commit }: SliceContext): TravelSli
       })
 
       const stops = named(journey.stops)
-      set({ trackCache: cache, travelBusy: false, travelError: errors.join(' '), draftStop: legs.length ? null : (stops[0] ?? null) })
+      errors.sort((a, b) => a.leg - b.leg)
+      set({ trackCache: cache, travelBusy: false, travelPending: null, travelError: errors.map((e) => e.text).join(' '), travelFailedLeg: errors[0]?.leg ?? null, draftStop: legs.length ? null : (stops[0] ?? null) })
       if (!legs.length && !oldPlans.length) return
 
       const gpx = before.filter((p) => !p.plan)
@@ -158,10 +175,16 @@ export function createTravelSlice({ set, get, commit }: SliceContext): TravelSli
       const after = joinTrack(routeSource, cache)
 
       // Stops new to the route (the draft too) get a label with their name; one whose label was deleted stays without.
-      const known = new Set(journeyOf(before, null).stops.map((st) => st.id))
+      const oldNames = new Map(journeyOf(before, null).stops.map((st) => [st.id, st.name]))
+      const newNames = new Map(stops.map((st) => [st.id, st.name]))
       const stopPos = stopPositions(after?.parts ?? [])
       const moved = after ? moveWaypoints(s.waypoints, joinTrack(s.routeSource, s.trackCache), after, cache, stopPos) : []
-      const waypoints = [...moved]
+      // A renamed stop renames its label too, unless the label was written by hand.
+      const waypoints = moved.map((w) => {
+        const name = w.stopId != null ? newNames.get(w.stopId) : undefined
+        return name != null && w.text === oldNames.get(w.stopId as number) ? { ...w, text: name } : w
+      })
+      const known = new Set(oldNames.keys())
       for (const stop of stops) {
         const pos = stopPos.get(stop.id)
         if (known.has(stop.id) || pos == null) continue

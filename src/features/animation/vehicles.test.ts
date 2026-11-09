@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { BUILT_IN_VEHICLES, headingAt, vehiclePose } from './vehicles'
+import { markerOf } from './markers'
 
 // A side view (the bike) mirrors heading west; the illustrated car, plane and train are seen from above and just turn.
 const bike = BUILT_IN_VEHICLES.find((v) => v.id === 'bike')!
@@ -32,5 +33,13 @@ describe('vehicle heading', () => {
     // A route turned half round on the frame: east in the route runs west on screen.
     expect(vehiclePose(bike, 0, 180).flip).toBe(true)
     expect(vehiclePose(plane, 180, 0).flip).toBe(false)
+  })
+})
+
+describe('marker look', () => {
+  it('reads the looks of before as the silhouette in the line colour or in black', () => {
+    expect(markerOf({ vehicleLook: 'route' as never })).toEqual({ look: 'side', color: 'route' })
+    expect(markerOf({ vehicleLook: 'mono' as never })).toEqual({ look: 'side', color: '#111111' })
+    expect(markerOf({})).toEqual({ look: 'art', color: undefined })
   })
 })

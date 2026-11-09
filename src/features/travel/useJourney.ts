@@ -9,5 +9,6 @@ const journeyFor = memoOne(journeyOf)
 export function useJourney() {
   const parts = useAppStore((s) => s.routeSource?.parts ?? NO_PARTS)
   const draft = useAppStore((s) => s.draftStop)
-  return journeyFor(parts, draft)
+  const pending = useAppStore((s) => s.travelPending)
+  return pending ?? journeyFor(parts, draft)
 }

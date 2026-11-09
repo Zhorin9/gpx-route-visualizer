@@ -1,8 +1,8 @@
-/* ---------- Podróż: stops and legs ---------- */
+/* ---------- Plan podróży: stops and legs on one line ---------- */
 .travel-panel {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .travel-panel h6 {
@@ -12,32 +12,107 @@
   letter-spacing: 0.08em;
 }
 
+.trip-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 28px;
+}
+
+.trip-summary {
+  margin: -8px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
 .trip-list {
+  position: relative;
   display: flex;
   flex-direction: column;
 }
 
+/* The line joining the letters runs down the column the letters sit in. */
 .trip-row {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 9px 0;
+  gap: 8px;
+  min-height: 44px;
+  padding: 4px 6px 4px 0;
   font: inherit;
   text-align: left;
   color: inherit;
-  background: none;
-  border: none;
-  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  border: 1px solid transparent;
   cursor: pointer;
 }
 
-.trip-row.dragging {
-  opacity: 0.5;
+.trip-row::before {
+  content: '';
+  position: absolute;
+  left: 39px;
+  top: 0;
+  bottom: 0;
+  border-left: 1.5px solid var(--border-strong);
+  z-index: 0;
+}
+
+.trip-stop:first-child::before {
+  top: 50%;
+}
+
+.trip-row:hover {
+  background: color-mix(in srgb, var(--accent-soft) 45%, var(--bg));
+}
+
+.trip-row.selected {
+  background: var(--accent-soft);
+}
+
+.trip-leg.selected,
+.trip-leg.inserting {
+  border-color: var(--accent);
+}
+
+.trip-row.lifted {
+  z-index: 3;
+  box-shadow: var(--shadow-md);
+  cursor: grabbing;
+}
+
+.trip-row.drop-above {
+  box-shadow: inset 0 2px 0 var(--accent);
+}
+
+.trip-row.drop-below {
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.trip-handle {
+  width: 22px;
+  height: 32px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: grab;
+  touch-action: none;
+}
+
+.trip-handle:hover,
+.trip-handle:focus-visible {
+  color: var(--text);
 }
 
 .trip-letter,
 .trip-pin-dot {
+  position: relative;
+  z-index: 1;
   width: 24px;
   height: 24px;
   flex: none;
@@ -54,6 +129,14 @@
 .trip-row.selected .trip-letter,
 .trip-pin.selected .trip-pin-dot {
   background: var(--accent);
+}
+
+/* The letter the next stop gets, and the gap a stop goes into: drawn, not filled. */
+.trip-letter.next,
+.trip-letter.add {
+  color: var(--accent-text);
+  background: var(--bg);
+  border: 1.5px dashed var(--accent);
 }
 
 .trip-text {
@@ -76,62 +159,171 @@
   font-variant-numeric: tabular-nums;
 }
 
-.trip-handle {
-  padding: 0 2px;
-  font-size: 11px;
-  letter-spacing: -0.1em;
-  color: var(--color-neutral-500);
-  background: none;
-  border: none;
-  cursor: grab;
-}
-
-/* A leg between two stops: indented, a thin line on the left; the edited one tinted. */
+/* A leg: the "+" on the line, then how it is travelled. */
 .trip-leg {
-  padding: 7px 0 7px 10px;
+  min-height: 38px;
+  padding-left: 28px;
+  cursor: default;
 }
 
-.trip-leg-mark {
-  width: 12px;
-  height: 12px;
+.trip-insert {
+  position: relative;
+  z-index: 1;
+  width: 22px;
+  height: 22px;
   flex: none;
-  margin-left: 5px;
-  border-left: 1.5px solid var(--color-neutral-500);
-}
-
-.trip-leg.selected {
-  background: color-mix(in srgb, var(--accent) 8%, transparent);
-  border-left: 2px solid var(--accent);
-  padding-left: 8px;
-}
-
-.add-stop {
-  align-self: flex-start;
-  margin-top: -6px;
-  padding: 0 0 0 34px;
-  font: inherit;
-  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
   color: var(--accent-text);
+  background: var(--bg);
+  border: 1px solid var(--accent);
+  border-radius: 11px;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.trip-leg:hover .trip-insert,
+.trip-leg:focus-within .trip-insert,
+.trip-leg.inserting .trip-insert {
+  opacity: 1;
+}
+
+.trip-leg-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  font: inherit;
+  text-align: left;
+  color: inherit;
   background: none;
   border: none;
   cursor: pointer;
 }
 
-.add-stop:hover {
-  text-decoration: underline;
+.mode-icon {
+  flex: none;
+  color: var(--text-muted);
 }
 
-/* The selected leg's (or stop's) settings. */
-.leg-box {
+.trip-gap,
+.trip-add {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 6px 6px 28px;
+}
+
+.trip-gap {
+  align-items: center;
+  background: var(--accent-soft);
+}
+
+.trip-gap .place-search,
+.trip-add-field {
+  flex: 1;
+  min-width: 0;
+}
+
+.trip-add .trip-letter {
+  margin-top: 4px;
+}
+
+.trip-add.first {
+  padding-left: 0;
+}
+
+.trip-add::before {
+  content: '';
+  position: absolute;
+  left: 39px;
+  top: 0;
+  height: 10px;
+  border-left: 1.5px dashed var(--border-strong);
+}
+
+.trip-add.first::before {
+  display: none;
+}
+
+.trip-add-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+/* The card a picked stop or leg opens, right under its row. */
+.trip-card {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 14px;
+  margin: 0 0 6px 28px;
+  padding: 12px;
+  background: var(--bg);
   border: 1px solid var(--border);
 }
 
-.leg-box h6 {
-  margin: 0;
+.trip-place {
+  display: flex;
+  gap: 6px;
+}
+
+.trip-place .place-search {
+  flex: 1;
+}
+
+.trip-coords {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.trip-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: -6px;
+  font-size: 12px;
+}
+
+.trip-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.trip-card-actions .btn-danger {
+  margin-left: auto;
+}
+
+.trip-options summary {
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.trip-options[open] {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.trip-error {
+  padding: 10px 12px;
+  border: 1px solid var(--danger);
+  background: var(--danger-soft);
+}
+
+.trip-error p {
+  margin: 0 0 6px;
+  font-size: 13px;
 }
 
 .mode-grid {
@@ -141,7 +333,11 @@
 }
 
 .mode-opt {
-  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 0 6px;
   font: inherit;
   font-size: 11px;
   text-align: center;
@@ -160,23 +356,8 @@
   border-color: var(--accent);
 }
 
-.line-kinds {
-  display: flex;
-  gap: 8px;
-}
-
-.line-kinds .tag {
-  font-family: inherit;
-  cursor: pointer;
-}
-
-.line-kinds .tag-outline {
-  background: none;
-}
-
-.line-kinds .tag:disabled {
-  opacity: 0.45;
-  cursor: default;
+.mode-opt.active .mode-icon {
+  color: var(--accent);
 }
 
 .seconds-field {

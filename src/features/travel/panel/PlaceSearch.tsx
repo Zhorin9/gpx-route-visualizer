@@ -17,11 +17,10 @@ function parseCoordinates(text: string): Place | null {
 // Suggestions appear a moment after typing stops; an older request is cancelled.
 const DEBOUNCE_MS = 300
 
-// `inputId`: lets "+ Dodaj przystanek" in the panel put the cursor here.
-export default function PlaceSearch({ label, near, onPick, inputId }: { label: string; near: { lat: number; lon: number } | null; onPick: (place: Place) => void; inputId?: string }) {
+// `onCancel`: Escape in the empty field.
+export default function PlaceSearch({ label, near, onPick, onCancel, autoFocus }: { label: string; near: { lat: number; lon: number } | null; onPick: (place: Place) => void; onCancel?: () => void; autoFocus?: boolean }) {
   const { t } = useTranslation()
-  const ownId = useId()
-  const id = inputId ?? ownId
+  const id = useId()
   const [query, setQuery] = useState('')
   // The precise search (Polish names of foreign places), asked for this query.
   const [exact, setExact] = useState(false)
@@ -101,12 +100,13 @@ export default function PlaceSearch({ label, near, onPick, inputId }: { label: s
       <input
         id={id}
         type="text"
+        autoFocus={autoFocus}
         role="combobox"
         aria-expanded={rows > 0}
         aria-controls={`${id}-list`}
         aria-activedescendant={rows ? `${id}-${active}` : undefined}
         aria-label={label}
-        placeholder={t('travel.search.placeholder')}
+        placeholder={label}
         value={query}
         onChange={(e) => {
           setQuery(e.target.value)
@@ -116,7 +116,8 @@ export default function PlaceSearch({ label, near, onPick, inputId }: { label: s
           if (e.key === 'ArrowDown') setActive((a) => Math.min(rows - 1, a + 1))
           else if (e.key === 'ArrowUp') setActive((a) => Math.max(0, a - 1))
           else if (e.key === 'Enter' && rows) choose(Math.min(active, rows - 1))
-          else if (e.key === 'Escape') setQuery('')
+          else if (e.key === 'Escape' && query) setQuery('')
+          else if (e.key === 'Escape') onCancel?.()
           else return
           e.preventDefault()
         }}

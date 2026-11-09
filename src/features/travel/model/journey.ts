@@ -62,6 +62,50 @@ export function addStop(j: Journey, stop: Stop, mode: TravelModeId): Journey {
   return { stops: [...j.stops, stop], legs: [...j.legs, previous ? { mode: previous.mode, line: previous.line } : { mode }] }
 }
 
+// The new start reaches the old one the way the first leg goes.
+export function addStart(j: Journey, stop: Stop, mode: TravelModeId): Journey {
+  if (named(j.stops).length === 0) return { stops: [stop], legs: [] }
+  const first = j.legs[0]
+  return { stops: [stop, ...j.stops], legs: [first ? { mode: first.mode, line: first.line } : { mode }, ...j.legs] }
+}
+
+// The stop splits leg `index` in two, both travelled the same way; the leg's via points go with the old shape.
+export function insertStop(j: Journey, stop: Stop, index: number): Journey {
+  const plan = legPlans(j)[index]
+  if (!plan) return j
+  const { duration: _duration, ...leg } = j.legs[index]
+  const stops = j.stops.filter((s) => !s.via || !plan.stops.includes(s))
+  const at = stops.indexOf(plan.stops[0]) + 1
+  return { stops: [...stops.slice(0, at), stop, ...stops.slice(at)], legs: [...j.legs.slice(0, index + 1), leg, ...j.legs.slice(index + 1)] }
+}
+
+// The stop stays on the line as a via point of the leg the two around it become.
+export function makeVia(j: Journey, id: number): Journey {
+  const stops = named(j.stops)
+  const k = stops.findIndex((s) => s.id === id)
+  if (k <= 0 || k === stops.length - 1) return j
+  return { stops: j.stops.map((s) => (s.id === id ? { ...s, via: true } : s)), legs: j.legs.filter((_, i) => i !== k) }
+}
+
+// The via point splits its leg, as a stop put in between does, but the leg's other via points stay.
+export function makeStop(j: Journey, id: number, name: string): Journey {
+  const index = legPlans(j).findIndex((p) => p.stops.some((s) => s.id === id && s.via))
+  if (index < 0) return j
+  const { duration: _duration, ...leg } = j.legs[index]
+  return { stops: j.stops.map((s) => (s.id === id ? { ...s, name, via: false } : s)), legs: [...j.legs.slice(0, index + 1), leg, ...j.legs.slice(index + 1)] }
+}
+
+export function repeatAtEnd(j: Journey, id: number, mode: TravelModeId): Journey {
+  const stop = j.stops.find((s) => s.id === id)
+  if (!stop) return j
+  const { pause: _pause, ...place } = stop
+  return addStop(j, { ...place, id: Math.max(...j.stops.map((s) => s.id)) + 1 }, mode)
+}
+
+export function reverseJourney(j: Journey): Journey {
+  return { stops: [...j.stops].reverse(), legs: [...j.legs].reverse() }
+}
+
 export function removeStop(j: Journey, id: number): Journey {
   const stop = j.stops.find((s) => s.id === id)
   if (!stop) return j

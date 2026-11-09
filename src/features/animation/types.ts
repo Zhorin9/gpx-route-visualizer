@@ -4,9 +4,10 @@ import type { TKey } from '../../i18n'
 
 export type PacingId = 'constant' | 'eased' | 'bySpeed'
 export type Entrance = 'fade' | 'slide'
-// art: colour illustrations where a vehicle has one; route: every marker in the line's colour;
-// mono: black with a white edge.
-export type VehicleLook = 'art' | 'route' | 'mono'
+// How the car is drawn; other vehicles have their illustration (art) or their outline (side).
+export type MarkerLook = 'art' | 'flat' | 'sketch' | 'badge' | 'camper' | 'classic' | 'side'
+// style: the template's text colour; route: the leg's line; otherwise a #rrggbb of its own.
+export type MarkerColor = 'style' | 'route' | (string & {})
 
 // One bar of the timeline, in seconds.
 export interface TrackClip {
@@ -29,8 +30,16 @@ export interface AnimationSettings {
   ghost: boolean
   headDot: boolean
   vehicle: VehicleId
-  // Unset in documents saved before it existed: art.
-  vehicleLook?: VehicleLook
+  // Unset in documents saved before it existed: art. Read through markerOf, which knows the old values.
+  vehicleLook?: MarkerLook
+  // Unset: style.
+  vehicleColor?: MarkerColor
+  // Unset: 1; 0.6–1.6.
+  vehicleScale?: number
+  // Unset: only the illustration has one.
+  vehicleShadow?: boolean
+  // Unset: the marker turns with the route.
+  vehicleUpright?: boolean
   headSize: number
   loop: boolean
 }
