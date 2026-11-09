@@ -9,6 +9,7 @@ import { stopPreviewOnEdit } from './editStopsPreview'
 import RouteHeadMarker from './canvas/RouteHeadMarker'
 import { useAnimatedLayer, useAnimatedPhoto, useAnimatedPoint, useAnimationGhost, useAnimationHead, useCountingHead, useTypedText } from './hooks'
 import { AnimationTimingSection } from './panel/AnimationPanel'
+import MarkerSection from './panel/MarkerSection'
 import { usePlayback } from './playback'
 import PlaybackBar from './ui/PlaybackBar'
 import { BUILT_IN_VEHICLES, registerVehicle } from './vehicles'
@@ -21,6 +22,7 @@ export function registerAnimation() {
   addRouteDecoration(CommitProbe)
   addCanvasControls(PlaybackBar)
   registerPanelSection({ id: 'animation', label: 'animation.timeline.title', tab: 'animation', order: 10, Component: AnimationTimingSection })
+  registerPanelSection({ id: 'marker', label: 'animation.panel.markerSection', tab: 'animation', modes: ['map'], order: 12, Component: MarkerSection })
   stopPreviewOnEdit()
 
   // Video export moves the clock frame by frame and waits until each moment is on the frame.

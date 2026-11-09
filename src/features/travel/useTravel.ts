@@ -1,6 +1,6 @@
 import { nextId } from '../../store/defaults'
 import { useAppStore } from '../../store/useAppStore'
-import { addStop, type Journey } from './model/journey'
+import { addStop, insertStop, type Journey } from './model/journey'
 import { useJourney } from './useJourney'
 import type { Stop } from '../../types'
 
@@ -8,10 +8,20 @@ export function useTravelActions() {
   const journey = useJourney()
   const setJourney = useAppStore((s) => s.setJourney)
   const nextMode = useAppStore((s) => s.nextMode)
+  const insert = useAppStore((s) => s.travelInsert)
   const selectTravel = useAppStore((s) => s.selectTravel)
-  const change = (j: Journey, label: string) => void setJourney(j, label)
-  function addAt(stop: Omit<Stop, 'id'>) {
-    const next = addStop(journey, { ...stop, id: nextId(journey.stops) }, nextMode)
+  const setTravelInsert = useAppStore((s) => s.setTravelInsert)
+  const change = (j: Journey, label: string) => setJourney(j, label)
+  // `into`: the leg the stop splits; by default the one picked for it, if any.
+  function addAt(stop: Omit<Stop, 'id'>, into = insert) {
+    const added = { ...stop, id: nextId(journey.stops) }
+    if (into != null && into < journey.legs.length) {
+      setTravelInsert(null)
+      selectTravel({ kind: 'stop', id: added.id })
+      return change(insertStop(journey, added, into), 'insert')
+    }
+    setTravelInsert(null)
+    const next = addStop(journey, added, nextMode)
     // The new leg is the one to look at next.
     if (next.legs.length) selectTravel({ kind: 'leg', index: next.legs.length - 1 })
     change(next, 'add')

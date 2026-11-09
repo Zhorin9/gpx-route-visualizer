@@ -283,6 +283,48 @@ export function IconMore(props: SVGProps<SVGSVGElement>) {
   )
 }
 
+export function IconGrip(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...common} width="16" height="16" aria-hidden="true" {...props}>
+      <circle cx="9" cy="6" r="1" />
+      <circle cx="15" cy="6" r="1" />
+      <circle cx="9" cy="12" r="1" />
+      <circle cx="15" cy="12" r="1" />
+      <circle cx="9" cy="18" r="1" />
+      <circle cx="15" cy="18" r="1" />
+    </svg>
+  )
+}
+
+export function IconReverse(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...common} width="15" height="15" aria-hidden="true" {...props}>
+      <path d="m3 8 4-4 4 4" />
+      <path d="M7 4v16" />
+      <path d="m21 16-4 4-4-4" />
+      <path d="M17 20V4" />
+    </svg>
+  )
+}
+
+export function IconCrosshair(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...common} width="16" height="16" aria-hidden="true" {...props}>
+      <circle cx="12" cy="12" r="8" />
+      <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
+    </svg>
+  )
+}
+
+export function IconLayers(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...common} width="16" height="16" aria-hidden="true" {...props}>
+      <path d="m12 3 9 5-9 5-9-5Z" />
+      <path d="m3 13 9 5 9-5" />
+    </svg>
+  )
+}
+
 export function IconPlay(props: SVGProps<SVGSVGElement>) {
   return (
     <svg {...common} width="16" height="16" aria-hidden="true" {...props}>

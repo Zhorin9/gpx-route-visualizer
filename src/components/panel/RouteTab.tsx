@@ -229,10 +229,12 @@ export default function RouteTab() {
   const hasRoute = useHasRoute()
   const mode = useAppStore((s) => s.mode)
   const planning = useAppStore((s) => s.subTabs.route === TRIP_PAGE)
+  // A trip planned from stops alone, without a GPX file, opens on its plan.
+  const tripOnly = useAppStore((s) => (s.routeSource?.parts ?? []).every((p) => p.plan))
   // Without a route only the trip planner works, so it is shown alone.
   if (!hasRoute) {
     const trip = planning && panelSections('route', mode).find((p) => p.id === TRIP_PAGE)
     return trip ? <trip.Component /> : <RouteEmpty />
   }
-  return <SubTabs tab="route" own={[{ id: 'line', label: 'routeTab.line', Component: RouteLinePage }]} />
+  return <SubTabs tab="route" own={[{ id: 'line', label: 'routeTab.line', Component: RouteLinePage }]} first={tripOnly ? TRIP_PAGE : undefined} />
 }

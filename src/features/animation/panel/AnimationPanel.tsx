@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next'
 import CheckboxField from '../../../components/fields/CheckboxField'
-import SelectField from '../../../components/fields/SelectField'
 import SliderField from '../../../components/fields/SliderField'
 import Section from '../../../components/ui/Section'
 import Segmented from '../../../components/ui/Segmented'
@@ -11,47 +10,7 @@ import { selectDuration } from '../model/timeline'
 import { DEFAULT_ANIMATION } from '../types'
 import { formatTime } from '../ui/formatTime'
 import TimelineEditor from './TimelineEditor'
-import { selectRouteParts, selectTrack } from '../../../store/derived'
-import { vehicleList } from '../vehicles'
-import type { SelectOption, VehicleId } from '../../../types'
-
-// A route of one planned leg shows the leg's marker (a plane for a flight), so that is the one set here.
-function VehicleFields() {
-  const parts = useAppStore(selectRouteParts)
-  const fallback = useAppStore((s) => s.animation.vehicle)
-  const look = useAppStore((s) => s.animation.vehicleLook)
-  const updatePart = useAppStore((s) => s.updatePart)
-  const updateAnimation = useAppStore((s) => s.updateAnimation)
-  const { t } = useTranslation()
-  const only = parts.length === 1 && parts[0].vehicle ? parts[0] : null
-  const vehicleOptions: SelectOption<VehicleId>[] = vehicleList().map((v) => ({ value: v.id, label: t(v.label) }))
-  const options: SelectOption<VehicleId | ''>[] = [{ value: '', label: t('animation.panel.sameAsAbove') }, ...vehicleOptions]
-  return (
-    <>
-      <SelectField
-        label={t('animation.panel.marker')}
-        value={only?.vehicle ?? fallback}
-        options={vehicleOptions}
-        onChange={(vehicle) => (only ? updatePart(only.id, { vehicle }) : updateAnimation({ vehicle }))}
-      />
-      <Segmented
-        label={t('animation.panel.markerLook')}
-        showLabel
-        value={look ?? 'art'}
-        options={[
-          { value: 'art', label: t('animation.looks.art') },
-          { value: 'route', label: t('animation.looks.route') },
-          { value: 'mono', label: t('animation.looks.mono') },
-        ]}
-        onChange={(vehicleLook) => updateAnimation({ vehicleLook })}
-      />
-      {parts.length > 1 &&
-        parts.map((part) => (
-          <SelectField key={part.id} label={part.name} value={part.vehicle ?? ''} options={options} onChange={(v) => updatePart(part.id, { vehicle: v || undefined })} />
-        ))}
-    </>
-  )
-}
+import { selectTrack } from '../../../store/derived'
 
 export function AnimationTimingSection() {
   const { t } = useTranslation()
@@ -117,7 +76,6 @@ export function AnimationTimingSection() {
         <CheckboxField label={t('animation.panel.headDot')} checked={settings.headDot} onChange={(headDot) => updateAnimation({ headDot })} />
         {settings.headDot && (
           <>
-            <VehicleFields />
             <SliderField label={t('animation.panel.headSize')} unit="px" min={4} max={24} value={settings.headSize} defaultValue={DEFAULT_ANIMATION.headSize} onChange={(headSize) => updateAnimation({ headSize })} />
           </>
         )}

@@ -1,0 +1,69 @@
+/* ---------- Animacja › Znacznik ---------- */
+.marker-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.marker-opt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 2px 6px;
+  font: inherit;
+  font-size: 11px;
+  color: var(--text);
+  background: none;
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.marker-opt img {
+  width: 48px;
+  height: 24px;
+}
+
+.marker-opt:hover {
+  background: var(--accent-soft);
+}
+
+.marker-opt.active {
+  color: var(--accent-text);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.marker-swatches {
+  display: flex;
+  gap: 6px;
+}
+
+.marker-swatch {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  cursor: pointer;
+}
+
+.marker-swatch[aria-pressed='true'] {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.marker-hint {
+  padding: 10px 12px;
+  font-size: 13px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+}
+
+.marker-hint p {
+  margin: 0 0 8px;
+}
+
+.marker-hint-actions {
+  display: flex;
+  gap: 6px;
+}

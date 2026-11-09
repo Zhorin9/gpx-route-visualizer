@@ -12,10 +12,11 @@ export interface OwnPage {
 }
 
 // The open page is remembered per tab, so leaving and coming back keeps it.
-export default function SubTabs({ tab, own }: { tab: TabKey; own: OwnPage[] }) {
+// `first`: the page that leads and opens by default.
+export default function SubTabs({ tab, own, first }: { tab: TabKey; own: OwnPage[]; first?: string }) {
   const { t } = useTranslation()
   const mode = useAppStore((s) => s.mode)
-  const pages: OwnPage[] = [...own, ...panelSections(tab, mode)]
+  const pages: OwnPage[] = [...own, ...panelSections(tab, mode)].sort((a, b) => Number(b.id === first) - Number(a.id === first))
   const chosen = useAppStore((s) => s.subTabs[tab])
   const setSubTab = useAppStore((s) => s.setSubTab)
   const active = pages.find((p) => p.id === chosen) ?? pages[0]

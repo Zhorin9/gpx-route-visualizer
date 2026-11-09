@@ -1,30 +1,36 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import type { Map as MapLibreMap, Marker } from 'maplibre-gl'
 import { useTranslation } from 'react-i18next'
 import i18n from '../../../i18n'
 import CenterViewSwitch from '../../../components/CenterViewSwitch'
+import { IconFit, IconLayers, IconMinus, IconPlus, IconRoute } from '../../../components/icons'
 import { FORMATS } from '../../../core/formats/registry'
+import { nextId } from '../../../store/defaults'
 import { selectRouteParts } from '../../../store/derived'
 import { useTrackFit } from '../../../store/selectors'
 import { useAppStore } from '../../../store/useAppStore'
-import { artUrl } from '../../animation/vehicleArt'
-import { vehicleFor, type VehicleDef } from '../../animation/vehicles'
+import { formatKm } from '../../../utils/format'
+import { cumulativeDistanceKm } from '../../../utils/gpx'
+import { vehicleFor } from '../../animation/vehicles'
 import { asStyle, loadMapLibre } from '../../map/maplibre'
 import { lngLatAt } from '../../map/model/placement'
 import { buildStyle, creditFor } from '../../map/model/styles'
-import { moveStopTo, named } from '../model/journey'
-import PlaceSearch from '../panel/PlaceSearch'
+import { addStart, makeStop, moveStopTo, named, removeStop } from '../model/journey'
+import { travelMode } from '../model/modes'
+import { copyCoordinates, formatSpan } from '../panel/format'
 import { placeAt } from '../providers/geocoding'
 import { stopLetter, useTravelActions } from '../useTravel'
 import FrameOutline from './FrameOutline'
-import { addTripLayers, bendLine, lngLat, tripData, type Latest } from './tripLayers'
+import MapMenu, { type MenuItem } from './MapMenu'
+import { addTripLayers, bendLine, lngLat, nearestLine, tripData, type Latest } from './tripLayers'
+import { vehicleMarkerHtml } from './vehicleMarker'
 import type { Stop } from '../../../types'
 import './TravelWorkspace.css'
 
-export const TRAVEL_SEARCH_ID = 'travel-search'
-
 // A dragged stop waits this long for the pointer to rest before the leg is worked out again.
 const DRAG_DELAY_MS = 400
+// How long the pointer rests on the line before the hint on dragging it shows.
+const LINE_HINT_MS = 600
 // Height of the live preview in the corner; its width follows the format.
 const PREVIEW_H = 176
 
@@ -38,18 +44,24 @@ type LookId = (typeof LOOKS)[number]['id']
 // Remembered while the app is open, so leaving the tab and coming back keeps the look.
 let rememberedLook: LookId = 'topo'
 
-function showPlaces(map: MapLibreMap, places: { lat: number; lon: number }[]) {
+type Menu = { x: number; y: number; items: MenuItem[] }
+
+const placeName = async (at: { lat: number; lon: number }) => (await placeAt(at, new AbortController().signal).catch(() => null))?.name ?? `${at.lat.toFixed(4)}, ${at.lon.toFixed(4)}`
+
+// `aside`: width of the preview in the top right corner, which the places stay clear of.
+function showPlaces(map: MapLibreMap, places: { lat: number; lon: number }[], aside: number) {
   if (!places.length) return
   if (places.length === 1) return void map.easeTo({ center: lngLat(places[0]), zoom: Math.max(map.getZoom(), 6) })
   const lons = places.map((s) => s.lon)
   const lats = places.map((s) => s.lat)
+  const right = Math.min(aside + 40, map.getContainer().clientWidth * 0.4)
   map.fitBounds(
     [
       [Math.min(...lons), Math.min(...lats)],
       [Math.max(...lons), Math.max(...lats)],
     ],
-    // Clear of the buttons on the left, the frame's label above it and the hints at the bottom.
-    { padding: { top: 60, left: 170, right: 60, bottom: 90 }, maxZoom: 12, duration: 600 },
+    // Clear of the controls on the left, the frame's label above it and the hint at the bottom.
+    { padding: { top: 70, left: 76, right, bottom: 64 }, maxZoom: 12, duration: 600 },
   )
 }
 
@@ -69,13 +81,11 @@ function pinElement(stop: Stop, letter: string, selected: boolean): HTMLElement 
   return element
 }
 
-function vehicleElement(vehicle: VehicleDef, angle: number, flip: boolean): HTMLElement {
+function legLabelElement(path: string, outline: boolean, text: string): HTMLElement {
   const element = document.createElement('div')
-  element.className = vehicle.art ? 'trip-vehicle art' : 'trip-vehicle'
-  const turn = `transform:rotate(${angle}deg)${flip ? ' scaleY(-1)' : ''}`
-  element.innerHTML = vehicle.art
-    ? `<img src="${artUrl(vehicle.art)}" width="34" height="17" alt="" style="${turn}">`
-    : `<svg viewBox="-12 -12 24 24" width="18" height="18" style="${turn}"><path d="${vehicle.path}" fill="currentColor"/></svg>`
+  element.className = 'trip-leg-label'
+  element.innerHTML = `<svg viewBox="-12 -12 24 24" width="16" height="16" aria-hidden="true"><path d="${path}" fill="${outline ? 'none' : 'currentColor'}" stroke="${outline ? 'currentColor' : 'none'}" stroke-width="1.6"/></svg>`
+  element.append(text)
   return element
 }
 
@@ -85,20 +95,30 @@ export default function TravelWorkspace({ preview }: { preview: (box: { width: n
   const parts = useAppStore(selectRouteParts)
   const cache = useAppStore((s) => s.trackCache)
   const selection = useAppStore((s) => s.travelSelection)
-  const selectTravel = useAppStore((s) => s.selectTravel)
-  const setCenterView = useAppStore((s) => s.setCenterView)
+  const insert = useAppStore((s) => s.travelInsert)
+  const pick = useAppStore((s) => s.travelPick)
+  const nextMode = useAppStore((s) => s.nextMode)
+  const animation = useAppStore((s) => s.animation)
+  const statsColor = useAppStore((s) => s.statsStyle.color)
+  const routeColor = useAppStore((s) => s.routeStyle.color)
+  const { selectTravel, setCenterView, setTravelInsert, setTravelPick } = useAppStore.getState()
   const aspectKey = useAppStore((s) => s.aspectKey)
   const slideCount = useAppStore((s) => s.slides.length)
   const transform = useAppStore((s) => s.routeTransform)
   const fit = useTrackFit()
   const ref = useRef<HTMLDivElement>(null)
+  const lineHint = useRef<HTMLDivElement>(null)
   const [map, setMap] = useState<MapLibreMap | null>(null)
   const [failed, setFailed] = useState(false)
   const [look, setLook] = useState<LookId>(rememberedLook)
+  const [layersOpen, setLayersOpen] = useState(false)
+  const [menu, setMenu] = useState<Menu | null>(null)
+  const closeMenu = useCallback(() => setMenu(null), [])
 
   const planned = useMemo(() => parts.filter((p) => p.plan), [parts])
   const selectedLeg = selection?.kind === 'leg' ? selection.index : null
-  const data = useMemo(() => tripData(planned, cache, selectedLeg), [planned, cache, selectedLeg])
+  const highlight = insert ?? selectedLeg
+  const data = useMemo(() => tripData(planned, cache, highlight), [planned, cache, highlight])
   const { w, h } = FORMATS[aspectKey]
   const frameW = w * slideCount
   const frameLabel = slideCount > 1 ? t('travel.workspace.carousel', { n: slideCount, aspect: aspectKey }) : t('travel.workspace.frame', { aspect: aspectKey })
@@ -106,50 +126,112 @@ export default function TravelWorkspace({ preview }: { preview: (box: { width: n
   const frameCorners = fit
     ? [lngLatAt(fit, transform, { x: 0, y: 0 }), lngLatAt(fit, transform, { x: frameW, y: h })].map(([lon, lat]) => ({ lon, lat }))
     : null
-  // The frame's corners for the map's own handlers.
-  const frameRef = useRef(frameCorners)
+  const previewBox = { width: Math.min(300, (PREVIEW_H * frameW) / h), height: PREVIEW_H }
+  const aiming = insert != null || pick != null
+  // The frame's corners and the preview's width for the map's own handlers.
+  const viewRef = useRef({ frame: frameCorners, aside: previewBox.width })
   useEffect(() => {
-    frameRef.current = frameCorners
+    viewRef.current = { frame: frameCorners, aside: previewBox.width }
   })
-  const latest = useRef<Latest & { addAt: typeof addAt; data: typeof data; select: typeof selectTravel }>({ journey, onChange: change, planned, cache, bentAt: 0, addAt, data, select: selectTravel })
+  type Handlers = Latest & { addAt: typeof addAt; data: typeof data; select: typeof selectTravel; pick: number | null; aiming: boolean; nextMode: typeof nextMode }
+  const latest = useRef<Handlers>({ journey, onChange: change, planned, cache, bentAt: 0, addAt, data, select: selectTravel, pick, aiming, nextMode })
   useEffect(() => {
-    latest.current = { ...latest.current, journey, onChange: change, planned, cache, addAt, data, select: selectTravel }
+    latest.current = { ...latest.current, journey, onChange: change, planned, cache, addAt, data, select: selectTravel, pick, aiming, nextMode }
+  })
+
+  // What a right click offers where it was made.
+  function placeMenu(m: MapLibreMap, point: { x: number; y: number }, at: { lat: number; lon: number }) {
+    const { journey: j, planned: legs, cache: points, onChange, addAt: add } = latest.current
+    const count = named(j.stops).length
+    const stop = async () => ({ ...at, name: await placeName(at), via: false })
+    const nearest = legs.length ? nearestLine(point, legs.map((p) => (points[p.sourceKey] ?? []).filter((_, i, all) => i % Math.ceil(all.length / 300 || 1) === 0 || i === all.length - 1).map((q) => m.project(lngLat(q))))) : -1
+    const items: MenuItem[] = [{ label: t('travel.workspace.menu.addEnd', { letter: stopLetter(count) }), run: async () => void add(await stop(), null) }]
+    if (nearest >= 0) items.push({ label: t('travel.workspace.menu.insert', { from: stopLetter(nearest), to: stopLetter(nearest + 1) }), run: async () => void add(await stop(), nearest) })
+    if (count > 0) items.push({ label: t('travel.workspace.menu.start'), run: async () => void onChange(addStart(j, { ...(await stop()), id: nextId(j.stops) }, latest.current.nextMode), 'add') })
+    items.push({ label: t('travel.workspace.menu.copy'), run: () => copyCoordinates(at) })
+    setMenu({ x: point.x, y: point.y, items })
+  }
+
+  function viaMenu(m: MapLibreMap, via: Stop) {
+    const { x, y } = m.project(lngLat(via))
+    setMenu({
+      x,
+      y,
+      items: [
+        { label: t('travel.workspace.via.remove'), run: () => void latest.current.onChange(removeStop(latest.current.journey, via.id), 'remove') },
+        { label: t('travel.workspace.via.toStop'), run: async () => void latest.current.onChange(makeStop(latest.current.journey, via.id, await placeName(via)), 'stop') },
+      ],
+    })
+  }
+
+  // The map's handlers, attached once, open the newest menus.
+  const menus = useRef({ placeMenu, viaMenu })
+  useEffect(() => {
+    menus.current = { placeMenu, viaMenu }
   })
 
   useEffect(() => {
     let created: MapLibreMap | null = null
     let cancelled = false
+    let hintTimer: ReturnType<typeof setTimeout> | undefined
     loadMapLibre().then(
       ({ Map }) => {
         if (cancelled || !ref.current) return
         const m = new Map({ container: ref.current, style: { version: 8, sources: {}, layers: [] }, center: [15, 50], zoom: 3, attributionControl: false })
         created = m
+        const cursor = (over: string) => (m.getCanvas().style.cursor = latest.current.aiming ? 'crosshair' : over)
         // The trip's layers go on every style the map takes.
         m.on('style.load', () => addTripLayers(m, latest.current.data))
-        // A click on the line picks its leg; anywhere else adds a stop named after the place there.
+        // A click on the line picks its leg; anywhere else adds a stop, or moves the one being placed.
         m.on('click', async (e) => {
           if (performance.now() - latest.current.bentAt < 300) return
-          const hit = m.getLayer('trip-hit') ? m.queryRenderedFeatures(e.point, { layers: ['trip-hit'] })[0] : undefined
+          const { aiming: placing, pick: moving } = latest.current
+          const hit = !placing && m.getLayer('trip-hit') ? m.queryRenderedFeatures(e.point, { layers: ['trip-hit'] })[0] : undefined
           if (hit) return latest.current.select({ kind: 'leg', index: Number(hit.properties?.leg) })
           const at = { lat: e.lngLat.lat, lon: e.lngLat.lng }
-          const place = await placeAt(at, new AbortController().signal).catch(() => null)
-          latest.current.addAt({ ...at, name: place?.name ?? `${at.lat.toFixed(4)}, ${at.lon.toFixed(4)}`, via: false })
+          if (moving != null) {
+            useAppStore.getState().setTravelPick(null)
+            return void latest.current.onChange(moveStopTo(latest.current.journey, moving, at, await placeName(at)), `place:${moving}`)
+          }
+          latest.current.addAt({ ...at, name: await placeName(at), via: false })
         })
-        m.on('mouseenter', 'trip-hit', () => (m.getCanvas().style.cursor = 'grab'))
-        m.on('mouseleave', 'trip-hit', () => (m.getCanvas().style.cursor = ''))
-        m.on('mousedown', 'trip-hit', (e) => bendLine(m, e, latest))
+        m.on('contextmenu', (e) => menus.current.placeMenu(m, e.point, { lat: e.lngLat.lat, lon: e.lngLat.lng }))
+        m.on('mouseenter', 'trip-hit', () => cursor('grab'))
+        m.on('mousemove', 'trip-hit', (e) => {
+          const hint = lineHint.current
+          if (!hint || latest.current.aiming) return
+          hint.style.transform = `translate(${e.point.x}px, ${e.point.y}px)`
+          if (hint.classList.contains('on')) return
+          hint.classList.add('on')
+          clearTimeout(hintTimer)
+          hintTimer = setTimeout(() => hint.classList.add('show'), LINE_HINT_MS)
+        })
+        m.on('mouseleave', 'trip-hit', () => {
+          cursor('')
+          clearTimeout(hintTimer)
+          lineHint.current?.classList.remove('on', 'show')
+        })
+        m.on('mousedown', 'trip-hit', (e) => {
+          if (latest.current.aiming) return
+          lineHint.current?.classList.remove('on', 'show')
+          bendLine(m, e, latest)
+        })
         setMap(m)
         // Opening the tab shows the whole trip.
-        const stops = latest.current.journey.stops
-        if (stops.length) m.once('load', () => showPlaces(m, [...stops, ...(frameRef.current ?? [])]))
+        if (latest.current.journey.stops.length) m.once('load', () => showPlaces(m, [...latest.current.journey.stops, ...(viewRef.current.frame ?? [])], viewRef.current.aside))
       },
       () => setFailed(true),
     )
     return () => {
       cancelled = true
+      clearTimeout(hintTimer)
       created?.remove()
     }
   }, [])
+
+  useEffect(() => {
+    if (map) map.getCanvas().style.cursor = aiming ? 'crosshair' : ''
+  }, [map, aiming])
 
   // Jasna, Topo or Satelita: the planning map only; the graphic's background is set in Tło.
   const lookDef = LOOKS.find((l) => l.id === look) ?? LOOKS[1]
@@ -187,7 +269,8 @@ export default function TravelWorkspace({ preview }: { preview: (box: { width: n
         const moved = () => ({ lat: marker.getLngLat().lat, lon: marker.getLngLat().lng })
         marker.getElement().addEventListener('click', (e) => {
           e.stopPropagation()
-          if (!stop.via) selectTravel({ kind: 'stop', id: stop.id })
+          if (stop.via) menus.current.viaMenu(map, stop)
+          else selectTravel({ kind: 'stop', id: stop.id })
         })
         marker.on('drag', () => {
           clearTimeout(timer)
@@ -196,12 +279,12 @@ export default function TravelWorkspace({ preview }: { preview: (box: { width: n
         marker.on('dragend', async () => {
           clearTimeout(timer)
           const at = moved()
-          const place = stop.via ? null : await placeAt(at, new AbortController().signal).catch(() => null)
-          latest.current.onChange(moveStopTo(latest.current.journey, stop.id, at, place?.name), `drag:${stop.id}`)
+          const name = stop.via ? undefined : await placeName(at)
+          latest.current.onChange(moveStopTo(latest.current.journey, stop.id, at, name), `drag:${stop.id}`)
         })
         return marker
       })
-      planned.forEach((part) => {
+      planned.forEach((part, leg) => {
         const points = cache[part.sourceKey] ?? []
         if (points.length < 3) return
         const mid = Math.floor(points.length / 2)
@@ -209,92 +292,132 @@ export default function TravelWorkspace({ preview }: { preview: (box: { width: n
         const b = map.project(lngLat(points[Math.min(points.length - 1, mid + 2)]))
         const angle = (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI
         const vehicle = vehicleFor(part.vehicle)
+        if (leg === highlight && part.plan) {
+          const km = cumulativeDistanceKm(points)
+          const ms = (points[points.length - 1].time ?? 0) - (points[0].time ?? 0)
+          const icon = vehicleFor(travelMode(part.plan.mode).vehicle)
+          const label = legLabelElement(icon.path, Boolean(icon.outline), `${formatKm(km[km.length - 1], 0)} · ${formatSpan(ms)}`)
+          markers.current.push(new Marker({ element: label, anchor: 'bottom', offset: [0, -16] }).setLngLat(lngLat(points[mid])).addTo(map))
+        }
         if (!vehicle.path) return
-        const west = vehicle.flipWhenWest && Math.abs(angle) > 90
-        markers.current.push(new Marker({ element: vehicleElement(vehicle, angle, west) }).setLngLat(lngLat(points[mid])).addTo(map))
+        const { html, art } = vehicleMarkerHtml(vehicle, animation, { style: statsColor, route: part.color || routeColor }, angle)
+        const element = document.createElement('div')
+        element.className = art ? 'trip-vehicle art' : 'trip-vehicle'
+        element.innerHTML = html
+        markers.current.push(new Marker({ element }).setLngLat(lngLat(points[mid])).addTo(map))
       })
     })
     return () => {
       cancelled = true
       clearTimeout(timer)
     }
-  }, [map, journey, planned, cache, selectedStop, selectTravel])
-
+  }, [map, journey, planned, cache, selectedStop, highlight, animation, statsColor, routeColor, selectTravel])
 
   // The view takes in the whole trip and the frame when a stop is added or removed, not while one is dragged.
   const count = journey.stops.length
   useEffect(() => {
-    if (map && count) showPlaces(map, [...latest.current.journey.stops, ...(frameRef.current ?? [])])
+    if (map && count) showPlaces(map, [...latest.current.journey.stops, ...(viewRef.current.frame ?? [])], viewRef.current.aside)
   }, [map, count])
-  const previewBox = { width: Math.min(300, (PREVIEW_H * frameW) / h), height: PREVIEW_H }
+
+  function onKeyDown(e: KeyboardEvent) {
+    if ((e.target as HTMLElement).closest('input, textarea, [role="menu"]')) return
+    if (e.key === 'Escape') {
+      setMenu(null)
+      setLayersOpen(false)
+      if (insert != null) setTravelInsert(null)
+      if (pick != null) setTravelPick(null)
+    } else if ((e.key === 'Delete' || e.key === 'Backspace') && selectedStop != null) {
+      void change(removeStop(journey, selectedStop), 'remove')
+    } else if (e.key === 'f' || e.key === 'F') {
+      if (map) showPlaces(map, journey.stops, previewBox.width)
+    } else return
+    e.preventDefault()
+  }
+
+  const hint = failed
+    ? t('travel.workspace.mapFailed')
+    : insert != null && stops[insert + 1]
+      ? t('travel.workspace.hintInsert', { from: stopLetter(insert), to: stopLetter(insert + 1) })
+      : t(journey.stops.length ? 'travel.workspace.hintEdit' : 'travel.workspace.hintAdd')
+  const pickIndex = pick != null ? stops.findIndex((s) => s.id === pick) : -1
 
   return (
-    <div className="map-workspace">
-      <div className="workspace-toolbar">
-        <CenterViewSwitch />
-        <PlaceSearch
-          inputId={TRAVEL_SEARCH_ID}
-          label={t('travel.search.placeholder')}
-          near={stops[stops.length - 1] ?? null}
-          onPick={(place) => addAt({ name: place.name, lat: place.lat, lon: place.lon, via: false })}
-        />
-        <div className="workspace-looks" role="radiogroup" aria-label={t('travel.workspace.looksLabel')}>
-          {LOOKS.map((l) => (
-            <button
-              key={l.id}
-              type="button"
-              role="radio"
-              aria-checked={l.id === look}
-              className={l.id === look ? 'tag tag-accent' : 'tag tag-outline'}
-              onClick={() => {
-                rememberedLook = l.id
-                setLook(l.id)
-              }}
-            >
-              {t(l.label)}
-            </button>
-          ))}
-        </div>
-        <span className="workspace-format">
-          {frameLabel} · {w}×{h} px
-        </span>
-      </div>
-
+    <div className="map-workspace" onKeyDown={onKeyDown}>
       <div className="workspace-map">
         <div ref={ref} className="workspace-map-canvas" style={{ position: 'absolute', inset: 0 }} />
         {map && fit && <FrameOutline map={map} fit={fit} width={frameW} height={h} label={frameLabel} />}
-        <div className="workspace-zoom">
-          <button type="button" aria-label={t('travel.workspace.zoomIn')} onClick={() => map?.zoomIn()}>
-            +
-          </button>
-          <button type="button" aria-label={t('travel.workspace.zoomOut')} onClick={() => map?.zoomOut()}>
-            −
-          </button>
+        <div className="workspace-top">
+          <CenterViewSwitch />
+          <div className="workspace-layers">
+            <button type="button" className="workspace-layers-btn" aria-expanded={layersOpen} aria-label={t('travel.workspace.layers')} onClick={() => setLayersOpen(!layersOpen)}>
+              <IconLayers />
+              {t(lookDef.label)}
+            </button>
+            {layersOpen && (
+              <div className="workspace-layers-list" role="radiogroup" aria-label={t('travel.workspace.looksLabel')}>
+                {LOOKS.map((l) => (
+                  <button
+                    key={l.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={l.id === look}
+                    onClick={() => {
+                      rememberedLook = l.id
+                      setLook(l.id)
+                      setLayersOpen(false)
+                    }}
+                  >
+                    {t(l.label)}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-        <div className="workspace-fit">
-          <button type="button" disabled={!journey.stops.length} onClick={() => map && showPlaces(map, journey.stops)}>
-            {t('travel.workspace.fitRoute')}
+        <div className="workspace-controls">
+          <button type="button" title={t('travel.workspace.zoomIn')} aria-label={t('travel.workspace.zoomIn')} onClick={() => map?.zoomIn()}>
+            <IconPlus />
+          </button>
+          <button type="button" title={t('travel.workspace.zoomOut')} aria-label={t('travel.workspace.zoomOut')} onClick={() => map?.zoomOut()}>
+            <IconMinus />
           </button>
           <button
             type="button"
-            disabled={!frameCorners}
-            onClick={() => map && frameCorners && showPlaces(map, frameCorners)}
+            title={`${t('travel.workspace.fitRoute')} (F)`}
+            aria-label={t('travel.workspace.fitRoute')}
+            disabled={!journey.stops.length}
+            onClick={() => map && showPlaces(map, journey.stops, previewBox.width)}
           >
-            {t('travel.workspace.fitFrame')}
+            <IconRoute />
+          </button>
+          <button
+            type="button"
+            title={t('travel.workspace.fitFrame')}
+            aria-label={t('travel.workspace.fitFrame')}
+            disabled={!frameCorners}
+            onClick={() => map && frameCorners && showPlaces(map, frameCorners, previewBox.width)}
+          >
+            <IconFit />
           </button>
         </div>
+        {pickIndex >= 0 && (
+          <p className="workspace-banner" role="status">
+            {t('travel.workspace.pickBanner', { letter: stopLetter(pickIndex) })}
+          </p>
+        )}
+        <div ref={lineHint} className="workspace-line-hint" aria-hidden="true">
+          <span className="workspace-line-dot" />
+          <span className="workspace-line-text">{t('travel.workspace.lineHint')}</span>
+        </div>
+        {menu && <MapMenu x={menu.x} y={menu.y} label={t('travel.workspace.menu.label')} items={menu.items} onClose={closeMenu} />}
         <button type="button" className="workspace-preview" onClick={() => setCenterView('frame')} title={t('travel.workspace.toFrame')}>
           <span className="workspace-preview-frame" style={previewBox}>
             {preview(previewBox)}
           </span>
           <span className="workspace-preview-label">{t('travel.workspace.livePreview')}</span>
         </button>
-        <div className="workspace-hints">
-          <span>{t('travel.workspace.hintAdd')}</span>
-          <span className="text-muted">{t('travel.workspace.hintDragPin')}</span>
-          <span className="text-muted">{t('travel.workspace.hintDragLine')}</span>
-          <span className="text-muted workspace-credit">{failed ? t('travel.workspace.mapFailed') : creditFor({ ...lookDef.style })}</span>
-        </div>
+        <p className="workspace-hint">{hint}</p>
+        <small className="workspace-credit">{creditFor({ ...lookDef.style })}</small>
       </div>
     </div>
   )

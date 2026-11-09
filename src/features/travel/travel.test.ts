@@ -3,10 +3,11 @@ import { rangeStats, selectRouteParts, selectTrack } from '../../store/derived'
 import { useAppStore } from '../../store/useAppStore'
 import { cumulativeDistanceKm, parseGpxText, toGpxText } from '../../utils/gpx'
 import { registerTravel } from '.'
-import { addStop, journeyOf, legPlans, removeStop, type Journey } from './model/journey'
+import { addStop, insertStop, journeyOf, legPlans, makeStop, makeVia, removeStop, repeatAtEnd, reverseJourney, updateStop, type Journey } from './model/journey'
 import { greatCircle } from './model/lines'
 import { parseBRouter } from './providers/brouter'
-import { parsePhoton, placeAt, searchPlaces } from './providers/geocoding'
+import { areasFirst, parsePhoton, placeAt, searchPlaces } from './providers/geocoding'
+import { nearestLine } from './workspace/tripLayers'
 import type { Stop } from '../../types'
 
 const GDANSK = { lat: 54.352, lon: 18.6466 }
@@ -62,6 +63,42 @@ describe('journey', () => {
     expect(removeStop(trip, a.id)).toEqual({ stops: [b, c], legs: [{ mode: 'plane' }] })
   })
 
+  it('splits a leg with a stop put in between, both halves travelled alike, its via points dropped', () => {
+    const d = stop(5, 'D', { lat: 50.6, lon: 19 })
+    const timed: Journey = { ...trip, legs: [{ mode: 'car', line: 'road', duration: 6 }, { mode: 'plane' }] }
+    expect(insertStop(timed, d, 0)).toEqual({ stops: [a, d, b, c], legs: [{ mode: 'car', line: 'road', duration: 6 }, { mode: 'car', line: 'road' }, { mode: 'plane' }] })
+    expect(insertStop(trip, d, 1).stops.map((s) => s.name).join('')).toBe('AvBDC')
+  })
+
+  it('reverses the trip with each leg keeping its way of travel', () => {
+    const back = reverseJourney(trip)
+    expect(legPlans(back).map((l) => [l.mode, l.stops.map((s) => s.name).join('')])).toEqual([
+      ['plane', 'CB'],
+      ['car', 'BvA'],
+    ])
+  })
+
+  it('turns a stop into a via point of the joined leg and back, never the first or last', () => {
+    const joined = makeVia(trip, b.id)
+    expect(joined.legs).toEqual([{ mode: 'car' }])
+    expect(legPlans(joined)[0].stops.map((s) => s.name).join('')).toBe('AvBC')
+    expect(makeVia(trip, a.id)).toBe(trip)
+    expect(makeVia(trip, c.id)).toBe(trip)
+    const split = makeStop(joined, b.id, 'B')
+    expect(legPlans(split).map((l) => [l.mode, l.stops.map((s) => s.name).join('')])).toEqual([
+      ['car', 'AvB'],
+      ['car', 'BC'],
+    ])
+  })
+
+  it('repeats a stop at the end as a new stop in the same place', () => {
+    const loop = repeatAtEnd(trip, a.id, 'car')
+    const last = loop.stops[loop.stops.length - 1]
+    expect(last).toMatchObject({ name: 'A', lat: a.lat, lon: a.lon })
+    expect(trip.stops.map((s) => s.id)).not.toContain(last.id)
+    expect(loop.legs).toHaveLength(3)
+  })
+
   it('reads the trip back from the planned parts of the route', () => {
     const parts = legPlans(trip).map((plan, i) => ({ id: i + 1, name: '', color: '', dashed: false, visible: true, sourceKey: '', plan }))
     expect(journeyOf(parts, null)).toEqual(trip)
@@ -94,6 +131,14 @@ describe('providers', () => {
       features: [{ geometry: { coordinates: [18.654, 54.348] }, properties: { name: 'Gdańsk', state: 'województwo pomorskie', country: 'Polska' } }],
     })
     expect(places).toEqual([{ name: 'Gdańsk', detail: 'województwo pomorskie, Polska', lat: 54.348, lon: 18.654 }])
+  })
+
+  it('puts a town before a street named after it, unless the query is an address', () => {
+    const feature = (name: string, type: string, lon: number) => ({ geometry: { coordinates: [lon, 47.5] as [number, number] }, properties: { name, type } })
+    // Photon's order with a stop in Poland: the street in Gdańsk first.
+    const answer = { features: [feature('Budapesztańska', 'street', 18.6), feature('Budapeszt', 'city', 19.04)] }
+    expect(parsePhoton(areasFirst(answer, 'Budapeszt')).map((p) => p.name)).toEqual(['Budapeszt', 'Budapesztańska'])
+    expect(parsePhoton(areasFirst(answer, 'ul. Budapeszt')).map((p) => p.name)).toEqual(['Budapesztańska', 'Budapeszt'])
   })
 
   it('asks Photon for names as they are on the spot, whatever the browser language', async () => {
@@ -163,6 +208,16 @@ describe('planned trip on the route', () => {
     expect(get().waypoints.map((w) => w.text)).toEqual(['Gdańsk', 'Stambuł'])
   })
 
+  it('renames the label of a renamed stop, unless the label was written by hand', async () => {
+    await get().setJourney(flight, 'add')
+    await get().setJourney(updateStop(journeyOf(get().routeSource!.parts, null), gdansk.id, { name: 'Gdynia' }), 'name')
+    expect(get().waypoints.map((w) => w.text)).toEqual(['Gdynia', 'Stambuł'])
+    const own = get().waypoints[1]
+    get().updateWaypoint(own.id, { text: 'Konstantynopol' })
+    await get().setJourney(updateStop(journeyOf(get().routeSource!.parts, null), istanbul.id, { name: 'Istanbul' }), 'name')
+    expect(get().waypoints.map((w) => w.text)).toEqual(['Gdynia', 'Konstantynopol'])
+  })
+
   it('draws a leg the route service has no road for as a straight line and says so', async () => {
     const fetch = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('operation killed by thread-priority-watchdog', { status: 400 }))
     await get().setJourney({ stops: [gdansk, istanbul], legs: [{ mode: 'car' }] }, 'add')
@@ -180,6 +235,15 @@ describe('planned trip on the route', () => {
     // Climbing counts on the ground only, not from the flight's zero height up to the file's first point.
     const stats = rangeStats(selectTrack(get()), get().range, [parts[1].startIdx], parts)
     expect(stats?.elevationGainM).toBe(20)
+  })
+})
+
+describe('map menu', () => {
+  it('finds the leg nearest the click by its distance from the line, not from the points', () => {
+    const long = [{ x: 0, y: 0 }, { x: 200, y: 0 }]
+    const near = [{ x: 90, y: 30 }, { x: 110, y: 30 }]
+    expect(nearestLine({ x: 100, y: 5 }, [near, long])).toBe(1)
+    expect(nearestLine({ x: 100, y: 25 }, [near, long])).toBe(0)
   })
 })
 
@@ -218,6 +282,28 @@ describe('route options and the train', () => {
     expect(urls[1]).toContain('profile:avoid_toll=1')
     expect(selectRouteParts(get())[0].sourceKey).not.toBe(first)
     expect(journeyOf(get().routeSource!.parts, null).legs).toEqual([{ mode: 'car', options: ['avoid_toll'] }])
+  })
+
+  it('drives from the nearest main streets when a stop lies in a car-free pocket at either end', async () => {
+    const urls: string[] = []
+    const road = (lon: number, lat: number) => new Response(JSON.stringify({ features: [{ geometry: { coordinates: [lon, lat] }, properties: { name: 'droga' } }] }))
+    const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) => {
+      const u = String(url)
+      urls.push(u)
+      if (u.includes('osm_tag=highway')) return u.includes('lat=54') ? road(18.66, 54.36) : road(21.02, 52.24)
+      // Arriving in the old town, as Kraków's point is when the trip is reversed.
+      if (u.includes('lonlats=18.500000')) return new Response('target island detected for section 0', { status: 400 })
+      return line([18.66, 54.36], [21.02, 52.24])
+    })
+    // Places of their own: the route service's answers are kept for the session.
+    const town = stop(1, 'Sopot', { lat: 54.1, lon: 18.5 })
+    const city = stop(2, 'Radom', { lat: 51.4, lon: 21.15 })
+    await get().setJourney({ stops: [town, city], legs: [{ mode: 'car' }] }, 'add')
+    fetch.mockRestore()
+    expect(get().travelError).toBe('')
+    expect(selectRouteParts(get())[0].plan).toMatchObject({ mode: 'car' })
+    expect(selectRouteParts(get())[0].plan?.line).toBeUndefined()
+    expect(urls.filter((u) => u.includes('brouter'))).toHaveLength(2)
   })
 
   it('goes by rail between the stations nearest the stops, at the train\'s own pace', async () => {

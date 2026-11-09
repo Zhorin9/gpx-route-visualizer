@@ -55,7 +55,8 @@ async function route({ stops, profile, options }: RouteRequest, signal: AbortSig
   }
   if (!response.ok) {
     const text = await response.text()
-    throw new RouteError(explain(response.status, text), /no track found/i.test(text))
+    // "No track" leaving a stop, "island" arriving at one: both a point in a car-free pocket.
+    throw new RouteError(explain(response.status, text), /no track found|island/i.test(text))
   }
   return parseBRouter(await response.json(), 0)
 }

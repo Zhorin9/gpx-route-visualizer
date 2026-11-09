@@ -19,12 +19,30 @@ function dashOf(part: TrackPart): 'solid' | 'dotted' | 'dashed' {
   return part.plan.mode === 'bike' || part.plan.mode === 'foot' ? 'dotted' : 'solid'
 }
 
-export function tripData(planned: TrackPart[], cache: Record<string, GpxPoint[]>, selectedLeg: number | null) {
+// The leg nearest a point on screen: the least distance from the point to any of its segments.
+export function nearestLine(at: { x: number; y: number }, lines: { x: number; y: number }[][]): number {
+  let best = -1
+  let bestD = Infinity
+  lines.forEach((line, i) => {
+    for (let k = 0; k + 1 < line.length; k++) {
+      const a = line[k]
+      const b = line[k + 1]
+      const len = (b.x - a.x) ** 2 + (b.y - a.y) ** 2
+      const t = len ? Math.max(0, Math.min(1, ((at.x - a.x) * (b.x - a.x) + (at.y - a.y) * (b.y - a.y)) / len)) : 0
+      const d = Math.hypot(at.x - (a.x + t * (b.x - a.x)), at.y - (a.y + t * (b.y - a.y)))
+      if (d < bestD) [best, bestD] = [i, d]
+    }
+  })
+  return best
+}
+
+// `highlight`: the leg picked or being split; the others fade behind it.
+export function tripData(planned: TrackPart[], cache: Record<string, GpxPoint[]>, highlight: number | null) {
   return {
     type: 'FeatureCollection' as const,
     features: planned.map((p, leg) => ({
       type: 'Feature' as const,
-      properties: { leg, dash: dashOf(p), selected: leg === selectedLeg },
+      properties: { leg, dash: dashOf(p), selected: leg === highlight, dim: highlight != null && leg !== highlight },
       geometry: { type: 'LineString' as const, coordinates: (cache[p.sourceKey] ?? []).map(lngLat) },
     })),
   }
@@ -35,12 +53,14 @@ export function addTripLayers(map: MapLibreMap, data: ReturnType<typeof tripData
   if (map.getSource('trip')) return void (map.getSource('trip') as GeoJSONSource).setData(data)
   map.addSource('trip', { type: 'geojson', data })
   const color = ['case', ['get', 'selected'], ACCENT, INK] as unknown as string
+  const opacity = ['case', ['get', 'dim'], 0.35, 1] as unknown as number
+  const width = (w: number) => ['case', ['get', 'selected'], w + 1.5, w] as unknown as number
   const layout = { 'line-cap': 'round', 'line-join': 'round' } as const
   // A pale casing keeps the line readable on a satellite photo.
-  map.addLayer({ id: 'trip-casing', type: 'line', source: 'trip', paint: { 'line-color': '#f3f2f2', 'line-width': 7, 'line-opacity': 0.7 }, layout })
-  map.addLayer({ id: 'trip-solid', type: 'line', source: 'trip', filter: ['==', ['get', 'dash'], 'solid'], paint: { 'line-color': color, 'line-width': 4 }, layout })
-  map.addLayer({ id: 'trip-dotted', type: 'line', source: 'trip', filter: ['==', ['get', 'dash'], 'dotted'], paint: { 'line-color': color, 'line-width': 4, 'line-dasharray': [0.25, 2.25] }, layout })
-  map.addLayer({ id: 'trip-dashed', type: 'line', source: 'trip', filter: ['==', ['get', 'dash'], 'dashed'], paint: { 'line-color': color, 'line-width': 3, 'line-dasharray': [3.7, 2.7] }, layout: { 'line-join': 'round' } })
+  map.addLayer({ id: 'trip-casing', type: 'line', source: 'trip', paint: { 'line-color': '#f3f2f2', 'line-width': width(7), 'line-opacity': ['case', ['get', 'dim'], 0.25, 0.7] as unknown as number }, layout })
+  map.addLayer({ id: 'trip-solid', type: 'line', source: 'trip', filter: ['==', ['get', 'dash'], 'solid'], paint: { 'line-color': color, 'line-width': width(4), 'line-opacity': opacity }, layout })
+  map.addLayer({ id: 'trip-dotted', type: 'line', source: 'trip', filter: ['==', ['get', 'dash'], 'dotted'], paint: { 'line-color': color, 'line-width': width(4), 'line-opacity': opacity, 'line-dasharray': [0.25, 2.25] }, layout })
+  map.addLayer({ id: 'trip-dashed', type: 'line', source: 'trip', filter: ['==', ['get', 'dash'], 'dashed'], paint: { 'line-color': color, 'line-width': width(3), 'line-opacity': opacity, 'line-dasharray': [3.7, 2.7] }, layout: { 'line-join': 'round' } })
   map.addLayer({ id: 'trip-hit', type: 'line', source: 'trip', paint: { 'line-color': '#000', 'line-opacity': 0, 'line-width': 16 } })
 }
 

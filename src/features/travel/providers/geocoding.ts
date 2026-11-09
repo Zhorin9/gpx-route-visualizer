@@ -11,7 +11,7 @@ export interface Place {
 interface PhotonAnswer {
   features?: {
     geometry: { coordinates: [number, number] }
-    properties: { name?: string; city?: string; state?: string; country?: string; street?: string; housenumber?: string }
+    properties: { name?: string; type?: string; city?: string; state?: string; country?: string; street?: string; housenumber?: string }
   }[]
 }
 
@@ -56,10 +56,20 @@ async function ask<T>(url: string, signal: AbortSignal, parse: (answer: T) => Pl
   return parse(await response.json())
 }
 
+const AREAS = new Set(['country', 'state', 'county', 'city', 'district', 'locality'])
+
+// Towns, regions and countries before streets, unless the query names an address; Photon's own order
+// (nearest first) holds among places of the same kind.
+export function areasFirst(answer: PhotonAnswer, query: string): PhotonAnswer {
+  if (/\d|\bul\./i.test(query)) return answer
+  const rank = (type?: string) => (AREAS.has(type ?? '') ? 0 : 1)
+  return { features: [...(answer.features ?? [])].sort((a, b) => rank(a.properties.type) - rank(b.properties.type)) }
+}
+
 // Photon (komoot): no key, made for search-as-you-type. Places near `near` come first.
 export function searchPlaces(query: string, near: { lat: number; lon: number } | null, signal: AbortSignal): Promise<Place[]> {
   const bias = near ? `&lat=${near.lat.toFixed(4)}&lon=${near.lon.toFixed(4)}` : ''
-  return ask(`${URL_BASE}/api/?q=${encodeURIComponent(query)}&limit=8${bias}${LOCAL_NAMES}`, signal, parsePhoton).then((places) => places.slice(0, 6))
+  return ask(`${URL_BASE}/api/?q=${encodeURIComponent(query)}&limit=8${bias}${LOCAL_NAMES}`, signal, (answer: PhotonAnswer) => parsePhoton(areasFirst(answer, query))).then((places) => places.slice(0, 6))
 }
 
 // Nominatim knows the Polish names of foreign places (Stambuł, Kolonia) that Photon doesn't.
