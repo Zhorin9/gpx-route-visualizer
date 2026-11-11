@@ -1,3 +1,4 @@
+import type { Box } from '../geometry'
 import { contrastRatio, toneOf } from '../color'
 import { boxPath, type ContentBox } from './box'
 import type { SlideLook, Wrapper, WrapperField } from '../../types'
@@ -54,7 +55,7 @@ export function noShadow(ctx: CanvasRenderingContext2D) {
   ctx.shadowOffsetY = 0
 }
 
-export function paperOnGround(ctx: CanvasRenderingContext2D, scene: WrapperScene, ground: string, paper: string, sheet: { x: number; y: number; w: number; h: number }) {
+export function paperOnGround(ctx: CanvasRenderingContext2D, scene: WrapperScene, ground: string, paper: string, sheet: Box) {
   ctx.fillStyle = ground
   ctx.fillRect(0, 0, scene.w, scene.h)
   shadow(ctx, Math.min(scene.w, scene.h))

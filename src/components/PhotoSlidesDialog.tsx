@@ -53,7 +53,7 @@ export default function PhotoSlidesDialog() {
       )}
       <div className="dialog-actions">
         <Button variant="ghost" onClick={cancel}>
-          {t('photoSlidesDialog.cancel')}
+          {t('common.cancel')}
         </Button>
         {route && <Button onClick={() => confirm(false)}>{t('photoSlidesDialog.skipMatching')}</Button>}
         <Button variant="primary" onClick={() => confirm(true)}>

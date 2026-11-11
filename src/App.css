@@ -1697,11 +1697,6 @@
   border-radius: calc(var(--radius) * 0.75);
 }
 
-.tag-accent {
-  color: var(--accent-text-strong);
-  background: var(--accent-soft);
-}
-
 .tag-outline {
   color: var(--accent-text);
   border-color: var(--accent);

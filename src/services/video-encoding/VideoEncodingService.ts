@@ -6,7 +6,7 @@ export type EncodeQuality = 'low' | 'medium' | 'high'
 
 export interface EncodeOptions {
   format: VideoFormat
-  // Output size in pixels; frames of another size are scaled to it.
+  // Output size in pixels.
   width: number
   height: number
   fps: number
@@ -37,20 +37,6 @@ export interface VideoEncodingService {
   // Rough size of the file, for the export panel.
   estimateBytes: (options: EncodeOptions, durationS: number) => number
   createSession: (options: EncodeOptions) => Promise<EncodingSession>
-}
-
-export class EncodingUnsupportedError extends Error {
-  constructor(message: string) {
-    super(message)
-    this.name = 'EncodingUnsupportedError'
-  }
-}
-
-export class EncodingFailedError extends Error {
-  constructor(message: string, options?: { cause?: unknown }) {
-    super(message, options)
-    this.name = 'EncodingFailedError'
-  }
 }
 
 export const MIME_TYPES: Record<VideoFormat, string> = {

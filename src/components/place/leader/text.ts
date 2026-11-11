@@ -1,4 +1,4 @@
-import type { Box } from '.'
+import type { Box } from '../../../utils/geometry'
 
 export function toNearestNameEnd(name: Box): [number, number] {
   const middleY = name.y + name.h / 2

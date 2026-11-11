@@ -1,3 +1,4 @@
+import type { Box } from './geometry'
 import { INK, PAPER, toneOf } from './color'
 import { formatDuration, formatNumber } from './format'
 import { canvasFont } from './fonts'
@@ -28,7 +29,6 @@ export interface SlideScene {
   photos: Map<number, Photo>
 }
 
-type Rect = { x: number; y: number; w: number; h: number }
 
 const font = (family: string, size: number, bold = false) => canvasFont(family, size, { bold })
 
@@ -40,7 +40,7 @@ function text(ctx: CanvasRenderingContext2D, value: string, x: number, y: number
   drawText(ctx, value, x, y, color, align, baseline)
 }
 
-function drawCover(ctx: CanvasRenderingContext2D, img: HTMLCanvasElement, r: Rect) {
+function drawCover(ctx: CanvasRenderingContext2D, img: HTMLCanvasElement, r: Box) {
   const c = coverLayout(img.width, img.height, r.w, r.h, 1, 0, 0)
   ctx.drawImage(img, r.x + c.x, r.y + c.y, c.width, c.height)
 }
@@ -224,7 +224,7 @@ export function markerText(route: SeriesRoute, index: number, units: Units): str
   return `${distanceUnit(units)} ${formatNumber(km)} · ${formatHeight(route.points[index].ele, units)}`
 }
 
-function drawMiniMap(ctx: CanvasRenderingContext2D, scene: SlideScene, box: Rect, index: number) {
+function drawMiniMap(ctx: CanvasRenderingContext2D, scene: SlideScene, box: Box, index: number) {
   const route = scene.route!
   const u = unit(scene)
   // Light with an outline, so it reads on a dark photo and a light one.

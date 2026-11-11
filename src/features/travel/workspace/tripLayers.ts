@@ -1,5 +1,6 @@
 import type { GeoJSONSource, Map as MapLibreMap, MapLayerMouseEvent } from 'maplibre-gl'
 import type { RefObject } from 'react'
+import { CHROME_ACCENT } from '../../../core/canvas/chrome'
 import { insertVia, legPlans, type Journey } from '../model/journey'
 import { lineOf } from '../model/modes'
 import type { GpxPoint, TrackPart } from '../../../types'
@@ -7,7 +8,6 @@ import { kmBetween, nearestIndex, type LatLon } from '../../../utils/gpx'
 
 // Line colours on the planning map: the trip in ink, the leg being edited in the accent.
 const INK = '#24351f'
-const ACCENT = '#b68235'
 
 export const lngLat = (p: { lat: number; lon: number }): [number, number] => [p.lon, p.lat]
 
@@ -52,7 +52,7 @@ export function tripData(planned: TrackPart[], cache: Record<string, GpxPoint[]>
 export function addTripLayers(map: MapLibreMap, data: ReturnType<typeof tripData>) {
   if (map.getSource('trip')) return void (map.getSource('trip') as GeoJSONSource).setData(data)
   map.addSource('trip', { type: 'geojson', data })
-  const color = ['case', ['get', 'selected'], ACCENT, INK] as unknown as string
+  const color = ['case', ['get', 'selected'], CHROME_ACCENT, INK] as unknown as string
   const opacity = ['case', ['get', 'dim'], 0.35, 1] as unknown as number
   const width = (w: number) => ['case', ['get', 'selected'], w + 1.5, w] as unknown as number
   const layout = { 'line-cap': 'round', 'line-join': 'round' } as const

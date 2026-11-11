@@ -1,18 +1,12 @@
+import { mixHex } from '../../../utils/color'
+
 // Every car look is drawn in a 48 × 24 box centred on (0, 0), front to the east.
 export const GLASS = '#1f2a36'
 export const INK = '#24351f'
-export const PAPER = '#f3f2f2'
 export const LIGHT = '#fff6c9'
 
 // Darker under 1, lighter over it.
-export function shade(color: string, factor: number): string {
-  const n = parseInt(color.slice(1), 16)
-  const channel = (v: number) =>
-    Math.max(0, Math.min(255, Math.round(factor < 1 ? v * factor : v + (255 - v) * (factor - 1))))
-      .toString(16)
-      .padStart(2, '0')
-  return `#${channel(n >> 16)}${channel((n >> 8) & 255)}${channel(n & 255)}`
-}
+export const shade = (color: string, factor: number) => (factor < 1 ? mixHex(color, '#000000', 1 - factor) : mixHex(color, '#ffffff', factor - 1))
 
 export const WHEELS =
   '<rect x="-14" y="-11" width="6" height="2.6" rx="1" fill="#1d1d1d"/><rect x="9" y="-11" width="6" height="2.6" rx="1" fill="#1d1d1d"/>' +

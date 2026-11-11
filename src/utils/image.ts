@@ -1,3 +1,4 @@
+import type { Box } from './geometry'
 import { clamp, seededRandom } from './math'
 import i18n from '../i18n'
 // Enough for a 2× export of the tallest aspect (2160×3840) with zoom headroom.
@@ -67,14 +68,7 @@ export const zoomedBy = (zoom: number, steps: number) => clamp(zoom + steps * ZO
 
 export const wheelSteps = (deltaY: number) => (deltaY < 0 ? 1 : -1)
 
-interface Area {
-  x: number
-  y: number
-  w: number
-  h: number
-}
-
-export function coveringPosition(at: { x: number; y: number }, box: Area, photo: { width: number; height: number }) {
+export function coveringPosition(at: { x: number; y: number }, box: Box, photo: { width: number; height: number }) {
   return { x: clamp(at.x, box.x + box.w - photo.width, box.x), y: clamp(at.y, box.y + box.h - photo.height, box.y) }
 }
 

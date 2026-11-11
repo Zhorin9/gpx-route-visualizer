@@ -1,4 +1,5 @@
-import { BODY, INK, PAPER } from './shared'
+import { PAPER } from '../../../utils/color'
+import { BODY, INK } from './shared'
 
 // Ink on paper, whatever colour is picked.
 export const sketch = () =>

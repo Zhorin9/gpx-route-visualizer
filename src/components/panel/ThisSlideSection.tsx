@@ -65,7 +65,7 @@ function ApplyDialog({ index, onClose }: { index: number; onClose: () => void })
       <p className="hint">{t('thisSlideSection.applyHint', { count })}</p>
       <div className="dialog-actions">
         <Button variant="ghost" onClick={onClose}>
-          {t('thisSlideSection.cancel')}
+          {t('common.cancel')}
         </Button>
         <Button
           variant="primary"

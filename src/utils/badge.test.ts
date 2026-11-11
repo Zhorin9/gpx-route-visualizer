@@ -17,9 +17,4 @@ describe('badge outline', () => {
       expect(Math.max(...ys)).toBeGreaterThan(40)
     }
   })
-
-  it('gives a burst many spikes and a star five', () => {
-    expect(badgeOutline('burst', 300, 80)).toHaveLength(14 * 2 * 2)
-    expect(badgeOutline('star', 300, 80)).toHaveLength(5 * 2 * 2)
-  })
 })

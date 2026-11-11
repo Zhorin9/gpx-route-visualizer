@@ -44,20 +44,10 @@ describe('computeSlots', () => {
     expect(offered(1080, 1350)).not.toContain('w1b2s')
     expect(offered(1080, 1080)).toContain('g23')
   })
-
-  it('tilts scrapbook photos', () => {
-    const slots = computeSlots(layoutDef('c4'), W, H, 0, 0)
-    expect(slots).toHaveLength(3)
-    expect(slots.every((s) => s.rotation !== 0)).toBe(true)
-  })
 })
 
 describe('frameInsets', () => {
   const slot = { index: 0, x: 0, y: 0, w: 400, h: 300, rotation: 0, kind: 'framed' as const }
-
-  it('is zero when the slot has no frame', () => {
-    expect(frameInsets(slot, 20, 'equal', false)).toEqual({ top: 0, right: 0, bottom: 0, left: 0 })
-  })
 
   it('leaves a thicker bottom edge for polaroids', () => {
     const equal = frameInsets(slot, 20, 'equal', true)

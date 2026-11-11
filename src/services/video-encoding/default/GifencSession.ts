@@ -1,7 +1,6 @@
 import { GIFEncoder, applyPalette, quantize, type Palette } from 'gifenc'
-import { EncodingFailedError, MIME_TYPES, type EncodeOptions, type EncodingSession } from '../VideoEncodingService'
+import { MIME_TYPES, type EncodeOptions, type EncodingSession } from '../VideoEncodingService'
 import i18n from '../../../i18n'
-import { FrameCanvas } from './frameCanvas'
 
 // A GIF has no separate codec and container, so this is a whole session on its own.
 
@@ -24,14 +23,12 @@ function buildPalette(samples: readonly HTMLCanvasElement[], width: number, heig
 
 export class GifencSession implements EncodingSession {
   private readonly gif = GIFEncoder()
-  private readonly canvas: FrameCanvas
   private palette: Palette | null
   private lastUs = 0
   private pending: Uint8Array | null = null
   private aborted = false
 
   constructor(private readonly options: EncodeOptions) {
-    this.canvas = new FrameCanvas(options.width, options.height)
     this.palette = buildPalette(options.paletteSamples ?? [], options.width, options.height)
   }
 
@@ -47,8 +44,9 @@ export class GifencSession implements EncodingSession {
   }
 
   async addFrame(frame: HTMLCanvasElement, timestampUs: number) {
-    if (this.aborted) throw new EncodingFailedError(i18n.t('gifencSession.aborted'))
-    const rgba = this.canvas.draw(frame).getImageData(0, 0, this.options.width, this.options.height).data
+    if (this.aborted) throw new Error(i18n.t('gifencSession.aborted'))
+    const rgba = frame.getContext('2d')?.getImageData(0, 0, this.options.width, this.options.height).data
+    if (!rgba) throw new Error(i18n.t('codecContainerSession.failed'))
     this.palette ??= quantize(rgba, COLORS)
     this.writePending((timestampUs - this.lastUs) / 1000)
     this.pending = applyPalette(rgba, this.palette)
@@ -56,7 +54,7 @@ export class GifencSession implements EncodingSession {
   }
 
   async finish(): Promise<Blob> {
-    if (this.aborted) throw new EncodingFailedError(i18n.t('gifencSession.aborted'))
+    if (this.aborted) throw new Error(i18n.t('gifencSession.aborted'))
     this.writePending(1000 / this.options.fps)
     this.gif.finish()
     return new Blob([this.gif.bytes()], { type: MIME_TYPES.gif })

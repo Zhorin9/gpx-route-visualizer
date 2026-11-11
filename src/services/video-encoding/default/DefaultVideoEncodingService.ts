@@ -1,7 +1,6 @@
-import { EncodingUnsupportedError, type EncodeOptions, type EncodingSession, type FormatSupport, type VideoEncodingService, type VideoFormat } from '../VideoEncodingService'
+import type { EncodeOptions, EncodingSession, FormatSupport, VideoEncodingService, VideoFormat } from '../VideoEncodingService'
 import i18n from '../../../i18n'
-import type { VideoCodecId } from '../ports'
-import { WebCodecsFrameEncoder, targetBitrate } from './WebCodecsFrameEncoder'
+import { WebCodecsFrameEncoder, targetBitrate, VideoCodecId } from './WebCodecsFrameEncoder'
 
 // Packages load on first use, so they don't weigh on the editor's start-up.
 
@@ -37,10 +36,10 @@ export class DefaultVideoEncodingService implements VideoEncodingService {
     }
     if (options.format === 'png') {
       const { PngSequenceSession } = await import('./PngSequenceSession')
-      return new PngSequenceSession(options)
+      return new PngSequenceSession()
     }
     const encoder = new WebCodecsFrameEncoder(CODECS[options.format])
-    if (!(await encoder.isSupported(options))) throw new EncodingUnsupportedError(i18n.t('defaultVideoEncodingService.unsupported', { format: options.format.toUpperCase() }))
+    if (!(await encoder.isSupported(options))) throw new Error(i18n.t('defaultVideoEncodingService.unsupported', { format: options.format.toUpperCase() }))
     const [{ MediabunnyMuxer }, { CodecContainerSession }] = await Promise.all([import('./MediabunnyMuxer'), import('./CodecContainerSession')])
     return CodecContainerSession.start(options, encoder, new MediabunnyMuxer(options.format))
   }

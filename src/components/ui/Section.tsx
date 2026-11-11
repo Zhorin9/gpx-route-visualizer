@@ -1,10 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { IconChevron } from '../icons'
 
-// Remembered per section while the app is open, so switching tabs doesn't reopen it.
-const collapsedIds = new Set<string>()
-// Sections the person has folded or opened; the others start as `startCollapsed` says.
-const touchedIds = new Set<string>()
+const foldedWhileOpen = new Map<string, boolean>()
 
 export interface SectionProps {
   title?: string
@@ -16,15 +13,12 @@ export interface SectionProps {
 }
 
 export default function Section({ title, children, actions, collapseId, startCollapsed = false }: SectionProps) {
-  const [collapsed, setCollapsed] = useState(() => (collapseId ? (touchedIds.has(collapseId) ? collapsedIds.has(collapseId) : startCollapsed) : false))
+  const [collapsed, setCollapsed] = useState(() => (collapseId ? (foldedWhileOpen.get(collapseId) ?? startCollapsed) : false))
 
   function toggle() {
     if (!collapseId) return
-    if (!touchedIds.has(collapseId) && startCollapsed) collapsedIds.add(collapseId)
-    touchedIds.add(collapseId)
-    if (collapsedIds.has(collapseId)) collapsedIds.delete(collapseId)
-    else collapsedIds.add(collapseId)
-    setCollapsed(collapsedIds.has(collapseId))
+    foldedWhileOpen.set(collapseId, !collapsed)
+    setCollapsed(!collapsed)
   }
 
   return (

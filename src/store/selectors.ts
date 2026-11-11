@@ -68,8 +68,6 @@ export function useRangeStats() {
   return rangeStats(track, range, useDayBreaks(), useAppStore(selectRouteParts))
 }
 
-export { hasVisiblePhotos, isPanorama }
-
 // A photo fills the whole frame, so the background colour or gradient is hidden.
 export function usePhotoBackground() {
   return useAppStore((s) => {

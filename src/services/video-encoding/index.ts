@@ -1,4 +1,5 @@
+import { DefaultVideoEncodingService } from './default/DefaultVideoEncodingService'
+
 export * from './VideoEncodingService'
-export { createVideoEncodingService } from './createService'
-export { useVideoEncoding } from './context'
-export { VideoEncodingProvider } from './VideoEncodingProvider'
+
+export const videoEncoding = new DefaultVideoEncodingService()

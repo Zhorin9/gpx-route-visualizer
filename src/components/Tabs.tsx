@@ -6,7 +6,6 @@ export interface TabDef<K extends string> {
   key: K
   label: string
   // Fits under the icon; `label` is used for the tooltip and panel heading.
-  shortLabel?: string
   icon: ReactNode
 }
 
@@ -52,7 +51,7 @@ export default function Tabs<K extends string>({ tabs, active, onChange }: TabsP
             onClick={() => onChange(tab.key)}
           >
             {tab.icon}
-            <span className="tab-label">{tab.shortLabel ?? tab.label}</span>
+            <span className="tab-label">{tab.label}</span>
           </button>
         )
       })}

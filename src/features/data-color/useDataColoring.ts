@@ -1,4 +1,4 @@
-import { colorScale, palette, paletteBins } from '../../core/data/palettes'
+import { binScale, palette, paletteBins } from '../../core/data/palettes'
 import { dataSeries, dataSource, type DataSourceId } from '../../core/data/sources'
 import { percentile } from '../../core/data/smoothing'
 import { selectTrack } from '../../store/derived'
@@ -47,8 +47,8 @@ export function useActiveDataColor(): ActiveDataColor | null {
 
 const toColoring = memoOne((active: ActiveDataColor | null, routeColor: string): RouteColoring | null => {
   if (!active) return null
-  const { series, domain, settings } = active
-  const scale = colorScale(palette(settings.palette), domain, settings.inverted)
+  const { series, domain, bins, settings } = active
+  const scale = binScale(bins, domain)
   const last = series.length - 1
   return {
     kind: 'perPoint',

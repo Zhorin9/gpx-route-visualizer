@@ -5,7 +5,8 @@ import Section from '../ui/Section'
 import useRouteRange from '../../hooks/useRouteRange'
 import { useRangeStats, useTrackDays } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
-import { formatDay, formatDuration, formatElevation, formatKm } from '../../utils/format'
+import { formatDistance, formatGain } from '../../core/units'
+import { formatDay, formatDuration } from '../../utils/format'
 import { selectTrack } from '../../store/derived'
 
 export default function RangeTab() {
@@ -74,11 +75,11 @@ export default function RangeTab() {
           <dl className="stat-readout">
             <div>
               <dt>{t('rangeTab.distance')}</dt>
-              <dd>{formatKm(stats.distanceKm, 1)}</dd>
+              <dd>{formatDistance(stats.distanceKm, 'metric', 1)}</dd>
             </div>
             <div>
               <dt>{t('rangeTab.elevationGain')}</dt>
-              <dd>{formatElevation(stats.elevationGainM, 1)}</dd>
+              <dd>{formatGain(stats.elevationGainM, 'metric', 1)}</dd>
             </div>
             <div>
               <dt>{t('rangeTab.time')}</dt>

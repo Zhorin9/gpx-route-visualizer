@@ -97,7 +97,7 @@ export default function SlideStylePage() {
             <span>{t('slideStylePage.revertConfirm')}</span>
             <div className="button-row">
               <Button variant="ghost" onClick={() => setConfirming(false)}>
-                {t('slideStylePage.cancel')}
+                {t('common.cancel')}
               </Button>
               <Button
                 variant="primary"

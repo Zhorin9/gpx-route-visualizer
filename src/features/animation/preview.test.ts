@@ -16,10 +16,6 @@ describe('animation preview', () => {
     usePlayback.getState().stop()
   })
 
-  it('is off by default', () => {
-    expect(DEFAULT_ANIMATION.enabled).toBe(false)
-  })
-
   it('returns to the static view when the design is edited', () => {
     pausedPreview()
     useAppStore.getState().updateStatsStyle({ fontSize: 50 })

@@ -22,7 +22,7 @@ export function exportFileNames(
   trackName: string | null,
   slideCount: number,
 ): string[] {
-  const base = slugify(trackName ?? '') || 'trasa'
+  const base = archiveBaseName(trackName)
   const suffix = `${aspectKey.replace(':', 'x')}${scale === 2 ? '@2x' : ''}.${format}`
   if (slideCount === 1) return [`${base}-${suffix}`]
   // Numbered in the strip's order, two digits so the files sort the same way: alpy-01-4x5.jpg.

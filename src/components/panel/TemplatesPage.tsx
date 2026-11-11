@@ -105,7 +105,7 @@ function SaveTemplate() {
         {t('templatesPage.save')}
       </Button>
       <Button type="button" onClick={() => setNaming(false)}>
-        {t('templatesPage.cancel')}
+        {t('common.cancel')}
       </Button>
     </form>
   )

@@ -13,14 +13,6 @@ export function formatNumber(value: number, fractionDigits = 0): string {
   return fmt.format(value)
 }
 
-export function formatKm(km: number, precision: number): string {
-  return `${formatNumber(km, precision)} km`
-}
-
-export function formatElevation(meters: number, roundTo: number): string {
-  return `+${formatNumber(Math.round(meters / roundTo) * roundTo)} m`
-}
-
 export function formatDuration(ms: number): string {
   if (!ms || ms <= 0) return '--'
   const totalMinutes = Math.round(ms / 60000)

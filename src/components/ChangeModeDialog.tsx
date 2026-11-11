@@ -41,7 +41,7 @@ export default function ChangeModeDialog({ from, onClose }: { from: ProjectMode;
       )}
       <div className="dialog-actions">
         <Button variant="ghost" onClick={onClose}>
-          {t('changeModeDialog.cancel')}
+          {t('common.cancel')}
         </Button>
         <Button
           variant="primary"

@@ -3,8 +3,7 @@ import { Line, Text } from 'react-konva'
 import DraggableElement from '../../../core/canvas/DraggableElement'
 import { useAppStore } from '../../../store/useAppStore'
 import { useStickerColor } from '../../../store/selectors'
-import { textColumn } from '../../../core/formats/registry'
-import { defaultStatsY, statsYBelowTitle } from '../../../utils/aspects'
+import { defaultStatsY, textColumn } from '../../../core/formats/registry'
 import { konvaFontStyle } from '../../../utils/fonts'
 import { measureTextWidth } from '../../../utils/measureText'
 import { fittedTitleSize } from '../../../utils/title'
@@ -12,6 +11,10 @@ import type { ArrangeInput } from '../model/arrangements'
 import { arrangementFor } from '../model/registry'
 import { useStatsChips } from '../useStatsChips'
 import { TEXT_SHADOW } from '../../../core/canvas/shadows'
+
+function statsYBelowTitle(title: { y: number; fontSize: number; lines: number }): number {
+  return Math.round(title.y + title.fontSize * (title.lines + 0.3) + 16)
+}
 
 export const STATS_KIND = 'stats'
 

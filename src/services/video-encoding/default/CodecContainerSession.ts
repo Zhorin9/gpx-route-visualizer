@@ -1,7 +1,7 @@
-import { EncodingFailedError, type EncodeOptions, type EncodingSession } from '../VideoEncodingService'
+import type { EncodeOptions, EncodingSession } from '../VideoEncodingService'
 import i18n from '../../../i18n'
-import type { ContainerMuxer, EncodedSample, FrameEncoder } from '../ports'
-import { FrameCanvas } from './frameCanvas'
+import type { MediabunnyMuxer } from './MediabunnyMuxer'
+import type { EncodedSample, WebCodecsFrameEncoder } from './WebCodecsFrameEncoder'
 
 // A key frame every two seconds keeps seeking cheap without costing much size.
 const KEY_FRAME_INTERVAL_S = 2
@@ -9,7 +9,6 @@ const KEY_FRAME_INTERVAL_S = 2
 const MAX_QUEUE = 8
 
 export class CodecContainerSession implements EncodingSession {
-  private readonly canvas: FrameCanvas
   private frameIndex = 0
   private failure: Error | null = null
   private writes: Promise<void> = Promise.resolve()
@@ -17,13 +16,11 @@ export class CodecContainerSession implements EncodingSession {
 
   private constructor(
     private readonly options: EncodeOptions,
-    private readonly encoder: FrameEncoder,
-    private readonly muxer: ContainerMuxer,
-  ) {
-    this.canvas = new FrameCanvas(options.width, options.height)
-  }
+    private readonly encoder: WebCodecsFrameEncoder,
+    private readonly muxer: MediabunnyMuxer,
+  ) {}
 
-  static async start(options: EncodeOptions, encoder: FrameEncoder, muxer: ContainerMuxer): Promise<CodecContainerSession> {
+  static async start(options: EncodeOptions, encoder: WebCodecsFrameEncoder, muxer: MediabunnyMuxer): Promise<CodecContainerSession> {
     const session = new CodecContainerSession(options, encoder, muxer)
     await muxer.begin(options, encoder.codec)
     await encoder.configure(options, (s) => session.onSample(s), (e) => (session.failure = e))
@@ -38,14 +35,13 @@ export class CodecContainerSession implements EncodingSession {
   }
 
   private check() {
-    if (this.failure) throw new EncodingFailedError(i18n.t('codecContainerSession.failed'), { cause: this.failure })
-    if (this.closed) throw new EncodingFailedError(i18n.t('codecContainerSession.aborted'))
+    if (this.failure) throw new Error(i18n.t('codecContainerSession.failed'), { cause: this.failure })
+    if (this.closed) throw new Error(i18n.t('codecContainerSession.aborted'))
   }
 
   async addFrame(frame: HTMLCanvasElement, timestampUs: number) {
     this.check()
-    this.canvas.draw(frame)
-    const video = new VideoFrame(this.canvas.canvas, { timestamp: timestampUs, duration: Math.round(1_000_000 / this.options.fps) })
+    const video = new VideoFrame(frame, { timestamp: timestampUs, duration: Math.round(1_000_000 / this.options.fps) })
     const keyFrame = this.frameIndex % Math.max(1, Math.round(this.options.fps * KEY_FRAME_INTERVAL_S)) === 0
     this.encoder.encode(video, keyFrame)
     video.close()

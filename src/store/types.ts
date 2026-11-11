@@ -267,7 +267,7 @@ export interface ElementsSlice {
   nudgeSelection: (dx: number, dy: number) => void
 }
 
-export interface TemplatePreview {
+interface TemplatePreview {
   template: StyleTemplate
   // The document from before the preview; going back restores it.
   base: DocumentState
@@ -297,7 +297,7 @@ export interface TemplatesSlice {
   deleteTemplate: (id: string) => void
 }
 
-export interface HistoryEntry {
+interface HistoryEntry {
   doc: DocumentState
   label: TKey
 }

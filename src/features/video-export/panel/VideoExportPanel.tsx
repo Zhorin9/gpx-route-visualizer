@@ -6,7 +6,7 @@ import Button from '../../../components/ui/Button'
 import Section from '../../../components/ui/Section'
 import Segmented from '../../../components/ui/Segmented'
 import { IconCheckCircle, IconDownload } from '../../../components/icons'
-import { useVideoEncoding, type EncodeQuality, type FormatSupport, type VideoFormat } from '../../../services/video-encoding'
+import { videoEncoding, type EncodeQuality, type FormatSupport, type VideoFormat } from '../../../services/video-encoding'
 import { useHasBackground, useInkIsDark } from '../../../store/selectors'
 import { useAppStore } from '../../../store/useAppStore'
 import { archiveBaseName, downloadFiles, type ExportFile } from '../../../utils/exportImage'
@@ -42,15 +42,14 @@ function formatBytes(bytes: number): string {
 type Phase = { kind: 'idle' } | { kind: 'rendering'; progress: VideoProgress; etaS: number | null } | { kind: 'done'; files: ExportFile[] }
 
 function useFormatSupport(width: number, height: number, fps: number) {
-  const service = useVideoEncoding()
   const [support, setSupport] = useState<FormatSupport[] | null>(null)
   useEffect(() => {
     let live = true
-    service.capabilities(width, height, fps).then((s) => live && setSupport(s))
+    videoEncoding.capabilities(width, height, fps).then((s) => live && setSupport(s))
     return () => {
       live = false
     }
-  }, [service, width, height, fps])
+  }, [width, height, fps])
   return support
 }
 
@@ -142,7 +141,6 @@ function AnimationOff() {
 
 export default function VideoExportPanel() {
   const { t } = useTranslation()
-  const service = useVideoEncoding()
   const canAnimate = useCanAnimate()
   const collage = useAppStore((s) => s.mode === 'collage')
   const hasBackground = useHasBackground()
@@ -178,7 +176,7 @@ export default function VideoExportPanel() {
   }
 
   const unsupported = support?.filter((s) => !s.supported) ?? []
-  const estimate = service.estimateBytes({ format: job.format, width, height, fps: job.fps, loopCount: 0, quality: job.quality }, length) * slideCount
+  const estimate = videoEncoding.estimateBytes({ format: job.format, width, height, fps: job.fps, loopCount: 0, quality: job.quality }, length) * slideCount
 
   async function start() {
     const controller = new AbortController()
@@ -190,7 +188,7 @@ export default function VideoExportPanel() {
       setPhase({ kind: 'rendering', progress, etaS: progress.done > 2 ? (perFrame * (progress.total - progress.done)) / 1000 : null })
     }
     try {
-      const files = await renderVideo(service, job, trackName, onProgress, controller.signal)
+      const files = await renderVideo(videoEncoding, job, trackName, onProgress, controller.signal)
       setPhase({ kind: 'done', files })
       downloadFiles(files, archiveBaseName(trackName))
     } catch (e) {
@@ -332,7 +330,7 @@ export default function VideoExportPanel() {
           </p>
         )}
         {rendering ? (
-          <Button onClick={() => abortRef.current?.abort()}>{t('videoExport.cancel')}</Button>
+          <Button onClick={() => abortRef.current?.abort()}>{t('common.cancel')}</Button>
         ) : phase.kind === 'done' ? (
           <Button variant="primary" icon={<IconDownload />} onClick={() => downloadFiles(phase.files, archiveBaseName(trackName))}>
             {t('videoExport.downloadAgain')}

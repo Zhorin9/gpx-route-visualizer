@@ -1,4 +1,4 @@
-import { EncodingFailedError, MIME_TYPES, type EncodeOptions, type EncodingSession, type FormatSupport, type VideoEncodingService, type VideoFormat } from '../VideoEncodingService'
+import { MIME_TYPES, type EncodeOptions, type EncodingSession, type FormatSupport, type VideoEncodingService, type VideoFormat } from '../VideoEncodingService'
 
 // In-memory stand-in for tests of the export loop and the panel: records what it was given.
 export class FakeVideoEncodingService implements VideoEncodingService {
@@ -17,12 +17,12 @@ export class FakeVideoEncodingService implements VideoEncodingService {
   }
 
   async createSession(options: EncodeOptions): Promise<EncodingSession> {
-    if (this.unsupported.includes(options.format)) throw new EncodingFailedError('wyłączone w teście')
+    if (this.unsupported.includes(options.format)) throw new Error('wyłączone w teście')
     const record = { options, timestamps: [] as number[], finished: false, aborted: false }
     this.sessions.push(record)
     return {
       addFrame: async (_frame, timestampUs) => {
-        if (record.aborted) throw new EncodingFailedError('przerwano')
+        if (record.aborted) throw new Error('przerwano')
         record.timestamps.push(timestampUs)
       },
       finish: async () => {

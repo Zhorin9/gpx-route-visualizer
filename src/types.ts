@@ -156,18 +156,18 @@ export interface TextWarp {
   length?: number
 }
 
-export interface TextTyping {
+interface TextTyping {
   // Characters a second.
   cps: number
 }
 
-export interface TextOutline {
+interface TextOutline {
   color: string
   width: number
 }
 
 // What a style does to the glyphs of every text, beyond font and colour.
-export interface TextEffect {
+interface TextEffect {
   outline?: TextOutline
   hardShadow?: HardShadow
   // The title only.
@@ -500,7 +500,7 @@ export type CarouselKind = 'panorama' | 'slides'
 
 export type FrameKind = 'equal' | 'polaroid'
 
-export interface FrameStyle {
+interface FrameStyle {
   enabled: boolean
   color: string
   thickness: number

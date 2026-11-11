@@ -1,6 +1,9 @@
 import type pl from './pl'
 
 const en: typeof pl = {
+  common: {
+    cancel: 'Cancel',
+  },
   newContent: {
     text: 'New text',
     place: 'Place',
@@ -387,7 +390,6 @@ const en: typeof pl = {
     goes: 'Removed',
     nothingGoes: 'Nothing is removed',
     warning: 'A collage has no route or map, so this data will be removed from the project. Are you sure you want to continue? You can undo it right after the change.',
-    cancel: 'Cancel',
     confirmRemoveRoute: 'Yes, remove the route and change to Collage',
     toMap: 'Change to Map',
     toCollage: 'Change to Collage',
@@ -412,7 +414,6 @@ const en: typeof pl = {
     unmatchedHint: 'set the place in the Photos tab',
     alongRoute: 'Slides will be laid out along the route. Drag them on the strip to change the order.',
     noRoute: 'Without a route the photos have nothing to sync with: slides will follow the order you picked them in, without a mini-map or kilometer.',
-    cancel: 'Cancel',
     skipMatching: 'Skip matching',
     create_one: 'Create {{count}} slide',
     create_few: 'Create {{count}} slides',
@@ -638,7 +639,6 @@ const en: typeof pl = {
     badge: 'Badge',
     arcHint: 'Text curved into an arc, e.g. over a camera icon',
     arc: 'On an arc',
-    cancel: 'Cancel',
     place: 'Place',
     routeCaptions: 'Route captions: start, finish, distance',
     addingHint: 'Click on the route — the label will stick to the nearest point.',
@@ -851,7 +851,6 @@ const en: typeof pl = {
     kmMarkers: 'Distance markers',
     places: 'Places on the route',
     emptyPlace: '(empty)',
-    cancel: 'Cancel',
     addPoint: 'Add point — click on the route',
     line: 'Line',
   },
@@ -878,7 +877,6 @@ const en: typeof pl = {
     projectLookHint: 'The slide takes its colors and font from the project (background, route color and title font), so project style changes update it along with the rest.',
     revertQuestion: 'Return to the project style?',
     revertConfirm: 'Return to the project style? This slide\'s own colors and font will be discarded.',
-    cancel: 'Cancel',
     revert: 'Return to project style',
   },
   stickerColorSection: {
@@ -954,7 +952,6 @@ const en: typeof pl = {
     saveCurrent: 'Save current as custom',
     templateName: 'Template name',
     save: 'Save',
-    cancel: 'Cancel',
     previewLabel: 'Template preview',
     preview: 'Preview:',
     previewHint: 'the frame shows this style',
@@ -1018,7 +1015,6 @@ const en: typeof pl = {
     applyHint_few: 'Applies to {{count}} slides with photos. Map, profile and summary stay unchanged. Exceptions with their own style are skipped.',
     applyHint_many: 'Applies to {{count}} slides with photos. Map, profile and summary stay unchanged. Exceptions with their own style are skipped.',
     applyHint_other: 'Applies to {{count}} slides with photos. Map, profile and summary stay unchanged. Exceptions with their own style are skipped.',
-    cancel: 'Cancel',
     applyTo: 'Apply to {{n}}',
     noPlace: 'no place on the route',
     crop: 'Cropping',
@@ -1384,7 +1380,6 @@ const en: typeof pl = {
     filesInZip_many: '{{count}} files in a ZIP',
     filesInZip_other: '{{count}} files in a ZIP',
     tooLong: 'The video is longer than a minute and Instagram will trim it. Shorten the timeline or the number of repeats.',
-    cancel: 'Cancel',
     downloadAgain: 'Download again',
     render: 'Render {{format}}',
   },
