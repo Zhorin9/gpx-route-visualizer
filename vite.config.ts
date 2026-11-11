@@ -12,7 +12,4 @@ export default defineConfig({
       output: { manualChunks: (id) => (/node_modules\/(react|react-dom|react-konva|react-reconciler|scheduler|konva)\//.test(id) ? 'vendor' : undefined) },
     },
   },
-  test: {
-    environment: 'jsdom',
-  },
 })

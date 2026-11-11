@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { afterAll, beforeEach, describe, expect, it } from 'vitest'
 import { useAppStore } from '../../store/useAppStore'
 import { stopPreviewOnEdit } from './editStopsPreview'
