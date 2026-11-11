@@ -9,7 +9,7 @@ import { nextId } from '../../../store/defaults'
 import { selectRouteParts } from '../../../store/derived'
 import { useTrackFit } from '../../../store/selectors'
 import { useAppStore } from '../../../store/useAppStore'
-import { formatKm } from '../../../utils/format'
+import { formatDistance } from '../../../core/units'
 import { cumulativeDistanceKm } from '../../../utils/gpx'
 import { vehicleFor } from '../../animation/vehicles'
 import { asStyle, loadMapLibre } from '../../map/maplibre'
@@ -17,7 +17,7 @@ import { lngLatAt } from '../../map/model/placement'
 import { buildStyle, creditFor } from '../../map/model/styles'
 import { addStart, makeStop, moveStopTo, named, removeStop } from '../model/journey'
 import { travelMode } from '../model/modes'
-import { copyCoordinates, formatSpan } from '../panel/format'
+import { copyCoordinates, formatSpan, spanOf } from '../panel/format'
 import { placeAt } from '../providers/geocoding'
 import { stopLetter, useTravelActions } from '../useTravel'
 import FrameOutline from './FrameOutline'
@@ -253,9 +253,10 @@ export default function TravelWorkspace({ preview }: { preview: (box: { width: n
 
   // A pin per stop; the line follows a dragged pin after a short rest, and once more where it is let go.
   const markers = useRef<Marker[]>([])
+  const pinDragged = useRef(false)
   const selectedStop = selection?.kind === 'stop' ? selection.id : null
   useEffect(() => {
-    if (!map) return
+    if (!map || pinDragged.current) return
     let timer: ReturnType<typeof setTimeout> | undefined
     let cancelled = false
     loadMapLibre().then(({ Marker }) => {
@@ -272,11 +273,13 @@ export default function TravelWorkspace({ preview }: { preview: (box: { width: n
           if (stop.via) menus.current.viaMenu(map, stop)
           else selectTravel({ kind: 'stop', id: stop.id })
         })
+        marker.on('dragstart', () => (pinDragged.current = true))
         marker.on('drag', () => {
           clearTimeout(timer)
           timer = setTimeout(() => latest.current.onChange(moveStopTo(latest.current.journey, stop.id, moved()), `drag:${stop.id}`), DRAG_DELAY_MS)
         })
         marker.on('dragend', async () => {
+          pinDragged.current = false
           clearTimeout(timer)
           const at = moved()
           const name = stop.via ? undefined : await placeName(at)
@@ -294,9 +297,9 @@ export default function TravelWorkspace({ preview }: { preview: (box: { width: n
         const vehicle = vehicleFor(part.vehicle)
         if (leg === highlight && part.plan) {
           const km = cumulativeDistanceKm(points)
-          const ms = (points[points.length - 1].time ?? 0) - (points[0].time ?? 0)
+          const ms = spanOf(points)
           const icon = vehicleFor(travelMode(part.plan.mode).vehicle)
-          const label = legLabelElement(icon.path, Boolean(icon.outline), `${formatKm(km[km.length - 1], 0)} · ${formatSpan(ms)}`)
+          const label = legLabelElement(icon.path, Boolean(icon.outline), `${formatDistance(km[km.length - 1], 'metric', 0)} · ${formatSpan(ms)}`)
           markers.current.push(new Marker({ element: label, anchor: 'bottom', offset: [0, -16] }).setLngLat(lngLat(points[mid])).addTo(map))
         }
         if (!vehicle.path) return

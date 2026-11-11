@@ -9,6 +9,8 @@ export function formatSpan(ms: number): string {
   return h ? `${h} h ${minutes % 60} min` : `${minutes} min`
 }
 
+export const spanOf = (points: readonly { time: number | null }[]) => (points[points.length - 1]?.time ?? 0) - (points[0]?.time ?? 0)
+
 export const seconds = (value: number) => `${formatNumber(value, value % 1 ? 1 : 0)} s`
 
 export function copyCoordinates(at: { lat: number; lon: number }) {

@@ -14,7 +14,7 @@ import { lookFits, MARKER_LOOKS, markerArt, markerColor, markerOf, markerShadowO
 import { side } from '../markers/side'
 import type { MarkerLook } from '../types'
 import { artUrl } from '../vehicleArt'
-import { vehicleFor, vehicleList } from '../vehicles'
+import { VEHICLES, vehicleFor } from '../vehicles'
 import type { SelectOption, VehicleId } from '../../../types'
 import './MarkerSection.css'
 
@@ -62,7 +62,7 @@ export default function MarkerSection() {
     updateAnimation({ vehicleLook: look })
   }
 
-  const vehicleOptions: SelectOption<VehicleId>[] = vehicleList().map((v) => ({ value: v.id, label: t(v.label) }))
+  const vehicleOptions: SelectOption<VehicleId>[] = VEHICLES.map((v) => ({ value: v.id, label: t(v.label) }))
   const partOptions: SelectOption<VehicleId | ''>[] = [{ value: '', label: t('animation.panel.sameAsAbove') }, ...vehicleOptions]
   const swatches = [...new Set([styleColor, routeColor, glowColor ?? routeColor, '#111111', '#ffffff'])]
 

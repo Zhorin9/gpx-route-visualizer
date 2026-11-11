@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Circle, Group, Image as KonvaImage, Layer, Line, Rect, Text } from 'react-konva'
 import type Konva from 'konva'
-import { hasVisiblePhotos, useActiveSlide, usePanorama } from '../store/selectors'
+import { useActiveSlide, usePanorama } from '../store/selectors'
 import { CHROME_ACCENT as ACCENT } from '../core/canvas/chrome'
 import { useAppStore } from '../store/useAppStore'
 import { FORMATS } from '../core/formats/registry'
@@ -10,17 +10,14 @@ import { UI_ONLY } from '../utils/exportImage'
 import { usePhotoAnimation } from '../core/animation/layers'
 import { blurredBackdrop, containLayout, coverLayout } from '../utils/image'
 import PannableCover from './PannableCover'
-import { computeSlots, frameInsets, layoutDef, ribbonSlot, slotCount, type SlotRect } from '../utils/layouts'
+import useSettled from '../hooks/useSettled'
+import { selectSeed } from '../store/derived'
+import { withPhotoLook } from '../utils/photoLook'
+import { computeSlots, frameInsets, hasVisiblePhotos, layoutDef, ribbonSlot, slotCount, type SlotRect } from '../utils/layouts'
 import SlideBox from './SlideBox'
 import type { CollageStyle, Photo, SlotAssignment } from '../types'
 import { clamp } from '../utils/math'
-
-interface Box {
-  x: number
-  y: number
-  w: number
-  h: number
-}
+import type { Box } from '../utils/geometry'
 
 interface SlotViewProps {
   slot: SlotRect
@@ -37,7 +34,9 @@ interface SlotViewProps {
 
 function PhotoImage({ photo, assignment, inner, fit, slide, index }: { photo: Photo; assignment: SlotAssignment; inner: Box; fit: 'cover' | 'contain'; slide: number; index: number }) {
   const updateSlot = useAppStore((s) => s.updateSlot)
-  const img = photo.image
+  const look = useSettled(useAppStore((s) => s.photoLook))
+  const seed = useAppStore(selectSeed)
+  const img = withPhotoLook(photo.image, look, seed)
   const crop = assignment.crop ?? (fit === 'contain' ? 'fit' : 'manual')
 
   if (crop === 'fit') {
@@ -58,7 +57,7 @@ function PhotoImage({ photo, assignment, inner, fit, slide, index }: { photo: Ph
 
   return (
     <PannableCover
-      image={img}
+      image={photo.image}
       box={inner}
       zoom={assignment.zoom}
       offsetX={assignment.offsetX}
@@ -195,7 +194,7 @@ function SlotView({ slot, slide, frameOffsetX, collage, assignment, photo, selec
   )
 }
 
-export default function PhotoLayer() {
+function PhotoLayer() {
   const { t } = useTranslation()
   const aspectKey = useAppStore((s) => s.aspectKey)
   const slides = useAppStore((s) => s.slides)
@@ -269,3 +268,5 @@ export default function PhotoLayer() {
     </Layer>
   )
 }
+
+export default memo(PhotoLayer)

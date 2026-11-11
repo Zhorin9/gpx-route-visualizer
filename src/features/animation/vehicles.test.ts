@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { BUILT_IN_VEHICLES, headingAt, vehiclePose } from './vehicles'
+import { VEHICLES, headingAt, vehiclePose } from './vehicles'
 import { markerOf } from './markers'
 
 // A side view (the bike) mirrors heading west; the illustrated car, plane and train are seen from above and just turn.
-const bike = BUILT_IN_VEHICLES.find((v) => v.id === 'bike')!
-const car = BUILT_IN_VEHICLES.find((v) => v.id === 'car')!
-const plane = BUILT_IN_VEHICLES.find((v) => v.id === 'plane')!
+const bike = VEHICLES.find((v) => v.id === 'bike')!
+const car = VEHICLES.find((v) => v.id === 'car')!
+const plane = VEHICLES.find((v) => v.id === 'plane')!
 
 // A straight line of 11 points, 20 px apart, from (100, 100) in the given direction.
 function line(dx: number, dy: number): number[] {

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { vehicleFor } from '../../animation/vehicles'
-import { travelMode, travelModes } from '../model/modes'
+import { TRAVEL_MODES, travelMode } from '../model/modes'
 import { seconds } from './format'
 import type { TravelModeId } from '../../../types'
 
@@ -19,7 +19,7 @@ export function ModeTiles({ label, value, onChange }: { label: string; value: Tr
     <div className="field">
       <span className="field-label">{label}</span>
       <div className="mode-grid" role="radiogroup" aria-label={label}>
-        {travelModes().map((m) => (
+        {TRAVEL_MODES.map((m) => (
           <button key={m.id} type="button" role="radio" aria-checked={m.id === value} className={m.id === value ? 'mode-opt active' : 'mode-opt'} onClick={() => onChange(m.id)}>
             <ModeIcon mode={m.id} />
             {t(m.label)}

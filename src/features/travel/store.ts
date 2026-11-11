@@ -2,7 +2,7 @@ import i18n from '../../i18n'
 import { IDENTITY_TRANSFORM, makeTitle, makeWaypoint, nextId } from '../../store/defaults'
 import { joinTrack, type JoinedTrack } from '../../store/derived'
 import { newSourceKey, settleParts } from '../../store/slices/routeSourceSlice'
-import { defaultTitlePlace } from '../../utils/aspects'
+import { defaultTitlePlace } from '../../core/formats/registry'
 import { posAtDistance } from '../../utils/geometry'
 import { cumulativeDistanceKm } from '../../utils/gpx'
 import type { SliceContext } from '../../store/types'
@@ -209,7 +209,6 @@ export function createTravelSlice({ set, get, commit }: SliceContext): TravelSli
         waypoints,
         texts,
         ...(before.length ? null : { routeTransform: IDENTITY_TRANSFORM }),
-        selection: s.selection?.kind === 'waypoint' && !waypoints.some((w) => w.id === (s.selection as { id: number }).id) ? null : s.selection,
       })
     },
   }

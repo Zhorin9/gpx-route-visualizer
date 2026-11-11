@@ -5,7 +5,7 @@ import type { SliceContext } from '../../store/types'
 import { mapStyle } from './model/styles'
 import { sketchPalette } from './sketch/draw'
 import { seedOf } from '../../store/derived'
-import { fetchSketchLayers, type SketchLayers } from './sketch/tiles'
+import type { SketchLayers } from './sketch/tiles'
 import type { MapSettings } from './types'
 
 export interface MapSlice {
@@ -42,7 +42,8 @@ export function createMapSlice({ set, get, commit }: SliceContext): MapSlice {
       const seed = seedOf(points)
       if (loading.has(seed) || (!retry && seed in get().sketchLayers)) return
       loading.add(seed)
-      fetchSketchLayers(points)
+      import('./sketch/tiles')
+        .then(({ fetchSketchLayers }) => fetchSketchLayers(points))
         .catch(() => null)
         .then((layers) => {
           loading.delete(seed)
@@ -54,6 +55,6 @@ export function createMapSlice({ set, get, commit }: SliceContext): MapSlice {
         const map = { ...s.map, ...patch }
         return { map, ...(s.collage.bgKind === 'map' ? withContrast(s, s.collage, mapTone(s.map), mapTone(map)) : null) }
       }),
-    showMapBackground: () => commit('background', (s) => withContrast(s, { ...s.collage, bgKind: 'map' }, collageTone(s.collage), mapTone(s.map))),
+    showMapBackground: () => commit('collage:background', (s) => withContrast(s, { ...s.collage, bgKind: 'map' }, collageTone(s.collage), mapTone(s.map))),
   }
 }

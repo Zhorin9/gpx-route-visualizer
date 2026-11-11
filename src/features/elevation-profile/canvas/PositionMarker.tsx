@@ -1,9 +1,12 @@
 import { Circle, Line } from 'react-konva'
 import { SOFT_SHADOW } from '../../../core/canvas/shadows'
 import { clamp } from '../../../utils/math'
+import { useProfileMarkerPos } from '../useProfile'
 import { chartBottom, type ProfileChart } from './chart'
 
-export default function PositionMarker({ chart, trackPos, color }: { chart: ProfileChart; trackPos: number; color: string }) {
+export default function PositionMarker({ chart, color }: { chart: ProfileChart; color: string }) {
+  const trackPos = useProfileMarkerPos()
+  if (trackPos == null) return null
   const col = chart.colAtTrack(trackPos)
   const nearest = clamp(Math.round(col), 0, chart.count - 1)
   const x = chart.x(col)

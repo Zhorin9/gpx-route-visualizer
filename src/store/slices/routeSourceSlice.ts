@@ -1,4 +1,4 @@
-import { defaultTitlePlace } from '../../utils/aspects'
+import { defaultTitlePlace } from '../../core/formats/registry'
 import { parseGpxText } from '../../utils/gpx'
 import i18n from '../../i18n'
 import { DAY_COLORS, DEFAULT_STATS_CONTENT, IDENTITY_TRANSFORM, makeTitle, nextId } from '../defaults'
@@ -66,7 +66,7 @@ export function createRouteSourceSlice({ set, get, commit }: SliceContext): Rout
       // them back together with the previous file, which stays in the cache.
       // The track name becomes the title, replacing the previous track's one.
       const name = (parsed.name ?? fileName).trim()
-      const first: TrackPart = { id: 1, name: name || 'Dzień 1', color: s.routeStyle.color, dashed: s.routeStyle.dashed, visible: true, sourceKey }
+      const first: TrackPart = { id: 1, name: name || i18n.t('newContent.day'), color: s.routeStyle.color, dashed: s.routeStyle.dashed, visible: true, sourceKey }
       commit('route:load', (s) => ({
         texts: [
           ...s.texts.filter((t) => t.role !== 'title'),
@@ -80,7 +80,6 @@ export function createRouteSourceSlice({ set, get, commit }: SliceContext): Rout
         sourceLayout: s.sourceLayout && { ...s.sourceLayout, route: IDENTITY_TRANSFORM },
         layoutOverrides: Object.fromEntries(Object.entries(s.layoutOverrides).map(([k, o]) => [k, { ...o, route: undefined }])),
         statsContent: { ...s.statsContent, overrides: DEFAULT_STATS_CONTENT.overrides },
-        selection: s.selection?.kind === 'waypoint' ? null : s.selection,
       }))
     },
 
@@ -106,7 +105,6 @@ export function createRouteSourceSlice({ set, get, commit }: SliceContext): Rout
         range: { start: 0, end: points - 1 },
         progress: 100,
         waypoints,
-        selection: s.selection?.kind === 'waypoint' && !waypoints.some((w) => w.id === (s.selection as { id: number }).id) ? null : s.selection,
       })
     },
   }

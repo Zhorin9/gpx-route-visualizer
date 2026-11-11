@@ -1,6 +1,15 @@
 import type pl from './pl'
 
 const en: typeof pl = {
+  newContent: {
+    text: 'New text',
+    place: 'Place',
+    caption: 'Caption',
+    day: 'Day 1',
+    start: 'START',
+    finish: 'FINISH',
+    loop: 'START / FINISH',
+  },
   topBar: {
     newProject: 'New project',
     changeType: 'Change type…',
@@ -70,8 +79,6 @@ const en: typeof pl = {
     slideApplyBg: 'applying the background to slides',
     slide: 'slide change',
     photosSlides: 'adding photos as slides',
-    templateSave: 'saving a template',
-    templateDelete: 'deleting a template',
     text: 'text change',
     waypoint: 'place change',
     nudge: 'move',
@@ -1419,12 +1426,10 @@ const en: typeof pl = {
       tooManyRequests: 'The routing service is getting too many requests. Try again in a minute.',
       noAnswer: 'The routing service did not respond.',
       offline: 'Could not reach the routing service.',
-      noService: 'No routing service.',
       routeFailed: 'could not find a route.',
       legFailed: '{{leg}}: {{reason}} A straight line was drawn; pick another way to travel.',
     },
     search: {
-      placeholder: 'Search for a place or coordinates',
       coordinates: 'coordinates',
       notFound: 'No such place found.',
       noAnswer: 'The place search did not respond.',
@@ -1435,7 +1440,6 @@ const en: typeof pl = {
       shorter: '{{label}}: shorter',
       longer: '{{label}}: longer',
       mode: 'Means of transport',
-      leg: 'Leg {{from}} → {{to}}',
       lineShape: 'Line shape',
       onlyStraightOrArc: '{{mode}}: straight or arc only',
       marker: 'Marker',

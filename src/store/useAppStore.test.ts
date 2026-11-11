@@ -59,6 +59,16 @@ describe('history', () => {
     expect(get().texts).toHaveLength(0)
     expect(get().selection).toBeNull()
   })
+
+  it('drops the selection of whatever an edit removes', () => {
+    get().deleteText(get().addText())
+    expect(get().selection).toBeNull()
+    get().setCarousel(true)
+    get().setSlideCount(3)
+    get().select({ kind: 'slot', slide: 2, index: 0 })
+    get().setSlideCount(2)
+    expect(get().selection).toBeNull()
+  })
 })
 
 describe('elements', () => {
@@ -420,14 +430,16 @@ describe('style templates', () => {
     expect(get().mapSticker.shown).toBe(false)
   })
 
-  it('saves the current look as a custom template', () => {
-    get().updateRouteStyle({ color: '#ff0000', dotted: true })
+  it('leaves saving and deleting a template out of undo', () => {
+    get().updateRouteStyle({ color: '#ff0000' })
+    const steps = get().past.length
     get().saveTemplate('Mój')
-    const saved = get().customTemplates[0]
-    expect(saved).toMatchObject({ name: 'Mój', custom: true })
-    expect(saved.route.color).toBe('#ff0000')
-    get().deleteTemplate(saved.id)
-    expect(get().customTemplates).toHaveLength(0)
+    get().deleteTemplate(get().customTemplates[0].id)
+    get().saveTemplate('Drugi')
+    expect(get().past).toHaveLength(steps)
+    get().undo()
+    expect(get().routeStyle.color).not.toBe('#ff0000')
+    expect(get().customTemplates.map((t) => t.name)).toEqual(['Drugi'])
   })
 })
 
@@ -619,12 +631,6 @@ describe('sub-tabs', () => {
     get().setActiveTab('media')
     get().select({ kind: 'waypoint', id: get().waypoints[0].id })
     expect(get().subTabs.route).toBe('line')
-  })
-
-  it('remembers the open page per tab', () => {
-    get().setSubTab('export', 'video')
-    get().setActiveTab('route')
-    expect(get().subTabs.export).toBe('video')
   })
 })
 

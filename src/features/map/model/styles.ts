@@ -17,20 +17,8 @@ export interface MapStyleDef {
 const OFM_CREDIT = '© OpenFreeMap © OpenMapTiles, dane © OpenStreetMap'
 export const OFM_TERMS: TKey = 'map.terms.openFreeMap'
 
-const styles: MapStyleDef[] = []
-
-export function registerMapStyle(def: MapStyleDef): void {
-  const i = styles.findIndex((s) => s.id === def.id)
-  if (i >= 0) styles.splice(i, 1, def)
-  else styles.push(def)
-}
-
-export function mapStyles(): readonly MapStyleDef[] {
-  return styles
-}
-
 export function mapStyle(id: string): MapStyleDef {
-  return styles.find((s) => s.id === id) ?? styles[0]
+  return MAP_STYLES.find((s) => s.id === id) ?? MAP_STYLES[0]
 }
 
 // Esri World Imagery: free with its credit for a non-commercial app; review if that changes.
@@ -47,7 +35,7 @@ const SATELLITE: StyleJson = {
   layers: [{ id: 'satellite', type: 'raster', source: 'esri' }],
 }
 
-export const BUILT_IN_STYLES: MapStyleDef[] = [
+export const MAP_STYLES: MapStyleDef[] = [
   { id: 'positron', label: 'map.styles.positron', url: 'https://tiles.openfreemap.org/styles/positron', tone: 'light', credit: OFM_CREDIT, terms: OFM_TERMS },
   { id: 'liberty', label: 'map.styles.liberty', url: 'https://tiles.openfreemap.org/styles/liberty', tone: 'light', credit: OFM_CREDIT, terms: OFM_TERMS },
   { id: 'bright', label: 'map.styles.bright', url: 'https://tiles.openfreemap.org/styles/bright', tone: 'light', credit: OFM_CREDIT, terms: OFM_TERMS },

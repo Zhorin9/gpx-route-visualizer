@@ -189,7 +189,7 @@ export function createTemplatesSlice({ set, get, commit }: SliceContext): Templa
         ...(s.collage.bgKind === 'map' ? { map: { styleId: s.map.styleId, hillshade: s.map.hillshade, labels: s.map.labels } } : null),
         custom: true,
       }
-      commit('template:save', { customTemplates: [...s.customTemplates, template] })
+      set({ customTemplates: [...s.customTemplates, template] })
     },
 
     // The accent outlines the route (the glow decides whether the outline shows) and is the map's water.
@@ -215,6 +215,6 @@ export function createTemplatesSlice({ set, get, commit }: SliceContext): Templa
     updateWrapper: ({ fields, postmark }) =>
       commit('wrapper', (s) => ({ wrapper: { ...s.wrapper, fields: { ...s.wrapper.fields, ...fields }, postmark: { ...s.wrapper.postmark, ...postmark } } })),
 
-    deleteTemplate: (id) => commit('template:delete', (s) => ({ customTemplates: s.customTemplates.filter((t) => t.id !== id) })),
+    deleteTemplate: (id) => set((s) => ({ customTemplates: s.customTemplates.filter((t) => t.id !== id) })),
   }
 }

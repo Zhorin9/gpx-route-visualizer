@@ -8,14 +8,14 @@ import { selectRouteParts } from '../../../store/derived'
 import { useTrackCumKm } from '../../../store/selectors'
 import { useAppStore } from '../../../store/useAppStore'
 import { downloadBlob } from '../../../utils/exportImage'
-import { formatKm } from '../../../utils/format'
+import { formatDistance } from '../../../core/units'
 import { toGpxText } from '../../../utils/gpx'
 import { DEFAULT_PAUSE_S } from '../../animation/model/schedule'
 import { legName, legPlans, moveStop, named, removeStop, reverseJourney, sameLeg, setLeg, type Journey } from '../model/journey'
 import { LINE_LABELS, lineOf, travelMode } from '../model/modes'
 import { stopLetter, useTravelActions } from '../useTravel'
 import { ModeIcon, ModeTiles } from './fields'
-import { formatSpan, seconds } from './format'
+import { formatSpan, seconds, spanOf } from './format'
 import LegCard from './LegCard'
 import PlaceSearch from './PlaceSearch'
 import StopCard from './StopCard'
@@ -69,7 +69,7 @@ function Advanced({ journey, planned, cum }: { journey: Journey; planned: RouteP
       )}
       {planned.length > 0 ? (
         <>
-          <p className="hint">{[...totals].map(([label, km]) => `${label} ${formatKm(km, 0)}`).join(' · ')}. {t('travel.panel.estimated')}</p>
+          <p className="hint">{[...totals].map(([label, km]) => `${label} ${formatDistance(km, 'metric', 0)}`).join(' · ')}. {t('travel.panel.estimated')}</p>
           <Button icon={<IconDownload />} block onClick={downloadGpx} title={legPlans(journey).map(legName).join(', ')}>
             {t('travel.panel.downloadGpx')}
           </Button>
@@ -126,8 +126,8 @@ export default function TravelPanel() {
     const part = planned[i]
     if (!cum) return ''
     const points = cache[part.sourceKey] ?? []
-    const ms = (points[points.length - 1]?.time ?? 0) - (points[0]?.time ?? 0)
-    return `${formatKm(cum[part.endIdx] - cum[part.startIdx], 0)} · ${formatSpan(ms)}`
+    const ms = spanOf(points)
+    return `${formatDistance(cum[part.endIdx] - cum[part.startIdx], 'metric', 0)} · ${formatSpan(ms)}`
   }
 
   function summary(): string {
@@ -137,9 +137,9 @@ export default function TravelPanel() {
     const km = planned.reduce((sum, p) => sum + cum[p.endIdx] - cum[p.startIdx], 0)
     const ms = planned.reduce((sum, p) => {
       const points = cache[p.sourceKey] ?? []
-      return sum + (points[points.length - 1]?.time ?? 0) - (points[0]?.time ?? 0)
+      return sum + spanOf(points)
     }, 0)
-    return `${count} · ${formatKm(km, 0)} · ${formatSpan(ms)}`
+    return `${count} · ${formatDistance(km, 'metric', 0)} · ${formatSpan(ms)}`
   }
 
   function stopMeta(stop: Stop, i: number): string {

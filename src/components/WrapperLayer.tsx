@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Circle, Group, Layer, Shape } from 'react-konva'
 import type Konva from 'konva'
 import useSlideScene from '../hooks/useSlideScene'
@@ -7,7 +8,7 @@ import { drawWrapper, hasPostmark, slideBox } from '../utils/wrappers'
 import { clamp01 } from '../utils/math'
 
 
-export default function WrapperLayer() {
+function WrapperLayer() {
   const { projectLook: look, route, units, w, h, slides } = useSlideScene()
   const wrapper = useAppStore((s) => s.wrapper)
   const carouselKind = useAppStore((s) => s.carouselKind)
@@ -48,3 +49,5 @@ export default function WrapperLayer() {
     </Layer>
   )
 }
+
+export default memo(WrapperLayer)

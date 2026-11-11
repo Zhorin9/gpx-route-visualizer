@@ -20,6 +20,7 @@ interface AnimationHooks {
   ghost: () => boolean
   // How many of a typed text's characters show; all of them outside a video.
   typed: (length: number, cps: number) => number
+  reportCommit: () => void
 }
 
 let hooks: AnimationHooks = {
@@ -29,6 +30,7 @@ let hooks: AnimationHooks = {
   countHead: () => null,
   ghost: () => false,
   typed: (length) => length,
+  reportCommit: () => {},
 }
 
 export function provideAnimation(value: AnimationHooks) {
@@ -41,3 +43,8 @@ export const usePhotoAnimation = (order: number, count: number) => hooks.photo(o
 export const useCountHead = () => hooks.countHead()
 export const useForcedGhost = () => hooks.ghost()
 export const useTypedCount = (length: number, cps: number) => hooks.typed(length, cps)
+
+export function CommitProbe() {
+  hooks.reportCommit()
+  return null
+}

@@ -1,4 +1,13 @@
 const pl = {
+  newContent: {
+    text: 'Nowy tekst',
+    place: 'Miejscowość',
+    caption: 'Podpis',
+    day: 'Dzień 1',
+    start: 'START',
+    finish: 'META',
+    loop: 'START / META',
+  },
   topBar: {
     newProject: 'Nowy projekt',
     changeType: 'Zmień typ…',
@@ -68,8 +77,6 @@ const pl = {
     slideApplyBg: 'zastosowanie tła do slajdów',
     slide: 'zmiana slajdu',
     photosSlides: 'dodanie zdjęć jako slajdów',
-    templateSave: 'zapis szablonu',
-    templateDelete: 'usunięcie szablonu',
     text: 'zmiana tekstu',
     waypoint: 'zmiana miejscowości',
     nudge: 'przesunięcie',
@@ -1417,12 +1424,10 @@ const pl = {
       tooManyRequests: 'Serwis tras ma chwilowo za dużo zapytań. Spróbuj za minutę.',
       noAnswer: 'Serwis tras nie odpowiedział.',
       offline: 'Brak połączenia z serwisem tras.',
-      noService: 'Brak serwisu tras.',
       routeFailed: 'nie udało się wyznaczyć trasy.',
       legFailed: '{{leg}}: {{reason}} Narysowano linię prostą, wybierz inny środek transportu.',
     },
     search: {
-      placeholder: 'Szukaj miejsca lub współrzędnych',
       coordinates: 'współrzędne',
       notFound: 'Nie znaleziono takiego miejsca.',
       noAnswer: 'Wyszukiwarka miejsc nie odpowiedziała.',
@@ -1433,7 +1438,6 @@ const pl = {
       shorter: '{{label}}: krócej',
       longer: '{{label}}: dłużej',
       mode: 'Środek transportu',
-      leg: 'Odcinek {{from}} → {{to}}',
       lineShape: 'Kształt linii',
       onlyStraightOrArc: '{{mode}}: tylko prosta albo łuk',
       marker: 'Znacznik',

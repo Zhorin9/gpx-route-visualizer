@@ -56,7 +56,7 @@ const day: StatDefinition = {
   caption: 'stats.caption.day',
   chip: ({ content }) =>
     content.dayLabel
-      ? { key: 'day', text: content.dayLabel, label: i18n.t('stats.caption.day'), value: content.dayLabel.replace(/^\s*dzie[ńn]\s*/i, '') || content.dayLabel }
+      ? { key: 'day', text: content.dayLabel, label: i18n.t('stats.caption.day'), value: content.dayLabel.replace(/^\s*(dzie[ńn]|day)\s*/i, '') || content.dayLabel }
       : null,
 }
 

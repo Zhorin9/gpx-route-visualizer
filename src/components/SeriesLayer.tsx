@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Group, Layer, Shape } from 'react-konva'
 import useSlideScene from '../hooks/useSlideScene'
 import { usePanorama } from '../store/selectors'
@@ -17,7 +18,7 @@ function SlideShape({ index, x, draw }: { index: number; x: number; draw: (ctx: 
   )
 }
 
-export default function SeriesLayer() {
+function SeriesLayer() {
   const panorama = usePanorama()
   const { projectLook: look, ...scene } = useSlideScene()
   if (panorama || scene.slides.length < 2) return null
@@ -33,3 +34,5 @@ export default function SeriesLayer() {
 
   return <Layer listening={false}>{scene.slides.map((slide, i) => (i > 0 ? drawn(slide, i) : null))}</Layer>
 }
+
+export default memo(SeriesLayer)

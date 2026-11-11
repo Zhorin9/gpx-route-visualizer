@@ -6,7 +6,7 @@ import { konvaFontStyle } from '../../../utils/fonts'
 import { measureTextWidth } from '../../../utils/measureText'
 import type { AspectKey } from '../../../types'
 import { PROFILE_KIND, profileHeight, type ProfileSettings } from '../types'
-import { useProfileColors, useProfileData, useProfileMarkerPos } from '../useProfile'
+import { useProfileColors, useProfileData } from '../useProfile'
 import { profileChart } from './chart'
 import { sampleCount } from './chartPainters'
 import { buildOverlays } from './overlays'
@@ -37,7 +37,6 @@ export default function ElevationProfileNode() {
   const height = profileHeight(settings)
   const data = useProfileData(sampleCount(settings.style, width))
   const colors = useProfileColors(data)
-  const markerPos = useProfileMarkerPos()
   if (!data) return null
 
   const fontStyle = konvaFontStyle(fontFamily)
@@ -48,7 +47,7 @@ export default function ElevationProfileNode() {
     <DraggableElement kind={PROFILE_KIND} width={width} height={height} defaultX={pos.x} defaultY={pos.y}>
       <Shape sceneFunc={(context) => paintProfile(context._context, chart, settings, colors)} listening={false} perfectDrawEnabled={false} />
       <SceneItems items={buildOverlays(chart, settings)} color={textColor} fontFamily={fontFamily} fontStyle={fontStyle} />
-      {markerPos != null && <PositionMarker chart={chart} trackPos={markerPos} color={textColor} />}
+      <PositionMarker chart={chart} color={textColor} />
     </DraggableElement>
   )
 }

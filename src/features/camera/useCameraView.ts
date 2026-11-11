@@ -5,7 +5,7 @@ import { useAppStore } from '../../store/useAppStore'
 import { applyTransform, pointAt, posAtDistance } from '../../utils/geometry'
 import { memoOne } from '../../utils/memo'
 import { clamp01 } from '../../utils/math'
-import { useAnimationTime } from '../animation/hooks'
+import { usePlayback } from '../animation/playback'
 import { headFor } from '../animation/model/pacing'
 import { tripSchedule } from '../animation/model/schedule'
 import { clipProgress, selectDuration } from '../animation/model/timeline'
@@ -30,7 +30,7 @@ export function useCameraView(): CameraView | null {
   const track = useAppStore(selectTrack)
   const range = useAppStore((s) => s.range)
   const transform = useAppStore((s) => s.routeTransform)
-  const t = useAnimationTime()
+  const t = usePlayback((s) => (settings.mode !== 'static' && animation.enabled && s.previewing ? s.t : null))
   const projected = useProjectedTrack()
   const cumKm = useTrackCumKm()
   const breaks = useDayBreaks()

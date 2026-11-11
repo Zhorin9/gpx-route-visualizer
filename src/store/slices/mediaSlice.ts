@@ -168,7 +168,7 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
 
     // Filling centres the photo again; a manual crop starts from where it is.
     setCrop: (crop, target) =>
-      commit(`crop:${target ? `${target.slide}:${target.index}` : 'all'}`, (s) => ({
+      commit(`slot:crop:${target ? `${target.slide}:${target.index}` : 'all'}`, (s) => ({
         slides: s.slides.map((sl, i) => {
           if (target && i !== target.slide) return sl
           const slots = Object.fromEntries(
@@ -212,7 +212,6 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
             : s.slides.slice(0, next),
         ),
         activeSlide: Math.min(s.activeSlide, next - 1),
-        selection: s.selection?.kind === 'slot' && s.selection.slide >= next ? null : s.selection,
         texts: keepInside(s.texts, FORMATS[s.aspectKey].w * next),
       }))
     },
@@ -232,7 +231,7 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
       commit(`frame:${Object.keys(patch).join()}`, (s) => ({ collage: { ...s.collage, frame: { ...s.collage.frame, ...patch } } })),
 
     updateBackground: ({ gradient, ...patch }) =>
-      commit('background', (s) => {
+      commit('collage:background', (s) => {
         const collage = { ...s.collage, ...patch, gradient: { ...s.collage.gradient, ...gradient } }
         return withContrast(s, collage, collageTone(s.collage), collageTone(collage))
       }),
@@ -246,14 +245,15 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
       const insets = frameInsets(slot, frame.thickness, frame.style, slot.kind === 'framed' || frame.enabled)
       const fontSize = clamp((insets.bottom || 40) * 0.55, 22, 46)
       const text = makeText(nextId(s.texts), w, h)
-      const width = measureTextWidth('Podpis', 'Caveat', fontSize, '400')
+      const label = i18n.t('newContent.caption')
+      const width = measureTextWidth(label, 'Caveat', fontSize, '400')
       const offset = rotate(-width / 2, slot.h / 2 - (insets.bottom || 40) / 2 - fontSize * 0.55, slot.rotation)
       commit('caption:add', {
         texts: [
           ...s.texts,
           {
             ...text,
-            text: 'Podpis',
+            text: label,
             fontFamily: 'Caveat',
             fontSize,
             color: '#2a2a2a',
@@ -269,11 +269,7 @@ export function createMediaSlice({ set, get, commit }: SliceContext): MediaSlice
     },
 
     setAspectKey: (key) =>
-      commit('aspect', (s) => {
-        const next = reflowTo(s, key)
-        const slideGone = s.selection?.kind === 'slot' && next.slides && s.selection.slide >= next.slides.length
-        return slideGone ? { ...next, selection: null } : next
-      }),
+      commit('format:aspect', (s) => reflowTo(s, key)),
     resetFormatLayout: () => commit('format:reset', (s) => resetToAuto(s)),
 
     setDimOpacity: (value) => commit('dim', { dimOpacity: value }),

@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Layer, Rect, Shape } from 'react-konva'
 import type Konva from 'konva'
 import { selectSeed } from '../store/derived'
@@ -45,7 +46,7 @@ function Pattern({ kind, width, height, slideWidth }: { kind: BackgroundPattern;
 }
 
 // Nothing for a transparent background, nor for a map, which lies under the stage.
-export default function BackgroundLayer() {
+function BackgroundLayer() {
   const collage = useAppStore((s) => s.collage)
   const slideCount = useAppStore((s) => s.slides.length)
   const aspectKey = useAppStore((s) => s.aspectKey)
@@ -81,3 +82,5 @@ export default function BackgroundLayer() {
     </Layer>
   )
 }
+
+export default memo(BackgroundLayer)
