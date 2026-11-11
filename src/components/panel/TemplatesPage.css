@@ -175,7 +175,7 @@
   font-size: var(--text-sm);
   background: var(--bg);
   border-top: 1px solid var(--border);
-  box-shadow: 0 -4px 12px rgb(0 0 0 / 0.06);
+  box-shadow: var(--shadow-up);
 }
 
 .template-preview-head {

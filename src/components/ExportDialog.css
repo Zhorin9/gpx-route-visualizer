@@ -1,6 +1,6 @@
 /* Frames run the editor through every format while the dialog is open; the page behind stays covered. */
 .dialog-backdrop:has(> .export-dialog) {
-  background: color-mix(in srgb, var(--color-neutral-900) 94%, transparent);
+  background: var(--dark-backdrop);
 }
 
 /* One height for both tabs, so switching Obraz and Wideo doesn't move the dialog. */
@@ -37,12 +37,12 @@
   flex-direction: column;
   gap: var(--space-3);
   padding: var(--space-5);
-  background: var(--color-neutral-900);
+  background: var(--dark-surface);
 }
 
 .export-sheet .hint {
   margin: 0;
-  color: var(--color-neutral-300);
+  color: var(--on-dark-muted);
 }
 
 .proof-grid {
@@ -57,7 +57,7 @@
   flex-direction: column;
   gap: 2px;
   max-width: 100%;
-  color: var(--color-neutral-100);
+  color: var(--on-dark);
   cursor: pointer;
 }
 
@@ -78,7 +78,7 @@
   background-size: 12px 12px;
   background-position: 0 0, 0 6px, 6px -6px, -6px 0;
   background-color: var(--checker-b);
-  box-shadow: 0 6px 18px color-mix(in srgb, #000 45%, transparent);
+  box-shadow: var(--dark-card-shadow);
   opacity: 0.4;
   filter: grayscale(0.8);
   transition: opacity 0.2s, filter 0.2s, outline-color 0.2s;
@@ -137,7 +137,7 @@
 .proof-meta {
   font-size: var(--text-sm);
   font-variant-numeric: tabular-nums;
-  color: var(--color-neutral-400);
+  color: var(--on-dark-faint);
 }
 
 .export-settings {

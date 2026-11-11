@@ -71,7 +71,7 @@
   z-index: 1;
   transform-origin: top left;
   border: 2px solid var(--accent);
-  box-shadow: 0 0 0 4000px color-mix(in srgb, var(--color-text) 38%, transparent);
+  box-shadow: 0 0 0 4000px var(--frame-dim);
   pointer-events: none;
 }
 
@@ -180,7 +180,7 @@
 .workspace-preview-label {
   margin-top: 4px;
   font-size: 10px;
-  color: var(--color-neutral-300);
+  color: var(--on-dark-muted);
 }
 
 /* What a click or a drag does, bottom left; the map's credit small in the opposite corner. */

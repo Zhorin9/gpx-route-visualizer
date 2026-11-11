@@ -71,11 +71,11 @@
 
 .video-preview .video-thumb figcaption,
 .video-preview .video-summary dt {
-  color: var(--color-neutral-400);
+  color: var(--on-dark-faint);
 }
 
 .video-preview .video-summary dd {
-  color: var(--color-neutral-100);
+  color: var(--on-dark);
 }
 
 .video-settings {
