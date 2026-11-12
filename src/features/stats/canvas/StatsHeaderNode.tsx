@@ -10,7 +10,7 @@ import { fittedTitleSize } from '../../../utils/title'
 import type { ArrangeInput } from '../model/arrangements'
 import { arrangementFor } from '../model/registry'
 import { useStatsChips } from '../useStatsChips'
-import { TEXT_SHADOW } from '../../../core/canvas/shadows'
+import { textShadow } from '../../../core/canvas/shadows'
 
 function statsYBelowTitle(title: { y: number; fontSize: number; lines: number }): number {
   return Math.round(title.y + title.fontSize * (title.lines + 0.3) + 16)
@@ -81,7 +81,7 @@ export default function StatsHeaderNode() {
               listening={Boolean(base)}
               draggable={Boolean(base)}
               onDragEnd={base ? (e) => setChipOffset(t.chipKey, { dx: e.target.x() - base.x, dy: e.target.y() - base.y }) : undefined}
-              {...(style.shadow && !hard && t.shadow ? TEXT_SHADOW : null)}
+              {...(style.shadow && !hard && t.shadow ? textShadow(style.color) : null)}
             />
           </Fragment>
         )

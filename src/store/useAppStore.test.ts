@@ -679,6 +679,12 @@ describe('gradient background', () => {
     expect(get().routeStyle.color).toBe(route)
   })
 
+  it('lets the route glow follow the flipped line instead of keeping a neon colour', () => {
+    useAppStore.setState({ routeStyle: { ...get().routeStyle, glowEnabled: true, glowColor: '#ff3dac' } })
+    get().updateBackground({ bgKind: 'gradient', gradient: { from: '#f8f4f4', to: '#d7d3d3' } })
+    expect(get().routeStyle.glowColor).toBeNull()
+  })
+
   it('leaves colours alone with auto contrast off', () => {
     get().updateBackground({ autoContrast: false })
     get().updateBackground({ bgKind: 'gradient', gradient: { from: '#f8f4f4', to: '#d7d3d3' } })

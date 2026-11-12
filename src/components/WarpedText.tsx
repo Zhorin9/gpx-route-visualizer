@@ -1,7 +1,8 @@
 import { forwardRef } from 'react'
 import { Shape } from 'react-konva'
 import type Konva from 'konva'
-import { TEXT_SHADOW } from '../core/canvas/shadows'
+import { textShadow } from '../core/canvas/shadows'
+import { channels } from '../utils/color'
 import type { WarpedLine } from '../utils/warp'
 import type { TextNode } from '../types'
 
@@ -34,8 +35,9 @@ const WarpedText = forwardRef<Konva.Shape, WarpedTextProps>(function WarpedText(
         c.strokeText(g.ch, 0, 0)
       }
       if (pass.soft) {
-        c.shadowColor = `rgba(0,0,0,${TEXT_SHADOW.shadowOpacity})`
-        c.shadowBlur = TEXT_SHADOW.shadowBlur
+        const shadow = textShadow(pass.fill)
+        c.shadowColor = `rgba(${channels(shadow.shadowColor).join(',')},${shadow.shadowOpacity})`
+        c.shadowBlur = shadow.shadowBlur
       }
       c.fillStyle = pass.fill
       c.fillText(g.ch, 0, 0)

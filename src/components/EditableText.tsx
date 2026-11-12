@@ -12,7 +12,7 @@ import SelectionOutline from './SelectionOutline'
 import { useSlideAt, useStickerColor } from '../store/selectors'
 import SlideBox from './SlideBox'
 import type { TextNode, TextWarp } from '../types'
-import { TEXT_SHADOW } from '../core/canvas/shadows'
+import { textShadow } from '../core/canvas/shadows'
 import WarpedText from './WarpedText'
 import BadgeBack from './BadgeBack'
 import useWarpedLine from '../hooks/useWarpedLine'
@@ -173,7 +173,7 @@ export default function EditableText({ node }: { node: TextNode }) {
           snapDragEnd(e)
           updateText(node.id, { x: e.target.x(), y: e.target.y() - animation.offsetY })
         }}
-        {...TEXT_SHADOW}
+        {...textShadow(color)}
         shadowEnabled={node.shadowEnabled && !node.hardShadow}
       />
       <SelectionOutline targetRef={shapeRef} visible={isSelected && !hidden} />
