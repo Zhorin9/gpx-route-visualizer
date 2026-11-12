@@ -121,6 +121,24 @@ export function IconSafeZone(props: SVGProps<SVGSVGElement>) {
   )
 }
 
+export function IconCheck(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...common} width="16" height="16" aria-hidden="true" {...props}>
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  )
+}
+
+export function IconShare(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...common} width="16" height="16" aria-hidden="true" {...props}>
+      <path d="M8 10H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-2" />
+      <polyline points="16 6 12 2 8 6" />
+      <line x1="12" y1="2" x2="12" y2="15" />
+    </svg>
+  )
+}
+
 export function IconUpload(props: SVGProps<SVGSVGElement>) {
   return (
     <svg {...common} width="16" height="16" aria-hidden="true" {...props}>

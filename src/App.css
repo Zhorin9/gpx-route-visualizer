@@ -1617,6 +1617,16 @@
   display: grid;
 }
 
+@media (hover: none) {
+  .photo-pool-remove {
+    display: grid;
+    width: 26px;
+    height: 26px;
+    top: -8px;
+    right: -8px;
+  }
+}
+
 /* ---------- Settings locked as a group ---------- */
 
 /* Locks a group of panel controls (e.g. animation settings while it is off). */
@@ -1677,7 +1687,13 @@
   }
 }
 
-@media (max-width: 860px) and (orientation: portrait) {
+@media (min-width: 700px) and (max-width: 1023px) {
+  .panel {
+    width: 340px;
+  }
+}
+
+@media (max-width: 699px) and (orientation: portrait) {
   .app {
     flex-direction: column;
     gap: var(--space-3);
@@ -2021,8 +2037,45 @@
 
 .icon-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
   gap: 4px;
+}
+
+.filter-chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.filter-chip {
+  flex: none;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: var(--text-xs);
+  white-space: nowrap;
+  color: var(--text);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.filter-chip:hover {
+  border-color: var(--text-muted);
+}
+
+.filter-chip[aria-checked='true'] {
+  color: var(--on-accent-soft);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+@media (pointer: coarse) {
+  .filter-chip {
+    min-height: 36px;
+    padding: 6px 14px;
+  }
 }
 
 .icon-option {

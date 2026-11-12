@@ -235,10 +235,17 @@
   scroll-snap-align: start;
 }
 
-.panel.sheet .template-card-more {
-  width: 32px;
-  height: 32px;
-  opacity: 1;
+@media (pointer: coarse) {
+  .template-card-more {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+@media (hover: none) {
+  .template-card-more {
+    opacity: 1;
+  }
 }
 
 .template-name-row {

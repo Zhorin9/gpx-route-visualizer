@@ -92,6 +92,18 @@ export async function downloadFiles(files: ExportFile[], archiveName: string) {
   downloadBlob(createZip(entries), `${archiveName}.zip`)
 }
 
+const asFiles = (files: ExportFile[]) => files.map((f) => new File([f.blob], f.name, { type: f.blob.type }))
+
+export function canShareImages(): boolean {
+  if (typeof navigator === 'undefined' || typeof navigator.canShare !== 'function') return false
+  if (!window.matchMedia('(hover: none)').matches) return false
+  return navigator.canShare({ files: asFiles([{ name: 'probe.png', blob: new Blob([], { type: 'image/png' }) }]) })
+}
+
+export async function shareFiles(files: ExportFile[]): Promise<void> {
+  await navigator.share({ files: asFiles(files) })
+}
+
 export function archiveBaseName(trackName: string | null): string {
   return slugify(trackName ?? '') || 'trasa'
 }

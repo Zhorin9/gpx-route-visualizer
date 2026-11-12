@@ -190,6 +190,12 @@
   opacity: 1;
 }
 
+@media (hover: none) {
+  .trip-insert {
+    opacity: 1;
+  }
+}
+
 .trip-leg-body {
   flex: 1;
   min-width: 0;
