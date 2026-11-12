@@ -103,6 +103,7 @@ export interface DocumentState {
   photoLook: PhotoLook
   // The route's start day and time in a corner, as a camera stamps a frame.
   stamp: boolean
+  stampTime: number | null
   // A short line over the title; its words stay when a style hides it.
   kicker: { shown: boolean; text: string }
   // The route as a sticker of the map around it; while shown, the route itself is not drawn.
@@ -249,6 +250,7 @@ export interface ElementsSlice {
   updateSticker: (patch: Partial<StickerSettings>) => void
   updatePhotoLook: (patch: Partial<PhotoLook>) => void
   setStamp: (on: boolean) => void
+  setStampTime: (time: number | null) => void
   updateMapSticker: (patch: Partial<MapStickerSettings>) => void
   setKicker: (patch: Partial<DocumentState['kicker']>) => void
   // Besides a plain text: a loose icon, a badge or a text bent over an icon; all move and turn like a text.

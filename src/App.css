@@ -766,6 +766,7 @@
 }
 
 .field input[type='text'],
+.field input[type='datetime-local'],
 .field textarea,
 .field select {
   width: 100%;
@@ -785,6 +786,7 @@
 }
 
 .field input[type='text']:hover,
+.field input[type='datetime-local']:hover,
 .field textarea:hover,
 .field select:hover {
   border-color: var(--border-strong);
@@ -796,6 +798,7 @@
 }
 
 .field input[type='text']:focus,
+.field input[type='datetime-local']:focus,
 .field textarea:focus,
 .field select:focus {
   border-color: var(--accent);

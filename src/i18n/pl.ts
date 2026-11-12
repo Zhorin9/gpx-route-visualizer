@@ -1219,6 +1219,8 @@ const pl = {
     label: 'Data i godzina',
     meta: 'w rogu',
     hint: 'Dzień i godzina startu trasy, jak znacznik z aparatu. Kolor i krój bierze ze statystyk.',
+    when: 'Kiedy',
+    fromRoute: 'Wróć do czasu z trasy',
     hide: 'Ukryj datę i godzinę',
   },
   mapSticker: {

@@ -34,6 +34,7 @@ export function createElementsSlice({ get, commit }: SliceContext): ElementsSlic
     updateMapSticker: (patch) => commit('mapSticker', (s) => ({ mapSticker: { ...s.mapSticker, ...patch } })),
     setKicker: (patch) => commit('kicker', (s) => ({ kicker: { ...s.kicker, ...patch } })),
     setStamp: (stamp) => commit('stamp', { stamp, ...(stamp ? null : { selection: null }) }),
+    setStampTime: (stampTime) => commit('stamp', { stampTime }),
     updatePhotoLook: (patch) => commit('photoLook', (s) => ({ photoLook: { ...s.photoLook, ...patch } })),
     updateSticker: (patch) => commit('sticker', (s) => (s.sticker ? { sticker: { ...s.sticker, ...patch } } : {})),
     updateText: (id, patch) =>

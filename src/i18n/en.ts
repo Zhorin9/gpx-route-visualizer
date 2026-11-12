@@ -1221,6 +1221,8 @@ const en: typeof pl = {
     label: 'Date and time',
     meta: 'in the corner',
     hint: 'The day and time the route started, like a camera date stamp. Color and font come from the stats.',
+    when: 'When',
+    fromRoute: "Use the route's time",
     hide: 'Hide date and time',
   },
   mapSticker: {

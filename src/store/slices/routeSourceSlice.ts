@@ -80,6 +80,7 @@ export function createRouteSourceSlice({ set, get, commit }: SliceContext): Rout
         sourceLayout: s.sourceLayout && { ...s.sourceLayout, route: IDENTITY_TRANSFORM },
         layoutOverrides: Object.fromEntries(Object.entries(s.layoutOverrides).map(([k, o]) => [k, { ...o, route: undefined }])),
         statsContent: { ...s.statsContent, overrides: DEFAULT_STATS_CONTENT.overrides },
+        stampTime: null,
       }))
     },
 

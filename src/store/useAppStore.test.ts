@@ -7,6 +7,7 @@ import { DOCUMENT_KEYS, pickDocument } from './document'
 import { lookChanged } from './slices/templatesSlice'
 import { useAppStore } from './useAppStore'
 import { makeText } from './defaults'
+import { selectStampTime } from '../features/stamp/model'
 
 const initial = useAppStore.getState()
 
@@ -783,5 +784,28 @@ describe('changing the project type', () => {
     expect([get().mode, get().activeTab, selectTrack(get()), get().waypoints]).toEqual(['collage', 'media', null, []])
     get().undo()
     expect([get().mode, selectTrack(get()) !== null, get().waypoints.length]).toEqual(['map', true, 1])
+  })
+})
+
+describe('date stamp', () => {
+  const timedGpx = (iso: string) =>
+    new File([`<gpx><trk><trkseg><trkpt lat="50" lon="19"><time>${iso}</time></trkpt><trkpt lat="50.01" lon="19"><time>${iso}</time></trkpt></trkseg></trk></gpx>`], 'timed.gpx')
+
+  it('shows a time set by hand over the route start, undoes it, and drops it with a new route', async () => {
+    vi.useRealTimers()
+    await get().loadGpxFile(timedGpx('2026-08-12T06:42:00Z'))
+    const routeStart = Date.parse('2026-08-12T06:42:00Z')
+    expect(selectStampTime(get())).toBe(routeStart)
+
+    const byHand = Date.parse('2026-09-01T18:30:00Z')
+    get().setStampTime(byHand)
+    expect(selectStampTime(get())).toBe(byHand)
+    get().undo()
+    expect(selectStampTime(get())).toBe(routeStart)
+    get().redo()
+    expect(selectStampTime(get())).toBe(byHand)
+
+    await get().loadGpxFile(timedGpx('2026-10-05T08:00:00Z'))
+    expect(selectStampTime(get())).toBe(Date.parse('2026-10-05T08:00:00Z'))
   })
 })

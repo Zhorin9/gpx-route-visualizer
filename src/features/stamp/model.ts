@@ -8,6 +8,20 @@ export function stampText(epochMs: number): string {
   return `${pad(d.getDate())}.${pad(d.getMonth() + 1)} · ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
+export function toDateTimeInput(epochMs: number): string {
+  const d = new Date(epochMs)
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+export function fromDateTimeInput(value: string): number | null {
+  const epochMs = new Date(value).getTime()
+  return Number.isNaN(epochMs) ? null : epochMs
+}
+
 export const STAMP_KIND = 'stamp'
 
-export const selectStartTime = (s: Parameters<typeof selectTrack>[0]) => selectTrack(s)?.points.find((p) => p.time != null)?.time ?? null
+type State = Parameters<typeof selectTrack>[0] & { stampTime: number | null }
+
+export const selectStartTime = (s: State) => selectTrack(s)?.points.find((p) => p.time != null)?.time ?? null
+
+export const selectStampTime = (s: State) => s.stampTime ?? selectStartTime(s)
