@@ -435,6 +435,8 @@ const en: typeof pl = {
     photos: 'Photos…',
     slideEach: 'a slide for each',
     seriesSlides: 'Series slides',
+    hideSlides: 'Hide slides',
+    showSlides: 'Show slides',
     dragToReorder: 'Drag to change the order',
     skippedSlide: 'Skipped slide',
     slide: 'Slide {{n}}',
@@ -629,6 +631,8 @@ const en: typeof pl = {
     background: 'Background',
     wrapper: 'Wrapper',
     thisSlide: 'This slide',
+    expandPanel: 'Expand panel',
+    collapsePanel: 'Collapse panel',
   },
   elementsTab: {
     wrapper: 'Wrapper',

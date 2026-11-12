@@ -1,6 +1,7 @@
 import { useRef, useState, type DragEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import useElementSize from '../hooks/useElementSize'
+import useMediaQuery, { PHONE_QUERY } from '../hooks/useMediaQuery'
 import useGpxImport, { GPX_ACCEPT } from '../hooks/useGpxImport'
 import { useActiveSlide, useHasPhotos, useHasRoute, useManualFlags, usePanorama, usePhotoBackground } from '../store/selectors'
 import { useAppStore } from '../store/useAppStore'
@@ -25,6 +26,7 @@ import Toast from './ui/Toast'
 import TransparentNote from './TransparentNote'
 
 const VIEWPORT_PADDING = 24
+const PHONE_VIEWPORT_PADDING = 10
 
 function CanvasToolbar() {
   const { t } = useTranslation()
@@ -71,12 +73,12 @@ function CanvasToolbar() {
           onClick={() => setRouteEditable(!routeEditable)}
           title={t('canvasArea.editRouteTitle')}
         >
-          {t('canvasArea.editRoute')}
+          <span className="toolbar-btn-label">{t('canvasArea.editRoute')}</span>
         </Button>
       )}
       {isTransformed && (
         <Button size="sm" variant="ghost" icon={<IconReset />} onClick={resetRouteTransform}>
-          {t('canvasArea.resetPosition')}
+          <span className="toolbar-btn-label">{t('canvasArea.resetPosition')}</span>
         </Button>
       )}
       <select className="toolbar-select" aria-label={t('canvasArea.format')} title={useFrameSummary()} value={aspectKey} onChange={(e) => setAspectKey(e.target.value as AspectKey)}>
@@ -221,6 +223,7 @@ function FrameArea() {
   const select = useAppStore((s) => s.select)
   const { importFiles } = useGpxImport()
   const [dragging, setDragging] = useState(false)
+  const phone = useMediaQuery(PHONE_QUERY)
 
   const { w, h, safeZone } = FORMATS[aspectKey]
   // A tall frame leaves room at its side: the slides go on a rail there instead of under it.
@@ -228,8 +231,8 @@ function FrameArea() {
   // A series shows the selected slide; a panorama is one picture, so it shows whole.
   const series = !panorama && slideCount > 1
   const shown = series ? 1 : slideCount
-  const previewScale =
-    width > 0 && height > 0 ? Math.min((width - VIEWPORT_PADDING * 2) / (w * shown), (height - VIEWPORT_PADDING * 2) / h, 1) : 0
+  const padding = phone ? PHONE_VIEWPORT_PADDING : VIEWPORT_PADDING
+  const previewScale = width > 0 && height > 0 ? Math.min((width - padding * 2) / (w * shown), (height - padding * 2) / h, 1) : 0
   const stage = previewScale > 0 && <CanvasStage previewScale={previewScale} />
 
   function handleDrop(e: DragEvent) {
