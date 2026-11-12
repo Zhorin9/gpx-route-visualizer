@@ -727,6 +727,13 @@ const en: typeof pl = {
     animationGroupDesc: 'Timeline, marker, camera',
   },
   elementsTab: {
+    styleInUse: 'Style: {{name}}',
+    styleNewElements: 'New elements in this style',
+    applyStyleEverywhere: 'Apply the style to all',
+    noStyle: 'No style',
+    noStyleHint: 'New elements get the default look.',
+    chooseStyle: 'Choose a style',
+    changeStyle: 'Change',
     wrapper: 'Wrapper',
     globalFont: 'One font for everything',
     applyEverywhere: 'Apply everywhere',

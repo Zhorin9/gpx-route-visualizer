@@ -392,6 +392,17 @@ describe('style templates', () => {
     expect(get().waypoints.find((w) => w.id === placeId)).toMatchObject({ fontFamily: naklejka.fonts.note, color: get().statsStyle.color })
   })
 
+  it('adds plain elements with the style flag off, and lays the style on all of them on request', () => {
+    const naklejka = BUILT_IN_TEMPLATES.find((t) => t.id === 'naklejka')!
+    get().applyTemplate(naklejka, all)
+    get().setStyleNewElements(false)
+    const textId = get().addText()
+    expect(get().texts.find((t) => t.id === textId)).toMatchObject({ outlineEnabled: false })
+    expect(get().texts.find((t) => t.id === textId)?.fontFamily).not.toBe(naklejka.fonts.title)
+    get().applyStyleEverywhere()
+    expect(get().texts.find((t) => t.id === textId)).toMatchObject({ fontFamily: naklejka.fonts.title, outlineEnabled: true })
+  })
+
   it('leaves the photos alone unless asked, and lays the film look of a style on them when asked', () => {
     const retro = BUILT_IN_TEMPLATES.find((t) => t.id === 'retro70')!
     get().applyTemplate(retro, get().templateParts)

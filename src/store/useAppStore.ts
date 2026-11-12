@@ -26,7 +26,7 @@ import type { StatKey, StyleTemplate } from '../types'
 // a remembered 90° would turn the header of every route loaded afterwards.
 type PersistedState = Pick<
   AppState,
-  'aspectKey' | 'previewBackdrop' | 'showSafeZones' | 'dimOpacity' | 'routeStyle' | 'titleStyle' | 'customTemplates' | 'templateParts' | 'recentTemplates' | 'favoriteTemplates'
+  'aspectKey' | 'previewBackdrop' | 'showSafeZones' | 'dimOpacity' | 'routeStyle' | 'titleStyle' | 'customTemplates' | 'templateId' | 'templateParts' | 'styleNewElements' | 'recentTemplates' | 'favoriteTemplates'
 > & {
   statsStyle: Omit<AppState['statsStyle'], 'rotation'>
   statsContent: Omit<AppState['statsContent'], 'overrides'>
@@ -136,7 +136,9 @@ export const useAppStore = create<AppState>()(
           statsStyle: withoutRotation(s.statsStyle),
           titleStyle: s.titleStyle,
           customTemplates: s.customTemplates,
+          templateId: s.templateId,
           templateParts: s.templateParts,
+          styleNewElements: s.styleNewElements,
           recentTemplates: s.recentTemplates,
           favoriteTemplates: s.favoriteTemplates,
           statsContent: {

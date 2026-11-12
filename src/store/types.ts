@@ -279,6 +279,7 @@ export interface TemplatesSlice {
   customTemplates: StyleTemplate[]
   // Preferences: the parts "Tylko…" applies, the last used and the favourite template ids.
   templateParts: TemplateParts
+  styleNewElements: boolean
   recentTemplates: string[]
   favoriteTemplates: string[]
   // Outside the history: a template shown on the frame until applied or dropped.
@@ -289,6 +290,8 @@ export interface TemplatesSlice {
   // The previewed template as one undo step: on Zastosuj, and before anything else done meanwhile.
   keepPreview: () => void
   setTemplateParts: (parts: TemplateParts) => void
+  setStyleNewElements: (on: boolean) => void
+  applyStyleEverywhere: () => void
   toggleFavoriteTemplate: (id: string) => void
   // The colours proposed from the photos, as one undo step; afterwards they are plain style values.
   applyPhotoTheme: (theme: PhotoTheme) => void

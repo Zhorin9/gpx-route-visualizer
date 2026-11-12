@@ -4,9 +4,9 @@ import { routeFields } from '../../utils/wrappers'
 import { joinTrack } from '../derived'
 import { pickDocument } from '../document'
 import { NO_PHOTO_LOOK } from '../../utils/photoLook'
-import { isStickerPiece } from '../newElementLook'
+import { BUILT_IN_TEMPLATES } from '../../utils/templates'
 import i18n from '../../i18n'
-import type { GradientStyle, StyleTemplate, TemplateParts, WrapperField } from '../../types'
+import type { GradientStyle, StyleTemplate, TemplateParts, TextNode, WrapperField } from '../../types'
 import type { AppState, DocumentState, SliceContext, TemplatesSlice } from '../types'
 
 type Look = Pick<AppState, 'collage' | 'map' | 'statsStyle' | 'titleStyle' | 'texts' | 'waypoints'>
@@ -24,8 +24,16 @@ function recolor(s: Look, gradient: GradientStyle, text: string, title = text): 
   }
 }
 
+export const FONTS_AND_EFFECTS: TemplateParts = { fonts: true, effects: true, route: false, frame: false, colors: false, layout: false, points: false, photo: false }
+
+export const appliedTemplate = (s: Pick<AppState, 'templateId' | 'customTemplates'>): StyleTemplate | undefined =>
+  s.templateId ? [...BUILT_IN_TEMPLATES, ...s.customTemplates].find((t) => t.id === s.templateId) : undefined
+
+// A badge, an icon or a bent caption carries its own outline and shadow, which a style's text effects leave alone.
+export const isStickerPiece = (t: TextNode) => t.role !== 'title' && Boolean(t.badge || t.icon || t.warp)
+
 // The look a template gives the document; everything else is left as it is.
-function withTemplate(s: TemplateTarget, template: StyleTemplate, parts: TemplateParts): Partial<DocumentState> {
+export function withTemplate(s: TemplateTarget, template: StyleTemplate, parts: TemplateParts): Partial<DocumentState> {
   let statsStyle = s.statsStyle
   let collage = s.collage
   let texts = s.texts
@@ -104,6 +112,7 @@ export function createTemplatesSlice({ set, get, commit }: SliceContext): Templa
     customTemplates: [],
 
     templateParts: { fonts: true, route: true, frame: true, colors: true, layout: false, points: true, effects: true, photo: false },
+    styleNewElements: true,
     recentTemplates: [],
     favoriteTemplates: [],
     templatePreview: null,
@@ -130,6 +139,13 @@ export function createTemplatesSlice({ set, get, commit }: SliceContext): Templa
     endPreview: () => {
       const preview = get().templatePreview
       if (preview) set({ ...preview.base, templatePreview: null })
+    },
+
+    setStyleNewElements: (styleNewElements) => set({ styleNewElements }),
+
+    applyStyleEverywhere: () => {
+      const template = appliedTemplate(get())
+      if (template) commit(`template:${template.id}:everywhere`, (s) => withTemplate(s, template, FONTS_AND_EFFECTS))
     },
 
     setTemplateParts: (templateParts) => {

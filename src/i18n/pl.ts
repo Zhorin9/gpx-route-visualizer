@@ -725,6 +725,13 @@ const pl = {
     animationGroupDesc: 'Oś czasu, znacznik, kamera',
   },
   elementsTab: {
+    styleInUse: 'Styl: {{name}}',
+    styleNewElements: 'Nowe elementy w tym stylu',
+    applyStyleEverywhere: 'Zastosuj styl do wszystkich',
+    noStyle: 'Bez stylu',
+    noStyleHint: 'Nowe elementy dostaną wygląd domyślny.',
+    chooseStyle: 'Wybierz styl',
+    changeStyle: 'Zmień',
     wrapper: 'Oprawa',
     globalFont: 'Jedna czcionka dla wszystkiego',
     applyEverywhere: 'Zastosuj wszędzie',
