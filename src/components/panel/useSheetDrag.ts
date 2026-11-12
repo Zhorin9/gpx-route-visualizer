@@ -2,7 +2,7 @@ import { useRef, type PointerEvent, type RefObject } from 'react'
 
 export type SheetState = 'collapsed' | 'half' | 'full'
 
-const HALF_SHARE = 0.5
+const HALF_SHARE = 0.58
 const CANVAS_LEFT_WHEN_FULL = 120
 const TAP_SLOP = 6
 

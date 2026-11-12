@@ -1787,8 +1787,105 @@
 /* ---------- Phone: the panel is a bottom sheet over the tab bar ---------- */
 
 .panel.sheet {
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-md: 15px;
   flex: none;
+  font-size: var(--text-md);
   transition: height 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.panel.sheet .tab-panel {
+  padding: var(--space-3) var(--space-4) var(--space-5);
+}
+
+.panel.sheet .subtabs {
+  position: sticky;
+  top: calc(var(--space-3) * -1);
+  z-index: 2;
+  flex: none;
+  flex-wrap: nowrap;
+  margin: 0 calc(var(--space-4) * -1) var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--panel-bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.panel.sheet .subtab {
+  flex: none;
+}
+
+.more-menu {
+  display: flex;
+  flex-direction: column;
+  margin: calc(var(--space-3) * -1) calc(var(--space-4) * -1) 0;
+}
+
+.more-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 64px;
+  padding: var(--space-3) var(--space-4);
+  font: inherit;
+  text-align: left;
+  color: var(--text);
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.more-menu-item:active {
+  background: var(--menu-hover);
+}
+
+.more-menu-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.more-menu-label {
+  font-family: var(--font-heading);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.more-menu-desc {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.more-menu-chevron {
+  flex: none;
+  rotate: -90deg;
+  color: var(--text-muted);
+}
+
+.more-back {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 40px;
+  margin-left: calc(var(--space-2) * -1);
+  padding: 0 var(--space-2);
+  font-family: var(--font-heading);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.more-back-chevron {
+  rotate: 90deg;
+  color: var(--accent-text);
 }
 
 .panel.sheet.dragging {
@@ -1796,7 +1893,7 @@
 }
 
 .panel.sheet-half {
-  height: 50%;
+  height: 58%;
 }
 
 .panel.sheet-full {
