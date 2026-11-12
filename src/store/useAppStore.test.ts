@@ -381,6 +381,17 @@ describe('style templates', () => {
     expect(get().statsStyle.hardShadow).toBeUndefined()
   })
 
+  it('gives a text and a place added after a style the look of that style', () => {
+    const naklejka = BUILT_IN_TEMPLATES.find((t) => t.id === 'naklejka')!
+    get().applyTemplate(naklejka, all)
+    const textId = get().addText()
+    expect(get().texts.find((t) => t.id === textId)).toMatchObject({ fontFamily: naklejka.fonts.title, color: get().titleStyle.color, outlineEnabled: true, hardShadow: naklejka.titleEffect?.hardShadow })
+    const badgeId = get().addText('badge')
+    expect(get().texts.find((t) => t.id === badgeId)?.badge?.color).toBe(get().sticker?.color)
+    const placeId = get().addWaypoint(10)
+    expect(get().waypoints.find((w) => w.id === placeId)).toMatchObject({ fontFamily: naklejka.fonts.note, color: get().statsStyle.color })
+  })
+
   it('leaves the photos alone unless asked, and lays the film look of a style on them when asked', () => {
     const retro = BUILT_IN_TEMPLATES.find((t) => t.id === 'retro70')!
     get().applyTemplate(retro, get().templateParts)

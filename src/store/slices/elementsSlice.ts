@@ -2,6 +2,7 @@ import { FORMATS } from '../../core/formats/registry'
 import i18n from '../../i18n'
 import { makeText, makeWaypoint, nextId } from '../defaults'
 import { TEXT_KINDS } from '../textKinds'
+import { styledText, styledWaypoint } from '../newElementLook'
 import { dayBreaks, selectRouteDays, selectTrack, trackCumKm } from '../derived'
 import { routeCaptions } from '../../utils/routeCaptions'
 
@@ -22,7 +23,7 @@ export function createElementsSlice({ get, commit }: SliceContext): ElementsSlic
       const { w, h } = FORMATS[s.aspectKey]
       const base = makeText(nextId(s.texts), w, h)
       const shown = { ...base, x: base.x + Math.min(s.activeSlide, s.slides.length - 1) * w }
-      const node = { ...shown, ...TEXT_KINDS[kind](s.statsStyle.color, shown) }
+      const node = styledText(s, { ...shown, ...TEXT_KINDS[kind](s.statsStyle.color, shown) })
       commit('text:add', {
         texts: [...s.texts, node],
         selection: { kind: 'text', id: node.id },
@@ -50,7 +51,7 @@ export function createElementsSlice({ get, commit }: SliceContext): ElementsSlic
 
     addWaypoint: (trackPos) => {
       const s = get()
-      const node = makeWaypoint(nextId(s.waypoints), trackPos)
+      const node = styledWaypoint(s, makeWaypoint(nextId(s.waypoints), trackPos))
       commit('waypoint:add', {
         waypoints: [...s.waypoints, node],
         selection: { kind: 'waypoint', id: node.id },
@@ -67,7 +68,7 @@ export function createElementsSlice({ get, commit }: SliceContext): ElementsSlic
       const first = nextId(s.waypoints)
       const captions = routeCaptions(track.points, cum, s.range, s.statsContent.units)
       const added = captions.map(({ trackPos, text }, i) => ({
-        ...makeWaypoint(first + i, trackPos),
+        ...styledWaypoint(s, makeWaypoint(first + i, trackPos)),
         text,
         ...(i === captions.length - 1 ? DISTANCE_CAPTION : END_CAPTIONS[i]),
       }))
