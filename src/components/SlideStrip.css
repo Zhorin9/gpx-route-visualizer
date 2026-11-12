@@ -135,6 +135,13 @@
   border: 1px solid var(--border);
 }
 
+@media (pointer: coarse) {
+  .slide-thumb-more {
+    width: 34px;
+    height: 34px;
+  }
+}
+
 .slide-thumb:hover .slide-thumb-more,
 .slide-thumb.active .slide-thumb-more,
 .slide-thumb-more:focus-visible,

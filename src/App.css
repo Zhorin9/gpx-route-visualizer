@@ -1660,11 +1660,21 @@
 
 /* ---------- Small screens: canvas on top, panel below ---------- */
 
+.app-shell {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
 @media (max-width: 860px) {
   .top-bar {
     padding: var(--space-2) var(--space-3);
   }
 
+  .toast {
+    bottom: var(--space-3);
+  }
+}
+
+@media (max-width: 860px) and (orientation: portrait) {
   .app {
     flex-direction: column;
     gap: var(--space-3);
@@ -1680,9 +1690,95 @@
     width: auto;
     flex: 1;
   }
+}
 
-  .toast {
-    bottom: var(--space-3);
+@media (max-height: 520px) and (orientation: landscape) {
+  .top-bar {
+    padding: var(--space-1) var(--space-3);
+  }
+
+  .app {
+    gap: var(--space-2);
+    padding: var(--space-2);
+  }
+
+  .panel {
+    width: min(340px, 45vw);
+  }
+
+  .canvas-toolbar {
+    min-height: 0;
+    padding: var(--space-2) var(--space-3);
+  }
+}
+
+@media (max-width: 640px) {
+  .top-bar {
+    gap: var(--space-2);
+  }
+
+  .top-bar-actions {
+    gap: var(--space-1);
+  }
+
+  .app {
+    gap: var(--space-2);
+    padding: var(--space-2);
+  }
+
+  .canvas-toolbar {
+    min-height: 0;
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .slide-strip {
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .slide-strip.vertical {
+    padding: var(--space-2);
+  }
+}
+
+@media (max-width: 640px) and (orientation: portrait) {
+  .canvas-area {
+    height: 60dvh;
+  }
+}
+
+@media (pointer: coarse) {
+  input:not([type='range'], [type='checkbox'], [type='radio']),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  .btn-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .settings-toggle {
+    padding: 10px 11px;
+  }
+
+  .toolbar-select {
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .field .slider-value input[type='text'] {
+    width: 60px;
+    font-size: 16px;
+  }
+
+  .segment {
+    min-height: 40px;
+  }
+
+  .subtab {
+    min-height: 36px;
+    padding: 8px 12px;
   }
 }
 
