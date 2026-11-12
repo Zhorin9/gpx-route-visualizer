@@ -6,6 +6,7 @@ import { FORMATS } from '../core/formats/registry'
 import { LAYOUTS, layoutFits } from '../utils/layouts'
 import Button from './ui/Button'
 import FileButton from './ui/FileButton'
+import LanguageSwitch from './LanguageSwitch'
 import type { ProjectMode } from '../types'
 import './StartScreen.css'
 
@@ -60,8 +61,11 @@ export default function StartScreen() {
   return (
     <main className="start-screen">
       <header className="start-screen-header">
-        <h1>Tripcard</h1>
-        <p>{t('startScreen.intro')}</p>
+        <div>
+          <h1>Tripcard</h1>
+          <p>{t('startScreen.intro')}</p>
+        </div>
+        <LanguageSwitch />
       </header>
       <div className="start-screen-cards">
         <ModeCard

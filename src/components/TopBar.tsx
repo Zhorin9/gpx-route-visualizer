@@ -9,7 +9,7 @@ import { exportedSlides } from '../utils/series'
 import { MODE_LABELS } from '../utils/modeChange'
 import Button from './ui/Button'
 import type { Units } from '../core/units'
-import { LANGUAGES, type Language } from '../i18n'
+import LanguageSwitch from './LanguageSwitch'
 
 function Choice<T extends string>({ label, value, options, onChange }: { label: string; value: T; options: { value: T; label: string }[]; onChange: (value: T) => void }) {
   return (
@@ -36,15 +36,13 @@ function Choice<T extends string>({ label, value, options, onChange }: { label: 
 function SettingsMenu() {
   const units = useAppStore((s) => s.statsContent.units)
   const updateStatsContent = useAppStore((s) => s.updateStatsContent)
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   return (
     <div className="settings-menu" role="dialog" aria-label={t('topBar.settings')}>
-      <Choice<Language>
-        label={t('topBar.language')}
-        value={i18n.language as Language}
-        options={LANGUAGES.map((l) => ({ value: l, label: l.toUpperCase() }))}
-        onChange={(l) => void i18n.changeLanguage(l)}
-      />
+      <div className="settings-row">
+        <span className="settings-label">{t('topBar.language')}</span>
+        <LanguageSwitch />
+      </div>
       <Choice<Units>
         label={t('topBar.units')}
         value={units}

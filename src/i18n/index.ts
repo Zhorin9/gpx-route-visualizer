@@ -16,12 +16,23 @@ declare module 'i18next' {
   }
 }
 
+export const LANGUAGE_NAMES: Record<Language, string> = { pl: 'Polski', en: 'English' }
+
+function browserLanguage(): Language {
+  const preferred = globalThis.navigator?.languages ?? []
+  for (const tag of preferred) {
+    const match = LANGUAGES.find((l) => tag.toLowerCase().startsWith(l))
+    if (match) return match
+  }
+  return 'pl'
+}
+
 function savedLanguage(): Language {
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
-    return LANGUAGES.find((l) => l === saved) ?? 'pl'
+    return LANGUAGES.find((l) => l === saved) ?? browserLanguage()
   } catch {
-    return 'pl'
+    return browserLanguage()
   }
 }
 

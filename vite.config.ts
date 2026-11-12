@@ -12,5 +12,5 @@ export default defineConfig({
       output: { manualChunks: (id) => (/node_modules\/(react|react-dom|react-konva|react-reconciler|scheduler|konva)\//.test(id) ? 'vendor' : undefined) },
     },
   },
-  test: { css: { include: [/\?raw$/] } },
+  test: { css: { include: [/\?raw$/] }, setupFiles: ['src/testSetup.ts'] },
 })

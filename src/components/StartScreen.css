@@ -11,6 +11,17 @@
   padding: 40px;
 }
 
+.start-screen-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.start-screen-header .view-switch {
+  flex: none;
+}
+
 .start-screen-header h1 {
   margin: 0 0 6px;
   font-family: var(--font-heading);
