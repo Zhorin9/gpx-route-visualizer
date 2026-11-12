@@ -3,8 +3,7 @@ import { addCanvasControls } from '../../core/canvas/chrome'
 import { provideFrameClock } from '../../core/export/frameSource'
 import { registerPanelSection } from '../../core/panel/registry'
 import { addRouteDecoration, provideRouteHead } from '../../core/route/providers'
-import CommitProbe from './canvas/CommitProbe'
-import { waitForCommit } from './canvas/commitState'
+import { useReportCommit, waitForCommit } from './canvas/commitState'
 import { stopPreviewOnEdit } from './editStopsPreview'
 import RouteHeadMarker from './canvas/RouteHeadMarker'
 import { useAnimatedLayer, useAnimatedPhoto, useAnimatedPoint, useAnimationGhost, useAnimationHead, useCountingHead, useTypedText } from './hooks'
@@ -12,14 +11,11 @@ import { AnimationTimingSection } from './panel/AnimationPanel'
 import MarkerSection from './panel/MarkerSection'
 import { usePlayback } from './playback'
 import PlaybackBar from './ui/PlaybackBar'
-import { BUILT_IN_VEHICLES, registerVehicle } from './vehicles'
 
 export function registerAnimation() {
   provideRouteHead(useAnimationHead)
-  provideAnimation({ layer: useAnimatedLayer, point: useAnimatedPoint, photo: useAnimatedPhoto, countHead: useCountingHead, ghost: useAnimationGhost, typed: useTypedText })
-  for (const vehicle of BUILT_IN_VEHICLES) registerVehicle(vehicle)
+  provideAnimation({ layer: useAnimatedLayer, point: useAnimatedPoint, photo: useAnimatedPhoto, countHead: useCountingHead, ghost: useAnimationGhost, typed: useTypedText, reportCommit: useReportCommit })
   addRouteDecoration(RouteHeadMarker)
-  addRouteDecoration(CommitProbe)
   addCanvasControls(PlaybackBar)
   registerPanelSection({ id: 'animation', label: 'animation.timeline.title', tab: 'animation', order: 10, Component: AnimationTimingSection })
   registerPanelSection({ id: 'marker', label: 'animation.panel.markerSection', tab: 'animation', modes: ['map'], order: 12, Component: MarkerSection })

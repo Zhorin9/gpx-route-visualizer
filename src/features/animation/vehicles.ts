@@ -16,24 +16,12 @@ export interface VehicleDef {
   art?: string
 }
 
-const vehicles: VehicleDef[] = []
-
-export function registerVehicle(def: VehicleDef): void {
-  const i = vehicles.findIndex((v) => v.id === def.id)
-  if (i >= 0) vehicles.splice(i, 1, def)
-  else vehicles.push(def)
-}
-
-export function vehicleList(): readonly VehicleDef[] {
-  return vehicles
-}
-
 // The dot is the first entry, so an unknown id draws what the animation always drew.
 export function vehicleFor(id: VehicleId | undefined): VehicleDef {
-  return vehicles.find((v) => v.id === id) ?? vehicles[0]
+  return VEHICLES.find((v) => v.id === id) ?? VEHICLES[0]
 }
 
-export const BUILT_IN_VEHICLES: VehicleDef[] = [
+export const VEHICLES: VehicleDef[] = [
   { id: 'dot', label: 'animation.vehicles.dot', path: '', flipWhenWest: false },
   {
     id: 'plane',

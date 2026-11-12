@@ -1,7 +1,8 @@
 import { konvaFontStyle } from '../../utils/fonts'
 import { measureTextWidth } from '../../utils/measureText'
 import type { Photo, PointStyle, Waypoint } from '../../types'
-import type { Box, LeaderElement } from './leader'
+import type { Box } from '../../utils/geometry'
+import type { LeaderElement } from './leader'
 import { MARKER_WIDTHS, MARKERS, type Marker, type NameArea } from './markers'
 
 export interface PinnedMarker {

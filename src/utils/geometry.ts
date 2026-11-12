@@ -1,6 +1,13 @@
 import type { RouteTransform } from '../types'
 import { clamp, clamp01 } from './math'
 
+export interface Box {
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
 export interface Point2D {
   x: number
   y: number

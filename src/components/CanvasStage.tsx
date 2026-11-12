@@ -10,6 +10,7 @@ import { computeSlots, layoutDef, ribbonSlot, slotAt, slotCount } from '../utils
 import { stageHandle } from '../utils/exportImage'
 import { slideNumbers } from '../utils/series'
 import { fromBox, intoBox, slideBox } from '../utils/wrappers'
+import { CommitProbe } from '../core/animation/layers'
 import CanvasElements from '../core/canvas/CanvasElements'
 import { stageUnderlays } from '../core/canvas/chrome'
 import BackgroundLayer from './BackgroundLayer'
@@ -37,7 +38,8 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
   const select = useAppStore((s) => s.select)
   const hasRoute = useHasRoute()
   const slides = useAppStore((s) => s.slides)
-  const collage = useAppStore((s) => s.collage)
+  const gap = useAppStore((s) => s.collage.gap)
+  const margin = useAppStore((s) => s.collage.margin)
   const wrapper = useAppStore((s) => s.wrapper)
   const carouselKind = useAppStore((s) => s.carouselKind)
   const activeSlide = useActiveSlide()
@@ -54,7 +56,7 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
   const numbers = slideNumbers(slides)
   const slotsBySlide = panorama
     ? [[ribbonSlot(w, h, slideCount)]]
-    : slides.map((slide) => (slotCount(slide) ? computeSlots(layoutDef(slide.layoutKey), w, h, collage.gap, collage.margin) : []))
+    : slides.map((slide) => (slotCount(slide) ? computeSlots(layoutDef(slide.layoutKey), w, h, gap, margin) : []))
   // Where each slide's content sits under the wrapper; null where it fills the slide.
   const boxes = slides.map((_, i) => slideBox({ wrapper, slides, carouselKind }, i, w, h))
   const first = boxes[0]
@@ -162,6 +164,7 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
           )}
         </Layer>
         <Layer>
+          <CommitProbe />
           <CanvasElements />
           {texts.map((node) => (
             node.icon ? <LooseIcon key={node.id} node={node} /> : <EditableText key={node.id} node={node} />

@@ -9,6 +9,7 @@ const HISTORY_LIMIT = 100
 const STEP_LABELS: Record<string, TKey> = {
   'text:add': 'history.textAdd',
   'text:delete': 'history.textDelete',
+  'caption:add': 'history.textAdd',
   'waypoint:add': 'history.waypointAdd',
   'waypoint:delete': 'history.waypointDelete',
   'waypoint:captions': 'history.waypointCaptions',
@@ -26,8 +27,6 @@ const STEP_LABELS: Record<string, TKey> = {
   'slide:apply:bg': 'history.slideApplyBg',
   slide: 'history.slide',
   'photos:slides': 'history.photosSlides',
-  'template:save': 'history.templateSave',
-  'template:delete': 'history.templateDelete',
   text: 'history.text',
   waypoint: 'history.waypoint',
   nudge: 'history.nudge',
@@ -92,14 +91,18 @@ export function createHistory(set: SetState, get: GetState) {
   // A step taken while a template is previewed keeps the template first, so neither is lost.
   const commit: Commit = (key, update) => {
     get().keepPreview()
+    const s = get()
     const now = Date.now()
-    if (key !== lastKey || now - lastAt > COALESCE_MS) {
-      const s = get()
-      set({ past: [...s.past, { doc: pickDocument(s), label: stepLabel(key) }].slice(-HISTORY_LIMIT), future: [] })
-    }
+    const newStep = key !== lastKey || now - lastAt > COALESCE_MS
     lastKey = key
     lastAt = now
-    set(update)
+    const patch = typeof update === 'function' ? update(s) : update
+    const next = { ...s, ...patch }
+    set({
+      ...(newStep ? { past: [...s.past, { doc: pickDocument(s), label: stepLabel(key) }].slice(-HISTORY_LIMIT), future: [] } : null),
+      ...patch,
+      ...validSelection(next, next),
+    })
   }
 
   const breakCoalescing = () => {

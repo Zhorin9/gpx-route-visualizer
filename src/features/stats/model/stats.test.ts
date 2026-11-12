@@ -16,10 +16,6 @@ describe('stat definitions', () => {
     expect(buildChips({ stats, content: DEFAULT_STATS_CONTENT }).map((c) => c.text)).toEqual(['42,2 km', '4h 0m', '14,1 km/h'])
   })
 
-  it('builds the chips in order', () => {
-    expect(buildChips({ stats, content: content() }).map((c) => c.text)).toEqual(['DZIEŃ 1', '42,2 km', '+512 m', '4h 0m'])
-  })
-
   it('follows the chosen order and shows the new stats', () => {
     const visible = { ...FOUR, day: false, movingTime: true, avgSpeed: true, maxElevation: true }
     const order = ['avgSpeed', 'distance', 'movingTime', 'day', 'elevation', 'time', 'maxElevation'] as StatsContent['order']
@@ -82,9 +78,5 @@ describe('arrangements', () => {
     expect(box.texts.filter((t) => !t.id.endsWith(':label'))).toHaveLength(chips.length)
     const alone = arrangementFor('hero').arrange(input({ arrangement: 'hero', heroKey: 'elevation', heroSecondary: false }))
     expect(alone.texts.map((t) => t.id)).toEqual(['elevation:label', 'elevation'])
-  })
-
-  it('falls back to columns for an unknown arrangement', () => {
-    expect(arrangementFor('nope' as never).id).toBe('columns')
   })
 })

@@ -1,5 +1,13 @@
 import type { EncodeOptions, EncodeQuality } from '../VideoEncodingService'
-import type { EncodedSample, FrameEncoder, VideoCodecId } from '../ports'
+
+export type VideoCodecId = 'avc' | 'vp9'
+
+// Plain web platform types, never a package's own.
+export interface EncodedSample {
+  chunk: EncodedVideoChunk
+  // Present on the first sample: the decoder configuration the container must store.
+  meta?: EncodedVideoChunkMetadata
+}
 
 // Bits per pixel per frame; ~4.4 Mb/s for a 1080×1920 story at 30 fps on medium.
 const BITS_PER_PIXEL: Record<EncodeQuality, number> = { low: 0.04, medium: 0.07, high: 0.12 }
@@ -53,7 +61,7 @@ export function inBandAvcDescription(chunk: Pick<EncodedVideoChunk, 'byteLength'
   return new Uint8Array([1, sps[1], sps[2], sps[3], 0xff, 0xe1, sps.length >> 8, sps.length & 0xff, ...sps, 1, pps.length >> 8, pps.length & 0xff, ...pps, ...highExtension])
 }
 
-export class WebCodecsFrameEncoder implements FrameEncoder {
+export class WebCodecsFrameEncoder {
   private encoder: VideoEncoder | null = null
 
   constructor(readonly codec: VideoCodecId) {}

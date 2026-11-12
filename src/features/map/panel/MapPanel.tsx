@@ -7,7 +7,7 @@ import Section from '../../../components/ui/Section'
 import Button from '../../../components/ui/Button'
 import { useAppStore } from '../../../store/useAppStore'
 import { MOODS, moodOf } from '../model/mood'
-import { creditFor, mapStyles, mapStyle, OFM_TERMS, paletteFrom } from '../model/styles'
+import { creditFor, MAP_STYLES, mapStyle, OFM_TERMS, paletteFrom } from '../model/styles'
 import Segmented from '../../../components/ui/Segmented'
 import { selectTrack } from '../../../store/derived'
 import { seedOf } from '../../../store/derived'
@@ -37,7 +37,7 @@ export default function MapPanel() {
   const gradient = useAppStore((s) => s.collage.gradient)
   const textColor = useAppStore((s) => s.statsStyle.color)
   const updateMap = useAppStore((s) => s.updateMap)
-  const styleOptions: SelectOption[] = mapStyles().map((s) => ({ value: s.id, label: t(s.label) }))
+  const styleOptions: SelectOption[] = MAP_STYLES.map((s) => ({ value: s.id, label: t(s.label) }))
   const sketch = map.kind === 'sketch'
   // undefined while fetching, null when the features couldn't be fetched.
   const layers = useAppStore((s) => {

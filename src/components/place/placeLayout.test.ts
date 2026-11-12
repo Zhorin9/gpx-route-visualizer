@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_POINT_STYLE, makeWaypoint } from '../../store/defaults'
 import { DEFAULT_ICON_SIZE, placeLayout } from './placeLayout'

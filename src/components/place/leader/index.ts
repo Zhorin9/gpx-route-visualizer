@@ -1,12 +1,6 @@
 import { intoPhotoMiddle } from './photo'
 import { toNearestNameEnd } from './text'
-
-export interface Box {
-  x: number
-  y: number
-  w: number
-  h: number
-}
+import type { Box } from '../../../utils/geometry'
 
 export interface LeaderElement {
   kind: 'photo' | 'text'

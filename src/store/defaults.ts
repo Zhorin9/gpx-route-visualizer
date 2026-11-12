@@ -1,3 +1,4 @@
+import i18n from '../i18n'
 import { DEFAULT_FONT } from '../utils/fonts'
 import { DEFAULT_LAYOUT } from '../utils/layouts'
 import type {
@@ -110,7 +111,7 @@ export function nextId(items: { id: number }[]): number {
 export function makeText(id: number, stageW: number, stageH: number): TextNode {
   return {
     id,
-    text: 'Nowy tekst',
+    text: i18n.t('newContent.text'),
     x: stageW / 2 - 120,
     y: stageH / 2,
     fontSize: 48,
@@ -160,7 +161,7 @@ export function makeWaypoint(id: number, trackPos: number): Waypoint {
     trackPos,
     dx: 40,
     dy: -34,
-    text: 'Miejscowość',
+    text: i18n.t('newContent.place'),
     fontFamily: DEFAULT_FONT,
     fontSize: 26,
     color: '#ffffff',

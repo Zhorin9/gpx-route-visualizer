@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { cumulativeDistanceKm } from '../../utils/gpx'
-import { COLOR_BINS, PALETTES, colorScale, mixStops, paletteBins } from './palettes'
+import { COLOR_BINS, PALETTES, binScale, mixStops, paletteBins } from './palettes'
 import { percentile, windowMean, windowSlope } from './smoothing'
 import { dataSeries, dataSource, gradeSource, speedSource } from './sources'
 import type { GpxPoint, GpxTrack } from '../../types'
@@ -84,9 +84,9 @@ describe('palettes', () => {
 
   it('maps values over the domain, clamps outside it and can be reversed', () => {
     const p = PALETTES[0]
-    const scale = colorScale(p, [10, 20], false)
+    const scale = binScale(paletteBins(p, false), [10, 20])
     expect(scale(-5)).toBe(p.stops[0])
     expect(scale(99)).toBe(p.stops[p.stops.length - 1])
-    expect(colorScale(p, [10, 20], true)(10)).toBe(p.stops[p.stops.length - 1])
+    expect(binScale(paletteBins(p, true), [10, 20])(10)).toBe(p.stops[p.stops.length - 1])
   })
 })

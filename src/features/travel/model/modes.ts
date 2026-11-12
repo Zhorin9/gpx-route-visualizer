@@ -1,6 +1,7 @@
 import type { GpxPoint, LineKind, RouteOption, Stop, TravelModeId, TravelPlan, VehicleId } from '../../../types'
 import { nearestRoad, nearestStation } from '../providers/geocoding'
-import { RouteError, routingProvider, type RouteProfile } from '../providers/routing'
+import { routeWithBRouter } from '../providers/brouter'
+import { RouteError, type RouteProfile } from '../providers/routing'
 import { greatCircle, straightLines, withEstimatedTime } from './lines'
 import i18n, { type TKey } from '../../../i18n'
 
@@ -8,8 +9,6 @@ export interface BuildContext {
   profile?: string
   options?: readonly RouteOption[]
   signal: AbortSignal
-  // Absent: the default service.
-  router?: string
 }
 
 export interface TravelMode {
@@ -25,14 +24,13 @@ export interface TravelMode {
   groundElevation: boolean
   profiles?: { id: RouteProfile; label: TKey }[]
   options?: { id: RouteOption; label: TKey }[]
-  online: boolean
   build: (stops: Stop[], ctx: BuildContext) => Promise<GpxPoint[]>
 }
 
 const routed =
   (fallback: RouteProfile, snapToRoads = false) =>
-  async (stops: Stop[], { profile, options = [], signal, router }: BuildContext) => {
-    const route = (at: Stop[]) => routingProvider(router).route({ stops: at, profile: (profile as RouteProfile | undefined) ?? fallback, options }, signal)
+  async (stops: Stop[], { profile, options = [], signal }: BuildContext) => {
+    const route = (at: Stop[]) => routeWithBRouter({ stops: at, profile: (profile as RouteProfile | undefined) ?? fallback, options }, signal)
     try {
       return await route(stops)
     } catch (err) {
@@ -52,27 +50,15 @@ async function byRail(stops: Stop[], ctx: BuildContext): Promise<GpxPoint[]> {
       return { ...stop, lat: station.lat, lon: station.lon }
     }),
   )
-  const points = await routingProvider(ctx.router).route({ stops: stations, profile: 'rail', options: [] }, ctx.signal)
+  const points = await routeWithBRouter({ stops: stations, profile: 'rail', options: [] }, ctx.signal)
   return points.map((p) => ({ ...p, time: null }))
 }
 
-const modes: TravelMode[] = []
-
-export function registerTravelMode(mode: TravelMode): void {
-  const i = modes.findIndex((m) => m.id === mode.id)
-  if (i >= 0) modes.splice(i, 1, mode)
-  else modes.push(mode)
-}
-
-export function travelModes(): readonly TravelMode[] {
-  return modes
-}
-
 export function travelMode(id: TravelModeId): TravelMode {
-  return modes.find((m) => m.id === id) ?? modes[0]
+  return TRAVEL_MODES.find((m) => m.id === id) ?? TRAVEL_MODES[0]
 }
 
-export const BUILT_IN_MODES: TravelMode[] = [
+export const TRAVEL_MODES: TravelMode[] = [
   {
     id: 'car',
     label: 'travel.modes.car',
@@ -86,7 +72,6 @@ export const BUILT_IN_MODES: TravelMode[] = [
       { id: 'avoid_toll', label: 'travel.options.avoidToll' },
       { id: 'avoid_unpaved', label: 'travel.options.avoidUnpaved' },
     ],
-    online: true,
     build: routed('car', true),
   },
   {
@@ -102,7 +87,6 @@ export const BUILT_IN_MODES: TravelMode[] = [
       { id: 'road', label: 'travel.profiles.road' },
       { id: 'mtb', label: 'travel.profiles.mtb' },
     ],
-    online: true,
     build: routed('trekking'),
   },
   {
@@ -113,7 +97,6 @@ export const BUILT_IN_MODES: TravelMode[] = [
     avgSpeedKmh: 750,
     groundElevation: false,
     lines: ['arc', 'straight'],
-    online: false,
     build: async (stops) => greatCircle(stops),
   },
   {
@@ -124,7 +107,6 @@ export const BUILT_IN_MODES: TravelMode[] = [
     avgSpeedKmh: 4.5,
     groundElevation: true,
     lines: ['road', 'straight', 'arc'],
-    online: true,
     build: routed('hiking'),
   },
   {
@@ -135,7 +117,6 @@ export const BUILT_IN_MODES: TravelMode[] = [
     avgSpeedKmh: 95,
     groundElevation: true,
     lines: ['road', 'straight', 'arc'],
-    online: true,
     build: byRail,
   },
 ]

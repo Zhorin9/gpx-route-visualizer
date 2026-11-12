@@ -89,7 +89,7 @@
 }
 
 .project-menu-list button:hover:not(:disabled) {
-  background: var(--color-neutral-100);
+  background: var(--menu-hover);
   box-shadow: inset 2px 0 0 var(--accent);
 }
 
@@ -110,7 +110,7 @@
   padding: 16px;
   border: none;
   color: inherit;
-  background: color-mix(in srgb, var(--color-neutral-900) 35%, transparent);
+  background: var(--backdrop);
 }
 
 .dialog-backdrop[open] {
@@ -408,8 +408,8 @@
 }
 
 .light-checker {
-  --checker-a: #d6d2ce;
-  --checker-b: #e9e6e3;
+  --checker-a: var(--checker-light-a);
+  --checker-b: var(--checker-light-b);
 }
 
 .stage-wrapper.is-adding {
@@ -543,7 +543,7 @@
   gap: var(--space-3);
   padding: 32px var(--space-5);
   text-align: center;
-  border: 1px dashed var(--color-neutral-400);
+  border: 1px dashed var(--placeholder-strong);
 }
 
 .status-card.status-error {
@@ -1695,11 +1695,6 @@
   letter-spacing: 0.02em;
   border: 1px solid transparent;
   border-radius: calc(var(--radius) * 0.75);
-}
-
-.tag-accent {
-  color: var(--accent-text-strong);
-  background: var(--accent-soft);
 }
 
 .tag-outline {

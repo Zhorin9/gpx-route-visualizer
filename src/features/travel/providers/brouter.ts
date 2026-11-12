@@ -1,6 +1,6 @@
 import type { GpxPoint, Stop } from '../../../types'
 import i18n from '../../../i18n'
-import { cached, rateLimited, RouteError, type RouteProfile, type RouteRequest, type RoutingProvider } from './routing'
+import { cached, rateLimited, RouteError, type RouteProfile, type RouteRequest } from './routing'
 
 const URL_BASE = 'https://brouter.de/brouter'
 
@@ -61,10 +61,4 @@ async function route({ stops, profile, options }: RouteRequest, signal: AbortSig
   return parseBRouter(await response.json(), 0)
 }
 
-export const brouter: RoutingProvider = {
-  id: 'brouter',
-  label: 'BRouter',
-  terms: 'Publiczna instancja brouter.de, bez klucza, z umiarkowanym limitem zapytań.',
-  profiles: PROFILES,
-  route: cached(rateLimited(route, 1000)),
-}
+export const routeWithBRouter = cached(rateLimited(route, 1000))

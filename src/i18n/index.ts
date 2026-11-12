@@ -26,7 +26,7 @@ function savedLanguage(): Language {
 }
 
 i18n.on('languageChanged', (lng) => {
-  document.documentElement.lang = lng
+  globalThis.document?.documentElement.setAttribute('lang', lng)
   try {
     localStorage.setItem(STORAGE_KEY, lng)
   } catch {

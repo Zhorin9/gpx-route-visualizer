@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, expect, it } from 'vitest'
 import { computeRangeStats, cumulativeDistanceKm, elevationGain, flatBounds, fitMercator, movingDurationMs, parseGpxText, projectWithFit, splitIntoDays } from './gpx'
 import type { GpxPoint } from '../types'

@@ -36,10 +36,6 @@ export function paletteBins(p: Palette, inverted: boolean, bins = COLOR_BINS): s
 }
 
 // Values outside the domain are clamped.
-export function colorScale(p: Palette, domain: [number, number], inverted: boolean): (value: number) => string {
-  return binScale(paletteBins(p, inverted), domain)
-}
-
 export function binScale(bins: readonly string[], domain: [number, number]): (value: number) => string {
   const [min, max] = domain
   const span = max - min || 1

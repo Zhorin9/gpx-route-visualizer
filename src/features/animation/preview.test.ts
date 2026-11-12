@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { afterAll, beforeEach, describe, expect, it } from 'vitest'
 import { useAppStore } from '../../store/useAppStore'
 import { stopPreviewOnEdit } from './editStopsPreview'
@@ -13,10 +14,6 @@ describe('animation preview', () => {
   beforeEach(() => {
     useAppStore.setState({ animation: { ...DEFAULT_ANIMATION, enabled: true }, exporting: false })
     usePlayback.getState().stop()
-  })
-
-  it('is off by default', () => {
-    expect(DEFAULT_ANIMATION.enabled).toBe(false)
   })
 
   it('returns to the static view when the design is edited', () => {

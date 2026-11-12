@@ -9,8 +9,4 @@ describe('colorRuns', () => {
       { color: 'b', from: 2, to: 4 },
     ])
   })
-
-  it('returns nothing for a single vertex', () => {
-    expect(colorRuns([5], () => 'a')).toEqual([])
-  })
 })

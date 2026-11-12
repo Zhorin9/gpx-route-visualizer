@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { applyTransform, pointAt } from '../../utils/geometry'
 import { fitMercator, mercatorX, mercatorY, projectWithFit } from '../../utils/gpx'
 import { mapCamera, type MapCamera } from './model/placement'
-import { BUILT_IN_STYLES, buildStyle, paletteFrom, registerMapStyle, type StyleJson } from './model/styles'
+import { buildStyle, paletteFrom, type StyleJson } from './model/styles'
 import type { GpxPoint, RouteTransform } from '../../types'
 
 const at = (lat: number, lon: number): GpxPoint => ({ lat, lon, ele: 0, time: null })
@@ -71,7 +71,6 @@ describe('map style', () => {
   const palette = paletteFrom({ from: '#123a63', to: '#123a63' }, '#e4f0ff')
 
   it('repaints an OpenMapTiles style in the template palette and drops what the palette cannot colour', async () => {
-    BUILT_IN_STYLES.forEach(registerMapStyle)
     const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response(JSON.stringify(base)))
     const style = await buildStyle({ styleId: 'positron', palette, labels: true, hillshade: true })
     const byId = Object.fromEntries(style.layers.map((l) => [l.id, l]))
@@ -99,7 +98,6 @@ describe('map background in the document', () => {
   it('turns text dark on a light map and takes the preset colours when a template is applied', async () => {
     const { useAppStore } = await import('../../store/useAppStore')
     const { BUILT_IN_TEMPLATES } = await import('../../utils/templates')
-    BUILT_IN_STYLES.forEach(registerMapStyle)
     const get = () => useAppStore.getState()
     get().showMapBackground()
     expect(get().collage.bgKind).toBe('map')

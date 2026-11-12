@@ -2,7 +2,7 @@ import { FORMATS } from '../../core/formats/registry'
 import i18n from '../../i18n'
 import { makeText, makeWaypoint, nextId } from '../defaults'
 import { TEXT_KINDS } from '../textKinds'
-import { selectTrack } from '../derived'
+import { dayBreaks, selectRouteDays, selectTrack, trackCumKm } from '../derived'
 import { routeCaptions } from '../../utils/routeCaptions'
 
 // Large, as on the board, the distance larger still; each stands off its point to its own side.
@@ -43,7 +43,6 @@ export function createElementsSlice({ get, commit }: SliceContext): ElementsSlic
     deleteText: (id) => {
       commit('text:delete', (s) => ({
         texts: s.texts.filter((t) => t.id !== id),
-        selection: s.selection?.kind === 'text' && s.selection.id === id ? null : s.selection,
       }))
       get().showToast(i18n.t('elementsSlice.textDeleted'), 'undo')
     },
@@ -61,10 +60,11 @@ export function createElementsSlice({ get, commit }: SliceContext): ElementsSlic
     },
     addRouteCaptions: () => {
       const s = get()
-      const points = selectTrack(s)?.points
-      if (!points) return
+      const track = selectTrack(s)
+      const cum = trackCumKm(track, dayBreaks(selectRouteDays(s)))
+      if (!track || !cum) return
       const first = nextId(s.waypoints)
-      const captions = routeCaptions(points, s.range, s.statsContent.units)
+      const captions = routeCaptions(track.points, cum, s.range, s.statsContent.units)
       const added = captions.map(({ trackPos, text }, i) => ({
         ...makeWaypoint(first + i, trackPos),
         text,
@@ -76,11 +76,10 @@ export function createElementsSlice({ get, commit }: SliceContext): ElementsSlic
       commit(`waypoint:${id}:${Object.keys(patch).join()}`, (s) => ({
         waypoints: s.waypoints.map((w) => (w.id === id ? { ...w, ...patch } : w)),
       })),
-    updatePointStyle: (patch) => commit(`points:${Object.keys(patch).join()}`, (s) => ({ pointStyle: { ...s.pointStyle, ...patch } })),
+    updatePointStyle: (patch) => commit(`waypoint:style:${Object.keys(patch).join()}`, (s) => ({ pointStyle: { ...s.pointStyle, ...patch } })),
     deleteWaypoint: (id) => {
       commit('waypoint:delete', (s) => ({
         waypoints: s.waypoints.filter((w) => w.id !== id),
-        selection: s.selection?.kind === 'waypoint' && s.selection.id === id ? null : s.selection,
       }))
       get().showToast(i18n.t('elementsSlice.waypointDeleted'), 'undo')
     },

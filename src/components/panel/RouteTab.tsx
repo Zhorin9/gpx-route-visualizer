@@ -18,7 +18,7 @@ import ElementRow from './ElementRow'
 import useGpxImport, { GPX_ACCEPT } from '../../hooks/useGpxImport'
 import { useHasRoute, useTrackCumKm } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
-import { formatKm } from '../../utils/format'
+import { formatDistance } from '../../core/units'
 import { selectTrack, selectRouteDays } from '../../store/derived'
 import type { KmInterval, RoutePart } from '../../types'
 import type { TKey } from '../../i18n'
@@ -104,14 +104,14 @@ function RoutesSection() {
 
   return (
     <Section title={t('routeTab.routes')}>
-      {multi && <p className="hint">{t('routeTab.total', { km: formatKm(total, 1) })}</p>}
+      {multi && <p className="hint">{t('routeTab.total', { km: formatDistance(total, 'metric', 1) })}</p>}
       <div className="item-list" role="listbox" aria-label={t('routeTab.routes')}>
         {rows.map((row, i) => (
           <div key={row.id} className={multi && row.id === selected?.id ? 'day-row active' : 'day-row'}>
             <button type="button" className="day-row-main" disabled={!multi} aria-selected={multi && row.id === selected?.id} onClick={() => setSelectedId(row.id)}>
               <span className="day-dot" style={{ background: row.color }} />
               <span className="day-name">{row.name}</span>
-              <span className="day-km">{formatKm(row.km, 1)}</span>
+              <span className="day-km">{formatDistance(row.km, 'metric', 1)}</span>
             </button>
             {multi && (
               <>
@@ -204,7 +204,7 @@ function PoiSection() {
         </div>
       )}
       <Button pressed={adding} icon={<IconPlus />} block onClick={() => setAddingWaypoint(!adding)}>
-        {adding ? t('routeTab.cancel') : t('routeTab.addPoint')}
+        {adding ? t('common.cancel') : t('routeTab.addPoint')}
       </Button>
     </Section>
   )

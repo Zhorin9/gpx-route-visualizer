@@ -1,13 +1,12 @@
 import { useTranslation } from 'react-i18next'
 import { useCountHead } from '../../core/animation/layers'
 import { rangeStats, selectRouteParts, selectTrack } from '../../store/derived'
-import { useDayBreaks, useRangeStats } from '../../store/selectors'
+import { useDayBreaks } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { buildChips } from './model/definitions'
 import type { StatChip } from '../../types'
 
 export function useStatsChips(): StatChip[] {
-  const full = useRangeStats()
   const track = useAppStore(selectTrack)
   const range = useAppStore((s) => s.range)
   const breaks = useDayBreaks()
@@ -17,6 +16,7 @@ export function useStatsChips(): StatChip[] {
   const head = useCountHead()
   // Captions are drawn in the current language.
   useTranslation()
-  const stats = head != null && full ? rangeStats(track, { start: range.start, end: Math.max(range.start, Math.floor(head)) }, breaks, parts) : full
+  const end = head != null ? Math.max(range.start, Math.floor(head)) : range.end
+  const stats = rangeStats(track, end === range.end ? range : { start: range.start, end }, breaks, parts)
   return stats ? buildChips({ stats, content }) : []
 }

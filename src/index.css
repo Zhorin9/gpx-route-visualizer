@@ -59,6 +59,25 @@
   --thumb-outline: #ffffff;
   --checker-a: #3d3a37;
   --checker-b: #4a4643;
+  --checker-light-a: #d6d2ce;
+  --checker-light-b: #e9e6e3;
+  --menu-hover: var(--color-neutral-100);
+  --backdrop: color-mix(in srgb, var(--color-neutral-900) 35%, transparent);
+  --shadow-up: 0 -4px 12px rgb(0 0 0 / 0.06);
+  --frame-dim: color-mix(in srgb, var(--color-text) 38%, transparent);
+  --dark-backdrop: color-mix(in srgb, var(--color-neutral-900) 94%, transparent);
+  --dark-surface: var(--color-neutral-900);
+  --dark-card-shadow: 0 6px 18px color-mix(in srgb, #000 45%, transparent);
+  --on-dark: var(--color-neutral-100);
+  --on-dark-muted: var(--color-neutral-300);
+  --on-dark-faint: var(--color-neutral-400);
+  --wrapper-photo-a: #9fb09a;
+  --wrapper-photo-b: #aab9a5;
+  --wrapper-paper: #f7f1e3;
+  --wrapper-album-paper: #efe6d2;
+  --wrapper-ink: #8a3b24;
+  --wrapper-stamp-edge: #dccdb2;
+  --wrapper-postmark: rgba(58, 42, 28, 0.6);
   /* Pins and labels on the trip map; the same ink as the route drawn by MapLibre (tripLayers.ts). */
   --map-ink: #24351f;
   --map-paper: #f3f2f2;

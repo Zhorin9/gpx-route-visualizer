@@ -16,7 +16,6 @@ import { finishMap } from './model/mood'
 import { FORMATS } from '../../core/formats/registry'
 import { drawSketch } from './sketch/draw'
 import { sketchFrame } from './sketch/frame'
-import { BUILT_IN_STYLES, registerMapStyle } from './model/styles'
 import MapPanel, { MapCreditFields } from './panel/MapPanel'
 import { MAP_CREDIT_KIND, mapIsSeeThrough } from './types'
 import './map.css'
@@ -32,7 +31,6 @@ async function renderSketchImage(state: AppState, scene: MapScene, scale: number
 }
 
 export function registerMap() {
-  for (const style of BUILT_IN_STYLES) registerMapStyle(style)
   registerBackgroundKind({ kind: 'map', label: 'map.label', select: () => useAppStore.getState().showMapBackground(), Panel: MapPanel })
   addStageUnderlay(MapUnderlay)
   registerCanvasElement({
@@ -48,18 +46,28 @@ export function registerMap() {
     subTab: 'background',
   })
 
-  // Files redraw the map at their own resolution; if it can't load, saving without it needs the person's consent.
+  let lastUnderlay: { key: string; refs: unknown[]; image: HTMLCanvasElement } | null = null
   provideFrameUnderlay(async (width, height, scale) => {
     const scene = currentMapScene()
     const state = useAppStore.getState()
     if (state.collage.bgKind !== 'map' || !scene) return null
-    const finish = (map: HTMLCanvasElement) => finishMap(map, scene.settings, FORMATS[state.aspectKey].w, scale, !mapIsSeeThrough(scene.settings), selectSeed(state))
-    if (scene.settings.kind === 'sketch') return finish(await renderSketchImage(state, scene, scale))
-    try {
-      return finish(await renderMapImage(scene, width, height, scale))
-    } catch {
-      if (window.confirm(i18n.t('map.saveWithoutMap'))) return null
-      throw new Error(i18n.t('map.loadFailed'))
-    }
+    const key = JSON.stringify([scene, width, height, scale, state.aspectKey, selectSeed(state)])
+    const refs = [state.routeSource, state.trackCache, state.slides, state.sketchLayers]
+    if (lastUnderlay?.key === key && lastUnderlay.refs.every((r, i) => r === refs[i])) return lastUnderlay.image
+    const image = await renderUnderlay(state, scene, width, height, scale)
+    if (image) lastUnderlay = { key, refs, image }
+    return image
   })
+}
+
+// Files redraw the map at their own resolution; if it can't load, saving without it needs the person's consent.
+async function renderUnderlay(state: AppState, scene: MapScene, width: number, height: number, scale: number) {
+  const finish = (map: HTMLCanvasElement) => finishMap(map, scene.settings, FORMATS[state.aspectKey].w, scale, !mapIsSeeThrough(scene.settings), selectSeed(state))
+  if (scene.settings.kind === 'sketch') return finish(await renderSketchImage(state, scene, scale))
+  try {
+    return finish(await renderMapImage(scene, width, height, scale))
+  } catch {
+    if (window.confirm(i18n.t('map.saveWithoutMap'))) return null
+    throw new Error(i18n.t('map.loadFailed'))
+  }
 }

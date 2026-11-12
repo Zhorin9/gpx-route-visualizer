@@ -50,7 +50,13 @@ const nextPaint = () =>
     new Promise<void>((resolve) => setTimeout(resolve, 400)),
   ])
 
+let runInProgress: Promise<void> = Promise.resolve()
+
 export async function beginStageFrames(): Promise<FrameSource> {
+  const previous = runInProgress
+  let endRun = () => {}
+  runInProgress = new Promise((resolve) => (endRun = resolve))
+  await previous
   const store = useAppStore
   // What is on the frame is what gets saved, so a previewed template is kept.
   store.getState().keepPreview()
@@ -82,24 +88,21 @@ export async function beginStageFrames(): Promise<FrameSource> {
       const pixelRatio = ((FORMATS[aspectKey].w * scale * slides.length) / stage.width()) * 1.0001
       const canvas = stage.toCanvas({ pixelRatio })
       uiNodes.forEach((n) => n.show())
-      stage.batchDraw()
       if (!below) return canvas
+      const { canvas: out, ctx } = newCanvas(below.width, below.height)
+      if (!ctx) return canvas
       // Under a wrapper the map shrinks into the first slide's box, as the route on it does.
       const { w, h } = FORMATS[aspectKey]
       const box = slideBox(store.getState(), 0, w, h)
-      if (!box) {
-        below.getContext('2d')?.drawImage(canvas, 0, 0, below.width, below.height)
-        return below
-      }
-      const { canvas: out, ctx } = newCanvas(below.width, below.height)
-      if (!ctx) return canvas
-      ctx.scale(scale, scale)
-      ctx.translate(box.x + box.w / 2, box.y + box.h / 2)
-      ctx.rotate((box.rotation * Math.PI) / 180)
-      ctx.scale(box.w / w, box.w / w)
-      ctx.translate(-w / 2, -h / 2)
-      ctx.drawImage(below, 0, 0, below.width / scale, below.height / scale)
-      ctx.setTransform(1, 0, 0, 1, 0, 0)
+      if (box) {
+        ctx.scale(scale, scale)
+        ctx.translate(box.x + box.w / 2, box.y + box.h / 2)
+        ctx.rotate((box.rotation * Math.PI) / 180)
+        ctx.scale(box.w / w, box.w / w)
+        ctx.translate(-w / 2, -h / 2)
+        ctx.drawImage(below, 0, 0, below.width / scale, below.height / scale)
+        ctx.setTransform(1, 0, 0, 1, 0, 0)
+      } else ctx.drawImage(below, 0, 0)
       ctx.drawImage(canvas, 0, 0, out.width, out.height)
       return out
     },
@@ -107,6 +110,7 @@ export async function beginStageFrames(): Promise<FrameSource> {
       clock?.release()
       store.setState({ ...snapshot, selection, routeEditable })
       store.getState().setExporting(false)
+      endRun()
     },
   }
 }

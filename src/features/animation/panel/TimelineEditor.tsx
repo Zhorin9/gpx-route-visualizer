@@ -75,10 +75,15 @@ function TimelineTrack({ track, scale }: { track: AnimationTrackId; scale: numbe
   )
 }
 
-export default function TimelineEditor() {
-  const { t: tr } = useTranslation()
+function Playhead({ scale }: { scale: number }) {
   const t = usePlayback((s) => s.t)
   const previewing = usePlayback((s) => s.previewing)
+  if (!previewing) return null
+  return <span className="timeline-playhead" style={{ left: `calc(var(--timeline-label) + (100% - var(--timeline-label)) * ${Math.min(t, scale) / scale})` }} />
+}
+
+export default function TimelineEditor() {
+  const { t: tr } = useTranslation()
   const seek = usePlayback((s) => s.seek)
   const pause = usePlayback((s) => s.pause)
   const total = useAppStore(selectDuration)
@@ -109,7 +114,7 @@ export default function TimelineEditor() {
       {tracks.map((track) => (
         <TimelineTrack key={track} track={track} scale={scale} />
       ))}
-      {previewing && <span className="timeline-playhead" style={{ left: `calc(var(--timeline-label) + (100% - var(--timeline-label)) * ${Math.min(t, scale) / scale})` }} />}
+      <Playhead scale={scale} />
     </div>
   )
 }

@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { rangeStats, selectRouteParts, selectTrack } from '../../store/derived'
 import { useAppStore } from '../../store/useAppStore'

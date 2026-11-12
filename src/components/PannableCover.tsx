@@ -2,13 +2,14 @@ import { Image as KonvaImage } from 'react-konva'
 import type Konva from 'konva'
 import { coverLayout, coveringPosition, wheelSteps, zoomedBy } from '../utils/image'
 import { withPhotoLook } from '../utils/photoLook'
+import type { Box } from '../utils/geometry'
 import { selectSeed } from '../store/derived'
 import { useAppStore } from '../store/useAppStore'
 import useSettled from '../hooks/useSettled'
 
 interface Props {
   image: HTMLImageElement | ImageBitmap | HTMLCanvasElement
-  box: { x: number; y: number; w: number; h: number }
+  box: Box
   zoom: number
   offsetX: number
   offsetY: number

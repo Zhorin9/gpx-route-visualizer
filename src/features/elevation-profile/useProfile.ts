@@ -55,10 +55,16 @@ export function useProfileData(columns: number): ProfileData | null {
   return profileData(track, cumKm, range, days, parts, columns, smoothing)
 }
 
+const sampledByProfile = new WeakMap<ProfileData, Map<DataSourceId, Float32Array>>()
+
 // Elevation is the chart itself.
 export function sampledSource(data: ProfileData, id: DataSourceId): Float32Array {
   if (id === 'elevation') return data.samples.values
-  return sampleAt(dataSeries(data.track, data.cumKm, id), data.samples)
+  let byId = sampledByProfile.get(data)
+  if (!byId) sampledByProfile.set(data, (byId = new Map()))
+  let values = byId.get(id)
+  if (!values) byId.set(id, (values = sampleAt(dataSeries(data.track, data.cumKm, id), data.samples)))
+  return values
 }
 
 // Falls back to the heights when the file lacks the chosen source.

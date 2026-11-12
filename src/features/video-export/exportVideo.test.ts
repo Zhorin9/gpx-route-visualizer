@@ -1,9 +1,10 @@
+// @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type Konva from 'konva'
 import { FakeVideoEncodingService } from '../../services/video-encoding/testing/FakeVideoEncodingService'
 import { useAppStore } from '../../store/useAppStore'
 import { stageHandle } from '../../utils/exportImage'
-import { frameCount, renderVideo, type VideoJob } from './exportVideo'
+import { frameCount, renderThumbnails, renderVideo, type VideoJob } from './exportVideo'
 
 const initial = useAppStore.getState()
 const job: VideoJob = { format: 'mp4', aspect: '9:16', fps: 2, repeat: 1, loopForever: true, quality: 'medium', scale: 1 }
@@ -62,5 +63,17 @@ describe('rendering a video', () => {
     const { error } = await run(service, job, controller.signal)
     expect((error as DOMException).name).toBe('AbortError')
     expect(useAppStore.getState().exporting).toBe(false)
+  })
+
+  it('waits for the thumbnails, so the editor returns to its own format', async () => {
+    useAppStore.getState().setAspectKey('4:5')
+    vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockReturnValue('data:,')
+    const thumbs = renderThumbnails(job, 2, 100)
+    await vi.advanceTimersByTimeAsync(0)
+    expect(useAppStore.getState().aspectKey).toBe('9:16')
+    const { error } = await run(new FakeVideoEncodingService(), job)
+    await thumbs
+    expect(error).toBeNull()
+    expect(useAppStore.getState()).toMatchObject({ aspectKey: '4:5', exporting: false })
   })
 })

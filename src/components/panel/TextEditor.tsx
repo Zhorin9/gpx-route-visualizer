@@ -13,6 +13,7 @@ import Button from '../ui/Button'
 import Section from '../ui/Section'
 import { IconTrash } from '../icons'
 import { useAppStore } from '../../store/useAppStore'
+import type { TextNode } from '../../types'
 
 export default function TextEditor({ id }: { id: number }) {
   const { t } = useTranslation()
@@ -22,21 +23,22 @@ export default function TextEditor({ id }: { id: number }) {
 
   if (!selected) return null
   if (selected.icon) return <IconEditor node={selected} />
+  const update = (patch: Partial<TextNode>) => updateText(selected.id, patch)
 
   return (
     <>
       <Section title={t('textEditor.content')}>
-        <TextField label={t('textEditor.text')} multiline value={selected.text} onChange={(text) => updateText(selected.id, { text })} />
-        <FontField value={selected.fontFamily} onChange={(fontFamily) => updateText(selected.id, { fontFamily })} />
+        <TextField label={t('textEditor.text')} multiline value={selected.text} onChange={(text) => update({ text })} />
+        <FontField value={selected.fontFamily} onChange={(fontFamily) => update({ fontFamily })} />
         <div className="button-row">
-          <Button pressed={selected.bold} aria-label={t('textEditor.bold')} onClick={() => updateText(selected.id, { bold: !selected.bold })}>
+          <Button pressed={selected.bold} aria-label={t('textEditor.bold')} onClick={() => update({ bold: !selected.bold })}>
             <strong>B</strong>
           </Button>
-          <Button pressed={selected.italic} aria-label={t('textEditor.italic')} onClick={() => updateText(selected.id, { italic: !selected.italic })}>
+          <Button pressed={selected.italic} aria-label={t('textEditor.italic')} onClick={() => update({ italic: !selected.italic })}>
             <em>I</em>
           </Button>
         </div>
-        <ColorField label={t('textEditor.color')} value={selected.color} onChange={(color) => updateText(selected.id, { color })} />
+        <ColorField label={t('textEditor.color')} value={selected.color} onChange={(color) => update({ color })} />
       </Section>
 
       <Section title={t('textEditor.layout')}>
@@ -47,7 +49,7 @@ export default function TextEditor({ id }: { id: number }) {
           max={160}
           value={selected.fontSize}
           defaultValue={48}
-          onChange={(fontSize) => updateText(selected.id, { fontSize })}
+          onChange={(fontSize) => update({ fontSize })}
         />
         <SliderField
           label={t('textEditor.letterSpacing')}
@@ -56,9 +58,9 @@ export default function TextEditor({ id }: { id: number }) {
           max={30}
           value={selected.letterSpacing}
           defaultValue={0}
-          onChange={(letterSpacing) => updateText(selected.id, { letterSpacing })}
+          onChange={(letterSpacing) => update({ letterSpacing })}
         />
-        <RotationField value={selected.rotation} onChange={(rotation) => updateText(selected.id, { rotation })} />
+        <RotationField value={selected.rotation} onChange={(rotation) => update({ rotation })} />
         <SliderField
           label={t('textEditor.opacity')}
           unit="%"
@@ -66,17 +68,17 @@ export default function TextEditor({ id }: { id: number }) {
           max={100}
           value={Math.round(selected.opacity * 100)}
           defaultValue={100}
-          onChange={(v) => updateText(selected.id, { opacity: v / 100 })}
+          onChange={(v) => update({ opacity: v / 100 })}
         />
       </Section>
 
       <Section title={t('textEditor.badge')}>
-        <BadgeField value={selected.badge} onChange={(badge) => updateText(selected.id, { badge })} />
+        <BadgeField value={selected.badge} onChange={(badge) => update({ badge })} />
       </Section>
 
       <Section title={t('textEditor.shapeAndTyping')}>
-        <WarpField value={selected.warp} onChange={(warp) => updateText(selected.id, { warp })} />
-        <CheckboxField label={t('textEditor.typing')} checked={!!selected.typing} onChange={(on) => updateText(selected.id, { typing: on ? { cps: 12 } : undefined })} />
+        <WarpField value={selected.warp} onChange={(warp) => update({ warp })} />
+        <CheckboxField label={t('textEditor.typing')} checked={!!selected.typing} onChange={(on) => update({ typing: on ? { cps: 12 } : undefined })} />
         {selected.typing && (
           <>
             <SliderField
@@ -86,7 +88,7 @@ export default function TextEditor({ id }: { id: number }) {
               max={40}
               value={selected.typing.cps}
               defaultValue={12}
-              onChange={(cps) => updateText(selected.id, { typing: { cps } })}
+              onChange={(cps) => update({ typing: { cps } })}
             />
             <p className="hint">{t('textEditor.typingHint')}</p>
           </>
@@ -94,18 +96,18 @@ export default function TextEditor({ id }: { id: number }) {
       </Section>
 
       <Section title={t('textEditor.effects')}>
-        <ShadowField soft={selected.shadowEnabled} hard={selected.hardShadow} onChange={({ soft, hard }) => updateText(selected.id, { shadowEnabled: soft, hardShadow: hard })} />
+        <ShadowField soft={selected.shadowEnabled} hard={selected.hardShadow} onChange={({ soft, hard }) => update({ shadowEnabled: soft, hardShadow: hard })} />
         <CheckboxField
           label={t('textEditor.outline')}
           checked={selected.outlineEnabled}
-          onChange={(outlineEnabled) => updateText(selected.id, { outlineEnabled })}
+          onChange={(outlineEnabled) => update({ outlineEnabled })}
         />
         {selected.outlineEnabled && (
           <>
             <ColorField
               label={t('textEditor.outlineColor')}
               value={selected.outlineColor}
-              onChange={(outlineColor) => updateText(selected.id, { outlineColor })}
+              onChange={(outlineColor) => update({ outlineColor })}
             />
             <SliderField
               label={t('textEditor.outlineWidth')}
@@ -115,7 +117,7 @@ export default function TextEditor({ id }: { id: number }) {
               step={0.5}
               value={selected.outlineWidth}
               defaultValue={2}
-              onChange={(outlineWidth) => updateText(selected.id, { outlineWidth })}
+              onChange={(outlineWidth) => update({ outlineWidth })}
             />
           </>
         )}

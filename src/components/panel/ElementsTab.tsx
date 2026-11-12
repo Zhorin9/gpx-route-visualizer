@@ -105,7 +105,7 @@ export default function ElementsTab() {
           {t('elementsTab.arc')}
         </Button>
         <Button pressed={adding} icon={<IconPlus />} disabled={!hasRoute} onClick={() => setAddingWaypoint(!adding)}>
-          {adding ? t('elementsTab.cancel') : t('elementsTab.place')}
+          {adding ? t('common.cancel') : t('elementsTab.place')}
         </Button>
         {canvasElements().map((def) => def.useShowAgain && <ShowAgainButton key={def.kind} def={def} useShowAgain={def.useShowAgain} />)}
       </div>

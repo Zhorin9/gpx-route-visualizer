@@ -1,9 +1,9 @@
 import { BufferTarget, EncodedPacket, EncodedVideoPacketSource, Mp4OutputFormat, Output, WebMOutputFormat } from 'mediabunny'
-import { EncodingFailedError, MIME_TYPES, type EncodeOptions } from '../VideoEncodingService'
+import { MIME_TYPES, type EncodeOptions } from '../VideoEncodingService'
 import i18n from '../../../i18n'
-import type { ContainerMuxer, EncodedSample, VideoCodecId } from '../ports'
+import type { EncodedSample, VideoCodecId } from './WebCodecsFrameEncoder'
 
-export class MediabunnyMuxer implements ContainerMuxer {
+export class MediabunnyMuxer {
   private output: Output | null = null
   private source: EncodedVideoPacketSource | null = null
   private target: BufferTarget | null = null
@@ -23,15 +23,15 @@ export class MediabunnyMuxer implements ContainerMuxer {
   }
 
   async addSample({ chunk, meta }: EncodedSample) {
-    if (!this.source) throw new EncodingFailedError(i18n.t('mediabunnyMuxer.notStarted'))
+    if (!this.source) throw new Error(i18n.t('mediabunnyMuxer.notStarted'))
     await this.source.add(EncodedPacket.fromEncodedChunk(chunk), meta)
   }
 
   async finalize(): Promise<Blob> {
-    if (!this.output || !this.target) throw new EncodingFailedError(i18n.t('mediabunnyMuxer.notStarted'))
+    if (!this.output || !this.target) throw new Error(i18n.t('mediabunnyMuxer.notStarted'))
     await this.output.finalize()
     const buffer = this.target.buffer
-    if (!buffer) throw new EncodingFailedError(i18n.t('mediabunnyMuxer.saveFailed'))
+    if (!buffer) throw new Error(i18n.t('mediabunnyMuxer.saveFailed'))
     return new Blob([buffer], { type: MIME_TYPES[this.container] })
   }
 
