@@ -7,6 +7,7 @@ import { DOCUMENT_KEYS, pickDocument } from './document'
 import { lookChanged } from './slices/templatesSlice'
 import { useAppStore } from './useAppStore'
 import { makeText } from './defaults'
+import { selectStampTime } from '../features/stamp/model'
 
 const initial = useAppStore.getState()
 
@@ -380,6 +381,28 @@ describe('style templates', () => {
     expect(get().statsStyle.hardShadow).toBeUndefined()
   })
 
+  it('gives a text and a place added after a style the look of that style', () => {
+    const naklejka = BUILT_IN_TEMPLATES.find((t) => t.id === 'naklejka')!
+    get().applyTemplate(naklejka, all)
+    const textId = get().addText()
+    expect(get().texts.find((t) => t.id === textId)).toMatchObject({ fontFamily: naklejka.fonts.title, color: get().titleStyle.color, outlineEnabled: true, hardShadow: naklejka.titleEffect?.hardShadow })
+    const badgeId = get().addText('badge')
+    expect(get().texts.find((t) => t.id === badgeId)?.badge?.color).toBe(get().sticker?.color)
+    const placeId = get().addWaypoint(10)
+    expect(get().waypoints.find((w) => w.id === placeId)).toMatchObject({ fontFamily: naklejka.fonts.note, color: get().statsStyle.color })
+  })
+
+  it('adds plain elements with the style flag off, and lays the style on all of them on request', () => {
+    const naklejka = BUILT_IN_TEMPLATES.find((t) => t.id === 'naklejka')!
+    get().applyTemplate(naklejka, all)
+    get().setStyleNewElements(false)
+    const textId = get().addText()
+    expect(get().texts.find((t) => t.id === textId)).toMatchObject({ outlineEnabled: false })
+    expect(get().texts.find((t) => t.id === textId)?.fontFamily).not.toBe(naklejka.fonts.title)
+    get().applyStyleEverywhere()
+    expect(get().texts.find((t) => t.id === textId)).toMatchObject({ fontFamily: naklejka.fonts.title, outlineEnabled: true })
+  })
+
   it('leaves the photos alone unless asked, and lays the film look of a style on them when asked', () => {
     const retro = BUILT_IN_TEMPLATES.find((t) => t.id === 'retro70')!
     get().applyTemplate(retro, get().templateParts)
@@ -678,6 +701,12 @@ describe('gradient background', () => {
     expect(get().routeStyle.color).toBe(route)
   })
 
+  it('lets the route glow follow the flipped line instead of keeping a neon colour', () => {
+    useAppStore.setState({ routeStyle: { ...get().routeStyle, glowEnabled: true, glowColor: '#ff3dac' } })
+    get().updateBackground({ bgKind: 'gradient', gradient: { from: '#f8f4f4', to: '#d7d3d3' } })
+    expect(get().routeStyle.glowColor).toBeNull()
+  })
+
   it('leaves colours alone with auto contrast off', () => {
     get().updateBackground({ autoContrast: false })
     get().updateBackground({ bgKind: 'gradient', gradient: { from: '#f8f4f4', to: '#d7d3d3' } })
@@ -783,5 +812,28 @@ describe('changing the project type', () => {
     expect([get().mode, get().activeTab, selectTrack(get()), get().waypoints]).toEqual(['collage', 'media', null, []])
     get().undo()
     expect([get().mode, selectTrack(get()) !== null, get().waypoints.length]).toEqual(['map', true, 1])
+  })
+})
+
+describe('date stamp', () => {
+  const timedGpx = (iso: string) =>
+    new File([`<gpx><trk><trkseg><trkpt lat="50" lon="19"><time>${iso}</time></trkpt><trkpt lat="50.01" lon="19"><time>${iso}</time></trkpt></trkseg></trk></gpx>`], 'timed.gpx')
+
+  it('shows a time set by hand over the route start, undoes it, and drops it with a new route', async () => {
+    vi.useRealTimers()
+    await get().loadGpxFile(timedGpx('2026-08-12T06:42:00Z'))
+    const routeStart = Date.parse('2026-08-12T06:42:00Z')
+    expect(selectStampTime(get())).toBe(routeStart)
+
+    const byHand = Date.parse('2026-09-01T18:30:00Z')
+    get().setStampTime(byHand)
+    expect(selectStampTime(get())).toBe(byHand)
+    get().undo()
+    expect(selectStampTime(get())).toBe(routeStart)
+    get().redo()
+    expect(selectStampTime(get())).toBe(byHand)
+
+    await get().loadGpxFile(timedGpx('2026-10-05T08:00:00Z'))
+    expect(selectStampTime(get())).toBe(Date.parse('2026-10-05T08:00:00Z'))
   })
 })

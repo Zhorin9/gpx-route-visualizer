@@ -4,13 +4,13 @@ import Button from './ui/Button'
 import Dialog from './ui/Dialog'
 import Section from './ui/Section'
 import Segmented from './ui/Segmented'
-import { IconAlert, IconCheckCircle, IconDownload } from './icons'
+import { IconAlert, IconCheckCircle, IconDownload, IconShare } from './icons'
 import { useHasBackground, useHasRoute, useInkIsDark } from '../store/selectors'
 import { useAppStore } from '../store/useAppStore'
 import { FORMATS, FORMAT_ORDER } from '../core/formats/registry'
-import { exportFileNames } from '../utils/exportImage'
+import { canShareImages, exportFileNames, shareFiles, type ExportFile } from '../utils/exportImage'
 import { seriesWarnings } from '../utils/series'
-import { exportProject } from '../utils/exportProject'
+import { exportProject, renderProject } from '../utils/exportProject'
 import { canvasElements, type CanvasElementDefinition } from '../core/canvas/registry'
 import SubTabs from '../core/panel/SubTabs'
 import { SOURCE_ASPECT, hasManualLayout, manualFlags, slideCountIn } from '../utils/reflow'
@@ -140,6 +140,8 @@ function ImageExport() {
   const [scale, setScale] = useState<Scale>('1')
   const [picked, setPicked] = useState<AspectKey[]>([aspectKey])
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null)
+  const sharing = canShareImages()
+  const [pendingShare, setPendingShare] = useState<{ key: string; files: ExportFile[] } | null>(null)
 
   const { w, h } = FORMATS[aspectKey]
   // JPG has no transparency — only makes sense over a photo.
@@ -169,6 +171,8 @@ function ImageExport() {
     setPicked((current) => (current.includes(aspect) ? current.filter((a) => a !== aspect) : [...current, aspect]))
   }
 
+  const failed = (err: unknown) => setResult({ ok: false, text: t('exportTab.failed', { reason: err instanceof Error ? err.message : t('exportTab.unknownError') }) })
+
   async function download() {
     setResult(null)
     setDownloading(true)
@@ -176,10 +180,39 @@ function ImageExport() {
       await exportProject(formats, fileScale, format, baseName)
       setResult({ ok: true, text: t('exportTab.done', { what: zipped ? t('exportTab.filesInZip', { count: fileNames.length }) : fileNames[0] }) })
     } catch (err) {
-      const reason = err instanceof Error ? err.message : t('exportTab.unknownError')
-      setResult({ ok: false, text: t('exportTab.failed', { reason }) })
+      failed(err)
     } finally {
       setDownloading(false)
+    }
+  }
+
+  const shareKey = `${formats.join()}|${fileScale}|${format}`
+  const readyToShare = pendingShare?.key === shareKey ? pendingShare.files : null
+
+  async function share() {
+    setResult(null)
+    let files = readyToShare
+    if (!files) {
+      setDownloading(true)
+      try {
+        files = await renderProject(formats, fileScale, format, baseName)
+      } catch (err) {
+        failed(err)
+        return
+      } finally {
+        setDownloading(false)
+      }
+    }
+    try {
+      await shareFiles(files)
+      setPendingShare(null)
+      setResult({ ok: true, text: t('exportTab.shared') })
+    } catch (err) {
+      const name = err instanceof DOMException ? err.name : ''
+      if (name === 'AbortError') return setPendingShare(null)
+      if (name !== 'NotAllowedError') return failed(err)
+      setPendingShare({ key: shareKey, files })
+      setResult({ ok: true, text: t('exportTab.shareReady') })
     }
   }
 
@@ -242,9 +275,20 @@ function ImageExport() {
             {summary}
           </p>
         )}
-        <Button variant="primary" icon={<IconDownload />} disabled={!canExport} onClick={download}>
-          {downloading ? t('exportTab.preparing') : t('exportTab.downloadFormat', { format: zipped ? 'ZIP' : format.toUpperCase() })}
-        </Button>
+        {sharing ? (
+          <div className="export-actions">
+            <Button icon={<IconDownload />} disabled={!canExport || downloading} onClick={download}>
+              {t('exportTab.downloadFormat', { format: zipped ? 'ZIP' : format.toUpperCase() })}
+            </Button>
+            <Button variant="primary" icon={<IconShare />} disabled={!canExport || downloading} onClick={share}>
+              {downloading ? t('exportTab.preparing') : readyToShare ? t('exportTab.shareNow') : t('exportTab.share')}
+            </Button>
+          </div>
+        ) : (
+          <Button variant="primary" icon={<IconDownload />} disabled={!canExport} onClick={download}>
+            {downloading ? t('exportTab.preparing') : t('exportTab.downloadFormat', { format: zipped ? 'ZIP' : format.toUpperCase() })}
+          </Button>
+        )}
       </footer>
     </>
   )

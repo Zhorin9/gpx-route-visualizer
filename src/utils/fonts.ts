@@ -1,7 +1,6 @@
-import type { SelectOption } from '../types'
 import type { TKey } from '../i18n'
 
-type FontGroup = 'handwritten' | 'script' | 'display' | 'serif' | 'sans' | 'tech' | 'data'
+export type FontGroup = 'handwritten' | 'script' | 'display' | 'serif' | 'sans' | 'tech' | 'data'
 
 const GROUP_LABELS: Record<FontGroup, TKey> = {
   handwritten: 'fonts.handwritten',
@@ -81,10 +80,12 @@ export const DEFAULT_FONT = 'Architects Daughter'
 
 const GROUP_ORDER = Object.keys(GROUP_LABELS) as FontGroup[]
 
+export const FONT_GROUPS: { key: FontGroup; label: TKey }[] = GROUP_ORDER.map((key) => ({ key, label: GROUP_LABELS[key] }))
+
 // Grouped by style, alphabetical within a group, so a look is easy to find.
-export const FONT_OPTIONS: SelectOption[] = [...FONTS]
+export const FONT_CHOICES: { family: string; group: FontGroup }[] = [...FONTS]
   .sort((a, b) => GROUP_ORDER.indexOf(a.group) - GROUP_ORDER.indexOf(b.group) || a.family.localeCompare(b.family))
-  .map((f) => ({ value: f.family, label: f.family, group: GROUP_LABELS[f.group] }))
+  .map(({ family, group }) => ({ family, group }))
 
 export function fontWeight(family: string, bold = false): number {
   const def = FONTS_BY_FAMILY.get(family)

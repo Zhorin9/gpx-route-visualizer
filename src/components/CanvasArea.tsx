@@ -27,6 +27,7 @@ import TransparentNote from './TransparentNote'
 
 const VIEWPORT_PADDING = 24
 const PHONE_VIEWPORT_PADDING = 10
+const RAIL_MIN_AREA_WIDTH = 480
 
 function CanvasToolbar() {
   const { t } = useTranslation()
@@ -224,10 +225,12 @@ function FrameArea() {
   const { importFiles } = useGpxImport()
   const [dragging, setDragging] = useState(false)
   const phone = useMediaQuery(PHONE_QUERY)
+  const areaRef = useRef<HTMLDivElement>(null)
+  const area = useElementSize(areaRef)
 
   const { w, h, safeZone } = FORMATS[aspectKey]
   // A tall frame leaves room at its side: the slides go on a rail there instead of under it.
-  const rail = h > w
+  const rail = h > w && (phone || area.width >= RAIL_MIN_AREA_WIDTH)
   // A series shows the selected slide; a panorama is one picture, so it shows whole.
   const series = !panorama && slideCount > 1
   const shown = series ? 1 : slideCount
@@ -244,6 +247,7 @@ function FrameArea() {
   return (
     <div
       className="canvas-area"
+      ref={areaRef}
       onDragOver={(e) => {
         e.preventDefault()
         // Only files from outside get the drop hint; a photo dragged from the pool doesn't.

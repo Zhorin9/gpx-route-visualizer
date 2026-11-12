@@ -7,7 +7,7 @@ import { konvaFontStyle } from '../../utils/fonts'
 import type { Waypoint } from '../../types'
 import SelectionOutline from '../SelectionOutline'
 import type { PlaceLayout } from './placeLayout'
-import { TEXT_SHADOW } from '../../core/canvas/shadows'
+import { textShadow } from '../../core/canvas/shadows'
 import { useStickerColor } from '../../store/selectors'
 import { STICKER_INK } from '../../utils/sticker'
 
@@ -32,7 +32,7 @@ function writtenOnMarker(area: NonNullable<PlaceLayout['nameOnMarker']>, fontSiz
 // In a sticker style a name is written in its colour with a thick ink edge, as on the board.
 function standingFree(waypoint: Waypoint, sticker: string | null) {
   if (sticker) return { fontSize: waypoint.fontSize, fill: sticker, stroke: STICKER_INK, strokeWidth: waypoint.fontSize * 0.18, lineJoin: 'round' as const, fillAfterStrokeEnabled: true }
-  return { fontSize: waypoint.fontSize, fill: waypoint.color, ...TEXT_SHADOW, shadowEnabled: waypoint.shadowEnabled ?? true }
+  return { fontSize: waypoint.fontSize, fill: waypoint.color, ...textShadow(waypoint.color), shadowEnabled: waypoint.shadowEnabled ?? true }
 }
 
 export default function PlaceName({ waypoint, layout, selected }: { waypoint: Waypoint; layout: PlaceLayout; selected: boolean }) {

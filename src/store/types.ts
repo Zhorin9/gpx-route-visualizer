@@ -103,6 +103,7 @@ export interface DocumentState {
   photoLook: PhotoLook
   // The route's start day and time in a corner, as a camera stamps a frame.
   stamp: boolean
+  stampTime: number | null
   // A short line over the title; its words stay when a style hides it.
   kicker: { shown: boolean; text: string }
   // The route as a sticker of the map around it; while shown, the route itself is not drawn.
@@ -249,6 +250,7 @@ export interface ElementsSlice {
   updateSticker: (patch: Partial<StickerSettings>) => void
   updatePhotoLook: (patch: Partial<PhotoLook>) => void
   setStamp: (on: boolean) => void
+  setStampTime: (time: number | null) => void
   updateMapSticker: (patch: Partial<MapStickerSettings>) => void
   setKicker: (patch: Partial<DocumentState['kicker']>) => void
   // Besides a plain text: a loose icon, a badge or a text bent over an icon; all move and turn like a text.
@@ -277,6 +279,7 @@ export interface TemplatesSlice {
   customTemplates: StyleTemplate[]
   // Preferences: the parts "Tylko…" applies, the last used and the favourite template ids.
   templateParts: TemplateParts
+  styleNewElements: boolean
   recentTemplates: string[]
   favoriteTemplates: string[]
   // Outside the history: a template shown on the frame until applied or dropped.
@@ -287,6 +290,8 @@ export interface TemplatesSlice {
   // The previewed template as one undo step: on Zastosuj, and before anything else done meanwhile.
   keepPreview: () => void
   setTemplateParts: (parts: TemplateParts) => void
+  setStyleNewElements: (on: boolean) => void
+  applyStyleEverywhere: () => void
   toggleFavoriteTemplate: (id: string) => void
   // The colours proposed from the photos, as one undo step; afterwards they are plain style values.
   applyPhotoTheme: (theme: PhotoTheme) => void

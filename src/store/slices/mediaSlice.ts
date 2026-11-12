@@ -59,7 +59,7 @@ export function withContrast(s: AppState, collage: CollageStyle, before: Tone | 
     titleStyle: { ...s.titleStyle, color },
     texts: s.texts.map((t) => ({ ...t, color })),
     waypoints: s.waypoints.map((w) => ({ ...w, color })),
-    routeStyle: { ...s.routeStyle, color },
+    routeStyle: { ...s.routeStyle, color, glowColor: null },
   }
 }
 

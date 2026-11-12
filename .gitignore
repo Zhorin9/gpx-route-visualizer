@@ -11,6 +11,7 @@ node_modules
 dist
 dist-ssr
 graphify-out
+docs/design/
 *.local
 
 # Editor directories and files

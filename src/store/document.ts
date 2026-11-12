@@ -46,6 +46,7 @@ export const INITIAL_DOCUMENT: DocumentState = {
   sticker: null,
   photoLook: NO_PHOTO_LOOK,
   stamp: false,
+  stampTime: null,
   kicker: { shown: false, text: DEFAULT_KICKER },
   mapSticker: DEFAULT_MAP_STICKER,
 }

@@ -3,7 +3,9 @@ import { useTranslation } from 'react-i18next'
 import TextField from '../fields/TextField'
 import Button from '../ui/Button'
 import Section from '../ui/Section'
-import { IconMapPin, IconPlus, IconType } from '../icons'
+import { IconMapPin, IconPalette, IconPlus, IconType } from '../icons'
+import { appliedTemplate } from '../../store/slices/templatesSlice'
+import { templateName } from '../../utils/templates'
 import TextEditor from './TextEditor'
 import PlaceEditor from './PlaceEditor'
 import ElementRow from './ElementRow'
@@ -13,6 +15,7 @@ import { canvasElement, canvasElements, type CanvasElementDefinition } from '../
 import { useHasRoute } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import FontField from '../fields/FontField'
+import CheckboxField from '../fields/CheckboxField'
 import { FIELD_LABELS, wrapperFieldsOf } from '../../utils/wrappers'
 
 function RegisteredElementRow({ def }: { def: CanvasElementDefinition }) {
@@ -39,6 +42,41 @@ function ShowAgainButton({ def, useShowAgain }: { def: CanvasElementDefinition; 
     >
       {t(def.label)}
     </Button>
+  )
+}
+
+function StyleInUse() {
+  const { t } = useTranslation()
+  const template = useAppStore(appliedTemplate)
+  const styleNewElements = useAppStore((s) => s.styleNewElements)
+  const setStyleNewElements = useAppStore((s) => s.setStyleNewElements)
+  const applyStyleEverywhere = useAppStore((s) => s.applyStyleEverywhere)
+  const setActiveTab = useAppStore((s) => s.setActiveTab)
+  const setSubTab = useAppStore((s) => s.setSubTab)
+  const openTemplates = () => {
+    setActiveTab('style')
+    setSubTab('style', 'presets')
+  }
+  return (
+    <div className="style-in-use">
+      <div className="style-in-use-head">
+        <span className="style-in-use-text">
+          <strong>{template ? t('elementsTab.styleInUse', { name: templateName(template) }) : t('elementsTab.noStyle')}</strong>
+          {!template && <span className="hint">{t('elementsTab.noStyleHint')}</span>}
+        </span>
+        <Button size="sm" variant="ghost" icon={<IconPalette />} onClick={openTemplates}>
+          {template ? t('elementsTab.changeStyle') : t('elementsTab.chooseStyle')}
+        </Button>
+      </div>
+      {template && (
+        <div className="style-in-use-actions">
+          <CheckboxField label={t('elementsTab.styleNewElements')} checked={styleNewElements} onChange={setStyleNewElements} />
+          <Button size="sm" onClick={applyStyleEverywhere}>
+            {t('elementsTab.applyStyleEverywhere')}
+          </Button>
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -91,6 +129,7 @@ export default function ElementsTab() {
 
   return (
     <>
+      <StyleInUse />
       <div className="button-row">
         <Button variant="primary" icon={<IconPlus />} onClick={() => addText()}>
           {t('elementsTab.text')}

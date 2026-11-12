@@ -1,6 +1,6 @@
 import { Text } from 'react-konva'
 import DraggableElement from '../../core/canvas/DraggableElement'
-import { TEXT_SHADOW } from '../../core/canvas/shadows'
+import { textShadow } from '../../core/canvas/shadows'
 import { textColumn } from '../../core/formats/registry'
 import { useStickerColor } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
@@ -29,7 +29,7 @@ export default function KickerNode() {
   const titleY = title?.y ?? 300
   return (
     <DraggableElement kind={KICKER_KIND} width={width} height={size} defaultX={column.x + (column.w - width) / 2} defaultY={titleY - size * (1 + GAP)}>
-      <Text text={text} fontSize={size} fontFamily={fontFamily} fontStyle={fontStyle} fill={sticker ?? ownColor} {...TEXT_SHADOW} listening={false} perfectDrawEnabled={false} />
+      <Text text={text} fontSize={size} fontFamily={fontFamily} fontStyle={fontStyle} fill={sticker ?? ownColor} {...textShadow(sticker ?? ownColor)} listening={false} perfectDrawEnabled={false} />
     </DraggableElement>
   )
 }

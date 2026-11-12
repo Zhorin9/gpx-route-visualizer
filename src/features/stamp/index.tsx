@@ -3,12 +3,12 @@ import { IconInfo } from '../../components/icons'
 import { useAppStore } from '../../store/useAppStore'
 import StampFields from './StampFields'
 import StampNode from './StampNode'
-import { STAMP_KIND, selectStartTime } from './model'
+import { STAMP_KIND, selectStampTime } from './model'
 
-const useStampShown = () => useAppStore((s) => s.stamp && selectStartTime(s) != null)
+const useStampShown = () => useAppStore((s) => s.stamp && selectStampTime(s) != null)
 
 function useShowStampAgain() {
-  const hidden = useAppStore((s) => !s.stamp && selectStartTime(s) != null)
+  const hidden = useAppStore((s) => !s.stamp && selectStampTime(s) != null)
   const setStamp = useAppStore((s) => s.setStamp)
   return hidden ? () => setStamp(true) : null
 }

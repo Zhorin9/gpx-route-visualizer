@@ -187,6 +187,12 @@
   }
 }
 
+@media (hover: none) {
+  .slide-thumb .slide-thumb-more {
+    display: grid;
+  }
+}
+
 .slide-thumb:hover .slide-thumb-more,
 .slide-thumb.active .slide-thumb-more,
 .slide-thumb-more:focus-visible,

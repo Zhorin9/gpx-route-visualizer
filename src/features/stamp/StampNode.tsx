@@ -5,7 +5,7 @@ import { useStickerColor } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { konvaFontStyle } from '../../utils/fonts'
 import { measureTextWidth } from '../../utils/measureText'
-import { STAMP_KIND, selectStartTime, stampText } from './model'
+import { STAMP_KIND, selectStampTime, stampText } from './model'
 
 const SIZE = 34
 const MARGIN = 48
@@ -13,7 +13,7 @@ const GAP = 24
 
 
 export default function StampNode() {
-  const time = useAppStore(selectStartTime)
+  const time = useAppStore(selectStampTime)
   const aspectKey = useAppStore((s) => s.aspectKey)
   const titleY = useAppStore((s) => s.texts.find((t) => t.role === 'title')?.y)
   const fontFamily = useAppStore((s) => s.statsStyle.fontFamily)
