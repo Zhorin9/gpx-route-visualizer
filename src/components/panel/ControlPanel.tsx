@@ -1,4 +1,7 @@
+import { useRef, useState } from 'react'
 import Tabs, { type TabDef } from '../Tabs'
+import useMediaQuery, { SHEET_QUERY } from '../../hooks/useMediaQuery'
+import useSheetDrag, { type SheetState } from './useSheetDrag'
 import { tabId, tabPanelId } from '../tabIds'
 import BackgroundTab from './BackgroundTab'
 import MediaTab from './MediaTab'
@@ -59,17 +62,35 @@ export default function ControlPanel() {
   // Picking something whose settings live in a tab a collage lacks opens its first tab instead.
   const activeTab = useAppStore((s) => tabs.find((t) => t.key === s.activeTab)?.key ?? tabs[0].key)
   const setActiveTab = useAppStore((s) => s.setActiveTab)
+  const sheet = useMediaQuery(SHEET_QUERY)
+  const [sheetState, setSheetState] = useState<SheetState>('collapsed')
+  const panelRef = useRef<HTMLElement>(null)
+  const handleGestures = useSheetDrag(panelRef, sheetState, setSheetState)
+  const open = !sheet || sheetState !== 'collapsed'
+
+  function chooseTab(key: PanelTab) {
+    if (sheet && key === activeTab && open) setSheetState('collapsed')
+    else if (sheet && !open) setSheetState('half')
+    setActiveTab(key)
+  }
 
   const Panel = PANELS[activeTab]
 
   return (
-    <aside className="panel">
+    <aside className={sheet ? `panel sheet sheet-${sheetState}` : 'panel'} ref={panelRef}>
       <h1 className="visually-hidden">Tripcard</h1>
-      <Tabs tabs={tabs.map((tab) => ({ ...tab, label: t(tab.label) }))} active={activeTab} onChange={setActiveTab} />
+      {sheet && (
+        <button type="button" className="sheet-handle" aria-expanded={open} aria-label={t(open ? 'controlPanel.collapsePanel' : 'controlPanel.expandPanel')} {...handleGestures}>
+          <span className="sheet-grip" />
+        </button>
+      )}
+      <Tabs tabs={tabs.map((tab) => ({ ...tab, label: t(tab.label) }))} active={activeTab} onChange={chooseTab} />
 
-      <div className="tab-panel" role="tabpanel" id={tabPanelId(activeTab)} aria-labelledby={tabId(activeTab)} key={activeTab}>
-        <Panel />
-      </div>
+      {open && (
+        <div className="tab-panel" role="tabpanel" id={tabPanelId(activeTab)} aria-labelledby={tabId(activeTab)} key={activeTab}>
+          <Panel />
+        </div>
+      )}
     </aside>
   )
 }

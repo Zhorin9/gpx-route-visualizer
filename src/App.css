@@ -1727,8 +1727,45 @@
   }
 
   .canvas-toolbar {
+    flex-wrap: nowrap;
+    gap: var(--space-1);
     min-height: 0;
-    padding: var(--space-2) var(--space-3);
+    padding: var(--space-2);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .canvas-toolbar > * {
+    flex: none;
+  }
+
+  .canvas-toolbar .segment {
+    min-height: 36px;
+    padding: 4px 6px;
+    font-size: var(--text-sm);
+  }
+
+  .canvas-toolbar .btn {
+    min-width: 36px;
+    min-height: 36px;
+    padding: 0 var(--space-2);
+  }
+
+  .canvas-toolbar .toolbar-select {
+    flex: 0 1 auto;
+    min-width: 88px;
+    height: 36px;
+    font-size: var(--text-sm);
+    padding: 0 var(--space-1);
+  }
+
+  .toolbar-btn-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 
   .slide-strip {
@@ -1742,17 +1779,84 @@
 
 @media (max-width: 640px) and (orientation: portrait) {
   .canvas-area {
-    height: 60dvh;
+    flex: 1;
+    height: auto;
+  }
+}
+
+/* ---------- Phone: the panel is a bottom sheet over the tab bar ---------- */
+
+.panel.sheet {
+  flex: none;
+  transition: height 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.panel.sheet.dragging {
+  transition: none;
+}
+
+.panel.sheet-half {
+  height: 50%;
+}
+
+.panel.sheet-full {
+  height: calc(100% - 120px);
+}
+
+.sheet-handle {
+  flex: none;
+  display: grid;
+  place-items: center;
+  height: 28px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: grab;
+  touch-action: none;
+}
+
+.sheet-grip {
+  width: 40px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--border-strong);
+}
+
+.sheet-handle:focus-visible .sheet-grip {
+  background: var(--accent);
+}
+
+.panel.sheet .tabs {
+  order: 2;
+  border-top: 1px solid var(--border);
+  border-bottom: none;
+}
+
+.panel.sheet .tab {
+  margin: -1px 0 0;
+  border-top: 2px solid transparent;
+  border-bottom: none;
+}
+
+.panel.sheet .tab.active {
+  border-top-color: var(--accent);
+}
+
+.panel.sheet-collapsed .tabs {
+  border-top: none;
+}
+
+@supports (-webkit-touch-callout: none) {
+  input:not([type='range'], [type='checkbox'], [type='radio']),
+  select,
+  textarea,
+  .canvas-toolbar .toolbar-select,
+  .field .slider-value input[type='text'] {
+    font-size: 16px;
   }
 }
 
 @media (pointer: coarse) {
-  input:not([type='range'], [type='checkbox'], [type='radio']),
-  select,
-  textarea {
-    font-size: 16px;
-  }
-
   .btn-icon {
     width: 40px;
     height: 40px;
@@ -1764,12 +1868,10 @@
 
   .toolbar-select {
     height: 40px;
-    font-size: 16px;
   }
 
   .field .slider-value input[type='text'] {
     width: 60px;
-    font-size: 16px;
   }
 
   .segment {

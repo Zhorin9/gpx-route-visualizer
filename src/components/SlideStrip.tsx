@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type DragEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { IconMore, IconPlus } from './icons'
+import { IconChevron, IconMore, IconPlus } from './icons'
 import { useActiveSlide } from '../store/selectors'
 import { useAppStore } from '../store/useAppStore'
 import useDismiss from '../hooks/useDismiss'
@@ -155,6 +155,7 @@ export default function SlideStrip({ vertical }: { vertical: boolean }) {
   const { t } = useTranslation()
   const [menu, setMenu] = useState<{ of: number | 'add'; at: CSSProperties } | null>(null)
   const [dropAt, setDropAt] = useState<number | null>(null)
+  const [railHidden, setRailHidden] = useState(false)
   const closeMenu = useCallback(() => setMenu(null), [])
   useFirstUseHint(slides.length)
   // Menus open beside the rail or above the strip, on the page: the scrolling strip would cut them off.
@@ -174,8 +175,31 @@ export default function SlideStrip({ vertical }: { vertical: boolean }) {
     return Math.max(1, before ? index : index + 1)
   }
 
+  const railToggle = vertical && (
+    <button
+      type="button"
+      className="slide-rail-toggle"
+      aria-expanded={!railHidden}
+      aria-label={t(railHidden ? 'slideStrip.showSlides' : 'slideStrip.hideSlides')}
+      title={t(railHidden ? 'slideStrip.showSlides' : 'slideStrip.hideSlides')}
+      onClick={() => setRailHidden(!railHidden)}
+    >
+      <IconChevron className={railHidden ? 'rail-chevron hidden-rail' : 'rail-chevron'} />
+    </button>
+  )
+
+  if (vertical && railHidden) {
+    return (
+      <div className="slide-strip vertical collapsed" role="group" aria-label={t('slideStrip.seriesSlides')}>
+        {railToggle}
+        <span className="slide-rail-count">{slides.length}</span>
+      </div>
+    )
+  }
+
   return (
     <div className={vertical ? 'slide-strip vertical' : 'slide-strip'} role="group" aria-label={t('slideStrip.seriesSlides')}>
+      {railToggle}
       <div className="slide-strip-list">
         {slides.map((slide, index) => {
           const n = numbers[index]

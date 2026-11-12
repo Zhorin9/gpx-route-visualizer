@@ -433,6 +433,8 @@ const pl = {
     photos: 'Zdjęcia…',
     slideEach: 'slajd na każde',
     seriesSlides: 'Slajdy serii',
+    hideSlides: 'Schowaj slajdy',
+    showSlides: 'Pokaż slajdy',
     dragToReorder: 'Przeciągnij, aby zmienić kolejność',
     skippedSlide: 'Pominięty slajd',
     slide: 'Slajd {{n}}',
@@ -627,6 +629,8 @@ const pl = {
     background: 'Tło',
     wrapper: 'Oprawa',
     thisSlide: 'Ten slajd',
+    expandPanel: 'Rozwiń panel',
+    collapsePanel: 'Zwiń panel',
   },
   elementsTab: {
     wrapper: 'Oprawa',

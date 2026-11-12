@@ -73,12 +73,12 @@ function CanvasToolbar() {
           onClick={() => setRouteEditable(!routeEditable)}
           title={t('canvasArea.editRouteTitle')}
         >
-          {t('canvasArea.editRoute')}
+          <span className="toolbar-btn-label">{t('canvasArea.editRoute')}</span>
         </Button>
       )}
       {isTransformed && (
         <Button size="sm" variant="ghost" icon={<IconReset />} onClick={resetRouteTransform}>
-          {t('canvasArea.resetPosition')}
+          <span className="toolbar-btn-label">{t('canvasArea.resetPosition')}</span>
         </Button>
       )}
       <select className="toolbar-select" aria-label={t('canvasArea.format')} title={useFrameSummary()} value={aspectKey} onChange={(e) => setAspectKey(e.target.value as AspectKey)}>
