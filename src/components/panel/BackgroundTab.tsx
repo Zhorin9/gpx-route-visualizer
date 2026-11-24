@@ -26,24 +26,16 @@ const PATTERN_OPTIONS: { value: BackgroundPattern; label: TKey }[] = [
   { value: 'contours', label: 'backgroundTab.patternContours' },
 ]
 
-const BACKDROP_OPTIONS: { value: 'checkerboard' | 'color'; label: TKey }[] = [
-  { value: 'checkerboard', label: 'backgroundTab.checkerboard' },
-  { value: 'color', label: 'backgroundTab.color' },
-]
-
 export default function BackgroundTab() {
   const { t } = useTranslation()
   const collage = useAppStore((s) => s.collage)
   const updateBackground = useAppStore((s) => s.updateBackground)
   const hasPhotos = useHasPhotos()
-  const previewBackdrop = useAppStore((s) => s.previewBackdrop)
-  const setPreviewBackdrop = useAppStore((s) => s.setPreviewBackdrop)
   const photoBackground = usePhotoBackground()
   const setActiveTab = useAppStore((s) => s.setActiveTab)
   // A collage has no map.
   const collageMode = useAppStore((s) => s.mode === 'collage')
   const { gradient, bgKind } = collage
-  const backdropIsColor = previewBackdrop !== 'checkerboard'
   // Kinds added by features (the map) follow the built-in ones and bring their own settings.
   const kindOptions = (collageMode ? BACKGROUND_OPTIONS : [...BACKGROUND_OPTIONS, ...backgroundKinds().map((k) => ({ value: k.kind, label: k.label }))]).map((o) => ({ ...o, label: t(o.label) }))
   const added = backgroundKind(bgKind)
@@ -87,18 +79,18 @@ export default function BackgroundTab() {
       {bgKind === 'gradient' && (
         <>
           <Section title={t('backgroundTab.gradientPresets')}>
-            <div className="gradient-grid" role="group" aria-label={t('backgroundTab.gradientPresets')}>
+            <div className="preset-grid" role="group" aria-label={t('backgroundTab.gradientPresets')}>
               {GRADIENT_PRESETS.map((preset) => {
                 const active = preset.from === gradient.from && preset.to === gradient.to
                 return (
                   <button
                     key={preset.name}
                     type="button"
-                    className={active ? 'gradient-preset active' : 'gradient-preset'}
+                    className={active ? 'preset-tile active' : 'preset-tile'}
                     aria-pressed={active}
                     onClick={() => updateBackground({ gradient: { from: preset.from, to: preset.to } })}
                   >
-                    <span className="gradient-swatch" style={{ background: `linear-gradient(172deg, ${preset.from}, ${preset.to})` }} />
+                    <span className="preset-swatch" style={{ background: `linear-gradient(172deg, ${preset.from}, ${preset.to})` }} />
                     <span>{t(preset.name)}</span>
                   </button>
                 )
@@ -119,18 +111,6 @@ export default function BackgroundTab() {
         </>
       )}
 
-      {bgKind === 'transparent' && !hasPhotos && (
-        <Section title={t('backgroundTab.preview')}>
-          <Segmented
-            label={t('backgroundTab.previewBackdrop')}
-            showLabel
-            value={backdropIsColor ? 'color' : 'checkerboard'}
-            options={BACKDROP_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))}
-            onChange={(v) => setPreviewBackdrop(v === 'color' ? (backdropIsColor ? previewBackdrop : '#cfcccc') : 'checkerboard')}
-          />
-          {backdropIsColor && <ColorField label={t('backgroundTab.previewColor')} value={previewBackdrop} onChange={setPreviewBackdrop} />}
-        </Section>
-      )}
     </>
   )
 }

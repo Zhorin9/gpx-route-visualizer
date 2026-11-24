@@ -1,20 +1,59 @@
 import { useTranslation } from 'react-i18next'
 import CheckboxField from '../../../components/fields/CheckboxField'
 import ColorField from '../../../components/fields/ColorField'
-import SelectField from '../../../components/fields/SelectField'
 import SliderField from '../../../components/fields/SliderField'
 import Section from '../../../components/ui/Section'
 import Button from '../../../components/ui/Button'
 import { useAppStore } from '../../../store/useAppStore'
 import { MOODS, moodOf } from '../model/mood'
-import { creditFor, MAP_STYLES, mapStyle, OFM_TERMS, paletteFrom } from '../model/styles'
+import { creditFor, MAP_STYLES, mapStyle, OFM_TERMS, paletteFrom, type MapSwatch } from '../model/styles'
 import Segmented from '../../../components/ui/Segmented'
 import { selectTrack } from '../../../store/derived'
 import { seedOf } from '../../../store/derived'
-import { DEFAULT_MAP, type MapSettings, type SketchSettings } from '../types'
-import type { SelectOption } from '../../../types'
+import { DEFAULT_MAP, type SketchSettings } from '../types'
+import type { TKey } from '../../../i18n'
 
-const KINDS: MapSettings['kind'][] = ['tiles', 'sketch']
+const SKETCH = 'sketch'
+const SKETCH_SWATCH: MapSwatch = { land: '#f3ead6', water: '#dce3dd', road: '#3b342b' }
+
+function MapSwatchPicture({ swatch }: { swatch: MapSwatch }) {
+  return (
+    <svg className="preset-swatch" viewBox="0 0 60 40" preserveAspectRatio="none" aria-hidden="true">
+      <rect width="60" height="40" fill={swatch.land} />
+      <path d="M0 28C12 22 22 34 34 30S52 22 60 26V40H0Z" fill={swatch.water} />
+      <path d="M8 0C14 12 30 9 36 19S47 33 52 40" fill="none" stroke={swatch.road} strokeWidth="3" />
+    </svg>
+  )
+}
+
+function MapStylePicker() {
+  const { t } = useTranslation()
+  const kind = useAppStore((s) => s.map.kind)
+  const styleId = useAppStore((s) => s.map.styleId)
+  const updateMap = useAppStore((s) => s.updateMap)
+  const chosen = kind === 'sketch' ? SKETCH : styleId
+  const tiles: { id: string; label: TKey; swatch: MapSwatch }[] = [...MAP_STYLES, { id: SKETCH, label: 'map.kinds.sketch', swatch: SKETCH_SWATCH }]
+  return (
+    <div className="field">
+      <span className="field-label">{t('map.kind')}</span>
+      <div className="preset-grid" role="radiogroup" aria-label={t('map.kind')}>
+      {tiles.map((tile) => (
+        <button
+          key={tile.id}
+          type="button"
+          role="radio"
+          aria-checked={tile.id === chosen}
+          className={tile.id === chosen ? 'preset-tile active' : 'preset-tile'}
+          onClick={() => updateMap(tile.id === SKETCH ? { kind: 'sketch' } : { kind: 'tiles', styleId: tile.id })}
+        >
+          <MapSwatchPicture swatch={tile.swatch} />
+          <span>{t(tile.label)}</span>
+        </button>
+      ))}
+      </div>
+    </div>
+  )
+}
 
 const WATERS: SketchSettings['water'][] = ['hatch', 'wash', 'none']
 
@@ -37,7 +76,6 @@ export default function MapPanel() {
   const gradient = useAppStore((s) => s.collage.gradient)
   const textColor = useAppStore((s) => s.statsStyle.color)
   const updateMap = useAppStore((s) => s.updateMap)
-  const styleOptions: SelectOption[] = MAP_STYLES.map((s) => ({ value: s.id, label: t(s.label) }))
   const sketch = map.kind === 'sketch'
   // undefined while fetching, null when the features couldn't be fetched.
   const layers = useAppStore((s) => {
@@ -49,8 +87,8 @@ export default function MapPanel() {
   return (
     <>
       <Section title={t('map.label')}>
-        <Segmented label={t('map.kind')} showLabel value={map.kind} options={KINDS.map((value) => ({ value, label: t(`map.kinds.${value}`) }))} onChange={(kind) => updateMap({ kind })} />
-        {sketch ? (
+        <MapStylePicker />
+        {sketch && (
           <>
             <CheckboxField label={t('map.sketch.paper')} checked={map.sketch.paper} onChange={(paper) => updateMap({ sketch: { ...map.sketch, paper } })} />
             {!map.sketch.paper && <p className="hint">{t('map.sketch.noPaperHint')}</p>}
@@ -71,8 +109,6 @@ export default function MapPanel() {
               onChange={(v) => updateMap({ sketch: { ...map.sketch, roughness: v / 100 } })}
             />
           </>
-        ) : (
-          <SelectField label={t('map.style')} value={map.styleId} options={styleOptions} onChange={(styleId) => updateMap({ styleId })} />
         )}
         <CheckboxField label={t('map.paletteFromStyle')} checked={map.palette != null} onChange={(on) => updateMap({ palette: on ? paletteFrom(gradient, textColor) : null })} />
         {map.palette && (

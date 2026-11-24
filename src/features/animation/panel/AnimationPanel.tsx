@@ -99,7 +99,6 @@ export function AnimationTimingSection() {
           </>
         )}
         <SliderField label={t('animation.panel.endHold')} unit="s" min={0} max={5} step={0.5} value={settings.endHold} defaultValue={DEFAULT_ANIMATION.endHold} onChange={(endHold) => updateAnimation({ endHold })} />
-        <CheckboxField label={t('animation.panel.loop')} checked={settings.loop} onChange={(loop) => updateAnimation({ loop })} />
       </Section>
       </fieldset>
     </>

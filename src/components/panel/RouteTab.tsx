@@ -184,6 +184,7 @@ function PoiSection() {
   const adding = useAppStore((s) => s.addingWaypoint)
   const select = useAppStore((s) => s.select)
   const setAddingWaypoint = useAppStore((s) => s.setAddingWaypoint)
+  const deleteWaypoint = useAppStore((s) => s.deleteWaypoint)
   const cum = useTrackCumKm()
   const selected = selection?.kind === 'waypoint' ? waypoints.find((w) => w.id === selection.id) : undefined
 
@@ -199,6 +200,8 @@ function PoiSection() {
               meta={cum ? `km ${Math.round(cum[Math.min(cum.length - 1, Math.round(w.trackPos))])}` : ''}
               active={w.id === selected?.id}
               onClick={() => select({ kind: 'waypoint', id: w.id })}
+              onDelete={() => deleteWaypoint(w.id)}
+              deleteLabel={t('placeEditor.delete')}
             />
           ))}
         </div>

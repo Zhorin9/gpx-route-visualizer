@@ -11,7 +11,6 @@ import IconEditor from './IconEditor'
 import TextField from '../fields/TextField'
 import Button from '../ui/Button'
 import Section from '../ui/Section'
-import { IconTrash } from '../icons'
 import { useAppStore } from '../../store/useAppStore'
 import type { TextNode } from '../../types'
 
@@ -19,7 +18,6 @@ export default function TextEditor({ id }: { id: number }) {
   const { t } = useTranslation()
   const selected = useAppStore((s) => s.texts.find((x) => x.id === id))
   const updateText = useAppStore((s) => s.updateText)
-  const deleteText = useAppStore((s) => s.deleteText)
 
   if (!selected) return null
   if (selected.icon) return <IconEditor node={selected} />
@@ -123,9 +121,6 @@ export default function TextEditor({ id }: { id: number }) {
         )}
       </Section>
 
-      <Button variant="danger" icon={<IconTrash />} onClick={() => deleteText(selected.id)}>
-        {t('textEditor.delete')}
-      </Button>
     </>
   )
 }

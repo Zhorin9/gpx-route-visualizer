@@ -8,53 +8,7 @@ import ExportDialog from './ExportDialog'
 import { exportedSlides } from '../utils/series'
 import { MODE_LABELS } from '../utils/modeChange'
 import Button from './ui/Button'
-import type { Units } from '../core/units'
-import LanguageSwitch from './LanguageSwitch'
-
-function Choice<T extends string>({ label, value, options, onChange }: { label: string; value: T; options: { value: T; label: string }[]; onChange: (value: T) => void }) {
-  return (
-    <div className="settings-row">
-      <span className="settings-label">{label}</span>
-      <div className="view-switch" role="radiogroup" aria-label={label}>
-        {options.map((o) => (
-          <button
-            key={o.value}
-            type="button"
-            role="radio"
-            aria-checked={o.value === value}
-            className={o.value === value ? 'view-switch-opt active' : 'view-switch-opt'}
-            onClick={() => onChange(o.value)}
-          >
-            {o.label}
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function SettingsMenu() {
-  const units = useAppStore((s) => s.statsContent.units)
-  const updateStatsContent = useAppStore((s) => s.updateStatsContent)
-  const { t } = useTranslation()
-  return (
-    <div className="settings-menu" role="dialog" aria-label={t('topBar.settings')}>
-      <div className="settings-row">
-        <span className="settings-label">{t('topBar.language')}</span>
-        <LanguageSwitch />
-      </div>
-      <Choice<Units>
-        label={t('topBar.units')}
-        value={units}
-        options={[
-          { value: 'metric', label: 'km · m' },
-          { value: 'imperial', label: 'mi · ft' },
-        ]}
-        onChange={(u) => updateStatsContent({ units: u })}
-      />
-    </div>
-  )
-}
+import SettingsMenu from './SettingsMenu'
 
 function ProjectMenu({ name }: { name: string }) {
   const mode = useAppStore((s) => s.mode)

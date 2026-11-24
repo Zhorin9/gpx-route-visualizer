@@ -18,7 +18,9 @@ import PhotoPicker from './PhotoPicker'
 import SlideStrip from './SlideStrip'
 import PhotoSlidesDialog from './PhotoSlidesDialog'
 import Segmented from './ui/Segmented'
-import { IconImage, IconMove, IconReset, IconRoute, IconSafeZone, IconUpload } from './icons'
+import { IconFit, IconImage, IconMinus, IconMove, IconPlus, IconReset, IconRoute, IconSafeZone, IconUpload } from './icons'
+import { useMapNavigable } from '../hooks/useMapNavigation'
+import { zoomedAround } from '../core/route/view'
 import Button from './ui/Button'
 import FileButton from './ui/FileButton'
 import StatusCard from './ui/StatusCard'
@@ -146,6 +148,26 @@ function SafeZoneToggle() {
       title={t('canvasArea.safeZonesTitle')}
       onClick={() => setShown(!shown)}
     />
+  )
+}
+
+const BUTTON_ZOOM_FACTOR = 1.25
+
+function MapZoomControls() {
+  const { t } = useTranslation()
+  const navigable = useMapNavigable()
+  const aspectKey = useAppStore((s) => s.aspectKey)
+  const setRouteTransform = useAppStore((s) => s.setRouteTransform)
+  const resetRouteTransform = useAppStore((s) => s.resetRouteTransform)
+  if (!navigable) return null
+  const { w, h } = FORMATS[aspectKey]
+  const zoomBy = (factor: number) => setRouteTransform(zoomedAround(useAppStore.getState().routeTransform, { x: w / 2, y: h / 2 }, factor))
+  return (
+    <div className="map-zoom" role="group" aria-label={t('canvasArea.mapZoom')}>
+      <Button size="icon" variant="ghost" icon={<IconPlus />} aria-label={t('canvasArea.zoomIn')} title={t('canvasArea.zoomIn')} onClick={() => zoomBy(BUTTON_ZOOM_FACTOR)} />
+      <Button size="icon" variant="ghost" icon={<IconMinus />} aria-label={t('canvasArea.zoomOut')} title={t('canvasArea.zoomOut')} onClick={() => zoomBy(1 / BUTTON_ZOOM_FACTOR)} />
+      <Button size="icon" variant="ghost" icon={<IconFit />} aria-label={t('canvasArea.showWholeRoute')} title={t('canvasArea.showWholeRoute')} onClick={resetRouteTransform} />
+    </div>
   )
 }
 
@@ -292,6 +314,7 @@ function FrameArea() {
             </div>
           )}
           {safeZone && <SafeZoneToggle />}
+          <MapZoomControls />
           <TransparentNote />
         </div>
       </div>

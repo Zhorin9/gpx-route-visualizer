@@ -15,7 +15,6 @@ import { canvasElement, canvasElements, type CanvasElementDefinition } from '../
 import { useHasRoute } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import FontField from '../fields/FontField'
-import CheckboxField from '../fields/CheckboxField'
 import { FIELD_LABELS, wrapperFieldsOf } from '../../utils/wrappers'
 
 function RegisteredElementRow({ def }: { def: CanvasElementDefinition }) {
@@ -48,8 +47,6 @@ function ShowAgainButton({ def, useShowAgain }: { def: CanvasElementDefinition; 
 function StyleInUse() {
   const { t } = useTranslation()
   const template = useAppStore(appliedTemplate)
-  const styleNewElements = useAppStore((s) => s.styleNewElements)
-  const setStyleNewElements = useAppStore((s) => s.setStyleNewElements)
   const applyStyleEverywhere = useAppStore((s) => s.applyStyleEverywhere)
   const setActiveTab = useAppStore((s) => s.setActiveTab)
   const setSubTab = useAppStore((s) => s.setSubTab)
@@ -70,7 +67,6 @@ function StyleInUse() {
       </div>
       {template && (
         <div className="style-in-use-actions">
-          <CheckboxField label={t('elementsTab.styleNewElements')} checked={styleNewElements} onChange={setStyleNewElements} />
           <Button size="sm" onClick={applyStyleEverywhere}>
             {t('elementsTab.applyStyleEverywhere')}
           </Button>
@@ -121,6 +117,8 @@ export default function ElementsTab() {
   const selection = useAppStore((s) => s.selection)
   const adding = useAppStore((s) => s.addingWaypoint)
   const select = useAppStore((s) => s.select)
+  const deleteText = useAppStore((s) => s.deleteText)
+  const deleteWaypoint = useAppStore((s) => s.deleteWaypoint)
   const addText = useAppStore((s) => s.addText)
   const addRouteCaptions = useAppStore((s) => s.addRouteCaptions)
   const setAddingWaypoint = useAppStore((s) => s.setAddingWaypoint)
@@ -168,6 +166,8 @@ export default function ElementsTab() {
               meta={text.icon ? t('elementsTab.iconMeta') : text.badge ? t('elementsTab.badgeMeta') : t('elementsTab.textMeta')}
               active={isSelected('text', text.id)}
               onClick={() => select({ kind: 'text', id: text.id })}
+              onDelete={() => deleteText(text.id)}
+              deleteLabel={text.icon ? t('iconEditor.delete') : t('textEditor.delete')}
             />
           ))}
           {waypoints.map((w) => (
@@ -178,6 +178,8 @@ export default function ElementsTab() {
               meta={t('elementsTab.placeMeta')}
               active={isSelected('waypoint', w.id)}
               onClick={() => select({ kind: 'waypoint', id: w.id })}
+              onDelete={() => deleteWaypoint(w.id)}
+              deleteLabel={t('placeEditor.delete')}
             />
           ))}
         </div>

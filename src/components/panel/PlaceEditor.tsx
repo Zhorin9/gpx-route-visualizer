@@ -8,7 +8,7 @@ import Button from '../ui/Button'
 import Section from '../ui/Section'
 import Segmented from '../ui/Segmented'
 import FileButton from '../ui/FileButton'
-import { IconFit, IconImage, IconTrash } from '../icons'
+import { IconFit, IconImage } from '../icons'
 import FontField from '../fields/FontField'
 import KindIcon from '../place/KindIcon'
 import IconField from '../fields/IconField'
@@ -90,7 +90,6 @@ export default function PlaceEditor({ id }: { id: number }) {
   const { t } = useTranslation()
   const selected = useAppStore((s) => s.waypoints.find((w) => w.id === id))
   const updateWaypoint = useAppStore((s) => s.updateWaypoint)
-  const deleteWaypoint = useAppStore((s) => s.deleteWaypoint)
 
   if (!selected) return null
 
@@ -146,9 +145,6 @@ export default function PlaceEditor({ id }: { id: number }) {
       <Section title={t('placeEditor.photoSection')}>
         <PointPhoto waypoint={selected} />
       </Section>
-      <Button variant="danger" icon={<IconTrash />} onClick={() => deleteWaypoint(selected.id)}>
-        {t('placeEditor.delete')}
-      </Button>
     </>
   )
 }
