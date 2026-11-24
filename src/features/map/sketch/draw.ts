@@ -45,9 +45,12 @@ interface Stroke {
   color: 'ink' | 'water'
   alpha: number
   dashed: boolean
+  dashOffset: number
 }
 
 // Each object seeds its own strokes, so changing one feature leaves the others as they were.
+const lengthOf = (pts: Pt[]) => pts.reduce((sum, p, i) => (i ? sum + Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]) : 0), 0)
+
 const inked = memoOne((shape: SketchShape | null, ends: [Pt, Pt] | null, seed: number, roughness: number, short: number, lines: boolean, shores: boolean) => {
   const amp = short * 0.004 * roughness
   const step = short * 0.006
@@ -57,8 +60,13 @@ const inked = memoOne((shape: SketchShape | null, ends: [Pt, Pt] | null, seed: n
   const pen = (pts: Pt[], s: number, a: number, width: number, color: Stroke['color'], alpha = 1, dashed = false) => {
     const r = seededRandom(s + 99)
     const main = jitter(pts, s, a, step)
-    for (let i = 0; i < main.length - 1; i += 7) strokes.push({ pts: main.slice(i, i + 8), width: width * (0.75 + r() * 0.5), color, alpha, dashed })
-    strokes.push({ pts: jitter(pts, s + 7, a * 1.4, step), width: width * 0.45, color, alpha: alpha * 0.5, dashed })
+    let drawn = 0
+    for (let i = 0; i < main.length - 1; i += 7) {
+      const piece = main.slice(i, i + 8)
+      strokes.push({ pts: piece, width: width * (0.75 + r() * 0.5), color, alpha, dashed, dashOffset: drawn })
+      drawn += lengthOf(piece)
+    }
+    if (!dashed) strokes.push({ pts: jitter(pts, s + 7, a * 1.4, step), width: width * 0.45, color, alpha: alpha * 0.5, dashed, dashOffset: 0 })
   }
   const circle = ([x, y]: Pt, radius: number): Pt[] => Array.from({ length: 13 }, (_, i) => [x + Math.cos((i / 12) * Math.PI * 2) * radius, y + Math.sin((i / 12) * Math.PI * 2) * radius])
   // On the sea's side: the right of the line.
@@ -81,7 +89,7 @@ const inked = memoOne((shape: SketchShape | null, ends: [Pt, Pt] | null, seed: n
     shape.shores.forEach((l, i) => {
       if (shores) pen(l, S(1, i), amp, short * 0.0045, 'ink')
       ;[0.02, 0.04].forEach((o, k) =>
-        ripples.push({ pts: jitter(offshore(l, short * o), S(1, 500 + i * 2 + k), amp * 1.5, step), width: short * 0.002, color: 'water', alpha: 0.6 - k * 0.25, dashed: true }),
+        ripples.push({ pts: jitter(offshore(l, short * o), S(1, 500 + i * 2 + k), amp * 1.5, step), width: short * 0.002, color: 'water', alpha: 0.6 - k * 0.25, dashed: true, dashOffset: 0 }),
       )
     })
     shape.water.forEach((ring, i) => washed.push(jitter(ring, S(1, 700 + i), amp * 2.5, step)))
@@ -163,10 +171,12 @@ export function drawSketch(ctx: CanvasRenderingContext2D, f: SketchFrame, scale:
       ctx.globalAlpha = s.alpha
       ctx.lineWidth = s.width / k
       ctx.setLineDash(s.dashed ? [(short * 0.012) / k, (short * 0.01) / k] : [])
+      ctx.lineDashOffset = -s.dashOffset
       ctx.stroke()
     }
     ctx.globalAlpha = 1
     ctx.setLineDash([])
+    ctx.lineDashOffset = 0
   }
   ctx.lineCap = 'round'
   ctx.lineJoin = 'round'

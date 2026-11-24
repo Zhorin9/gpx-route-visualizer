@@ -1,6 +1,7 @@
 import { mercatorX, mercatorY, type MercatorFit } from '../../../utils/gpx'
 import type { LonLat, SketchLayers, SketchPlace } from './tiles'
 import type { Pt } from './pen'
+import { clipLine, inside, joinLines, rounded, withoutParallels } from './lines'
 
 // In the route's frame pixels, before the view transform.
 export interface SketchShape {
@@ -12,69 +13,12 @@ export interface SketchShape {
   places: { name: string; at: Pt; kind: SketchPlace['kind'] }[]
 }
 
-interface Rect {
-  x0: number
-  y0: number
-  x1: number
-  y1: number
-}
-
-const MAX_POINTS = 600
+const MAX_ROAD_POINTS = 250
+const MAX_WATER_POINTS = 350
+const RIVER_ROUNDING = 2
 const MAX_PLACES = 8
 const MIN_PLACES = 3
 
-const closed = (line: Pt[]) => line.length > 2 && line[0][0] === line[line.length - 1][0] && line[0][1] === line[line.length - 1][1]
-const inside = (p: Pt, r: Rect) => p[0] >= r.x0 && p[0] <= r.x1 && p[1] >= r.y0 && p[1] <= r.y1
-
-// Liang–Barsky; also where along a→b the clipped part starts and ends.
-function clipSegment(a: Pt, b: Pt, r: Rect): [Pt, Pt, number, number] | null {
-  const dx = b[0] - a[0]
-  const dy = b[1] - a[1]
-  let t0 = 0
-  let t1 = 1
-  for (const [p, q] of [
-    [-dx, a[0] - r.x0],
-    [dx, r.x1 - a[0]],
-    [-dy, a[1] - r.y0],
-    [dy, r.y1 - a[1]],
-  ]) {
-    if (p === 0) {
-      if (q < 0) return null
-    } else {
-      const t = q / p
-      if (p < 0) t0 = Math.max(t0, t)
-      else t1 = Math.min(t1, t)
-    }
-  }
-  if (t0 > t1) return null
-  return [[a[0] + dx * t0, a[1] + dy * t0], [a[0] + dx * t1, a[1] + dy * t1], t0, t1]
-}
-
-// A ring is opened where it is first outside.
-function clipLine(line: Pt[], r: Rect): Pt[][] {
-  let pts = line
-  if (closed(line)) {
-    const out = line.findIndex((p) => !inside(p, r))
-    if (out < 0) return [line]
-    pts = [...line.slice(out, -1), ...line.slice(0, out + 1)]
-  }
-  const runs: Pt[][] = []
-  let run: Pt[] | null = null
-  for (let i = 0; i < pts.length - 1; i++) {
-    const c = clipSegment(pts[i], pts[i + 1], r)
-    if (!c) {
-      run = null
-      continue
-    }
-    if (!run || c[2] > 0) {
-      run = [c[0]]
-      runs.push(run)
-    }
-    run.push(c[1])
-    if (c[3] < 1) run = null
-  }
-  return runs.filter((p) => p.length > 1)
-}
 
 function simplifyInto(pts: Pt[], first: number, last: number, tol: number, keep: boolean[]) {
   const [ax, ay] = pts[first]
@@ -156,8 +100,9 @@ export function sketchShape(layers: SketchLayers, fit: MercatorFit, route: Pt[],
   const water = layers.water
     .map((wa) => ({ ring: wa.ring.map(project), shores: lines(wa.shores) }))
     .filter((wa) => area(wa.ring) >= slideW * slideH * 0.003 && wa.ring.some((p) => inside(p, reach)))
-  const rivers = cut(lines(layers.rivers)).filter((l) => length(l) >= short * 0.08)
-  const roadLines = cut(lines(layers.roads))
+  const meetWithin = short * 0.002
+  const rivers = cut(joinLines(lines(layers.rivers), meetWithin)).filter((l) => length(l) >= short * 0.08)
+  const roadLines = cut(withoutParallels(joinLines(lines(layers.roads), meetWithin), short * 0.012))
   // The last point is kept: the town at the very end is named after it.
   const sample = route.filter((_, i) => i % Math.max(1, Math.floor(route.length / 300)) === 0 || i === route.length - 1)
   const roads = roadLines
@@ -170,18 +115,15 @@ export function sketchShape(layers: SketchLayers, fit: MercatorFit, route: Pt[],
   const waterName = near.filter((p) => p.kind === 'water').sort((a, b) => a.rank - b.rank)[0]
   if (waterName) places.push({ name: waterName.name, at: waterName.at, kind: 'water' })
 
-  let tol = short * 0.004
-  for (;;) {
-    const thin = (all: Pt[][]) => all.map((l) => simplify(l, tol)).filter((l) => l.length > 1)
-    const shape: SketchShape = {
-      water: thin(water.map((wa) => wa.ring)).filter((r) => r.length > 3),
-      shores: thin(cut(water.flatMap((wa) => wa.shores))),
-      rivers: thin(rivers),
-      roads: thin(roads),
-      places,
-    }
-    const count = [shape.water, shape.shores, shape.rivers, shape.roads].flat().reduce((sum, l) => sum + l.length, 0)
-    if (count < MAX_POINTS || tol > short * 0.05) return shape
-    tol *= 1.5
+  const [rings, shores, riverLines] = thinToBudget([water.map((wa) => wa.ring), cut(water.flatMap((wa) => wa.shores)), rivers], MAX_WATER_POINTS, short)
+  const [roadsDrawn] = thinToBudget([roads], MAX_ROAD_POINTS, short)
+  return { water: rings.filter((r) => r.length > 3), shores, rivers: riverLines.map((l) => rounded(l, RIVER_ROUNDING)), roads: roadsDrawn, places }
+}
+
+function thinToBudget(groups: Pt[][][], budget: number, short: number): Pt[][][] {
+  for (let tol = short * 0.004; ; tol *= 1.5) {
+    const thinned = groups.map((all) => all.map((l) => simplify(l, tol)).filter((l) => l.length > 1))
+    const count = thinned.flat().reduce((sum, l) => sum + l.length, 0)
+    if (count < budget || tol > short * 0.05) return thinned
   }
 }
