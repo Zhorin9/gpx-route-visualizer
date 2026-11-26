@@ -862,3 +862,18 @@ describe('date stamp', () => {
     expect(selectStampTime(get())).toBe(Date.parse('2026-10-05T08:00:00Z'))
   })
 })
+
+describe('layer order', () => {
+  it('takes each change of the order as its own undo step', () => {
+    get().setLayerOrder(['route', 'text:1'])
+    get().setLayerOrder(['text:1', 'route'])
+    get().undo()
+    expect(get().layerOrder).toEqual(['route', 'text:1'])
+  })
+
+  it('is the same in every format', () => {
+    get().setLayerOrder(['text:1', 'route'])
+    get().setAspectKey('4:5')
+    expect(get().layerOrder).toEqual(['text:1', 'route'])
+  })
+})

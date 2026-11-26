@@ -16,7 +16,7 @@ export interface CanvasElementDefinition {
   // For an element the user can hide: what puts it back, while it is hidden.
   useShowAgain?: () => (() => ElementKind | void) | null
   // Wraps itself in a DraggableElement.
-  Node: ComponentType
+  Node: ComponentType<{ instance: ElementKind }>
   Editor: ComponentType
   // Opens when the element is picked on the frame; Teksty when not set.
   tab?: PanelTab

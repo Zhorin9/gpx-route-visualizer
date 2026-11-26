@@ -119,6 +119,7 @@ const pl = {
     stamp: 'zmiana daty w rogu',
     kicker: 'zmiana nadtytułu',
     mapSticker: 'zmiana naklejki mapy',
+    layers: 'zmiana kolejności warstw',
     wrapper: 'zmiana opakowania',
     travel: 'zmiana podróży',
     camera: 'zmiana kamery',
@@ -463,6 +464,15 @@ const pl = {
     removePhoto: 'Usuń zdjęcie ze slotu',
     closeBar: 'Zamknij pasek (Esc)',
     close: 'Zamknij (Esc)',
+  },
+  layers: {
+    toFront: 'Na wierzch',
+    toBack: 'Pod spód',
+    toFrontHint: 'Na wierzch (Ctrl+Shift+]); o jedną warstwę wyżej: Ctrl+]',
+    toBackHint: 'Pod spód, nad tło (Ctrl+Shift+[); o jedną warstwę niżej: Ctrl+[',
+    listHint: 'Od góry: co leży na wierzchu. Przeciągnij, żeby zmienić kolejność.',
+    framedPhoto: 'Zdjęcie w ramce',
+    framedPhotoMeta: 'zdjęcie',
   },
   elementExport: {
     toolbar: 'Zaznaczony element',

@@ -4,7 +4,7 @@ import { Stage, Layer } from 'react-konva'
 import type Konva from 'konva'
 import useGpxImport from '../hooks/useGpxImport'
 import useMapNavigation from '../hooks/useMapNavigation'
-import { useActiveSlide, useHasBackground, useHasRoute, useInkIsDark, usePanorama } from '../store/selectors'
+import { useActiveSlide, useHasBackground, useInkIsDark, usePanorama } from '../store/selectors'
 import { useAppStore } from '../store/useAppStore'
 import { FORMATS } from '../core/formats/registry'
 import { computeSlots, layoutDef, ribbonSlot, slotAt, slotCount } from '../utils/layouts'
@@ -12,16 +12,12 @@ import { stageHandle } from '../utils/exportImage'
 import { slideNumbers } from '../utils/series'
 import { fromBox, intoBox, slideBox } from '../utils/wrappers'
 import { CommitProbe } from '../core/animation/layers'
-import CanvasElements from '../core/canvas/CanvasElements'
+import OrderedLayers from './OrderedLayers'
 import { stageUnderlays } from '../core/canvas/chrome'
 import BackgroundLayer from './BackgroundLayer'
-import EditableText from './EditableText'
-import LooseIcon from './place/LooseIcon'
-import RouteGroup from './RouteGroup'
 import PhotoLayer from './PhotoLayer'
 import SeriesLayer from './SeriesLayer'
 import { PHOTO_DRAG_TYPE } from './panel/PhotoPool'
-import SlideBox from './SlideBox'
 import SlotToolbar from './SlotToolbar'
 import ElementToolbar from './ElementToolbar'
 import WrapperLayer from './WrapperLayer'
@@ -35,10 +31,7 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
   const previewBackdrop = useAppStore((s) => s.previewBackdrop)
   const adding = useAppStore((s) => s.addingWaypoint)
   const showSafeZones = useAppStore((s) => s.showSafeZones)
-  const texts = useAppStore((s) => s.texts)
-  const routeHiddenBySticker = useAppStore((s) => s.mapStickers.some((m) => !m.routeOutside))
   const select = useAppStore((s) => s.select)
-  const hasRoute = useHasRoute()
   const slides = useAppStore((s) => s.slides)
   const gap = useAppStore((s) => s.collage.gap)
   const margin = useAppStore((s) => s.collage.margin)
@@ -164,18 +157,8 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
         <PhotoLayer />
         <SeriesLayer />
         <Layer>
-          {hasRoute && !routeHiddenBySticker && (
-            <SlideBox slide={0}>
-              <RouteGroup />
-            </SlideBox>
-          )}
-        </Layer>
-        <Layer>
           <CommitProbe />
-          <CanvasElements />
-          {texts.map((node) => (
-            node.icon ? <LooseIcon key={node.id} node={node} /> : <EditableText key={node.id} node={node} />
-          ))}
+          <OrderedLayers />
         </Layer>
         <WrapperLayer />
       </Stage>

@@ -107,6 +107,7 @@ export interface DocumentState {
   // A short line over the title; its words stay when a style hides it.
   kicker: { shown: boolean; text: string }
   mapStickers: MapSticker[]
+  layerOrder: string[]
 }
 
 // undo and redo are the history's own; anything else brings its handler.
@@ -254,6 +255,7 @@ export interface ElementsSlice {
   duplicateMapSticker: (id: number) => void
   removeMapSticker: (id: number) => void
   updateMapSticker: (id: number, patch: Partial<MapStickerSettings>) => void
+  setLayerOrder: (keys: string[]) => void
   setKicker: (patch: Partial<DocumentState['kicker']>) => void
   // Besides a plain text: a loose icon, a badge or a text bent over an icon; all move and turn like a text.
   addText: (kind?: TextKind) => number

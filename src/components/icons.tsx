@@ -89,6 +89,24 @@ export function IconCopy(props: SVGProps<SVGSVGElement>) {
   )
 }
 
+export function IconToFront(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...common} width="16" height="16" aria-hidden="true" {...props}>
+      <rect x="3" y="9" width="12" height="12" rx="1.5" strokeDasharray="2 2" />
+      <rect x="9" y="3" width="12" height="12" rx="1.5" fill="currentColor" fillOpacity="0.25" />
+    </svg>
+  )
+}
+
+export function IconToBack(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...common} width="16" height="16" aria-hidden="true" {...props}>
+      <rect x="3" y="9" width="12" height="12" rx="1.5" fill="currentColor" fillOpacity="0.25" />
+      <rect x="9" y="3" width="12" height="12" rx="1.5" strokeDasharray="2 2" />
+    </svg>
+  )
+}
+
 export function IconRedo(props: SVGProps<SVGSVGElement>) {
   return (
     <svg {...common} width="15" height="15" aria-hidden="true" {...props}>

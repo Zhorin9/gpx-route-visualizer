@@ -25,9 +25,10 @@ function useAddSticker() {
   return hasRoute ? add : null
 }
 
-function MapStickers() {
-  const stickers = useAppStore((s) => s.mapStickers)
-  return stickers.map((sticker) => <MapStickerNode key={sticker.id} sticker={sticker} />)
+function MapStickerInstance({ instance }: { instance: string }) {
+  const id = stickerIdOf(instance)
+  const sticker = useAppStore((s) => s.mapStickers.find((m) => m.id === id))
+  return sticker ? <MapStickerNode sticker={sticker} /> : null
 }
 
 export function registerMapSticker() {
@@ -45,7 +46,7 @@ export function registerMapSticker() {
       if (id != null) useAppStore.getState().removeMapSticker(id)
     },
     exists: (doc, kind) => doc.mapStickers.some((m) => m.id === stickerIdOf(kind)),
-    Node: MapStickers,
+    Node: MapStickerInstance,
     Editor: MapStickerFields,
     animationTrack: 'route',
   })

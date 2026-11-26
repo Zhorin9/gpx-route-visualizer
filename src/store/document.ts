@@ -48,6 +48,7 @@ export const INITIAL_DOCUMENT: DocumentState = {
   stampTime: null,
   kicker: { shown: false, text: DEFAULT_KICKER },
   mapStickers: [],
+  layerOrder: [],
 }
 
 export const DOCUMENT_KEYS = Object.keys(INITIAL_DOCUMENT) as (keyof DocumentState)[]

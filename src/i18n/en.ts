@@ -121,6 +121,7 @@ const en: typeof pl = {
     stamp: 'corner date change',
     kicker: 'kicker change',
     mapSticker: 'map sticker change',
+    layers: 'layer order change',
     wrapper: 'wrapper change',
     travel: 'trip change',
     camera: 'camera change',
@@ -465,6 +466,15 @@ const en: typeof pl = {
     removePhoto: 'Remove photo from slot',
     closeBar: 'Close bar (Esc)',
     close: 'Close (Esc)',
+  },
+  layers: {
+    toFront: 'To front',
+    toBack: 'To back',
+    toFrontHint: 'To front (Ctrl+Shift+]); one layer up: Ctrl+]',
+    toBackHint: 'To back, above the background (Ctrl+Shift+[); one layer down: Ctrl+[',
+    listHint: 'From the top: what lies on top. Drag to change the order.',
+    framedPhoto: 'Framed photo',
+    framedPhotoMeta: 'photo',
   },
   elementExport: {
     toolbar: 'Selected element',

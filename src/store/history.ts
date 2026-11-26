@@ -9,6 +9,7 @@ const HISTORY_LIMIT = 100
 // What the undo toast calls a step: the whole commit key if listed, else its first segment.
 const STEP_LABELS: Record<string, TKey> = {
   'text:add': 'history.textAdd',
+  layers: 'history.layers',
   'text:delete': 'history.textDelete',
   'caption:add': 'history.textAdd',
   'waypoint:add': 'history.waypointAdd',

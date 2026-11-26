@@ -7,8 +7,9 @@ import useElementPng from '../hooks/useElementPng'
 import { PNG_SIDES, elementNodeId, type ElementTarget, type PngSide } from '../utils/exportElement'
 import { stageHandle } from '../utils/exportImage'
 import { clamp } from '../utils/math'
+import LayerButtons from './LayerButtons'
 
-const HALF_BAR_PX = 150
+const HALF_BAR_PX = 190
 const ROOM_ABOVE_PX = 52
 
 function useTarget(): ElementTarget | null {
@@ -51,14 +52,16 @@ export default function ElementToolbar() {
   const stage = stageHandle.current
   if (!target || !stage || !rect) return null
   const above = rect.y >= ROOM_ABOVE_PX
+  const narrow = stage.width() < HALF_BAR_PX * 2
   const style = {
-    left: clamp(rect.x + rect.width / 2, HALF_BAR_PX, stage.width() - HALF_BAR_PX),
+    maxWidth: stage.width() - 8,
+    left: narrow ? stage.width() / 2 : clamp(rect.x + rect.width / 2, HALF_BAR_PX, stage.width() - HALF_BAR_PX),
     top: above ? rect.y - 10 : rect.y + rect.height + 10,
     transform: above ? 'translate(-50%, -100%)' : 'translateX(-50%)',
   }
 
   return (
-    <div className="slot-toolbar" style={style} role="toolbar" aria-label={t('elementExport.toolbar')}>
+    <div className="slot-toolbar element-toolbar" style={style} role="toolbar" aria-label={t('elementExport.toolbar')}>
       <select
         className="element-toolbar-side"
         aria-label={t('elementExport.side')}
@@ -79,6 +82,8 @@ export default function ElementToolbar() {
           <IconCopy />
         </Button>
       )}
+      <span className="slot-toolbar-sep" />
+      <LayerButtons />
       <span className="slot-toolbar-sep" />
       <Button size="icon" variant="ghost" aria-label={t('slotToolbar.closeBar')} title={t('slotToolbar.close')} onClick={() => select(null)}>
         <IconClose />

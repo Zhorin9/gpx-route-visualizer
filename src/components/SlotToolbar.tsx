@@ -7,6 +7,7 @@ import { useAppStore } from '../store/useAppStore'
 import { FORMATS } from '../core/formats/registry'
 import { clamp } from '../utils/math'
 import { zoomedBy } from '../utils/image'
+import LayerButtons from './LayerButtons'
 
 
 export default function SlotToolbar({ previewScale }: { previewScale: number }) {
@@ -96,6 +97,12 @@ export default function SlotToolbar({ previewScale }: { previewScale: number }) 
           <Button size="icon" variant="ghost" aria-label={t('slotToolbar.removePhoto')} onClick={() => clearSlot(slide, index)}>
             <IconTrash />
           </Button>
+        </>
+      )}
+      {slot.kind === 'framed' && (
+        <>
+          <span className="slot-toolbar-sep" />
+          <LayerButtons />
         </>
       )}
       <span className="slot-toolbar-sep" />

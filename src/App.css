@@ -1309,6 +1309,13 @@
   background: var(--border);
 }
 
+.element-toolbar {
+  width: max-content;
+  flex-wrap: wrap;
+  justify-content: center;
+  white-space: normal;
+}
+
 .element-toolbar-side {
   height: 28px;
   padding: 0 var(--space-1);

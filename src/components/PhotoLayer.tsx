@@ -30,6 +30,7 @@ interface SlotViewProps {
   emptyLabel?: string
   order: number
   count: number
+  dim?: number
 }
 
 function PhotoImage({ photo, assignment, inner, fit, slide, index }: { photo: Photo; assignment: SlotAssignment; inner: Box; fit: 'cover' | 'contain'; slide: number; index: number }) {
@@ -134,7 +135,7 @@ function EmptySlot({ inner, label, onPick }: { inner: Box; label: string; onPick
   )
 }
 
-function SlotView({ slot, slide, frameOffsetX, collage, assignment, photo, selected, emptyLabel, order, count }: SlotViewProps) {
+function SlotView({ slot, slide, frameOffsetX, collage, assignment, photo, selected, emptyLabel, order, count, dim = 0 }: SlotViewProps) {
   const { t } = useTranslation()
   const animation = usePhotoAnimation(order, count)
   const select = useAppStore((s) => s.select)
@@ -178,6 +179,7 @@ function SlotView({ slot, slide, frameOffsetX, collage, assignment, photo, selec
         ) : (
           <EmptySlot inner={inner} label={emptyLabel ?? (slot.kind === 'backdrop' ? t('photoLayer.addBackdropPhoto') : t('photoLayer.addPhoto'))} onPick={() => requestPhoto({ slide, index: slot.index })} />
         )}
+        {dim > 0 && <Rect x={inner.x} y={inner.y} width={inner.w} height={inner.h} fill="#000000" opacity={dim} listening={false} />}
       </Group>
       {selected && (
         <Rect
@@ -194,25 +196,73 @@ function SlotView({ slot, slide, frameOffsetX, collage, assignment, photo, selec
   )
 }
 
+export function useShownSlots(): SlotRect[][] | null {
+  const aspectKey = useAppStore((s) => s.aspectKey)
+  const slides = useAppStore((s) => s.slides)
+  const gap = useAppStore((s) => s.collage.gap)
+  const margin = useAppStore((s) => s.collage.margin)
+  const previewLayoutKey = useAppStore((s) => s.previewLayoutKey)
+  const carouselKind = useAppStore((s) => s.carouselKind)
+  const panorama = usePanorama()
+  const activeSlide = useActiveSlide()
+  const { w, h } = FORMATS[aspectKey]
+  const cellCount = layoutDef(previewLayoutKey ?? slides[0].layoutKey).cells.length
+  // A lone empty slot is the plain "no photo" state: the transparent canvas stays visible.
+  if (!hasVisiblePhotos(slides, carouselKind) && slides.length === 1 && cellCount <= 1) return null
+  if (panorama) return [[ribbonSlot(w, h, slides.length)]]
+  return slides.map((slide, slideIndex) =>
+    slotCount(slide) ? computeSlots(layoutDef(slideIndex === activeSlide && previewLayoutKey ? previewLayoutKey : slide.layoutKey), w, h, gap, margin) : [],
+  )
+}
+
+function useSlotProps(slideIndex: number, slot: SlotRect, order: number, count: number) {
+  const slide = useAppStore((s) => s.slides[slideIndex])
+  const collage = useAppStore((s) => s.collage)
+  const photos = useAppStore((s) => s.photos)
+  const selected = useAppStore((s) => s.selection?.kind === 'slot' && s.selection.slide === slideIndex && s.selection.index === slot.index)
+  const { w } = FORMATS[useAppStore((s) => s.aspectKey)]
+  const assignment = slide?.slots[slot.index]
+  return {
+    slot,
+    slide: slideIndex,
+    frameOffsetX: slideIndex * w,
+    collage,
+    assignment,
+    photo: assignment ? photos.find((p) => p.id === assignment.photoId) : undefined,
+    selected,
+    order,
+    count,
+  }
+}
+
+function SlotInLayer({ slideIndex, slot, order, count, dim }: { slideIndex: number; slot: SlotRect; order: number; count: number; dim?: number }) {
+  return <SlotView {...useSlotProps(slideIndex, slot, order, count)} dim={dim} />
+}
+
+export function FramedPhoto({ slide, index }: { slide: number; index: number }) {
+  const slots = useShownSlots()?.[slide] ?? []
+  const slot = slots.find((s) => s.index === index)
+  const dim = useAppStore((s) => s.dimOpacity)
+  if (!slot) return null
+  return (
+    <SlideBox slide={slide}>
+      <SlotInLayer slideIndex={slide} slot={slot} order={slots.indexOf(slot)} count={slots.length} dim={dim} />
+    </SlideBox>
+  )
+}
+
 function PhotoLayer() {
   const { t } = useTranslation()
   const aspectKey = useAppStore((s) => s.aspectKey)
   const slides = useAppStore((s) => s.slides)
   const collage = useAppStore((s) => s.collage)
   const photos = useAppStore((s) => s.photos)
-  const previewLayoutKey = useAppStore((s) => s.previewLayoutKey)
   const selection = useAppStore((s) => s.selection)
   const dimOpacity = useAppStore((s) => s.dimOpacity)
-  const carouselKind = useAppStore((s) => s.carouselKind)
   const panorama = usePanorama()
-  const activeSlide = useActiveSlide()
+  const shown = useShownSlots()
   const { w, h } = FORMATS[aspectKey]
-
-  const photoById = new Map(photos.map((p) => [p.id, p]))
-  const hasPhotos = hasVisiblePhotos(slides, carouselKind)
-  const cellCount = layoutDef(previewLayoutKey ?? slides[0].layoutKey).cells.length
-  // A lone empty slot is the plain "no photo" state: the transparent canvas stays visible.
-  if (!hasPhotos && slides.length === 1 && cellCount <= 1) return null
+  if (!shown) return null
 
   if (panorama) {
     const assignment = slides[0].slots[0]
@@ -220,12 +270,12 @@ function PhotoLayer() {
     return (
       <Layer>
         <SlotView
-          slot={ribbonSlot(w, h, slides.length)}
+          slot={shown[0][0]}
           slide={0}
           frameOffsetX={0}
           collage={unframed}
           assignment={assignment}
-          photo={assignment ? photoById.get(assignment.photoId) : undefined}
+          photo={assignment ? photos.find((p) => p.id === assignment.photoId) : undefined}
           selected={selection?.kind === 'slot'}
           emptyLabel={t('photoLayer.addPanoramaPhoto')}
           order={0}
@@ -238,32 +288,11 @@ function PhotoLayer() {
 
   return (
     <Layer>
-      {slides.map((slide, slideIndex) => {
-        if (!slotCount(slide)) return null
-        const def = layoutDef(slideIndex === activeSlide && previewLayoutKey ? previewLayoutKey : slide.layoutKey)
-        const slots = computeSlots(def, w, h, collage.gap, collage.margin)
-        return (
-          <SlideBox key={slideIndex} slide={slideIndex}>
-            {slots.map((slot, order) => {
-              const assignment = slide.slots[slot.index]
-              return (
-                <SlotView
-                  key={slot.index}
-                  slot={slot}
-                  slide={slideIndex}
-                  frameOffsetX={slideIndex * w}
-                  collage={collage}
-                  assignment={assignment}
-                  photo={assignment ? photoById.get(assignment.photoId) : undefined}
-                  selected={selection?.kind === 'slot' && selection.slide === slideIndex && selection.index === slot.index}
-                  order={order}
-                  count={slots.length}
-                />
-              )
-            })}
-          </SlideBox>
-        )
-      })}
+      {shown.map((slots, slideIndex) => (
+        <SlideBox key={slideIndex} slide={slideIndex}>
+          {slots.map((slot, order) => (slot.kind === 'framed' ? null : <SlotInLayer key={slot.index} slideIndex={slideIndex} slot={slot} order={order} count={slots.length} />))}
+        </SlideBox>
+      ))}
       {dimOpacity > 0 && <Rect width={w * slides.length} height={h} fill="#000000" opacity={dimOpacity} listening={false} />}
     </Layer>
   )
