@@ -3,6 +3,7 @@ import { PbfReader } from 'pbf'
 import { mercatorX, mercatorY } from '../../../utils/gpx'
 import type { GpxPoint } from '../../../types'
 import { clamp } from '../../../utils/math'
+import { clipLine } from './lines'
 
 export type LonLat = [number, number]
 
@@ -115,11 +116,16 @@ export function readTile(tile: TileLayers, { z, x, y }: { z: number; x: number; 
       into.water.push({ ring: ring.map(at), shores })
     }
   })
+  const withinTile = (lines: TilePoint[][], extent: number): LonLat[][] => {
+    const at = lonLat(extent)
+    const edge = { x0: 0, y0: 0, x1: extent, y1: extent }
+    return lines.flatMap((l) => clipLine(l.map((p): [number, number] => [p.x, p.y]), edge)).map((l) => l.map(([px, py]) => at({ x: px, y: py })))
+  }
   each('waterway', (props, lines, extent) => {
-    if (props.class === 'river') into.rivers.push(...lines.map((l) => l.map(lonLat(extent))))
+    if (props.class === 'river') into.rivers.push(...withinTile(lines, extent))
   })
   each('transportation', (props, lines, extent) => {
-    if (ROADS.has(String(props.class))) into.roads.push(...lines.map((l) => l.map(lonLat(extent))))
+    if (ROADS.has(String(props.class))) into.roads.push(...withinTile(lines, extent))
   })
   const place = (kind: SketchPlace['kind'], props: Record<string, unknown>, geometry: TilePoint[][], extent: number) => {
     const line = geometry[0]

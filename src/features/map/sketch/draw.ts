@@ -7,6 +7,7 @@ import type { RouteTransform } from '../../../types'
 import type { MapSettings, SketchSettings } from '../types'
 import { jitter, type Pt } from './pen'
 import type { SketchShape } from './shape'
+import { settlementGlyph, type Settlement } from './glyphs'
 
 export interface SketchPalette {
   paper: string
@@ -45,20 +46,28 @@ interface Stroke {
   color: 'ink' | 'water'
   alpha: number
   dashed: boolean
+  dashOffset: number
 }
 
 // Each object seeds its own strokes, so changing one feature leaves the others as they were.
-const inked = memoOne((shape: SketchShape | null, ends: [Pt, Pt] | null, seed: number, roughness: number, short: number, lines: boolean, shores: boolean) => {
+const lengthOf = (pts: Pt[]) => pts.reduce((sum, p, i) => (i ? sum + Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]) : 0), 0)
+
+const inked = memoOne((shape: SketchShape | null, ends: [Pt, Pt] | null, seed: number, roughness: number, short: number, lines: boolean, shores: boolean, icons: boolean) => {
   const amp = short * 0.004 * roughness
   const step = short * 0.006
   const S = (layer: number, i: number) => seed + layer * 1000 + i
   const strokes: Stroke[] = []
   // A main pass in uneven pieces, then a thinner, paler correction.
-  const pen = (pts: Pt[], s: number, a: number, width: number, color: Stroke['color'], alpha = 1, dashed = false) => {
+  const pen = (pts: Pt[], s: number, a: number, width: number, color: Stroke['color'], alpha = 1, dashed = false, into = strokes) => {
     const r = seededRandom(s + 99)
     const main = jitter(pts, s, a, step)
-    for (let i = 0; i < main.length - 1; i += 7) strokes.push({ pts: main.slice(i, i + 8), width: width * (0.75 + r() * 0.5), color, alpha, dashed })
-    strokes.push({ pts: jitter(pts, s + 7, a * 1.4, step), width: width * 0.45, color, alpha: alpha * 0.5, dashed })
+    let drawn = 0
+    for (let i = 0; i < main.length - 1; i += 7) {
+      const piece = main.slice(i, i + 8)
+      into.push({ pts: piece, width: width * (0.75 + r() * 0.5), color, alpha, dashed, dashOffset: drawn })
+      drawn += lengthOf(piece)
+    }
+    if (!dashed) into.push({ pts: jitter(pts, s + 7, a * 1.4, step), width: width * 0.45, color, alpha: alpha * 0.5, dashed, dashOffset: 0 })
   }
   const circle = ([x, y]: Pt, radius: number): Pt[] => Array.from({ length: 13 }, (_, i) => [x + Math.cos((i / 12) * Math.PI * 2) * radius, y + Math.sin((i / 12) * Math.PI * 2) * radius])
   // On the sea's side: the right of the line.
@@ -70,7 +79,16 @@ const inked = memoOne((shape: SketchShape | null, ends: [Pt, Pt] | null, seed: n
       return [x - ((by2 - ay) / len) * by, y + ((bx - ax) / len) * by]
     })
 
-  const labels: { name: string; at: Pt; sea: boolean }[] = []
+  const labels: { name: string; at: Pt; sea: boolean; clearance: number }[] = []
+  const marks: { at: Pt; strokes: Stroke[] }[] = []
+  const dotRadius = short * 0.008
+  const markAt = (at: Pt, kind: Settlement | null, s: number) => {
+    const glyph = icons && kind ? settlementGlyph(kind, short * 0.0065) : { lines: [circle([0, 0], dotRadius)], halfWidth: dotRadius }
+    const mark: Stroke[] = []
+    glyph.lines.forEach((line, i) => pen(line, s + i * 13, amp * 0.3, short * 0.0032, 'ink', 1, false, mark))
+    marks.push({ at, strokes: mark })
+    return glyph.halfWidth
+  }
   const ripples: Stroke[] = []
   const washed: Pt[][] = []
   if (shape) {
@@ -81,22 +99,22 @@ const inked = memoOne((shape: SketchShape | null, ends: [Pt, Pt] | null, seed: n
     shape.shores.forEach((l, i) => {
       if (shores) pen(l, S(1, i), amp, short * 0.0045, 'ink')
       ;[0.02, 0.04].forEach((o, k) =>
-        ripples.push({ pts: jitter(offshore(l, short * o), S(1, 500 + i * 2 + k), amp * 1.5, step), width: short * 0.002, color: 'water', alpha: 0.6 - k * 0.25, dashed: true }),
+        ripples.push({ pts: jitter(offshore(l, short * o), S(1, 500 + i * 2 + k), amp * 1.5, step), width: short * 0.002, color: 'water', alpha: 0.6 - k * 0.25, dashed: true, dashOffset: 0 }),
       )
     })
     shape.water.forEach((ring, i) => washed.push(jitter(ring, S(1, 700 + i), amp * 2.5, step)))
     shape.places.forEach((p, i) => {
-      if (p.kind !== 'water') pen(circle(p.at, short * 0.008), S(6, i), amp * 0.3, short * 0.0032, 'ink')
-      labels.push({ name: p.name, at: p.at, sea: p.kind === 'water' })
+      const clearance = p.kind === 'water' ? 0 : markAt(p.at, p.kind, S(6, i))
+      labels.push({ name: p.name, at: p.at, sea: p.kind === 'water', clearance })
     })
   }
   if (ends && !shape?.places.some((p) => p.kind !== 'water')) {
     ends.forEach((at, i) => {
-      pen(circle(at, short * 0.008), S(6, 900 + i), amp * 0.3, short * 0.0032, 'ink')
-      labels.push({ name: i ? 'meta' : 'start', at, sea: false })
+      const clearance = markAt(at, null, S(6, 900 + i))
+      labels.push({ name: i ? 'meta' : 'start', at, sea: false, clearance })
     })
   }
-  return { strokes, ripples, washed, labels }
+  return { strokes, ripples, washed, labels, marks }
 })
 
 const tiles = new Map<string, HTMLCanvasElement>()
@@ -137,7 +155,7 @@ function trace(ctx: CanvasRenderingContext2D, pts: Pt[], close = false) {
 
 export function drawSketch(ctx: CanvasRenderingContext2D, f: SketchFrame, scale: number) {
   const { shape, transform: t, width, height, short, palette, settings, seed } = f
-  const ink = inked(shape, f.ends, seed, settings.roughness, short, settings.lines, settings.shores)
+  const ink = inked(shape, f.ends, seed, settings.roughness, short, settings.lines, settings.shores, settings.marks !== 'dots')
   const colorOf = (c: Stroke['color']) => (c === 'ink' ? palette.ink : palette.water)
   // Widths are on the page; the view's scale is taken back out of them.
   const k = Math.abs(t.scaleX) || 1
@@ -155,18 +173,20 @@ export function drawSketch(ctx: CanvasRenderingContext2D, f: SketchFrame, scale:
     }
   }
 
-  const strokes = (list: Stroke[]) => {
+  const strokes = (list: Stroke[], zoom = k) => {
     for (const s of list) {
       ctx.beginPath()
       trace(ctx, s.pts)
       ctx.strokeStyle = colorOf(s.color)
       ctx.globalAlpha = s.alpha
-      ctx.lineWidth = s.width / k
-      ctx.setLineDash(s.dashed ? [(short * 0.012) / k, (short * 0.01) / k] : [])
+      ctx.lineWidth = s.width / zoom
+      ctx.setLineDash(s.dashed ? [(short * 0.012) / zoom, (short * 0.01) / zoom] : [])
+      ctx.lineDashOffset = -s.dashOffset
       ctx.stroke()
     }
     ctx.globalAlpha = 1
     ctx.setLineDash([])
+    ctx.lineDashOffset = 0
   }
   ctx.lineCap = 'round'
   ctx.lineJoin = 'round'
@@ -215,7 +235,15 @@ export function drawSketch(ctx: CanvasRenderingContext2D, f: SketchFrame, scale:
   toView(ctx, t, scale)
   strokes(ink.strokes)
 
-  // Names upright on the page, beside their dot, turned back in and kept inside their slide.
+  const onFrame = (x: number, y: number) => x >= 0 && x <= width && y >= 0 && y <= height
+  for (const mark of ink.marks) {
+    const { x, y } = applyTransform({ x: mark.at[0], y: mark.at[1] }, t)
+    if (!onFrame(x, y)) continue
+    ctx.setTransform(scale, 0, 0, scale, scale * x, scale * y)
+    strokes(mark.strokes, 1)
+  }
+
+  // Names upright on the page, beside their mark, turned back in at the slide's edge.
   ctx.setTransform(scale, 0, 0, scale, 0, 0)
   const size = short * 0.036
   ctx.textBaseline = 'alphabetic'
@@ -232,16 +260,15 @@ export function drawSketch(ctx: CanvasRenderingContext2D, f: SketchFrame, scale:
       ctx.restore()
       continue
     }
+    if (!onFrame(x, y)) continue
     ctx.font = `600 ${size}px Caveat, cursive`
     ctx.fillStyle = palette.ink
-    // A town just past the frame is still named, inside the nearest slide.
-    const slide = Math.min(Math.max(Math.floor(x / f.slideWidth), 0), Math.round(width / f.slideWidth) - 1)
-    const left = slide * f.slideWidth + size * 0.5
-    const end = left - size + f.slideWidth
+    const slideEnd = (Math.floor(x / f.slideWidth) + 1) * f.slideWidth - size * 0.5
     const w = ctx.measureText(label.name).width
-    const tx = x + size * 0.4 + w < end ? x + size * 0.4 : Math.max(left, x - size * 0.4 - w)
+    const gap = label.clearance + size * 0.15
+    const fitsRightOfMark = x + gap + w < slideEnd
     ctx.textAlign = 'left'
-    ctx.fillText(label.name, Math.min(tx, end - w), Math.min(Math.max(y - size * 0.25, size * 1.2), height - size * 0.5))
+    ctx.fillText(label.name, fitsRightOfMark ? x + gap : x - gap - w, y - size * 0.25)
   }
 
   // Grain over everything, at the canvas's own pixels; without paper only over the ink.

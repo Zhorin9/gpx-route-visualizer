@@ -1,4 +1,6 @@
 import { FORMATS } from '../../core/formats/registry'
+import { canvasElement } from '../../core/canvas/registry'
+import { DEFAULT_MAP_STICKER, stickerKind } from '../../features/map-sticker/model'
 import i18n from '../../i18n'
 import { makeText, makeWaypoint, nextId } from '../defaults'
 import { TEXT_KINDS } from '../textKinds'
@@ -12,7 +14,24 @@ const END_CAPTIONS = [
   { dx: 40, dy: -60, fontSize: 40 },
 ]
 const DISTANCE_CAPTION = { dx: -200, dy: -40, fontSize: 52 }
-import type { ElementsSlice, SliceContext } from '../types'
+import type { DocumentState, ElementsSlice, SliceContext } from '../types'
+import { elementLayer } from '../../core/canvas/layers'
+
+const DUPLICATE_SHIFT = 40
+
+type ElementTraces = Pick<DocumentState, 'placements' | 'layerOrder' | 'layoutOverrides'>
+
+function withoutElement(s: ElementTraces, kind: string): ElementTraces {
+  const { [kind]: _placed, ...placements } = s.placements
+  const layoutOverrides = Object.fromEntries(
+    Object.entries(s.layoutOverrides).map(([format, overrides]) => {
+      if (!overrides) return [format, overrides]
+      const { [kind]: _overridden, ...elements } = overrides.elements
+      return [format, { ...overrides, elements }]
+    }),
+  )
+  return { placements, layerOrder: s.layerOrder.filter((key) => key !== elementLayer(kind)), layoutOverrides }
+}
 
 
 // Derived from the list rather than a module counter, so ids stay unique after undo.
@@ -32,7 +51,34 @@ export function createElementsSlice({ get, commit }: SliceContext): ElementsSlic
       return node.id
     },
     setIconFinish: (iconFinish) => commit('iconFinish', { iconFinish }),
-    updateMapSticker: (patch) => commit('mapSticker', (s) => ({ mapSticker: { ...s.mapSticker, ...patch } })),
+    addMapSticker: () => {
+      const s = get()
+      const sticker = { ...DEFAULT_MAP_STICKER, id: nextId(s.mapStickers) }
+      commit(`mapSticker:add:${sticker.id}`, { mapStickers: [...s.mapStickers, sticker], selection: { kind: 'element', element: stickerKind(sticker.id) } })
+      return stickerKind(sticker.id)
+    },
+    duplicateMapSticker: (id) => {
+      const s = get()
+      const source = s.mapStickers.find((m) => m.id === id)
+      if (!source) return
+      const copy = { ...source, id: nextId(s.mapStickers) }
+      const placed = s.placements[stickerKind(id)]
+      const shifted = placed && placed.x != null && placed.y != null ? { [stickerKind(copy.id)]: { x: placed.x + DUPLICATE_SHIFT, y: placed.y + DUPLICATE_SHIFT } } : null
+      commit(`mapSticker:add:${copy.id}`, {
+        mapStickers: [...s.mapStickers, copy],
+        placements: { ...s.placements, ...shifted },
+        selection: { kind: 'element', element: stickerKind(copy.id) },
+      })
+    },
+    removeMapSticker: (id) =>
+      commit('mapSticker:remove', (s) => ({
+        mapStickers: s.mapStickers.filter((m) => m.id !== id),
+        ...withoutElement(s, stickerKind(id)),
+        ...(s.selection?.kind === 'element' && s.selection.element === stickerKind(id) ? { selection: null } : null),
+      })),
+    arrangeMapStickers: (layout) => commit('mapSticker:arrange', layout),
+    setLayerOrder: (layerOrder) => commit(`layers:${layerOrder.join(',')}`, { layerOrder }),
+    updateMapSticker: (id, patch) => commit(`mapSticker:${id}`, (s) => ({ mapStickers: s.mapStickers.map((m) => (m.id === id ? { ...m, ...patch } : m)) })),
     setKicker: (patch) => commit('kicker', (s) => ({ kicker: { ...s.kicker, ...patch } })),
     setStamp: (stamp) => commit('stamp', { stamp, ...(stamp ? null : { selection: null }) }),
     setStampTime: (stampTime) => commit('stamp', { stampTime }),
@@ -103,6 +149,7 @@ export function createElementsSlice({ get, commit }: SliceContext): ElementsSlic
       if (!sel) return
       if (sel.kind === 'text') slice.deleteText(sel.id)
       else if (sel.kind === 'waypoint') slice.deleteWaypoint(sel.id)
+      else if (sel.kind === 'element') canvasElement(sel.element)?.remove?.(sel.element)
     },
 
     nudgeSelection: (dx, dy) => {

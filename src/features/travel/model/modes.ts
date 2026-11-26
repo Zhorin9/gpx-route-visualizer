@@ -100,6 +100,16 @@ export const TRAVEL_MODES: TravelMode[] = [
     build: async (stops) => greatCircle(stops),
   },
   {
+    id: 'ferry',
+    label: 'travel.modes.ferry',
+    vehicle: 'boat',
+    line: { dashed: true },
+    avgSpeedKmh: 30,
+    groundElevation: false,
+    lines: ['straight', 'arc'],
+    build: async (stops) => straightLines(stops),
+  },
+  {
     id: 'foot',
     label: 'travel.modes.foot',
     vehicle: 'walker',

@@ -11,8 +11,10 @@ import './App.css'
 import './i18n'
 import App from './App.tsx'
 import { registerFeatures } from './features/register'
+import { restoreUserFonts } from './features/user-fonts/store'
 
 registerFeatures()
+restoreUserFonts()
 
 createRoot(document.getElementById('root') as HTMLElement).render(
   <StrictMode>

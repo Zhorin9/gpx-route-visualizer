@@ -98,6 +98,29 @@ describe('sketch shapes (D2)', () => {
     expect(count).toBeLessThan(600)
   })
 
+  it('draws a road cut into pieces as one line, and a motorway once, not per carriageway', () => {
+    const route = [at(52, 0), at(52, 0.2)]
+    const fit = fitMercator(route, 1080, 1350)
+    const pieces: LonLat[][] = [
+      [[0, 52], [0.05, 52]],
+      [[0.1, 52], [0.05, 52]],
+      [[0.1, 52], [0.15, 52], [0.2, 52]],
+    ]
+    const otherCarriageway: LonLat[] = [[0, 52.0004], [0.2, 52.0004]]
+    const layers: SketchLayers = { ...empty(sketchBbox(route)), roads: [...pieces, otherCarriageway] }
+    expect(sketchShape(layers, fit, [], 1080, 1350).roads).toHaveLength(1)
+  })
+
+  it('keeps rivers smooth however many roads crowd the map', () => {
+    const route = [at(52, 0), at(52.2, 0.2)]
+    const fit = fitMercator(route, 1080, 1350)
+    const river: LonLat[] = Array.from({ length: 400 }, (_, i) => [i * 0.0005, 52.1 + Math.sin(i / 10) * 0.01])
+    const roads: LonLat[][] = Array.from({ length: 300 }, (_, r) => Array.from({ length: 40 }, (_, i): LonLat => [i * 0.005, 52 + r * 0.0007 + Math.sin(i + r) * 0.002]))
+    const alone = sketchShape({ ...empty(sketchBbox(route)), rivers: [river] }, fit, [], 1080, 1350).rivers
+    const crowded = sketchShape({ ...empty(sketchBbox(route)), rivers: [river], roads }, fit, [], 1080, 1350).rivers
+    expect(crowded).toEqual(alone)
+  })
+
   it('names the towns at both ends and the larger places along the way', () => {
     const route = Array.from({ length: 21 }, (_, i) => at(40 + i * 0.01, 9))
     const fit = fitMercator(route, 1080, 1350)

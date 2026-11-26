@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useAppStore } from '../store/useAppStore'
 import { clamp } from '../utils/math'
+import { moveSelectedLayer } from '../core/canvas/moveLayer'
 
 function isEditingField(target: EventTarget | null): boolean {
   const el = target as HTMLElement | null
@@ -27,6 +28,12 @@ export default function useKeyboardShortcuts(): void {
         e.preventDefault()
         if (e.shiftKey) s.redo()
         else s.undo()
+        return
+      }
+      if (mod && (e.code === 'BracketRight' || e.code === 'BracketLeft') && s.selection) {
+        e.preventDefault()
+        const up = e.code === 'BracketRight'
+        moveSelectedLayer(e.shiftKey ? (up ? 'front' : 'back') : up ? 'up' : 'down')
         return
       }
       if (mod && key === 'y') {

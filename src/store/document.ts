@@ -6,7 +6,6 @@ import { DEFAULT_DATA_COLOR } from '../features/data-color/types'
 import { DEFAULT_PROFILE } from '../features/elevation-profile/types'
 import { NO_PHOTO_LOOK } from '../utils/photoLook'
 import { DEFAULT_KICKER } from '../features/kicker/model'
-import { DEFAULT_MAP_STICKER } from '../features/map-sticker/model'
 import type { DocumentState } from './types'
 
 // The one list of what a document is: undo/redo, the export snapshot and the preview
@@ -48,7 +47,8 @@ export const INITIAL_DOCUMENT: DocumentState = {
   stamp: false,
   stampTime: null,
   kicker: { shown: false, text: DEFAULT_KICKER },
-  mapSticker: DEFAULT_MAP_STICKER,
+  mapStickers: [],
+  layerOrder: [],
 }
 
 export const DOCUMENT_KEYS = Object.keys(INITIAL_DOCUMENT) as (keyof DocumentState)[]

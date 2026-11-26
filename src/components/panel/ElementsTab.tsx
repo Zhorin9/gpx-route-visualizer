@@ -3,30 +3,101 @@ import { useTranslation } from 'react-i18next'
 import TextField from '../fields/TextField'
 import Button from '../ui/Button'
 import Section from '../ui/Section'
-import { IconMapPin, IconPalette, IconPlus, IconType } from '../icons'
+import { IconImage, IconMapPin, IconPalette, IconPlus, IconType } from '../icons'
 import { appliedTemplate } from '../../store/slices/templatesSlice'
 import { templateName } from '../../utils/templates'
 import TextEditor from './TextEditor'
 import PlaceEditor from './PlaceEditor'
 import ElementRow from './ElementRow'
+import JournalSuggestions from './JournalSuggestions'
 import IconSvg from '../place/IconSvg'
 import { iconById } from '../place/icons'
 import { canvasElement, canvasElements, type CanvasElementDefinition } from '../../core/canvas/registry'
 import { useHasRoute } from '../../store/selectors'
+import useLayerOrder from '../../hooks/useLayerOrder'
+import { elementLayer, placedAt, slotLayer, textLayer } from '../../core/canvas/layers'
 import { useAppStore } from '../../store/useAppStore'
 import FontField from '../fields/FontField'
 import { FIELD_LABELS, wrapperFieldsOf } from '../../utils/wrappers'
 
-function RegisteredElementRow({ def }: { def: CanvasElementDefinition }) {
+function ElementLayerRow({ kind, def, onDropLayer }: { kind: string; def: CanvasElementDefinition; onDropLayer: (dragged: string) => void }) {
   const { t } = useTranslation()
-  const available = def.useIsAvailable()
-  const active = useAppStore((s) => s.selection?.kind === 'element' && s.selection.element === def.kind)
+  const instances = def.useInstances?.() ?? []
+  const active = useAppStore((s) => s.selection?.kind === 'element' && s.selection.element === kind)
   const select = useAppStore((s) => s.select)
-  if (!available) return null
-  return <ElementRow icon={def.icon} label={t(def.label)} meta={t(def.meta)} active={active} onClick={() => select({ kind: 'element', element: def.kind })} />
+  const label = instances.length > 1 ? `${t(def.label)} ${instances.indexOf(kind) + 1}` : t(def.label)
+  return (
+    <ElementRow
+      icon={def.icon}
+      label={label}
+      meta={t(def.meta)}
+      active={active}
+      onClick={() => select({ kind: 'element', element: kind })}
+      onDelete={def.remove && (() => def.remove?.(kind))}
+      deleteLabel={t('elementsTab.deleteElement')}
+      layer={elementLayer(kind)}
+      onDropLayer={onDropLayer}
+    />
+  )
 }
 
-function ShowAgainButton({ def, useShowAgain }: { def: CanvasElementDefinition; useShowAgain: () => (() => void) | null }) {
+function TextLayerRow({ id, onDropLayer }: { id: number; onDropLayer: (dragged: string) => void }) {
+  const { t } = useTranslation()
+  const text = useAppStore((s) => s.texts.find((n) => n.id === id))
+  const active = useAppStore((s) => s.selection?.kind === 'text' && s.selection.id === id)
+  const select = useAppStore((s) => s.select)
+  const deleteText = useAppStore((s) => s.deleteText)
+  if (!text) return null
+  return (
+    <ElementRow
+      icon={text.icon ? <IconSvg icon={text.icon} /> : <IconType />}
+      label={text.icon ? t(iconById(text.icon)?.label ?? 'elementsTab.icon') : text.text || t('elementsTab.emptyText')}
+      meta={text.icon ? t('elementsTab.iconMeta') : text.badge ? t('elementsTab.badgeMeta') : t('elementsTab.textMeta')}
+      active={active}
+      onClick={() => select({ kind: 'text', id })}
+      onDelete={() => deleteText(id)}
+      deleteLabel={text.icon ? t('iconEditor.delete') : t('textEditor.delete')}
+      layer={textLayer(id)}
+      onDropLayer={onDropLayer}
+    />
+  )
+}
+
+function SlotLayerRow({ slide, index, onDropLayer }: { slide: number; index: number; onDropLayer: (dragged: string) => void }) {
+  const { t } = useTranslation()
+  const active = useAppStore((s) => s.selection?.kind === 'slot' && s.selection.slide === slide && s.selection.index === index)
+  const select = useAppStore((s) => s.select)
+  return (
+    <ElementRow
+      icon={<IconImage />}
+      label={t('layers.framedPhoto')}
+      meta={t('layers.framedPhotoMeta')}
+      active={active}
+      onClick={() => select({ kind: 'slot', slide, index })}
+      layer={slotLayer(slide, index)}
+      onDropLayer={onDropLayer}
+    />
+  )
+}
+
+function LayerRows() {
+  const keys = useLayerOrder()
+  const setLayerOrder = useAppStore((s) => s.setLayerOrder)
+  return [...keys].reverse().map((key) => {
+    const onDropLayer = (dragged: string) => {
+      const next = placedAt(keys, dragged, key)
+      if (next !== keys) setLayerOrder(next)
+    }
+    const [kind, ...rest] = key.split(':')
+    if (kind === 'text') return <TextLayerRow key={key} id={Number(rest[0])} onDropLayer={onDropLayer} />
+    if (kind === 'slot') return <SlotLayerRow key={key} slide={Number(rest[0])} index={Number(rest[1])} onDropLayer={onDropLayer} />
+    if (kind !== 'element') return null
+    const def = canvasElement(rest.join(':'))
+    return def ? <ElementLayerRow key={key} kind={rest.join(':')} def={def} onDropLayer={onDropLayer} /> : null
+  })
+}
+
+function ShowAgainButton({ def, useShowAgain }: { def: CanvasElementDefinition; useShowAgain: () => (() => string | void) | null }) {
   const { t } = useTranslation()
   const show = useShowAgain()
   const select = useAppStore((s) => s.select)
@@ -35,8 +106,8 @@ function ShowAgainButton({ def, useShowAgain }: { def: CanvasElementDefinition; 
     <Button
       icon={<IconPlus />}
       onClick={() => {
-        show()
-        select({ kind: 'element', element: def.kind })
+        const shown = show()
+        select({ kind: 'element', element: shown ?? def.kind })
       }}
     >
       {t(def.label)}
@@ -65,6 +136,7 @@ function StyleInUse() {
           {template ? t('elementsTab.changeStyle') : t('elementsTab.chooseStyle')}
         </Button>
       </div>
+      {template?.id === 'dziennik' && <JournalSuggestions />}
       {template && (
         <div className="style-in-use-actions">
           <Button size="sm" onClick={applyStyleEverywhere}>
@@ -117,13 +189,12 @@ export default function ElementsTab() {
   const selection = useAppStore((s) => s.selection)
   const adding = useAppStore((s) => s.addingWaypoint)
   const select = useAppStore((s) => s.select)
-  const deleteText = useAppStore((s) => s.deleteText)
   const deleteWaypoint = useAppStore((s) => s.deleteWaypoint)
   const addText = useAppStore((s) => s.addText)
   const addRouteCaptions = useAppStore((s) => s.addRouteCaptions)
   const setAddingWaypoint = useAppStore((s) => s.setAddingWaypoint)
 
-  const isSelected = (kind: 'text' | 'waypoint', id: number) => selection?.kind === kind && selection.id === id
+  const isSelected = (id: number) => selection?.kind === 'waypoint' && selection.id === id
 
   return (
     <>
@@ -154,29 +225,16 @@ export default function ElementsTab() {
       {adding && <p className="hint">{t('elementsTab.addingHint')}</p>}
 
       <Section title={t('elementsTab.elements')}>
+        <p className="hint">{t('layers.listHint')}</p>
         <div className="item-list" role="listbox" aria-label={t('elementsTab.elements')}>
-          {canvasElements().map((def) => (
-            <RegisteredElementRow key={def.kind} def={def} />
-          ))}
-          {texts.map((text) => (
-            <ElementRow
-              key={`t${text.id}`}
-              icon={text.icon ? <IconSvg icon={text.icon} /> : <IconType />}
-              label={text.icon ? t(iconById(text.icon)?.label ?? 'elementsTab.icon') : text.text || t('elementsTab.emptyText')}
-              meta={text.icon ? t('elementsTab.iconMeta') : text.badge ? t('elementsTab.badgeMeta') : t('elementsTab.textMeta')}
-              active={isSelected('text', text.id)}
-              onClick={() => select({ kind: 'text', id: text.id })}
-              onDelete={() => deleteText(text.id)}
-              deleteLabel={text.icon ? t('iconEditor.delete') : t('textEditor.delete')}
-            />
-          ))}
+          <LayerRows />
           {waypoints.map((w) => (
             <ElementRow
               key={`w${w.id}`}
               icon={<IconMapPin />}
               label={w.text || t('elementsTab.emptyPlace')}
               meta={t('elementsTab.placeMeta')}
-              active={isSelected('waypoint', w.id)}
+              active={isSelected(w.id)}
               onClick={() => select({ kind: 'waypoint', id: w.id })}
               onDelete={() => deleteWaypoint(w.id)}
               deleteLabel={t('placeEditor.delete')}

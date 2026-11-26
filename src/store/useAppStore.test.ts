@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { registerCanvasElement } from '../core/canvas/registry'
+import { registerMapSticker } from '../features/map-sticker'
 import { BUILT_IN_TEMPLATES } from '../utils/templates'
 import { selectRouteDays, selectTrack } from './derived'
 import { DOCUMENT_KEYS, pickDocument } from './document'
@@ -444,13 +445,48 @@ describe('style templates', () => {
     expect(get().stamp).toBe(false)
   })
 
-  it('shows the route as a map sticker with Notes z trasy at the size set by hand, and plain again with another style', () => {
+  it('puts a map sticker on with Notes z trasy, keeps its size set by hand, and keeps it with another style', () => {
     const notes = BUILT_IN_TEMPLATES.find((t) => t.id === 'notes')!
-    get().updateMapSticker({ size: 0.7 })
+    get().addMapSticker()
+    const id = get().mapStickers[0].id
+    get().updateMapSticker(id, { size: 0.7 })
     get().applyTemplate(notes, all)
-    expect(get().mapSticker).toMatchObject({ shown: true, route: '#e9572b', size: 0.7 })
+    expect(get().mapStickers).toHaveLength(1)
+    expect(get().mapStickers[0]).toMatchObject({ id, route: '#e9572b', size: 0.7, look: 'notes', edge: 'white', shadow: 'soft', routeOutside: false })
+    const kept = get().mapStickers
     get().applyTemplate(papier, all)
-    expect(get().mapSticker.shown).toBe(false)
+    expect(get().mapStickers).toEqual(kept)
+  })
+
+  it('duplicates a map sticker with its settings, a little off the original', () => {
+    const kind = get().addMapSticker()
+    const id = get().mapStickers[0].id
+    get().updateMapSticker(id, { look: 'sketch', zoom: 2, scope: { kind: 'day', day: 1, only: true } })
+    get().setPlacement(kind, { x: 100, y: 200 })
+    get().duplicateMapSticker(id)
+    const [original, copy] = get().mapStickers
+    expect(copy).toEqual({ ...original, id: copy.id })
+    expect(copy.id).not.toBe(original.id)
+    expect(get().placements[`mapSticker:${copy.id}`]).toEqual({ x: 140, y: 240 })
+    expect(get().selection).toEqual({ kind: 'element', element: `mapSticker:${copy.id}` })
+  })
+
+  it('leaves no place or layer behind when a map sticker is removed, so a new one starts fresh', () => {
+    const kind = get().addMapSticker()
+    const id = get().mapStickers[0].id
+    get().setPlacement(kind, { x: 10, y: 20 })
+    get().setLayerOrder([`element:${kind}`, 'text:1'])
+    get().removeMapSticker(id)
+    expect(get().placements[kind]).toBeUndefined()
+    expect(get().layerOrder).toEqual(['text:1'])
+  })
+
+  it('drops the selection when undo takes away the selected map sticker', () => {
+    registerMapSticker()
+    get().addMapSticker()
+    get().undo()
+    expect(get().mapStickers).toEqual([])
+    expect(get().selection).toBeNull()
   })
 
   it('leaves saving and deleting a template out of undo', () => {
@@ -835,5 +871,32 @@ describe('date stamp', () => {
 
     await get().loadGpxFile(timedGpx('2026-10-05T08:00:00Z'))
     expect(selectStampTime(get())).toBe(Date.parse('2026-10-05T08:00:00Z'))
+  })
+})
+
+describe('layer order', () => {
+  it('takes each change of the order as its own undo step', () => {
+    get().setLayerOrder(['route', 'text:1'])
+    get().setLayerOrder(['text:1', 'route'])
+    get().undo()
+    expect(get().layerOrder).toEqual(['route', 'text:1'])
+  })
+
+  it('is the same in every format', () => {
+    get().setLayerOrder(['text:1', 'route'])
+    get().setAspectKey('4:5')
+    expect(get().layerOrder).toEqual(['text:1', 'route'])
+  })
+})
+
+describe('travel journal style', () => {
+  it('puts a country-shaped journal map sticker under the framed photo, which alone has a thin white frame', () => {
+    const journal = BUILT_IN_TEMPLATES.find((t) => t.id === 'dziennik')!
+    get().applyTemplate(journal, { fonts: true, route: true, frame: true, colors: true, layout: true, points: true, effects: true, photo: true })
+    const [sticker] = get().mapStickers
+    expect(sticker).toMatchObject({ look: 'journal', shape: 'country', edge: 'none', shadow: 'soft', labels: true, route: '#ea5a1c' })
+    expect(get().collage.frame).toMatchObject({ enabled: false, color: '#ffffff', thickness: 14, style: 'equal' })
+    const order = get().layerOrder
+    expect(order.indexOf(`element:mapSticker:${sticker.id}`)).toBeLessThan(order.indexOf('slot:0:1'))
   })
 })
