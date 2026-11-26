@@ -378,6 +378,8 @@ const pl = {
     background: 'tło: {{background}}',
     safeZones: 'Strefy zasłaniane',
     safeZonesTitle: 'Strefy zasłaniane przez Instagram lub YouTube (nie trafiają do eksportu)',
+    wholeCarousel: 'Cała karuzela',
+    wholeCarouselTitle: 'Wszystkie slajdy obok siebie: elementy, np. naklejkę mapy, możesz położyć na łączeniu, a w plikach rozłożą się na sąsiednie slajdy.',
     collageEmptyTitle: 'Kolaż czeka na zdjęcia',
     collageEmptyBody: 'Przeciągnij tutaj zdjęcia albo wybierz je z dysku. Podział kadru i przycinanie ustawisz w zakładce Układ.',
     emptyTitle: 'Zacznij od zdjęć lub trasy',

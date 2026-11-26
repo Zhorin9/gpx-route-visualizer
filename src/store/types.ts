@@ -133,6 +133,7 @@ export interface UiSlice {
   addingWaypoint: boolean
   routeEditable: boolean
   showSafeZones: boolean
+  wholeCarousel: boolean
   // Layout under the pointer in the picker — previewed on the frame before it's applied.
   previewLayoutKey: LayoutKey | null
   // Slide that layout picks and new elements go to (clamped on read, since undo can drop slides).
@@ -155,6 +156,7 @@ export interface UiSlice {
   setAddingWaypoint: (value: boolean) => void
   setRouteEditable: (value: boolean) => void
   setShowSafeZones: (value: boolean) => void
+  setWholeCarousel: (value: boolean) => void
   setPreviewLayout: (key: LayoutKey | null) => void
   setActiveSlide: (index: number) => void
   requestPhoto: (target: { slide: number; index: number } | null) => void

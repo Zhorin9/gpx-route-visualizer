@@ -361,6 +361,16 @@ export function IconCrosshair(props: SVGProps<SVGSVGElement>) {
   )
 }
 
+export function IconSlides(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...common} width="16" height="16" aria-hidden="true" {...props}>
+      <rect x="2" y="6" width="6" height="12" rx="1" />
+      <rect x="9" y="6" width="6" height="12" rx="1" />
+      <rect x="16" y="6" width="6" height="12" rx="1" />
+    </svg>
+  )
+}
+
 export function IconLayers(props: SVGProps<SVGSVGElement>) {
   return (
     <svg {...common} width="16" height="16" aria-hidden="true" {...props}>

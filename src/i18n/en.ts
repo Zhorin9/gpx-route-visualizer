@@ -380,6 +380,8 @@ const en: typeof pl = {
     background: 'background: {{background}}',
     safeZones: 'Covered zones',
     safeZonesTitle: 'Zones covered by Instagram or YouTube (not included in the export)',
+    wholeCarousel: 'Whole carousel',
+    wholeCarouselTitle: 'All slides side by side: elements such as a map sticker can sit on a seam, and the files split them across the neighbouring slides.',
     collageEmptyTitle: 'The collage is waiting for photos',
     collageEmptyBody: 'Drag photos here or choose them from your disk. You can split the frame and crop in the Layout tab.',
     emptyTitle: 'Start with photos or a route',

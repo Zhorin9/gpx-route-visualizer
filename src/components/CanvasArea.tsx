@@ -18,7 +18,7 @@ import PhotoPicker from './PhotoPicker'
 import SlideStrip from './SlideStrip'
 import PhotoSlidesDialog from './PhotoSlidesDialog'
 import Segmented from './ui/Segmented'
-import { IconFit, IconImage, IconMinus, IconMove, IconPlus, IconReset, IconRoute, IconSafeZone, IconUpload } from './icons'
+import { IconFit, IconImage, IconMinus, IconMove, IconPlus, IconReset, IconRoute, IconSafeZone, IconSlides, IconUpload } from './icons'
 import { useMapNavigable } from '../hooks/useMapNavigation'
 import { zoomedAround } from '../core/route/view'
 import Button from './ui/Button'
@@ -48,6 +48,9 @@ function CanvasToolbar() {
   const setAspectKey = useAppStore((s) => s.setAspectKey)
   const customLayout = hasManualLayout(useManualFlags())
   const setAddingWaypoint = useAppStore((s) => s.setAddingWaypoint)
+  const seriesOfSlides = !usePanorama() && slideCount > 1
+  const wholeCarousel = useAppStore((s) => s.wholeCarousel)
+  const setWholeCarousel = useAppStore((s) => s.setWholeCarousel)
 
   const isTransformed =
     transform.x !== 0 || transform.y !== 0 || transform.scaleX !== 1 || transform.scaleY !== 1 || transform.rotation !== 0
@@ -65,6 +68,11 @@ function CanvasToolbar() {
           ]}
           onChange={(mode) => setCarousel(mode === 'carousel')}
         />
+      )}
+      {seriesOfSlides && (
+        <Button size="sm" variant="ghost" icon={<IconSlides />} pressed={wholeCarousel} onClick={() => setWholeCarousel(!wholeCarousel)} title={t('canvasArea.wholeCarouselTitle')}>
+          <span className="toolbar-btn-label">{t('canvasArea.wholeCarousel')}</span>
+        </Button>
       )}
       {!collage && (
         <Button
@@ -253,8 +261,9 @@ function FrameArea() {
   const { w, h, safeZone } = FORMATS[aspectKey]
   // A tall frame leaves room at its side: the slides go on a rail there instead of under it.
   const rail = h > w && (phone || area.width >= RAIL_MIN_AREA_WIDTH)
-  // A series shows the selected slide; a panorama is one picture, so it shows whole.
-  const series = !panorama && slideCount > 1
+  // A series shows the selected slide, or every slide when asked; a panorama is one picture, so it shows whole.
+  const wholeCarousel = useAppStore((s) => s.wholeCarousel)
+  const series = !panorama && slideCount > 1 && !wholeCarousel
   const shown = series ? 1 : slideCount
   const padding = phone ? PHONE_VIEWPORT_PADDING : VIEWPORT_PADDING
   const previewScale = width > 0 && height > 0 ? Math.min((width - padding * 2) / (w * shown), (height - padding * 2) / h, 1) : 0
