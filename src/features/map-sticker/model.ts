@@ -5,6 +5,7 @@ export const MAP_STICKER_KIND = 'mapSticker'
 export type MapStickerLook = 'journal' | 'notes' | 'sticker' | 'sketch'
 export type MapStickerEdge = 'none' | 'white' | 'ink'
 export type MapStickerShadow = 'none' | 'soft' | 'hard'
+export type MapStickerShape = 'auto' | 'country' | 'hull'
 export type MapStickerScope = { kind: 'all' } | { kind: 'day'; day: number; only: boolean }
 
 export interface MapStickerSettings {
@@ -12,6 +13,7 @@ export interface MapStickerSettings {
   // Width as a share of the frame's; edge, route and dot grow with it.
   size: number
   margin: number
+  shape: MapStickerShape
   look: MapStickerLook
   edge: MapStickerEdge
   shadow: MapStickerShadow
@@ -26,6 +28,10 @@ export interface MapStickerSettings {
 }
 
 export const STICKER_INK = '#241a26'
+const COUNTRY_FROM_KM = 150
+
+export const resolvedShape = (shape: MapStickerShape, distanceKm: number): Exclude<MapStickerShape, 'auto'> =>
+  shape === 'auto' ? (distanceKm >= COUNTRY_FROM_KM ? 'country' : 'hull') : shape
 const STICKER_PINK = '#f2b8f5'
 
 type LookPreset = Pick<MapStickerSettings, 'palette' | 'route' | 'start' | 'edge' | 'shadow' | 'labelColor'>
@@ -70,6 +76,7 @@ export const DEFAULT_MAP_STICKER: MapStickerSettings = {
   shown: false,
   size: 0.46,
   margin: 0.07,
+  shape: 'auto',
   styleId: 'positron',
   routeOutside: true,
   scope: { kind: 'all' },

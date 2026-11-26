@@ -1,21 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Circle, Group, Image as KonvaImage, Line, Text } from 'react-konva'
+import { Circle, Group, Image as KonvaImage, Line, Rect, Text } from 'react-konva'
 import DraggableElement from '../../core/canvas/DraggableElement'
 import { FORMATS, bottomInset } from '../../core/formats/registry'
 import { selectRouteDays, selectRouteParts, selectTrack } from '../../store/derived'
+import { useRangeStats } from '../../store/selectors'
 import { IDENTITY_TRANSFORM } from '../../store/defaults'
 import { useAppStore } from '../../store/useAppStore'
 import useSettled from '../../hooks/useSettled'
-import { fitMercator, projectWithFit } from '../../utils/gpx'
 import { renderMapImage } from '../map/maplibre'
 import { provideSharpener } from '../../utils/exportElement'
 import { DEFAULT_MAP } from '../map/types'
-import { DEFAULT_MAP_STICKER, LOOK_DRAWING, MAP_STICKER_KIND, STICKER_INK } from './model'
-import { convexHull, grown } from './shape'
+import { DEFAULT_MAP_STICKER, LOOK_DRAWING, MAP_STICKER_KIND, STICKER_INK, resolvedShape } from './model'
+import { BORDER, stickerLayout } from './layout'
+import useCountryRings from './useCountryRings'
 import { labelSpan } from './labels'
 
 // Shares of the sticker's width, as on the style board.
-const BORDER = 0.022
 const HARD_SHADOW = 0.02
 const ROUTE = 0.016
 // Map pixels per frame pixel: sharp in a 2× file.
@@ -48,37 +48,17 @@ export default function MapStickerNode() {
   const day = scope.kind === 'day' ? days[scope.day] : undefined
   const otherDaysOpacity = scope.kind === 'day' && scope.only ? 0 : OTHER_DAYS_OPACITY
 
-  const layout = useMemo(() => {
-    const lo = Math.floor(range.start)
-    const hi = Math.ceil(range.end)
-    const points = track?.points.slice(lo, hi + 1)
-    if (!track || !points || points.length < 2) return null
-    const dayLo = day ? Math.max(lo, day.startIdx) : lo
-    const dayHi = day ? Math.min(hi, day.endIdx) : hi
-    const [focusLo, focusHi] = dayHi > dayLo ? [dayLo, dayHi] : [lo, hi]
-    const focus = track.points.slice(focusLo, focusHi + 1)
-    // The box follows the route's own proportions, within reason.
-    const unit = projectWithFit(focus, { scale: 1, x0: 0, y0: 0 })
-    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
-    for (let i = 0; i < unit.length; i += 2) {
-      minX = Math.min(minX, unit[i]); maxX = Math.max(maxX, unit[i])
-      minY = Math.min(minY, unit[i + 1]); maxY = Math.max(maxY, unit[i + 1])
-    }
-    const H = Math.round(W * Math.min(1.5, Math.max(0.6, (maxY - minY) / (maxX - minX || 1))))
-    const fit = fitMercator(focus, W, H, W * (margin + BORDER) * 1.4)
-    const flat = Array.from(projectWithFit(points, fit))
-    const between = (a: number, b: number) => flat.slice((a - lo) * 2, (b - lo + 1) * 2)
-    const outline = grown(convexHull(between(focusLo, focusHi)), W * margin).flat()
-    const legs = parts
-      .map((part) => {
-        const inFocus = !day || (part.startIdx >= day.startIdx && part.endIdx <= day.endIdx)
-        const joinedToPrevious = !day || !inFocus
-        return { part, inFocus, a: Math.max(lo, joinedToPrevious ? part.startIdx - 1 : part.startIdx), b: Math.min(hi, part.endIdx) }
-      })
-      .filter(({ a, b }) => b > a)
-      .map(({ a, b, part, inFocus }) => ({ id: part.id, points: between(a, b), dashed: part.dashed, inFocus }))
-    return { H, fit, outline, legs, start: between(focusLo, focusLo), focusLo, focusHi, at: (index: number) => between(index, index) }
-  }, [track, range.start, range.end, W, margin, day, parts])
+  const lo = Math.floor(range.start)
+  const hi = Math.ceil(range.end)
+  const distanceKm = useRangeStats()?.distanceKm ?? 0
+  const shape = resolvedShape(sticker.shape ?? DEFAULT_MAP_STICKER.shape, distanceKm)
+  const country = useCountryRings(track?.points, lo, hi, shape === 'country')
+  const countryRings = country?.rings ?? null
+
+  const layout = useMemo(
+    () => (track ? stickerLayout({ points: track.points, lo, hi, day, parts, W, margin, countryRings }) : null),
+    [track, lo, hi, W, margin, day, parts, countryRings],
+  )
 
   const [map, setMap] = useState<HTMLCanvasElement | null>(null)
   const sharpShown = useRef(false)
@@ -121,7 +101,7 @@ export default function MapStickerNode() {
   )
 
   if (!layout) return null
-  const { H, outline, legs } = layout
+  const { H, outlines, legs } = layout
   const labelSize = W * LABEL_SIZE
   const labels = sticker.labels
     ? waypoints
@@ -141,9 +121,11 @@ export default function MapStickerNode() {
   const labelColor = sticker.labelColor ?? DEFAULT_MAP_STICKER.labelColor
   const clip = (ctx: { beginPath: () => void; moveTo: (x: number, y: number) => void; lineTo: (x: number, y: number) => void; closePath: () => void }) => {
     ctx.beginPath()
-    ctx.moveTo(outline[0], outline[1])
-    for (let i = 2; i < outline.length; i += 2) ctx.lineTo(outline[i], outline[i + 1])
-    ctx.closePath()
+    for (const outline of outlines) {
+      ctx.moveTo(outline[0], outline[1])
+      for (let i = 2; i < outline.length; i += 2) ctx.lineTo(outline[i], outline[i + 1])
+      ctx.closePath()
+    }
   }
 
   return (
@@ -154,11 +136,14 @@ export default function MapStickerNode() {
       defaultX={w - (safeZone?.right ?? 0) - W - w * 0.06}
       defaultY={h - Math.min(bottomInset(aspectKey), (safeZone?.bottom ?? 0) + w * 0.06) - H}
     >
-      {sticker.shadow === 'hard' && (
-        <Line points={outline} closed x={W * HARD_SHADOW} y={W * HARD_SHADOW} fill={STICKER_INK} stroke={STICKER_INK} strokeWidth={edgeWidth} lineJoin="round" listening={false} />
-      )}
+      {sticker.shadow === 'hard' &&
+        outlines.map((outline, i) => (
+          <Line key={`hard-${i}`} points={outline} closed x={W * HARD_SHADOW} y={W * HARD_SHADOW} fill={STICKER_INK} stroke={STICKER_INK} strokeWidth={edgeWidth} lineJoin="round" listening={false} />
+        ))}
       {/* The edge, rounded by its joins, casts the sticker's shadow. */}
+      {outlines.map((outline, i) => (
       <Line
+        key={`edge-${i}`}
         points={outline}
         closed
         fill={edgeColor ?? sticker.palette.land}
@@ -172,11 +157,13 @@ export default function MapStickerNode() {
         shadowOpacity={0.35}
         listening={false}
       />
+      ))}
       <Group clipFunc={clip} listening={false}>
-        <Line points={outline} closed fill={sticker.palette.land} />
+        <Rect width={W} height={H} fill={sticker.palette.land} />
         {map && <KonvaImage image={map} width={W} height={H} />}
       </Group>
-      {drawing.contourShare > 0 && <Line points={outline} closed stroke={STICKER_INK} strokeWidth={W * drawing.contourShare} lineJoin="round" listening={false} />}
+      {drawing.contourShare > 0 &&
+        outlines.map((outline, i) => <Line key={`contour-${i}`} points={outline} closed stroke={STICKER_INK} strokeWidth={W * drawing.contourShare} lineJoin="round" listening={false} />)}
       {otherDaysOpacity > 0 && (
         <Group clipFunc={clip} opacity={otherDaysOpacity} listening={false}>
           {legs.filter((leg) => !leg.inFocus).map((leg) => (

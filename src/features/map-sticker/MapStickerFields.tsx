@@ -3,11 +3,11 @@ import ColorField from '../../components/fields/ColorField'
 import SliderField from '../../components/fields/SliderField'
 import CheckboxField from '../../components/fields/CheckboxField'
 import Segmented from '../../components/ui/Segmented'
-import { useStickerColor } from '../../store/selectors'
+import { useRangeStats, useStickerColor } from '../../store/selectors'
 import { selectRouteDays, selectTrack } from '../../store/derived'
 import { archiveBaseName } from '../../utils/exportImage'
 import type { ElementVariant } from '../../utils/exportElement'
-import { DEFAULT_MAP_STICKER, MAP_STICKER_KIND, withLook, type MapStickerEdge, type MapStickerLook, type MapStickerShadow } from './model'
+import { DEFAULT_MAP_STICKER, MAP_STICKER_KIND, resolvedShape, withLook, type MapStickerEdge, type MapStickerLook, type MapStickerShadow } from './model'
 import Button from '../../components/ui/Button'
 import ElementPngSection from '../../components/panel/ElementPngSection'
 import { useAppStore } from '../../store/useAppStore'
@@ -20,6 +20,7 @@ export default function MapStickerFields() {
   const dayCount = useAppStore((s) => selectRouteDays(s).length)
   const trackName = useAppStore((s) => selectTrack(s)?.name ?? null)
   const scope = sticker.scope ?? DEFAULT_MAP_STICKER.scope
+  const shape = resolvedShape(sticker.shape ?? DEFAULT_MAP_STICKER.shape, useRangeStats()?.distanceKm ?? 0)
   const scopeValue = scope.kind === 'day' && scope.day < dayCount ? String(scope.day) : 'all'
   const fileBase = `naklejka-mapa-${archiveBaseName(trackName)}`
   const dayVariants = (): ElementVariant[] => [
@@ -36,6 +37,17 @@ export default function MapStickerFields() {
   const shadows: MapStickerShadow[] = ['none', 'soft', 'hard']
   return (
     <>
+      <Segmented
+        label={t('mapSticker.shape')}
+        showLabel
+        value={shape}
+        options={[
+          { value: 'country', label: t('mapSticker.shapes.country') },
+          { value: 'hull', label: t('mapSticker.shapes.hull') },
+          { value: 'region', label: t('mapSticker.shapes.regionLater'), disabled: true },
+        ]}
+        onChange={(v) => v !== 'region' && update({ shape: v })}
+      />
       <Segmented
         label={t('mapSticker.look')}
         showLabel
@@ -80,15 +92,17 @@ export default function MapStickerFields() {
         defaultValue={Math.round(DEFAULT_MAP_STICKER.size * 100)}
         onChange={(v) => update({ size: v / 100 })}
       />
-      <SliderField
-        label={t('mapSticker.margin')}
-        unit="%"
-        min={2}
-        max={40}
-        value={Math.round(margin * 100)}
-        defaultValue={Math.round(DEFAULT_MAP_STICKER.margin * 100)}
-        onChange={(v) => update({ margin: v / 100 })}
-      />
+      {shape === 'hull' && (
+        <SliderField
+          label={t('mapSticker.margin')}
+          unit="%"
+          min={2}
+          max={40}
+          value={Math.round(margin * 100)}
+          defaultValue={Math.round(DEFAULT_MAP_STICKER.margin * 100)}
+          onChange={(v) => update({ margin: v / 100 })}
+        />
+      )}
       <ColorField label={t('mapSticker.land')} value={sticker.palette.land} onChange={(land) => update({ palette: { ...sticker.palette, land } })} />
       <ColorField label={t('mapSticker.route')} value={sticker.route} onChange={(route) => update({ route })} />
       <ColorField label={t('mapSticker.start')} value={sticker.start} onChange={(start) => update({ start })} />

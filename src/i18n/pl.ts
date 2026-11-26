@@ -1341,6 +1341,8 @@ const pl = {
     label: 'Naklejka mapy',
     meta: 'trasa',
     size: 'Wielkość',
+    shape: 'Kształt',
+    shapes: { country: 'Kraj', hull: 'Okolica trasy', regionLater: 'Region · później' },
     margin: 'Okolica',
     look: 'Wygląd',
     looks: { journal: 'Dziennik', notes: 'Notes', sticker: 'Naklejka', sketch: 'Szkic' },

@@ -4,7 +4,7 @@ import { DEFAULT_MAP_STICKER } from '../features/map-sticker/model'
 import i18n, { type TKey } from '../i18n'
 
 const { shown: _shown, size: _size, ...DEFAULT_MAP_STICKER_LOOK } = DEFAULT_MAP_STICKER
-const LEGACY_NOTES_STICKER = { ...DEFAULT_MAP_STICKER_LOOK, routeOutside: false, labels: false }
+const LEGACY_NOTES_STICKER = { ...DEFAULT_MAP_STICKER_LOOK, routeOutside: false, labels: false, shape: 'hull' as const }
 import type { BackgroundPattern, HardShadow, PhotoMarker, RouteCasing, RouteStyle, StyleTemplate } from '../types'
 
 const { shape: _shape, schematicSimplify: _simplify, ...DEFAULT_ROUTE_LOOK } = DEFAULT_ROUTE_STYLE

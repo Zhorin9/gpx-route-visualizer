@@ -1343,6 +1343,8 @@ const en: typeof pl = {
     label: 'Map sticker',
     meta: 'route',
     size: 'Size',
+    shape: 'Shape',
+    shapes: { country: 'Country', hull: 'Around the route', regionLater: 'Region · later' },
     margin: 'Surroundings',
     look: 'Look',
     looks: { journal: 'Journal', notes: 'Notes', sticker: 'Sticker', sketch: 'Sketch' },
