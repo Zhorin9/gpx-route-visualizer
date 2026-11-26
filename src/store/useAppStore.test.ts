@@ -448,7 +448,7 @@ describe('style templates', () => {
     const notes = BUILT_IN_TEMPLATES.find((t) => t.id === 'notes')!
     get().updateMapSticker({ size: 0.7 })
     get().applyTemplate(notes, all)
-    expect(get().mapSticker).toMatchObject({ shown: true, route: '#e9572b', size: 0.7 })
+    expect(get().mapSticker).toMatchObject({ shown: true, route: '#e9572b', size: 0.7, look: 'notes', edge: 'white', shadow: 'soft', routeOutside: false })
     get().applyTemplate(papier, all)
     expect(get().mapSticker.shown).toBe(false)
   })

@@ -36,7 +36,7 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
   const adding = useAppStore((s) => s.addingWaypoint)
   const showSafeZones = useAppStore((s) => s.showSafeZones)
   const texts = useAppStore((s) => s.texts)
-  const routeAsSticker = useAppStore((s) => s.mapSticker.shown)
+  const routeHiddenBySticker = useAppStore((s) => s.mapSticker.shown && !s.mapSticker.routeOutside)
   const select = useAppStore((s) => s.select)
   const hasRoute = useHasRoute()
   const slides = useAppStore((s) => s.slides)
@@ -164,7 +164,7 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
         <PhotoLayer />
         <SeriesLayer />
         <Layer>
-          {hasRoute && !routeAsSticker && (
+          {hasRoute && !routeHiddenBySticker && (
             <SlideBox slide={0}>
               <RouteGroup />
             </SlideBox>

@@ -10,12 +10,12 @@ import { fitMercator, projectWithFit } from '../../utils/gpx'
 import { renderMapImage } from '../map/maplibre'
 import { provideSharpener } from '../../utils/exportElement'
 import { DEFAULT_MAP } from '../map/types'
-import { DEFAULT_MAP_STICKER, MAP_STICKER_KIND } from './model'
+import { DEFAULT_MAP_STICKER, LOOK_DRAWING, MAP_STICKER_KIND, STICKER_INK } from './model'
 import { convexHull, grown } from './shape'
 
 // Shares of the sticker's width, as on the style board.
-const MARGIN = 0.07
 const BORDER = 0.022
+const HARD_SHADOW = 0.02
 const ROUTE = 0.016
 // Map pixels per frame pixel: sharp in a 2× file.
 const MAP_SCALE = 2
@@ -28,6 +28,7 @@ export default function MapStickerNode() {
   const range = useAppStore((s) => s.range)
   const { w, h, safeZone } = FORMATS[aspectKey]
   const W = Math.round(w * (sticker.size ?? DEFAULT_MAP_STICKER.size))
+  const margin = sticker.margin ?? DEFAULT_MAP_STICKER.margin
 
   const layout = useMemo(() => {
     const points = track?.points.slice(Math.floor(range.start), Math.ceil(range.end) + 1)
@@ -40,11 +41,11 @@ export default function MapStickerNode() {
       minY = Math.min(minY, unit[i + 1]); maxY = Math.max(maxY, unit[i + 1])
     }
     const H = Math.round(W * Math.min(1.5, Math.max(0.6, (maxY - minY) / (maxX - minX || 1))))
-    const fit = fitMercator(points, W, H, W * (MARGIN + BORDER) * 1.4)
+    const fit = fitMercator(points, W, H, W * (margin + BORDER) * 1.4)
     const flat = projectWithFit(points, fit)
-    const outline = grown(convexHull(flat), W * MARGIN).flat()
+    const outline = grown(convexHull(flat), W * margin).flat()
     return { H, fit, flat: Array.from(flat), outline }
-  }, [track, range.start, range.end, W])
+  }, [track, range.start, range.end, W, margin])
 
   const [map, setMap] = useState<HTMLCanvasElement | null>(null)
   const { styleId, palette } = sticker
@@ -83,7 +84,10 @@ export default function MapStickerNode() {
 
   if (!layout) return null
   const { H, flat, outline } = layout
-  const border = W * BORDER
+  const drawing = LOOK_DRAWING[sticker.look ?? DEFAULT_MAP_STICKER.look]
+  const edgeColor = { none: null, white: '#ffffff', ink: STICKER_INK }[sticker.edge ?? DEFAULT_MAP_STICKER.edge]
+  const edgeWidth = edgeColor ? W * BORDER * 2 : 0
+  const routeWidth = W * ROUTE * drawing.routeWidthFactor
   const clip = (ctx: { beginPath: () => void; moveTo: (x: number, y: number) => void; lineTo: (x: number, y: number) => void; closePath: () => void }) => {
     ctx.beginPath()
     ctx.moveTo(outline[0], outline[1])
@@ -99,14 +103,18 @@ export default function MapStickerNode() {
       defaultX={w - (safeZone?.right ?? 0) - W - w * 0.06}
       defaultY={h - Math.min(bottomInset(aspectKey), (safeZone?.bottom ?? 0) + w * 0.06) - H}
     >
-      {/* The white edge, rounded by its joins, casts the sticker's shadow. */}
+      {sticker.shadow === 'hard' && (
+        <Line points={outline} closed x={W * HARD_SHADOW} y={W * HARD_SHADOW} fill={STICKER_INK} stroke={STICKER_INK} strokeWidth={edgeWidth} lineJoin="round" listening={false} />
+      )}
+      {/* The edge, rounded by its joins, casts the sticker's shadow. */}
       <Line
         points={outline}
         closed
-        fill="#ffffff"
-        stroke="#ffffff"
-        strokeWidth={border * 2}
+        fill={edgeColor ?? sticker.palette.land}
+        stroke={edgeColor ?? undefined}
+        strokeWidth={edgeWidth}
         lineJoin="round"
+        shadowEnabled={sticker.shadow === 'soft'}
         shadowColor="#000000"
         shadowBlur={W * 0.04}
         shadowOffsetY={W * 0.025}
@@ -117,7 +125,11 @@ export default function MapStickerNode() {
         <Line points={outline} closed fill={sticker.palette.land} />
         {map && <KonvaImage image={map} width={W} height={H} />}
       </Group>
-      <Line points={flat} stroke={sticker.route} strokeWidth={W * ROUTE} lineJoin="round" lineCap="round" listening={false} perfectDrawEnabled={false} />
+      {drawing.contourShare > 0 && <Line points={outline} closed stroke={STICKER_INK} strokeWidth={W * drawing.contourShare} lineJoin="round" listening={false} />}
+      {drawing.routeHalo && (
+        <Line points={flat} stroke={drawing.routeHalo} strokeWidth={routeWidth * 2.25} lineJoin="round" lineCap="round" listening={false} perfectDrawEnabled={false} />
+      )}
+      <Line points={flat} stroke={sticker.route} strokeWidth={routeWidth} lineJoin="round" lineCap="round" listening={false} perfectDrawEnabled={false} />
       <Circle x={flat[0]} y={flat[1]} radius={W * 0.02} fill={sticker.start} stroke="#ffffff" strokeWidth={W * 0.007} listening={false} />
     </DraggableElement>
   )
