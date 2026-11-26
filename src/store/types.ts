@@ -256,6 +256,7 @@ export interface ElementsSlice {
   removeMapSticker: (id: number) => void
   updateMapSticker: (id: number, patch: Partial<MapStickerSettings>) => void
   setLayerOrder: (keys: string[]) => void
+  arrangeMapStickers: (layout: Pick<DocumentState, 'mapStickers' | 'placements' | 'layerOrder'>) => void
   setKicker: (patch: Partial<DocumentState['kicker']>) => void
   // Besides a plain text: a loose icon, a badge or a text bent over an icon; all move and turn like a text.
   addText: (kind?: TextKind) => number

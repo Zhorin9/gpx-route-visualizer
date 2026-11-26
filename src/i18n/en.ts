@@ -242,6 +242,7 @@ const en: typeof pl = {
     pastel: 'circle, light',
     naklejka: 'one color, outline, icons',
     notes: 'handwritten, white, outlined route',
+    dziennik: 'country map from under a framed photo, handwritten capitals',
     szkicownik: 'paper, polaroid, Caveat',
     retro70: 'yellow, red shadow',
     dokument: 'typewriter',
@@ -270,6 +271,7 @@ const en: typeof pl = {
     pastel: 'Pastel',
     naklejka: 'Sticker',
     notes: 'Trail notes',
+    dziennik: 'Travel journal',
     szkicownik: 'Sketchbook',
     retro70: 'Retro 70s',
     dokument: 'Document',
@@ -682,6 +684,10 @@ const en: typeof pl = {
     crown: 'Crown (KOM)',
     medal: 'Medal',
     stopwatch: 'Time',
+  },
+  journal: {
+    arrangeCarousel: 'Lay out the carousel as on the board',
+    useOwnFont: 'Use your own font: {{family}}',
   },
   userFonts: {
     add: 'Add a font (.ttf, .otf, .woff2)',

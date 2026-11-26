@@ -9,6 +9,7 @@ import { templateName } from '../../utils/templates'
 import TextEditor from './TextEditor'
 import PlaceEditor from './PlaceEditor'
 import ElementRow from './ElementRow'
+import JournalSuggestions from './JournalSuggestions'
 import IconSvg from '../place/IconSvg'
 import { iconById } from '../place/icons'
 import { canvasElement, canvasElements, type CanvasElementDefinition } from '../../core/canvas/registry'
@@ -135,6 +136,7 @@ function StyleInUse() {
           {template ? t('elementsTab.changeStyle') : t('elementsTab.chooseStyle')}
         </Button>
       </div>
+      {template?.id === 'dziennik' && <JournalSuggestions />}
       {template && (
         <div className="style-in-use-actions">
           <Button size="sm" onClick={applyStyleEverywhere}>

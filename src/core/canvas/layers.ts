@@ -44,6 +44,11 @@ export function placedAt(order: LayerKey[], key: LayerKey, target: LayerKey): La
   return next
 }
 
+export function stickersUnderPhotos(order: LayerKey[], stickers: LayerKey[], photos: LayerKey[]): LayerKey[] {
+  if (!photos.length) return order
+  return [...stickers, ...photos, ...order.filter((k) => !stickers.includes(k) && !photos.includes(k))]
+}
+
 let keysOnFrame: LayerKey[] = []
 
 export const publishLayerKeys = (keys: LayerKey[]) => {

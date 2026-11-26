@@ -1,10 +1,11 @@
 import { DEFAULT_COLLAGE, DEFAULT_ROUTE_STYLE, DEFAULT_STATS_STYLE } from '../store/defaults'
 import { STICKER_COLORS, STICKER_INK } from './sticker'
-import { DEFAULT_MAP_STICKER, type MapStickerLookFields } from '../features/map-sticker/model'
+import { DEFAULT_MAP_STICKER, withLook, type MapStickerLookFields } from '../features/map-sticker/model'
 import i18n, { type TKey } from '../i18n'
 
 const { size: _size, margin: _margin, rotation: _rotation, zoom: _zoom, pan: _pan, scope: _scope, ...DEFAULT_MAP_STICKER_LOOK } = DEFAULT_MAP_STICKER
 const LEGACY_NOTES_STICKER: MapStickerLookFields = { ...DEFAULT_MAP_STICKER_LOOK, routeOutside: false, labels: false, shape: 'hull' }
+const JOURNAL_STICKER: MapStickerLookFields = { ...DEFAULT_MAP_STICKER_LOOK, ...withLook('journal', null), shape: 'country', edge: 'none', shadow: 'soft', labels: true, routeOutside: false }
 import type { BackgroundPattern, HardShadow, PhotoMarker, RouteCasing, RouteStyle, StyleTemplate } from '../types'
 
 const { shape: _shape, schematicSimplify: _simplify, ...DEFAULT_ROUTE_LOOK } = DEFAULT_ROUTE_STYLE
@@ -37,6 +38,7 @@ const RED = '#d7261e'
 
 const NO_FRAME = { ...DEFAULT_COLLAGE.frame, enabled: false }
 const POLAROID = { enabled: true, color: PRINT, thickness: 24, style: 'polaroid' as const }
+const FRAMED_ONLY_THIN_WHITE = { enabled: false, color: '#ffffff', thickness: 14, style: 'equal' as const }
 const points = (marker: PhotoMarker) => ({ marker, size: 'M' as const })
 
 type TemplateDefaults = 'fonts' | 'titleUppercase' | 'statsStyle' | 'frame' | 'layoutKey'
@@ -99,6 +101,9 @@ export const BUILT_IN_TEMPLATES: StyleTemplate[] = [
   // Kalam, not the board's Permanent Marker: that one has no Polish letters.
   template({ id: 'notes', name: 'Notes z trasy', desc: 'templates.notes', group: 'sticker', fonts: { title: 'Kalam', data: 'Kalam', note: 'Kalam' },
     titleUppercase: false, textColor: '#ffffff', statsStyle: columns(46), route: line('#e9572b', 15, undefined, { casing: casing(20, '#ffffff', 0) }), mapSticker: LEGACY_NOTES_STICKER, gradient: BROWN, pointStyle: points('label'), iconFinish: 'line' }),
+  template({ id: 'dziennik', name: 'Dziennik podróży', desc: 'templates.dziennik', group: 'sticker', fonts: { title: 'Patrick Hand', data: 'Patrick Hand', note: 'Patrick Hand' },
+    titleUppercase: true, textColor: '#ffffff', statsStyle: columns(40), route: line('#ea5a1c', 12), mapSticker: JOURNAL_STICKER, mapStickerUnderPhoto: true, frame: FRAMED_ONLY_THIN_WHITE,
+    gradient: BROWN, layoutKey: 'c1', pointStyle: points('label'), iconFinish: 'line' }),
   template({ id: 'szkicownik', name: 'Szkicownik', desc: 'templates.szkicownik', group: 'sticker', fonts: { title: 'Caveat', data: 'Caveat', note: 'Caveat' },
     titleUppercase: false, statsStyle: columns(30), textColor: '#3a2a1c', route: line('#3a2a1c', 8, undefined, { pen: 1, echo: { width: 0.45, opacity: 0.5, dx: 3, dy: 6 } }), frame: POLAROID,
     gradient: flat('#efe6d2', 'none', 6), layoutKey: 'c1', pointStyle: points('polaroid'), iconFinish: 'ink' }),

@@ -301,6 +301,7 @@ export interface StyleTemplate {
   kicker?: boolean
   // The route as a map sticker, in these colours; applied with the route.
   mapSticker?: MapStickerLookFields
+  mapStickerUnderPhoto?: boolean
   // Saved templates have a group of their own.
   group?: TemplateGroup
   custom?: boolean

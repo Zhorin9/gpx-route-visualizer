@@ -877,3 +877,15 @@ describe('layer order', () => {
     expect(get().layerOrder).toEqual(['text:1', 'route'])
   })
 })
+
+describe('travel journal style', () => {
+  it('puts a country-shaped journal map sticker under the framed photo, which alone has a thin white frame', () => {
+    const journal = BUILT_IN_TEMPLATES.find((t) => t.id === 'dziennik')!
+    get().applyTemplate(journal, { fonts: true, route: true, frame: true, colors: true, layout: true, points: true, effects: true, photo: true })
+    const [sticker] = get().mapStickers
+    expect(sticker).toMatchObject({ look: 'journal', shape: 'country', edge: 'none', shadow: 'soft', labels: true, route: '#ea5a1c' })
+    expect(get().collage.frame).toMatchObject({ enabled: false, color: '#ffffff', thickness: 14, style: 'equal' })
+    const order = get().layerOrder
+    expect(order.indexOf(`element:mapSticker:${sticker.id}`)).toBeLessThan(order.indexOf('slot:0:1'))
+  })
+})

@@ -60,6 +60,7 @@ export function createElementsSlice({ get, commit }: SliceContext): ElementsSlic
         mapStickers: s.mapStickers.filter((m) => m.id !== id),
         ...(s.selection?.kind === 'element' && s.selection.element === stickerKind(id) ? { selection: null } : null),
       })),
+    arrangeMapStickers: (layout) => commit('mapSticker:arrange', layout),
     setLayerOrder: (layerOrder) => commit(`layers:${layerOrder.join(',')}`, { layerOrder }),
     updateMapSticker: (id, patch) => commit(`mapSticker:${id}`, (s) => ({ mapStickers: s.mapStickers.map((m) => (m.id === id ? { ...m, ...patch } : m)) })),
     setKicker: (patch) => commit('kicker', (s) => ({ kicker: { ...s.kicker, ...patch } })),

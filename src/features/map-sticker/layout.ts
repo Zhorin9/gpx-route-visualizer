@@ -39,16 +39,26 @@ interface LayoutInput {
 
 export const panLimit = (zoom: number) => (1 - 1 / zoom) / 2
 
-function zoomedFit(fit: MercatorFit, W: number, H: number, zoom: number, pan: { x: number; y: number }): MercatorFit {
+function zoomedFit(fit: MercatorFit, W: number, H: number, zoom: number, pan: { x: number; y: number }, centre: { x: number; y: number }): MercatorFit {
   if (zoom <= 1) return fit
-  const limit = panLimit(zoom)
-  const px = Math.min(limit, Math.max(-limit, pan.x))
-  const py = Math.min(limit, Math.max(-limit, pan.y))
+  const viewW = W / (fit.scale * zoom)
+  const viewH = H / (fit.scale * zoom)
+  const x0 = fit.x0 + (centre.x + pan.x * W) / fit.scale - viewW / 2
+  const y0 = fit.y0 + (centre.y + pan.y * H) / fit.scale - viewH / 2
   return {
     scale: fit.scale * zoom,
-    x0: fit.x0 + (W / fit.scale) * ((1 - 1 / zoom) / 2 + px),
-    y0: fit.y0 + (H / fit.scale) * ((1 - 1 / zoom) / 2 + py),
+    x0: Math.min(fit.x0 + W / fit.scale - viewW, Math.max(fit.x0, x0)),
+    y0: Math.min(fit.y0 + H / fit.scale - viewH, Math.max(fit.y0, y0)),
   }
+}
+
+function centreOf(flat: ArrayLike<number>): { x: number; y: number } {
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
+  for (let i = 0; i < flat.length; i += 2) {
+    minX = Math.min(minX, flat[i]); maxX = Math.max(maxX, flat[i])
+    minY = Math.min(minY, flat[i + 1]); maxY = Math.max(maxY, flat[i + 1])
+  }
+  return { x: (minX + maxX) / 2, y: (minY + maxY) / 2 }
 }
 
 const asPoints = (ring: LonLat[]): GpxPoint[] => ring.map(([lon, lat]) => ({ lat, lon, ele: 0, time: null }))
@@ -73,7 +83,8 @@ export function stickerLayout({ points, lo, hi, day, parts, W, margin, countryRi
   const shapePoints = country ?? points.slice(focusLo, focusHi + 1)
   const H = boxHeight(shapePoints, W)
   const wholeShape = fitMercator(shapePoints, W, H, country ? W * BORDER * 1.4 : W * (margin + BORDER) * 1.4)
-  const fit = zoomedFit(wholeShape, W, H, zoom, pan)
+  const aim = day ? centreOf(projectWithFit(points.slice(focusLo, focusHi + 1), wholeShape)) : { x: W / 2, y: H / 2 }
+  const fit = zoomedFit(wholeShape, W, H, zoom, pan, aim)
   const flat = Array.from(projectWithFit(route, fit))
   const between = (a: number, b: number) => flat.slice((a - lo) * 2, (b - lo + 1) * 2)
   const shapes = countryRings?.length

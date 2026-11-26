@@ -240,6 +240,7 @@ const pl = {
     pastel: 'kółko, jasny',
     naklejka: 'jeden kolor, kontur, ikony',
     notes: 'odręczny, biały, trasa z obwódką',
+    dziennik: 'mapa kraju spod zdjęcia w ramce, odręczne wersaliki',
     szkicownik: 'papier, polaroid, Caveat',
     retro70: 'żółty, czerwony cień',
     dokument: 'maszyna do pisania',
@@ -268,6 +269,7 @@ const pl = {
     pastel: 'Pastel',
     naklejka: 'Naklejka',
     notes: 'Notes z trasy',
+    dziennik: 'Dziennik podróży',
     szkicownik: 'Szkicownik',
     retro70: 'Retro 70.',
     dokument: 'Dokument',
@@ -680,6 +682,10 @@ const pl = {
     crown: 'Korona (KOM)',
     medal: 'Medal',
     stopwatch: 'Czas',
+  },
+  journal: {
+    arrangeCarousel: 'Ułóż karuzelę jak na planszy',
+    useOwnFont: 'Użyj swojego kroju: {{family}}',
   },
   userFonts: {
     add: 'Dodaj krój (.ttf, .otf, .woff2)',

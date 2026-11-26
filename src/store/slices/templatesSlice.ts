@@ -1,13 +1,14 @@
-import { DEFAULT_MAP_STICKER, type MapSticker, type MapStickerLookFields } from '../../features/map-sticker/model'
+import { DEFAULT_MAP_STICKER, stickerKind, type MapSticker, type MapStickerLookFields } from '../../features/map-sticker/model'
+import { elementLayer, layerKeysOnFrame, slotLayer, stickersUnderPhotos } from '../../core/canvas/layers'
 import { paletteFrom } from '../../features/map/model/styles'
-import { frameStyleFor } from '../../utils/layouts'
+import { frameStyleFor, layoutDef, slotCount } from '../../utils/layouts'
 import { routeFields } from '../../utils/wrappers'
 import { joinTrack } from '../derived'
 import { pickDocument } from '../document'
 import { NO_PHOTO_LOOK } from '../../utils/photoLook'
 import { BUILT_IN_TEMPLATES } from '../../utils/templates'
 import i18n from '../../i18n'
-import type { GradientStyle, StyleTemplate, TemplateParts, TextNode, WrapperField } from '../../types'
+import type { GradientStyle, Slide, StyleTemplate, TemplateParts, TextNode, WrapperField } from '../../types'
 import type { AppState, DocumentState, SliceContext, TemplatesSlice } from '../types'
 
 type Look = Pick<AppState, 'collage' | 'map' | 'statsStyle' | 'titleStyle' | 'texts' | 'waypoints'>
@@ -89,7 +90,7 @@ export function withTemplate(s: TemplateTarget, template: StyleTemplate, parts: 
     waypoints,
     slides,
     map,
-    ...(parts.route ? { mapStickers: stickersInStyle(s.mapStickers, template.mapSticker) } : null),
+    ...(parts.route ? stickersPatch(s.mapStickers, template, slides) : null),
     ...(parts.route ? { routeStyle: { ...s.routeStyle, ...template.route, casing: template.route.casing, pen: template.route.pen, echo: template.route.echo } } : null),
     ...(parts.effects ? { iconFinish: template.iconFinish ?? 'sticker', stamp: !!template.stamp, kicker: { ...s.kicker, shown: !!template.kicker } } : null),
     ...(parts.colors ? { sticker: template.sticker ? { ...template.sticker } : null } : null),
@@ -101,6 +102,16 @@ export function withTemplate(s: TemplateTarget, template: StyleTemplate, parts: 
 function stickersInStyle(stickers: MapSticker[], look: MapStickerLookFields | undefined): MapSticker[] {
   if (!look) return []
   return stickers.length ? stickers.map((sticker) => ({ ...sticker, ...look })) : [{ ...DEFAULT_MAP_STICKER, ...look, id: 1 }]
+}
+
+export const framedPhotoLayers = (slides: Slide[]) =>
+  slides.flatMap((slide, i) => (slotCount(slide) ? layoutDef(slide.layoutKey).cells.flatMap((c, index) => (c.kind === 'framed' ? [slotLayer(i, index)] : [])) : []))
+
+function stickersPatch(current: MapSticker[], template: StyleTemplate, slides: Slide[]): Partial<DocumentState> {
+  const mapStickers = stickersInStyle(current, template.mapSticker)
+  if (!template.mapStickerUnderPhoto) return { mapStickers }
+  const stickers = mapStickers.map((m) => elementLayer(stickerKind(m.id)))
+  return { mapStickers, layerOrder: stickersUnderPhotos(layerKeysOnFrame(), stickers, framedPhotoLayers(slides)) }
 }
 
 const sameValue = (a: unknown, b: unknown) => a === b || JSON.stringify(a) === JSON.stringify(b)
