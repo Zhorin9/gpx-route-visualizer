@@ -320,6 +320,7 @@ const pl = {
     vivid: 'Ostry kontrast',
   },
   fonts: {
+    user: 'Twoje',
     handwritten: 'Odręczne',
     script: 'Kaligrafia i kursywa',
     display: 'Plakatowe i nagłówkowe',
@@ -679,6 +680,17 @@ const pl = {
     crown: 'Korona (KOM)',
     medal: 'Medal',
     stopwatch: 'Czas',
+  },
+  userFonts: {
+    add: 'Dodaj krój (.ttf, .otf, .woff2)',
+    added: 'Dodano krój „{{family}}”.',
+    addedMissing: 'Dodano krój „{{family}}”. Brakuje w nim: {{letters}}; te litery będą z kroju zapasowego.',
+    failed: 'Nie udało się wczytać tego pliku kroju.',
+    missing: 'brakuje: {{letters}}',
+    polishOk: 'polskie znaki ✓',
+    remove: 'Usuń krój {{family}}',
+    hint: 'Krój zostaje w tej przeglądarce, jak motyw i język. Brakujące polskie litery bierze z kroju zapasowego.',
+    notHere: 'Kroju „{{family}}” nie ma w tej przeglądarce; na grafice jest krój zapasowy. Dodaj go jako własny krój.',
   },
   fontField: {
     font: 'Czcionka',

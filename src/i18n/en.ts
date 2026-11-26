@@ -322,6 +322,7 @@ const en: typeof pl = {
     vivid: 'High contrast',
   },
   fonts: {
+    user: 'Yours',
     handwritten: 'Handwritten',
     script: 'Calligraphy and script',
     display: 'Poster and display',
@@ -681,6 +682,17 @@ const en: typeof pl = {
     crown: 'Crown (KOM)',
     medal: 'Medal',
     stopwatch: 'Time',
+  },
+  userFonts: {
+    add: 'Add a font (.ttf, .otf, .woff2)',
+    added: 'Font “{{family}}” added.',
+    addedMissing: 'Font “{{family}}” added. It lacks: {{letters}}; those letters come from a fallback font.',
+    failed: "Couldn't read this font file.",
+    missing: 'missing: {{letters}}',
+    polishOk: 'Polish letters ✓',
+    remove: 'Remove font {{family}}',
+    hint: 'The font stays in this browser, like the theme and language. Missing Polish letters come from a fallback font.',
+    notHere: 'Font “{{family}}” isn’t in this browser; the frame shows a fallback font. Add it as your own font.',
   },
   fontField: {
     font: 'Font',

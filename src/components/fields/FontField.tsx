@@ -3,7 +3,8 @@ import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import useDismiss from '../../hooks/useDismiss'
 import useMediaQuery, { PHONE_QUERY } from '../../hooks/useMediaQuery'
-import { FONT_CHOICES, FONT_GROUPS, ensureFontLoaded, fontWeight, type FontGroup } from '../../utils/fonts'
+import { FONT_GROUPS, ensureFontLoaded, fontWeight, type FontGroup } from '../../utils/fonts'
+import UserFontsPanel, { useFontChoices } from '../../features/user-fonts/UserFontsPanel'
 import { foldText } from '../../utils/foldText'
 import { IconCheck, IconChevron, IconSearch } from '../icons'
 import './FontField.css'
@@ -75,12 +76,13 @@ export default function FontField({ value, onChange }: { value: string; onChange
     void ensureFontLoaded(value)
   }, [value])
 
+  const choices = useFontChoices()
   const groupLabel = useCallback((group: FontGroup) => t(FONT_GROUPS.find((g) => g.key === group)?.label ?? 'fontField.font'), [t])
 
   const shown = useMemo(() => {
     const wanted = foldText(query.trim())
-    return FONT_CHOICES.filter((f) => (filter === 'all' || f.group === filter) && (!wanted || foldText(f.family).includes(wanted) || foldText(groupLabel(f.group)).includes(wanted)))
-  }, [query, filter, groupLabel])
+    return choices.filter((f) => (filter === 'all' || f.group === filter) && (!wanted || foldText(f.family).includes(wanted) || foldText(groupLabel(f.group)).includes(wanted)))
+  }, [choices, query, filter, groupLabel])
 
   const grouped = filter === 'all' && !query.trim()
   const optionId = (index: number) => `${listId}-${index}`
@@ -88,7 +90,7 @@ export default function FontField({ value, onChange }: { value: string; onChange
   function openPicker() {
     setQuery('')
     setFilter('all')
-    setActive(Math.max(0, FONT_CHOICES.findIndex((f) => f.family === value)))
+    setActive(Math.max(0, choices.findIndex((f) => f.family === value)))
     setOpen(true)
   }
 
@@ -137,7 +139,7 @@ export default function FontField({ value, onChange }: { value: string; onChange
     setActive(0)
   }
 
-  const current = FONT_CHOICES.find((f) => f.family === value)
+  const current = choices.find((f) => f.family === value)
 
   return (
     <div className="field">
@@ -161,6 +163,7 @@ export default function FontField({ value, onChange }: { value: string; onChange
         {current && <span className="font-trigger-group">{groupLabel(current.group)}</span>}
         <IconChevron className="font-trigger-chevron" />
       </button>
+      {!current && <p className="hint">{t('userFonts.notHere', { family: value })}</p>}
 
       {open &&
         createPortal(
@@ -186,12 +189,14 @@ export default function FontField({ value, onChange }: { value: string; onChange
             </label>
 
             <div className="filter-chips font-picker-filters" role="radiogroup" aria-label={t('fontField.styles')}>
-              {[{ key: 'all' as const, label: t('fontField.all') }, ...FONT_GROUPS.map((g) => ({ key: g.key, label: t(g.label) }))].map(({ key, label }) => (
+              {[{ key: 'all' as const, label: t('fontField.all') }, ...FONT_GROUPS.filter((g) => choices.some((f) => f.group === g.key)).map((g) => ({ key: g.key, label: t(g.label) }))].map(({ key, label }) => (
                 <button key={key} type="button" role="radio" aria-checked={filter === key} className="filter-chip" onClick={() => chooseFilter(key)}>
                   {label}
                 </button>
               ))}
             </div>
+
+            <UserFontsPanel onAdded={pick} />
 
             {shown.length ? (
               <ul ref={listRef} id={listId} role="listbox" aria-label={t('fontField.fonts')} className="font-picker-list">

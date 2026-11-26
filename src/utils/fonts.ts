@@ -1,8 +1,9 @@
 import type { TKey } from '../i18n'
 
-export type FontGroup = 'handwritten' | 'script' | 'display' | 'serif' | 'sans' | 'tech' | 'data'
+export type FontGroup = 'user' | 'handwritten' | 'script' | 'display' | 'serif' | 'sans' | 'tech' | 'data'
 
 const GROUP_LABELS: Record<FontGroup, TKey> = {
+  user: 'fonts.user',
   handwritten: 'fonts.handwritten',
   script: 'fonts.script',
   display: 'fonts.display',
@@ -107,9 +108,22 @@ const SAMPLE_TEXT = 'AaĄąĘęŁłŚśŻżŹźĆćŃńÓó0123'
 
 const loading = new Map<string, Promise<void>>()
 
+const userFontLoads = new Map<string, Promise<void>>()
+let userFontsListed: Promise<unknown> = Promise.resolve()
+
+export function provideUserFonts(listed: Promise<unknown>) {
+  userFontsListed = listed
+}
+
+export function provideUserFontLoad(family: string, load: Promise<void>) {
+  userFontLoads.set(family, load)
+}
+
+export const isBuiltInFont = (family: string) => FONTS_BY_FAMILY.has(family)
+
 export function ensureFontLoaded(family: string): Promise<void> {
   const def = FONTS_BY_FAMILY.get(family)
-  if (!def) return Promise.resolve()
+  if (!def) return userFontsListed.then(() => userFontLoads.get(family)).catch(() => undefined)
   let promise = loading.get(family)
   if (!promise) {
     promise = def
