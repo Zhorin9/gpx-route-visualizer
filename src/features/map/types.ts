@@ -17,6 +17,7 @@ export interface SketchSettings {
   paper: boolean
   // Off: no roads or rivers; lakes, the sea and the places stay.
   lines: boolean
+  marks: 'icons' | 'dots'
 }
 
 export interface MapSettings {
@@ -48,7 +49,7 @@ export interface MapSettings {
 
 export const DEFAULT_MAP: MapSettings = {
   kind: 'tiles',
-  sketch: { water: 'hatch', shores: true, roughness: 1, paper: true, lines: true },
+  sketch: { water: 'hatch', shores: true, roughness: 1, paper: true, lines: true, marks: 'icons' },
   styleId: 'liberty',
   palette: null,
   dim: 0,

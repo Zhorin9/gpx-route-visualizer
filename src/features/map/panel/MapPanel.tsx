@@ -57,6 +57,8 @@ function MapStylePicker() {
 
 const WATERS: SketchSettings['water'][] = ['hatch', 'wash', 'none']
 
+const MARKS: SketchSettings['marks'][] = ['icons', 'dots']
+
 export function MapCreditFields() {
   const { t } = useTranslation()
   const map = useAppStore((s) => s.map)
@@ -96,6 +98,13 @@ export default function MapPanel() {
             {!map.sketch.lines && <p className="hint">{t('map.sketch.noLinesHint')}</p>}
             <CheckboxField label={t('map.sketch.names')} checked={map.labels} onChange={(labels) => updateMap({ labels })} />
             {!map.labels && <p className="hint">{t('map.sketch.noNamesHint')}</p>}
+            <Segmented
+              label={t('map.sketch.marks')}
+              showLabel
+              value={map.sketch.marks ?? 'icons'}
+              options={MARKS.map((value) => ({ value, label: t(`map.sketch.markKinds.${value}`) }))}
+              onChange={(marks) => updateMap({ sketch: { ...map.sketch, marks } })}
+            />
             <Segmented label={t('map.sketch.water')} showLabel value={map.sketch.water} options={WATERS.map((value) => ({ value, label: t(`map.sketch.waters.${value}`) }))} onChange={(water) => updateMap({ sketch: { ...map.sketch, water } })} />
             <CheckboxField label={t('map.sketch.shores')} checked={map.sketch.shores} onChange={(shores) => updateMap({ sketch: { ...map.sketch, shores } })} />
             {map.sketch.water === 'none' && !map.sketch.shores && <p className="hint">{t('map.sketch.noWaterHint')}</p>}

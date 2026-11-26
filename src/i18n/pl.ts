@@ -1460,9 +1460,14 @@ const pl = {
       paper: 'Papier pod szkicem',
       noPaperHint: 'Bez papieru zostają same kreski i nazwy na przezroczystym tle: na przebitkę wybierz w eksporcie wideo „PNG + alfa”.',
       lines: 'Drogi i rzeki',
-      noLinesHint: 'Zostają miejscowości z kropkami, jeziora i morze.',
+      noLinesHint: 'Zostają miejscowości, jeziora i morze.',
       names: 'Nazwy miejscowości',
-      noNamesHint: 'Kropki miejscowości zostają, znikają ich nazwy, nazwy mórz i podpisy start i meta.',
+      marks: 'Znaki miejscowości',
+      markKinds: {
+        icons: 'Domki',
+        dots: 'Kropki',
+      },
+      noNamesHint: 'Znaki miejscowości zostają, znikają ich nazwy, nazwy mórz i podpisy start i meta.',
       water: 'Woda',
       waters: {
         hatch: 'Kreski',

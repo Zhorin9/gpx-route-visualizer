@@ -1462,9 +1462,14 @@ const en: typeof pl = {
       paper: 'Paper under the sketch',
       noPaperHint: 'Without paper only the lines and names remain on a transparent background: for an overlay, pick “PNG + alpha” in the video export.',
       lines: 'Roads and rivers',
-      noLinesHint: 'Towns with dots, lakes and the sea remain.',
+      noLinesHint: 'Towns, lakes and the sea remain.',
       names: 'Place names',
-      noNamesHint: 'Town dots remain; their names, sea names and the start and finish labels disappear.',
+      marks: 'Town marks',
+      markKinds: {
+        icons: 'Houses',
+        dots: 'Dots',
+      },
+      noNamesHint: 'Town marks remain; their names, sea names and the start and finish labels disappear.',
       water: 'Water',
       waters: {
         hatch: 'Hatching',
