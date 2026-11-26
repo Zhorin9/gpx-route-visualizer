@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import ColorField from '../../components/fields/ColorField'
 import SliderField from '../../components/fields/SliderField'
@@ -9,7 +10,8 @@ import { archiveBaseName } from '../../utils/exportImage'
 import type { ElementVariant } from '../../utils/exportElement'
 import { DEFAULT_MAP_STICKER, resolvedShape, stickerIdOf, stickerKind, withLook, type MapSticker, type MapStickerEdge, type MapStickerLook, type MapStickerScope, type MapStickerSettings, type MapStickerShadow } from './model'
 import RotationField from '../../components/fields/RotationField'
-import { IconCopy, IconTrash } from '../../components/icons'
+import { IconCopy, IconMove, IconReset, IconTrash } from '../../components/icons'
+import { usePanningSticker } from './panMode'
 import Button from '../../components/ui/Button'
 import ElementPngSection from '../../components/panel/ElementPngSection'
 import { useAppStore } from '../../store/useAppStore'
@@ -20,6 +22,32 @@ export default function MapStickerFields() {
     return s.mapStickers.find((m) => m.id === id)
   })
   return sticker ? <StickerFields sticker={sticker} /> : null
+}
+
+function PanControls({ sticker, onCentre }: { sticker: MapSticker; onCentre: () => void }) {
+  const { t } = useTranslation()
+  const panning = usePanningSticker((p) => p.id === sticker.id)
+  const setPanning = usePanningSticker((p) => p.set)
+  const zoomed = (sticker.zoom ?? 1) > 1
+  const pan = sticker.pan ?? DEFAULT_MAP_STICKER.pan
+  useEffect(() => () => usePanningSticker.getState().set(null), [sticker.id])
+  useEffect(() => {
+    if (!zoomed) setPanning(null)
+  }, [zoomed, setPanning])
+  if (!zoomed) return <p className="hint">{t('mapSticker.zoomToPanHint')}</p>
+  return (
+    <>
+      <div className="button-row">
+        <Button size="sm" icon={<IconMove />} pressed={panning} onClick={() => setPanning(panning ? null : sticker.id)}>
+          {t('mapSticker.moveMap')}
+        </Button>
+        <Button size="sm" variant="ghost" icon={<IconReset />} disabled={pan.x === 0 && pan.y === 0} onClick={onCentre}>
+          {t('mapSticker.centreMap')}
+        </Button>
+      </div>
+      <p className="hint">{t(panning ? 'mapSticker.panningHint' : 'mapSticker.panHint')}</p>
+    </>
+  )
 }
 
 function StickerFields({ sticker }: { sticker: MapSticker }) {
@@ -117,7 +145,7 @@ function StickerFields({ sticker }: { sticker: MapSticker }) {
         defaultValue={100}
         onChange={(v) => update(v === 100 ? { zoom: 1, pan: { x: 0, y: 0 } } : { zoom: v / 100 })}
       />
-      {(sticker.zoom ?? 1) > 1 && <p className="hint">{t('mapSticker.panHint')}</p>}
+      <PanControls sticker={sticker} onCentre={() => update({ pan: { x: 0, y: 0 } })} />
       <RotationField value={sticker.rotation ?? 0} onChange={(rotation) => update({ rotation })} />
       {shape === 'hull' && (
         <SliderField

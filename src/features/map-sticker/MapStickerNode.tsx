@@ -15,6 +15,7 @@ import { BORDER, panLimit, stickerLayout } from './layout'
 import { stageHandle } from '../../utils/exportImage'
 import type { MercatorFit } from '../../utils/gpx'
 import useCountryRings from './useCountryRings'
+import { usePanningSticker } from './panMode'
 import { labelSpan } from './labels'
 
 // Shares of the sticker's width, as on the style board.
@@ -64,6 +65,7 @@ export default function MapStickerNode({ sticker }: { sticker: MapSticker }) {
   const countryRings = country?.rings ?? null
 
   const zoom = sticker.zoom ?? 1
+  const panning = usePanningSticker((p) => p.id === sticker.id)
   const [panDraft, setPanDraft] = useState<{ x: number; y: number } | null>(null)
   const pan = panDraft ?? sticker.pan ?? DEFAULT_MAP_STICKER.pan
   const layout = useMemo(
@@ -113,9 +115,12 @@ export default function MapStickerNode({ sticker }: { sticker: MapSticker }) {
   )
 
   function panWithPointer(evt: MouseEvent | TouchEvent): boolean {
-    if (!(evt instanceof MouseEvent) || !evt.altKey || zoom <= 1) return false
-    const startX = evt.clientX
-    const startY = evt.clientY
+    const altDrag = evt instanceof MouseEvent && evt.altKey
+    if (zoom <= 1 || !(altDrag || panning)) return false
+    const start = 'touches' in evt ? (evt.touches[0] ?? evt.changedTouches[0]) : evt
+    if (!start) return false
+    const startX = start.clientX
+    const startY = start.clientY
     const from = sticker.pan ?? DEFAULT_MAP_STICKER.pan
     const framePx = 1 / (stageHandle.current?.scaleX() ?? 1)
     const limit = panLimit(zoom)
