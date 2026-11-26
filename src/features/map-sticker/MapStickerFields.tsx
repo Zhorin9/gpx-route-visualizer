@@ -1,8 +1,9 @@
 import { useTranslation } from 'react-i18next'
 import ColorField from '../../components/fields/ColorField'
 import SliderField from '../../components/fields/SliderField'
-import { DEFAULT_MAP_STICKER } from './model'
+import { DEFAULT_MAP_STICKER, MAP_STICKER_KIND } from './model'
 import Button from '../../components/ui/Button'
+import ElementPngSection from '../../components/panel/ElementPngSection'
 import { useAppStore } from '../../store/useAppStore'
 
 export default function MapStickerFields() {
@@ -26,6 +27,8 @@ export default function MapStickerFields() {
       <ColorField label={t('mapSticker.start')} value={sticker.start} onChange={(start) => update({ start })} />
       <p className="hint">{t('mapSticker.hint')}</p>
       <Button onClick={() => update({ shown: false })}>{t('mapSticker.back')}</Button>
+      <h6 className="subhead">{t('elementExport.heading')}</h6>
+      <ElementPngSection target={{ kind: 'element', element: MAP_STICKER_KIND }} />
     </>
   )
 }

@@ -6,6 +6,7 @@ import { useSlideAt, useStickerColor } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { UI_ONLY } from '../../utils/exportImage'
 import SlideBox from '../SlideBox'
+import { elementNodeId } from '../../utils/exportElement'
 import IconGlyph from './IconGlyph'
 import useIconLook from './useIconLook'
 import type { TextNode } from '../../types'
@@ -26,7 +27,7 @@ export default function LooseIcon({ node }: { node: TextNode }) {
   const onSelect = () => select({ kind: 'text', id: node.id })
 
   return (
-    <SlideBox slide={slide}>
+    <SlideBox slide={slide} id={elementNodeId({ kind: 'text', id: node.id })}>
       <Group
         x={node.x}
         y={node.y + animation.offsetY}

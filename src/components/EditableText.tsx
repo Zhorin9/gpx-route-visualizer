@@ -11,6 +11,7 @@ import { displayText, fittedTitleSize } from '../utils/title'
 import SelectionOutline from './SelectionOutline'
 import { useSlideAt, useStickerColor } from '../store/selectors'
 import SlideBox from './SlideBox'
+import { elementNodeId } from '../utils/exportElement'
 import type { TextNode, TextWarp } from '../types'
 import { textShadow } from '../core/canvas/shadows'
 import WarpedText from './WarpedText'
@@ -78,7 +79,7 @@ export default function EditableText({ node }: { node: TextNode }) {
     // A title keeps centring itself in its column.
     const shift = isTitle ? (span - line.width) / 2 : 0
     return (
-      <SlideBox slide={slide}>
+      <SlideBox slide={slide} id={elementNodeId({ kind: 'text', id: node.id })}>
         <Text ref={shapeRef} {...shared} text={full} visible={false} listening={false} />
         <WarpedText
           ref={warpedRef}
@@ -113,7 +114,7 @@ export default function EditableText({ node }: { node: TextNode }) {
   const badgeColor = sticker ?? node.badge?.color
 
   return (
-    <SlideBox slide={slide}>
+    <SlideBox slide={slide} id={elementNodeId({ kind: 'text', id: node.id })}>
       {node.badge && badgeColor && (
         <BadgeBack
           badge={node.badge}

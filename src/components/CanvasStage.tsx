@@ -23,6 +23,7 @@ import SeriesLayer from './SeriesLayer'
 import { PHOTO_DRAG_TYPE } from './panel/PhotoPool'
 import SlideBox from './SlideBox'
 import SlotToolbar from './SlotToolbar'
+import ElementToolbar from './ElementToolbar'
 import WrapperLayer from './WrapperLayer'
 import type { SlotRect } from '../utils/layouts'
 import { clamp } from '../utils/math'
@@ -181,6 +182,7 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
 
       {/* HTML overlays, so they can never end up in an exported image. */}
       <SlotToolbar previewScale={previewScale} />
+      <ElementToolbar />
       {dragRect && (
         <div
           className="drop-slot"

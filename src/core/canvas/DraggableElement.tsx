@@ -5,6 +5,7 @@ import SlideBox from '../../components/SlideBox'
 import { useSlideAt } from '../../store/selectors'
 import { useAppStore } from '../../store/useAppStore'
 import { UI_ONLY } from '../../utils/exportImage'
+import { elementNodeId } from '../../utils/exportElement'
 import { useLayerAnimation } from '../animation/layers'
 import { CHROME_ACCENT, SELECTION_OUTLINE } from './chrome'
 import { canvasElement } from './registry'
@@ -46,7 +47,7 @@ export default function DraggableElement({ kind, width, height, defaultX, defaul
   }
 
   return (
-    <SlideBox slide={slide}>
+    <SlideBox slide={slide} id={elementNodeId({ kind: 'element', element: kind })}>
       <Group
         x={x + width / 2}
         y={y + height / 2 + animation.offsetY}

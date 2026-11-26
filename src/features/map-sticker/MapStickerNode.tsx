@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Circle, Group, Image as KonvaImage, Line } from 'react-konva'
 import DraggableElement from '../../core/canvas/DraggableElement'
 import { FORMATS, bottomInset } from '../../core/formats/registry'
@@ -8,6 +8,7 @@ import { useAppStore } from '../../store/useAppStore'
 import useSettled from '../../hooks/useSettled'
 import { fitMercator, projectWithFit } from '../../utils/gpx'
 import { renderMapImage } from '../map/maplibre'
+import { provideSharpener } from '../../utils/exportElement'
 import { DEFAULT_MAP } from '../map/types'
 import { DEFAULT_MAP_STICKER, MAP_STICKER_KIND } from './model'
 import { convexHull, grown } from './shape'
@@ -18,6 +19,7 @@ const BORDER = 0.022
 const ROUTE = 0.016
 // Map pixels per frame pixel: sharp in a 2× file.
 const MAP_SCALE = 2
+const MAX_MAP_SIDE_PX = 4096
 
 export default function MapStickerNode() {
   const sticker = useAppStore((s) => s.mapSticker)
@@ -59,6 +61,25 @@ export default function MapStickerNode() {
       live = false
     }
   }, [wanted])
+
+  const latest = useRef(wanted)
+  latest.current = wanted
+  useEffect(
+    () =>
+      provideSharpener({ kind: 'element', element: MAP_STICKER_KIND }, async (filePxPerFramePx) => {
+        const want = latest.current
+        if (!want) return () => {}
+        const settings = { ...DEFAULT_MAP, styleId: want.styleId, palette: want.palette, labels: false }
+        const scale = Math.min(filePxPerFramePx, MAX_MAP_SIDE_PX / Math.max(want.W, want.layout.H))
+        if (scale <= MAP_SCALE) return () => {}
+        const sharp = await renderMapImage({ settings, fit: want.layout.fit, transform: IDENTITY_TRANSFORM }, want.W, want.layout.H, scale).catch(() => null)
+        if (!sharp) return () => {}
+        let preview: HTMLCanvasElement | null = null
+        setMap((current) => ((preview = current), sharp))
+        return () => setMap((current) => (current === sharp ? preview : current))
+      }),
+    [],
+  )
 
   if (!layout) return null
   const { H, flat, outline } = layout
