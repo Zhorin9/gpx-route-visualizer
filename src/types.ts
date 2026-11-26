@@ -32,7 +32,7 @@ export interface Stop {
   pause?: number
 }
 
-export type TravelModeId = 'plane' | 'train' | 'car' | 'bike' | 'foot'
+export type TravelModeId = 'plane' | 'train' | 'car' | 'bike' | 'foot' | 'ferry'
 
 export type LineKind = 'road' | 'straight' | 'arc'
 

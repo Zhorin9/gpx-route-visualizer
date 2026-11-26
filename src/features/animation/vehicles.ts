@@ -62,7 +62,7 @@ export const VEHICLES: VehicleDef[] = [
   {
     id: 'boat',
     label: 'animation.vehicles.boat',
-    path: 'M-11 2H11L8 6H-8Z M-1 .5V-10L8 .5Z M-2 .5V-8L-8 .5Z',
+    path: 'M-10 3H10L7 8H-7Z M-5 3V-2H5V3Z M-.6-2V-7H.6V-2Z',
     flipWhenWest: true,
   },
 ]

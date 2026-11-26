@@ -1561,6 +1561,7 @@ const en: typeof pl = {
       plane: 'Plane',
       foot: 'On foot',
       train: 'Train',
+      ferry: 'Ferry',
     },
     profiles: {
       trekking: 'Trekking',

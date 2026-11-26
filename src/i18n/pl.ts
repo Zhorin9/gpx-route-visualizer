@@ -1559,6 +1559,7 @@ const pl = {
       plane: 'Samolot',
       foot: 'Pieszo',
       train: 'Pociąg',
+      ferry: 'Prom',
     },
     profiles: {
       trekking: 'Trekking',
