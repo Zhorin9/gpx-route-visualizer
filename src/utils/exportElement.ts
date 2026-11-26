@@ -7,6 +7,7 @@ import { UI_ONLY, stageHandle, type ExportFile } from './exportImage'
 import { slugify } from './format'
 import { newCanvas } from './image'
 import type { Selection } from '../types'
+import type { DocumentState } from '../store/types'
 
 export type ElementTarget = { kind: 'text'; id: number } | Extract<Selection, { kind: 'element' }>
 
@@ -54,17 +55,14 @@ function snapshot(node: Konva.Node, rect: { x: number; y: number; width: number;
   return canvas
 }
 
-export async function renderElement(target: ElementTarget, longSide: PngSide): Promise<HTMLCanvasElement> {
-  const source = await beginStageFrames()
-  let restoreSharp = () => {}
+async function renderOnStage(target: ElementTarget, longSide: PngSide, paint: () => Promise<void>): Promise<HTMLCanvasElement> {
+  const node = stageHandle.current?.findOne(`#${elementNodeId(target)}`)
+  if (!node) throw new Error(i18n.t('elementExport.notFound'))
+  const frameRect = node.getClientRect({ relativeTo: node.getStage() ?? undefined })
+  const sharpen = sharpeners.get(elementNodeId(target))
+  const restoreSharp = sharpen ? await sharpen(longSide / Math.max(frameRect.width, frameRect.height, 1)) : () => {}
   try {
-    const node = stageHandle.current?.findOne(`#${elementNodeId(target)}`)
-    if (!node) throw new Error(i18n.t('elementExport.notFound'))
-    const frameRect = node.getClientRect({ relativeTo: node.getStage() ?? undefined })
-    const sharpen = sharpeners.get(elementNodeId(target))
-    if (sharpen) restoreSharp = await sharpen(longSide / Math.max(frameRect.width, frameRect.height, 1))
-    await source.useFormat(useAppStore.getState().aspectKey)
-
+    await paint()
     const loose = node.getClientRect()
     const rough = opaqueBounds(snapshot(node, loose, TRIM_PASS_RATIO))
     if (!rough) throw new Error(i18n.t('elementExport.empty'))
@@ -82,6 +80,35 @@ export async function renderElement(target: ElementTarget, longSide: PngSide): P
     return out
   } finally {
     restoreSharp()
+  }
+}
+
+export interface ElementVariant {
+  name: string
+  change: Partial<DocumentState>
+}
+
+export async function elementVariantPngs(target: ElementTarget, longSide: PngSide, variants: ElementVariant[]): Promise<ExportFile[]> {
+  const source = await beginStageFrames()
+  const paint = () => source.useFormat(useAppStore.getState().aspectKey)
+  try {
+    const files: ExportFile[] = []
+    for (const variant of variants) {
+      useAppStore.setState(variant.change)
+      await paint()
+      files.push({ name: variant.name, blob: await pngBlob(await renderOnStage(target, longSide, paint)) })
+    }
+    return files
+  } finally {
+    source.end()
+  }
+}
+
+export async function renderElement(target: ElementTarget, longSide: PngSide): Promise<HTMLCanvasElement> {
+  const source = await beginStageFrames()
+  try {
+    return await renderOnStage(target, longSide, () => source.useFormat(useAppStore.getState().aspectKey))
+  } finally {
     source.end()
   }
 }

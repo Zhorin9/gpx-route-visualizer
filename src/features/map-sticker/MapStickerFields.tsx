@@ -4,6 +4,9 @@ import SliderField from '../../components/fields/SliderField'
 import CheckboxField from '../../components/fields/CheckboxField'
 import Segmented from '../../components/ui/Segmented'
 import { useStickerColor } from '../../store/selectors'
+import { selectRouteDays, selectTrack } from '../../store/derived'
+import { archiveBaseName } from '../../utils/exportImage'
+import type { ElementVariant } from '../../utils/exportElement'
 import { DEFAULT_MAP_STICKER, MAP_STICKER_KIND, withLook, type MapStickerEdge, type MapStickerLook, type MapStickerShadow } from './model'
 import Button from '../../components/ui/Button'
 import ElementPngSection from '../../components/panel/ElementPngSection'
@@ -14,6 +17,18 @@ export default function MapStickerFields() {
   const update = useAppStore((s) => s.updateMapSticker)
   const { t } = useTranslation()
   const styleStickerColor = useStickerColor(0)
+  const dayCount = useAppStore((s) => selectRouteDays(s).length)
+  const trackName = useAppStore((s) => selectTrack(s)?.name ?? null)
+  const scope = sticker.scope ?? DEFAULT_MAP_STICKER.scope
+  const scopeValue = scope.kind === 'day' && scope.day < dayCount ? String(scope.day) : 'all'
+  const fileBase = `naklejka-mapa-${archiveBaseName(trackName)}`
+  const dayVariants = (): ElementVariant[] => [
+    ...Array.from({ length: dayCount }, (_, day) => ({
+      name: `${fileBase}-dzien-${day + 1}.png`,
+      change: { mapSticker: { ...sticker, scope: { kind: 'day' as const, day, only: scope.kind === 'day' && scope.only } } },
+    })),
+    { name: `${fileBase}.png`, change: { mapSticker: { ...sticker, scope: { kind: 'all' as const } } } },
+  ]
   const size = sticker.size ?? DEFAULT_MAP_STICKER.size
   const margin = sticker.margin ?? DEFAULT_MAP_STICKER.margin
   const looks: MapStickerLook[] = ['journal', 'notes', 'sticker', 'sketch']
@@ -28,6 +43,20 @@ export default function MapStickerFields() {
         options={looks.map((value) => ({ value, label: t(`mapSticker.looks.${value}`) }))}
         onChange={(look) => update(withLook(look, styleStickerColor))}
       />
+      {dayCount > 1 && (
+        <Segmented
+          label={t('mapSticker.scope')}
+          showLabel
+          wrap={dayCount > 3}
+          value={scopeValue}
+          options={[{ value: 'all', label: t('mapSticker.wholeRoute') }, ...Array.from({ length: dayCount }, (_, day) => ({ value: String(day), label: t('mapSticker.day', { n: day + 1 }) }))]}
+          onChange={(v) => update({ scope: v === 'all' ? { kind: 'all' } : { kind: 'day', day: Number(v), only: scope.kind === 'day' && scope.only } })}
+        />
+      )}
+      {scope.kind === 'day' && scopeValue !== 'all' && (
+        <CheckboxField label={t('mapSticker.onlyThisDay')} checked={scope.only} onChange={(only) => update({ scope: { ...scope, only } })} />
+      )}
+      <CheckboxField label={t('mapSticker.labels')} checked={sticker.labels ?? false} onChange={(labels) => update({ labels })} />
       <Segmented
         label={t('mapSticker.edge')}
         showLabel
@@ -63,11 +92,21 @@ export default function MapStickerFields() {
       <ColorField label={t('mapSticker.land')} value={sticker.palette.land} onChange={(land) => update({ palette: { ...sticker.palette, land } })} />
       <ColorField label={t('mapSticker.route')} value={sticker.route} onChange={(route) => update({ route })} />
       <ColorField label={t('mapSticker.start')} value={sticker.start} onChange={(start) => update({ start })} />
+      {sticker.labels && <ColorField label={t('mapSticker.labelColor')} value={sticker.labelColor} onChange={(labelColor) => update({ labelColor })} />}
       <CheckboxField label={t('mapSticker.routeOutside')} checked={sticker.routeOutside ?? false} onChange={(routeOutside) => update({ routeOutside })} />
       <p className="hint">{t('mapSticker.hint')}</p>
       <Button onClick={() => update({ shown: false })}>{t('mapSticker.back')}</Button>
       <h6 className="subhead">{t('elementExport.heading')}</h6>
-      <ElementPngSection target={{ kind: 'element', element: MAP_STICKER_KIND }} />
+      <ElementPngSection
+        target={{ kind: 'element', element: MAP_STICKER_KIND }}
+        more={(png) =>
+          dayCount > 1 && (
+            <Button block disabled={png.busy} onClick={() => png.downloadVariants(dayVariants(), fileBase)}>
+              {t('mapSticker.eachDayZip')}
+            </Button>
+          )
+        }
+      />
     </>
   )
 }

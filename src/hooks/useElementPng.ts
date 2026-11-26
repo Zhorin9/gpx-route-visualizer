@@ -1,8 +1,8 @@
 import { useState, useSyncExternalStore } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAppStore } from '../store/useAppStore'
-import { PNG_SIDES, canCopyImages, copyElementPng, elementPng, type ElementTarget, type PngSide } from '../utils/exportElement'
-import { downloadBlob } from '../utils/exportImage'
+import { PNG_SIDES, canCopyImages, copyElementPng, elementPng, elementVariantPngs, type ElementTarget, type ElementVariant, type PngSide } from '../utils/exportElement'
+import { downloadBlob, downloadFiles } from '../utils/exportImage'
 
 const SIDE_KEY = 'gpx.pngSide'
 const sideListeners = new Set<() => void>()
@@ -60,6 +60,8 @@ export default function useElementPng(target: ElementTarget | null) {
       const file = await elementPng(tg, longSide)
       downloadBlob(file.blob, file.name)
     }),
+    downloadVariants: (variants: ElementVariant[], archiveName: string) =>
+      run(async (tg) => downloadFiles(await elementVariantPngs(tg, longSide, variants), archiveName)),
     copy: () => run((tg) => copyElementPng(tg, longSide), t('elementExport.copied')),
   }
 }

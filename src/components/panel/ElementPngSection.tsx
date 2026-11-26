@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import Button from '../ui/Button'
 import Segmented from '../ui/Segmented'
@@ -5,7 +6,7 @@ import { IconCopy, IconDownload } from '../icons'
 import useElementPng from '../../hooks/useElementPng'
 import { PNG_SIDES, type ElementTarget, type PngSide } from '../../utils/exportElement'
 
-export default function ElementPngSection({ target }: { target: ElementTarget }) {
+export default function ElementPngSection({ target, more }: { target: ElementTarget; more?: (png: ReturnType<typeof useElementPng>) => ReactNode }) {
   const png = useElementPng(target)
   const { t } = useTranslation()
   return (
@@ -25,6 +26,7 @@ export default function ElementPngSection({ target }: { target: ElementTarget })
           {t('elementExport.copy')}
         </Button>
       )}
+      {more?.(png)}
       <p className="hint">{t('elementExport.hint')}</p>
     </div>
   )
