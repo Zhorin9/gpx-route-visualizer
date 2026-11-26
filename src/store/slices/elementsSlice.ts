@@ -14,9 +14,24 @@ const END_CAPTIONS = [
   { dx: 40, dy: -60, fontSize: 40 },
 ]
 const DISTANCE_CAPTION = { dx: -200, dy: -40, fontSize: 52 }
-import type { ElementsSlice, SliceContext } from '../types'
+import type { DocumentState, ElementsSlice, SliceContext } from '../types'
+import { elementLayer } from '../../core/canvas/layers'
 
 const DUPLICATE_SHIFT = 40
+
+type ElementTraces = Pick<DocumentState, 'placements' | 'layerOrder' | 'layoutOverrides'>
+
+function withoutElement(s: ElementTraces, kind: string): ElementTraces {
+  const { [kind]: _placed, ...placements } = s.placements
+  const layoutOverrides = Object.fromEntries(
+    Object.entries(s.layoutOverrides).map(([format, overrides]) => {
+      if (!overrides) return [format, overrides]
+      const { [kind]: _overridden, ...elements } = overrides.elements
+      return [format, { ...overrides, elements }]
+    }),
+  )
+  return { placements, layerOrder: s.layerOrder.filter((key) => key !== elementLayer(kind)), layoutOverrides }
+}
 
 
 // Derived from the list rather than a module counter, so ids stay unique after undo.
@@ -58,6 +73,7 @@ export function createElementsSlice({ get, commit }: SliceContext): ElementsSlic
     removeMapSticker: (id) =>
       commit('mapSticker:remove', (s) => ({
         mapStickers: s.mapStickers.filter((m) => m.id !== id),
+        ...withoutElement(s, stickerKind(id)),
         ...(s.selection?.kind === 'element' && s.selection.element === stickerKind(id) ? { selection: null } : null),
       })),
     arrangeMapStickers: (layout) => commit('mapSticker:arrange', layout),

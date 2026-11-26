@@ -13,6 +13,10 @@ describe('layer order', () => {
     expect(orderedLayers([...defaults, 'text:2'], stored)).toEqual(['element:mapSticker:1', 'slot:0:1', 'route', 'element:stats', 'text:1', 'text:2'])
   })
 
+  it('keeps everything else above a sticker put under the photo', () => {
+    expect(orderedLayers(defaults, ['element:mapSticker:1', 'slot:0:1'])).toEqual(['element:mapSticker:1', 'slot:0:1', 'route', 'element:stats', 'text:1'])
+  })
+
   it('forgets things that are gone', () => {
     expect(orderedLayers(['route', 'text:1'], ['text:9', 'text:1', 'route'])).toEqual(['text:1', 'route'])
   })

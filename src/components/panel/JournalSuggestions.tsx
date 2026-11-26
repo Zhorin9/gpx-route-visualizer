@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next'
 import Button from '../ui/Button'
-import { layerKeysOnFrame } from '../../core/canvas/layers'
 import { journalCarousel } from '../../features/map-sticker/journal'
 import { useUserFonts } from '../../features/user-fonts/UserFontsPanel'
 import { selectRouteDays } from '../../store/derived'
@@ -21,7 +20,7 @@ export default function JournalSuggestions() {
       {carousel && (
         <Button size="sm" onClick={() => {
           const s = useAppStore.getState()
-          arrange(journalCarousel(s, selectRouteDays(s).length, layerKeysOnFrame()))
+          arrange(journalCarousel(s, selectRouteDays(s).length))
         }}>
           {t('journal.arrangeCarousel')}
         </Button>

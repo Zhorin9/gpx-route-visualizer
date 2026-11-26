@@ -124,14 +124,19 @@ export default function MapStickerNode({ sticker }: { sticker: MapSticker }) {
       y: Math.min(limit, Math.max(-limit, from.y - ((e.clientY - startY) * framePx) / ((layout?.H ?? W) * zoom))),
     })
     const move = (e: PointerEvent) => setPanDraft(panAt(e))
-    const end = (e: PointerEvent) => {
+    const stop = () => {
       window.removeEventListener('pointermove', move)
       window.removeEventListener('pointerup', end)
+      window.removeEventListener('pointercancel', stop)
       setPanDraft(null)
+    }
+    const end = (e: PointerEvent) => {
+      stop()
       updateMapSticker(sticker.id, { pan: panAt(e) })
     }
     window.addEventListener('pointermove', move)
     window.addEventListener('pointerup', end)
+    window.addEventListener('pointercancel', stop)
     return true
   }
 

@@ -445,7 +445,7 @@ describe('style templates', () => {
     expect(get().stamp).toBe(false)
   })
 
-  it('puts a map sticker on with Notes z trasy, keeps its size set by hand, and takes it off with another style', () => {
+  it('puts a map sticker on with Notes z trasy, keeps its size set by hand, and keeps it with another style', () => {
     const notes = BUILT_IN_TEMPLATES.find((t) => t.id === 'notes')!
     get().addMapSticker()
     const id = get().mapStickers[0].id
@@ -453,8 +453,9 @@ describe('style templates', () => {
     get().applyTemplate(notes, all)
     expect(get().mapStickers).toHaveLength(1)
     expect(get().mapStickers[0]).toMatchObject({ id, route: '#e9572b', size: 0.7, look: 'notes', edge: 'white', shadow: 'soft', routeOutside: false })
+    const kept = get().mapStickers
     get().applyTemplate(papier, all)
-    expect(get().mapStickers).toEqual([])
+    expect(get().mapStickers).toEqual(kept)
   })
 
   it('duplicates a map sticker with its settings, a little off the original', () => {
@@ -468,6 +469,16 @@ describe('style templates', () => {
     expect(copy.id).not.toBe(original.id)
     expect(get().placements[`mapSticker:${copy.id}`]).toEqual({ x: 140, y: 240 })
     expect(get().selection).toEqual({ kind: 'element', element: `mapSticker:${copy.id}` })
+  })
+
+  it('leaves no place or layer behind when a map sticker is removed, so a new one starts fresh', () => {
+    const kind = get().addMapSticker()
+    const id = get().mapStickers[0].id
+    get().setPlacement(kind, { x: 10, y: 20 })
+    get().setLayerOrder([`element:${kind}`, 'text:1'])
+    get().removeMapSticker(id)
+    expect(get().placements[kind]).toBeUndefined()
+    expect(get().layerOrder).toEqual(['text:1'])
   })
 
   it('drops the selection when undo takes away the selected map sticker', () => {

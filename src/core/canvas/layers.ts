@@ -1,4 +1,5 @@
-import type { ElementKind, Selection } from '../../types'
+import { layoutDef, slotCount } from '../../utils/layouts'
+import type { ElementKind, Selection, Slide } from '../../types'
 
 export type LayerKey = string
 export type LayerMove = 'front' | 'back' | 'up' | 'down'
@@ -19,12 +20,11 @@ export function layerKeyOf(selection: Selection | null): LayerKey | null {
 export function orderedLayers(defaults: LayerKey[], stored: readonly LayerKey[]): LayerKey[] {
   const present = new Set(defaults)
   const order = [...new Set(stored)].filter((key) => present.has(key))
-  for (let i = defaults.length - 1; i >= 0; i--) {
-    const key = defaults[i]
-    if (order.includes(key)) continue
-    const above = defaults.slice(i + 1).find((k) => order.includes(k))
-    order.splice(above ? order.indexOf(above) : order.length, 0, key)
-  }
+  defaults.forEach((key, i) => {
+    if (order.includes(key)) return
+    const below = defaults.slice(0, i).map((k) => order.indexOf(k)).filter((at) => at >= 0)
+    order.splice(below.length ? Math.max(...below) + 1 : 0, 0, key)
+  })
   return order
 }
 
@@ -43,6 +43,9 @@ export function placedAt(order: LayerKey[], key: LayerKey, target: LayerKey): La
   next.splice(to, 0, key)
   return next
 }
+
+export const framedPhotoLayers = (slides: Slide[]) =>
+  slides.flatMap((slide, i) => (slotCount(slide) ? layoutDef(slide.layoutKey).cells.flatMap((c, index) => (c.kind === 'framed' ? [slotLayer(i, index)] : [])) : []))
 
 export function stickersUnderPhotos(order: LayerKey[], stickers: LayerKey[], photos: LayerKey[]): LayerKey[] {
   if (!photos.length) return order
