@@ -25,7 +25,7 @@ export function drawnTone(map: MapSettings): Tone {
 }
 
 // A faded map takes on the tone of the ground under it.
-export function mapTone(map: MapSettings): Tone {
+function mapTone(map: MapSettings): Tone {
   const tone = drawnTone(map)
   if (map.opacity >= 1) return tone
   return toneOf(mixHex(tone === 'dark' ? '#2b2c30' : '#ecebe7', map.ground, 1 - map.opacity))

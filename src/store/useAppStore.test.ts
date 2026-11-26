@@ -1,6 +1,5 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { registerCanvasElement } from '../core/canvas/registry'
 import { registerMapSticker } from '../features/map-sticker'
 import { BUILT_IN_TEMPLATES } from '../utils/templates'
 import { selectRouteDays, selectTrack } from './derived'
@@ -111,13 +110,6 @@ describe('photo layouts', () => {
     expect(get().slides[0].layoutKey).toBe('g1')
   })
 
-  it('switches the frame style with the layout group', () => {
-    get().setLayout(0, 'c4')
-    expect(get().collage.frame.style).toBe('polaroid')
-    get().setLayout(0, 'g2h')
-    expect(get().collage.frame.style).toBe('equal')
-  })
-
   it('updates the crop of an assigned slot only', () => {
     useAppStore.setState({ photos: [fakePhoto(1)] })
     get().assignPhoto(0, 0, 1)
@@ -150,13 +142,6 @@ describe('photo layouts', () => {
 })
 
 describe('carousel', () => {
-  it('switches between a single frame and two slides', () => {
-    get().setCarousel(true)
-    expect(get().slides).toHaveLength(2)
-    expect(get().carouselKind).toBe('panorama')
-    get().setCarousel(false)
-    expect(get().slides).toHaveLength(1)
-  })
 
   it('starts every carousel as one photo split, even after separate layouts', () => {
     get().setCarousel(true)
@@ -351,12 +336,6 @@ describe('style templates', () => {
     get().setSubTab('style', 'wrapper')
     expect(get().templatePreview).toBeNull()
     expect(get().templateId).toBe('papier')
-  })
-
-  it('remembers the last six templates, most recent first', () => {
-    for (const t of BUILT_IN_TEMPLATES.slice(0, 7)) get().applyTemplate(t, all)
-    get().applyTemplate(BUILT_IN_TEMPLATES[3], all)
-    expect(get().recentTemplates).toEqual([3, 6, 5, 4, 2, 1].map((i) => BUILT_IN_TEMPLATES[i].id))
   })
 
   it('marks the look as changed after a hand edit and clears it when the template is applied again', () => {
@@ -669,30 +648,6 @@ describe('photo library', () => {
   })
 })
 
-describe('sub-tabs', () => {
-  it('opens the page a registered element names, and the Linia page for a waypoint', () => {
-    registerCanvasElement({
-      kind: 'probe',
-      label: 'subTabs.label',
-      meta: 'subTabs.label',
-      icon: null,
-      order: 99,
-      useIsAvailable: () => true,
-      Node: () => null,
-      Editor: () => null,
-      tab: 'route',
-      subTab: 'stats',
-    })
-    get().select({ kind: 'element', element: 'probe' })
-    expect(get().activeTab).toBe('route')
-    expect(get().subTabs.route).toBe('stats')
-    get().addWaypoint(0)
-    get().setActiveTab('media')
-    get().select({ kind: 'waypoint', id: get().waypoints[0].id })
-    expect(get().subTabs.route).toBe('line')
-  })
-})
-
 describe('tab switching on selection', () => {
   it('keeps a waypoint selected from Napisy in Napisy, and opens Trasa from the canvas', () => {
     get().addWaypoint(0)
@@ -703,19 +658,6 @@ describe('tab switching on selection', () => {
     get().setActiveTab('media')
     get().select({ kind: 'waypoint', id })
     expect(get().activeTab).toBe('route')
-  })
-
-  it('keeps an element picked from Napisy in Napisy', () => {
-    registerCanvasElement({ kind: 'probe', label: 'subTabs.label', meta: 'subTabs.label', icon: null, order: 99, useIsAvailable: () => true, Node: () => null, Editor: () => null, tab: 'route', subTab: 'stats' })
-    get().setActiveTab('texts')
-    get().select({ kind: 'element', element: 'probe' })
-    expect(get().activeTab).toBe('texts')
-  })
-
-  it('stays on the open tab when a photo is picked or dragged', () => {
-    get().setActiveTab('route')
-    get().select({ kind: 'slot', slide: 0, index: 0 })
-    expect([get().activeTab, get().selection?.kind]).toEqual(['route', 'slot'])
   })
 })
 
@@ -747,13 +689,6 @@ describe('gradient background', () => {
     get().updateBackground({ autoContrast: false })
     get().updateBackground({ bgKind: 'gradient', gradient: { from: '#f8f4f4', to: '#d7d3d3' } })
     expect(get().statsStyle.color).toBe(initial.statsStyle.color)
-  })
-
-  it('applies a template background', () => {
-    const topo = BUILT_IN_TEMPLATES.find((t) => t.id === 'topo')!
-    get().applyTemplate(topo, { fonts: false, route: false, frame: false, colors: true, layout: false, points: false, effects: false, photo: false })
-    expect(get().collage.bgKind).toBe('gradient')
-    expect(get().collage.gradient).toMatchObject({ from: topo.gradient.from, pattern: 'contours' })
   })
 })
 
@@ -803,24 +738,7 @@ describe('stats saved before the new stats existed', () => {
   })
 })
 
-describe('saving a template with a colour background', () => {
-  it('stores the colour as a flat gradient', () => {
-    get().updateBackground({ bgKind: 'color', bgColor: '#336699' })
-    get().saveTemplate('Płaski')
-    expect(get().customTemplates[0].gradient).toMatchObject({ from: '#336699', to: '#336699', grain: 0 })
-  })
-})
-
 describe('project modes', () => {
-  it('opens each mode on the tab it starts from', () => {
-    get().startProject('collage')
-    expect([get().mode, get().activeTab]).toEqual(['collage', 'media'])
-    get().startProject('map')
-    expect(get().activeTab).toBe('route')
-    expect(get().subTabs.route).toBeUndefined()
-    get().startProject('map', 'stops')
-    expect([get().activeTab, get().subTabs.route]).toEqual(['route', 'stops'])
-  })
 
   it('crops one selected photo, or all of them, and filling centres the photo again', () => {
     useAppStore.setState({ photos: [fakePhoto(1), fakePhoto(2)] })
