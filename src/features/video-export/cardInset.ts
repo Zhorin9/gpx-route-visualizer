@@ -43,7 +43,7 @@ export function cardRect(inset: CardInset, card: AspectKey): CardRect {
 }
 
 // 0 off screen, 1 at rest: in over the first moments, out over the last.
-export function cardPresence(t: number, duration: number): number {
+function cardPresence(t: number, duration: number): number {
   const slide = Math.min(SLIDE_S, duration / 3)
   return easeInOut(clamp01(Math.min(t, duration - t) / slide))
 }

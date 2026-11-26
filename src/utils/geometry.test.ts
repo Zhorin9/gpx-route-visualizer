@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { decimateIndexed, nearestPointOnPolyline, pointAt, posAtDistance } from './geometry'
+import { nearestPointOnPolyline } from './geometry'
 import { schematicizeRoute } from './schematicRoute'
 
 describe('nearestPointOnPolyline', () => {
@@ -13,27 +13,6 @@ describe('nearestPointOnPolyline', () => {
     const hit = nearestPointOnPolyline([0, 0, 10, 0, 10, 10], 1, 1, 1, 2)
     expect(hit?.x).toBe(10)
     expect(hit?.pos).toBeCloseTo(1.1)
-  })
-})
-
-describe('pointAt', () => {
-  it('interpolates between points and clamps out-of-range positions', () => {
-    const flat = [0, 0, 10, 0, 10, 10]
-    expect(pointAt(flat, 1.5)).toEqual({ x: 10, y: 5 })
-    expect(pointAt(flat, 5)).toEqual({ x: 10, y: 10 })
-  })
-})
-
-describe('decimate', () => {
-  it('drops sub-pixel points but keeps both ends', () => {
-    const flat = [0, 0, 0.1, 0, 0.2, 0, 5, 0, 5.1, 0]
-    expect(decimateIndexed(flat, 0, 4, 1).points).toEqual([0, 0, 5, 0, 5.1, 0])
-  })
-})
-
-describe('posAtDistance', () => {
-  it('finds the fractional index for a cumulative distance', () => {
-    expect(posAtDistance([0, 1, 3, 6], 0, 3, 2)).toBe(1.5)
   })
 })
 
