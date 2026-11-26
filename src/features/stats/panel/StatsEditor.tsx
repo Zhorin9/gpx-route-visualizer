@@ -14,8 +14,7 @@ import { useAppStore } from '../../../store/useAppStore'
 import FontField from '../../../components/fields/FontField'
 import RotationField from '../../../components/fields/RotationField'
 import ShadowField from '../../../components/fields/ShadowField'
-import { formatNumber } from '../../../utils/format'
-import { distanceUnit, heightUnit } from '../../../core/units'
+import { heightUnit } from '../../../core/units'
 import { STAT_DEFINITIONS, statDefinition, type StatDefinition } from '../model/definitions'
 import { STATS_ARRANGEMENTS } from '../model/registry'
 import type { RangeStats, SelectOption, StatKey, StatsContent } from '../../../types'
@@ -38,20 +37,6 @@ function DaySettings() {
   return <TextField label={t('stats.panel.dayText')} value={dayLabel} onChange={(v) => updateStatsContent({ dayLabel: v })} />
 }
 
-function DistanceSettings() {
-  const precision = useAppStore((s) => s.statsContent.distancePrecision)
-  const units = useAppStore((s) => s.statsContent.units)
-  const updateStatsContent = useAppStore((s) => s.updateStatsContent)
-  const { t } = useTranslation()
-  const options = [0, 1, 2].map((digits) => ({ value: String(digits), label: `${formatNumber(15.678, digits)} ${distanceUnit(units)}` }))
-  return (
-    <>
-      <SelectField label={t('stats.panel.precision')} value={String(precision)} options={options} onChange={(v) => updateStatsContent({ distancePrecision: Number(v) })} />
-      <OverrideField statKey="distance" />
-    </>
-  )
-}
-
 function ElevationSettings({ statKey }: { statKey: OverridableKey }) {
   const roundTo = useAppStore((s) => s.statsContent.elevationRoundTo)
   const units = useAppStore((s) => s.statsContent.units)
@@ -69,7 +54,7 @@ function ElevationSettings({ statKey }: { statKey: OverridableKey }) {
 // Extra settings shown under a ticked stat; every figure can be typed by hand.
 const STAT_SETTINGS: Record<StatKey, ComponentType> = {
   day: DaySettings,
-  distance: DistanceSettings,
+  distance: () => <OverrideField statKey="distance" />,
   elevation: () => <ElevationSettings statKey="elevation" />,
   maxElevation: () => <ElevationSettings statKey="maxElevation" />,
   time: () => <OverrideField statKey="time" />,

@@ -12,6 +12,13 @@ export interface MapStyleDef {
   credit: string
   // Terms of use, reviewed if the app ever stops being free.
   terms: TKey
+  swatch: MapSwatch
+}
+
+export interface MapSwatch {
+  land: string
+  water: string
+  road: string
 }
 
 const OFM_CREDIT = '© OpenFreeMap © OpenMapTiles, dane © OpenStreetMap'
@@ -36,11 +43,11 @@ const SATELLITE: StyleJson = {
 }
 
 export const MAP_STYLES: MapStyleDef[] = [
-  { id: 'positron', label: 'map.styles.positron', url: 'https://tiles.openfreemap.org/styles/positron', tone: 'light', credit: OFM_CREDIT, terms: OFM_TERMS },
-  { id: 'liberty', label: 'map.styles.liberty', url: 'https://tiles.openfreemap.org/styles/liberty', tone: 'light', credit: OFM_CREDIT, terms: OFM_TERMS },
-  { id: 'bright', label: 'map.styles.bright', url: 'https://tiles.openfreemap.org/styles/bright', tone: 'light', credit: OFM_CREDIT, terms: OFM_TERMS },
-  { id: 'dark', label: 'map.styles.dark', url: 'https://tiles.openfreemap.org/styles/dark', tone: 'dark', credit: OFM_CREDIT, terms: OFM_TERMS },
-  { id: 'fiord', label: 'map.styles.fiord', url: 'https://tiles.openfreemap.org/styles/fiord', tone: 'dark', credit: OFM_CREDIT, terms: OFM_TERMS },
+  { id: 'positron', label: 'map.styles.positron', url: 'https://tiles.openfreemap.org/styles/positron', tone: 'light', credit: OFM_CREDIT, terms: OFM_TERMS, swatch: { land: '#f2f2f0', water: '#c6d5e1', road: '#d4d4d0' } },
+  { id: 'liberty', label: 'map.styles.liberty', url: 'https://tiles.openfreemap.org/styles/liberty', tone: 'light', credit: OFM_CREDIT, terms: OFM_TERMS, swatch: { land: '#f1ede3', water: '#a9cbe8', road: '#f3c46f' } },
+  { id: 'bright', label: 'map.styles.bright', url: 'https://tiles.openfreemap.org/styles/bright', tone: 'light', credit: OFM_CREDIT, terms: OFM_TERMS, swatch: { land: '#f6f1e6', water: '#86bfee', road: '#ee8f3c' } },
+  { id: 'dark', label: 'map.styles.dark', url: 'https://tiles.openfreemap.org/styles/dark', tone: 'dark', credit: OFM_CREDIT, terms: OFM_TERMS, swatch: { land: '#2b2b2d', water: '#161719', road: '#55555a' } },
+  { id: 'fiord', label: 'map.styles.fiord', url: 'https://tiles.openfreemap.org/styles/fiord', tone: 'dark', credit: OFM_CREDIT, terms: OFM_TERMS, swatch: { land: '#45516e', water: '#343f57', road: '#7584a3' } },
   {
     id: 'satellite',
     label: 'map.styles.satellite',
@@ -48,6 +55,7 @@ export const MAP_STYLES: MapStyleDef[] = [
     tone: 'dark',
     credit: 'Zdjęcia © Esri, Maxar, Earthstar Geographics',
     terms: 'map.terms.esri',
+    swatch: { land: '#566a3f', water: '#2e4850', road: '#bba982' },
   },
 ]
 

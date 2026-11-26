@@ -46,3 +46,12 @@ export function steadyStyle(style: RouteStyle, zoom: number): RouteStyle {
     casing: style.casing && { ...style.casing, width: style.casing.width / zoom, dx: style.casing.dx / zoom, dy: style.casing.dy / zoom },
   }
 }
+
+const MIN_ROUTE_SCALE = 0.05
+const MAX_ROUTE_SCALE = 60
+
+export function zoomedAround(t: RouteTransform, at: { x: number; y: number }, factor: number): RouteTransform {
+  const scale = Math.abs(t.scaleX)
+  const k = Math.min(MAX_ROUTE_SCALE, Math.max(MIN_ROUTE_SCALE, scale * factor)) / scale
+  return { ...t, x: at.x + k * (t.x - at.x), y: at.y + k * (t.y - at.y), scaleX: t.scaleX * k, scaleY: t.scaleY * k }
+}

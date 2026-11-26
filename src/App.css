@@ -416,8 +416,36 @@
   cursor: crosshair;
 }
 
-.stage-wrapper .can-pan {
+.stage-wrapper .can-pan,
+.stage-wrapper.map-navigable .konvajs-content {
   cursor: grab;
+}
+
+.stage-wrapper.map-navigable .is-panning .konvajs-content,
+.stage-wrapper.map-navigable .is-panning {
+  cursor: grabbing;
+}
+
+.map-zoom {
+  position: absolute;
+  right: var(--space-3);
+  bottom: var(--space-3);
+  z-index: 9;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.map-zoom .btn {
+  border: none;
+  border-radius: 0;
+}
+
+.map-zoom .btn + .btn {
+  border-top: 1px solid var(--border);
 }
 
 .safe-zones {
@@ -1422,6 +1450,44 @@
   flex-shrink: 0;
   font-size: var(--text-sm);
   color: var(--text-muted);
+}
+
+.element-row-slot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.element-row.has-delete {
+  padding-right: 44px;
+}
+
+.element-row-delete {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  color: var(--danger);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.element-row-delete:hover,
+.element-row-delete:focus-visible {
+  background: var(--danger-soft);
+  border-color: color-mix(in srgb, var(--danger) 50%, transparent);
+}
+
+.element-row-delete svg {
+  width: 16px;
+  height: 16px;
 }
 
 .chip-list {

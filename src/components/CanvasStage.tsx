@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Stage, Layer } from 'react-konva'
 import type Konva from 'konva'
 import useGpxImport from '../hooks/useGpxImport'
+import useMapNavigation from '../hooks/useMapNavigation'
 import { useActiveSlide, useHasBackground, useHasRoute, useInkIsDark, usePanorama } from '../store/selectors'
 import { useAppStore } from '../store/useAppStore'
 import { FORMATS } from '../core/formats/registry'
@@ -60,9 +61,10 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
   // Where each slide's content sits under the wrapper; null where it fills the slide.
   const boxes = slides.map((_, i) => slideBox({ wrapper, slides, carouselKind }, i, w, h))
   const first = boxes[0]
+  const mapNavigation = useMapNavigation(previewScale, first, w, h)
   const isCheckerboard = !hasBackground && previewBackdrop === 'checkerboard'
   const lightChecker = useInkIsDark()
-  const classes = ['stage-wrapper', isCheckerboard && 'checkerboard', lightChecker && 'light-checker', adding && 'is-adding'].filter(Boolean).join(' ')
+  const classes = ['stage-wrapper', isCheckerboard && 'checkerboard', lightChecker && 'light-checker', adding && 'is-adding', mapNavigation.navigable && 'map-navigable'].filter(Boolean).join(' ')
 
   function deselectAndPickSlide(e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) {
     const stage = e.target.getStage()
@@ -150,7 +152,11 @@ export default function CanvasStage({ previewScale }: { previewScale: number }) 
         height={h * previewScale}
         scaleX={previewScale}
         scaleY={previewScale}
-        onMouseDown={deselectAndPickSlide}
+        onMouseDown={(e) => {
+          deselectAndPickSlide(e)
+          mapNavigation.startPan(e)
+        }}
+        onWheel={mapNavigation.zoomAtPointer}
         onTouchStart={deselectAndPickSlide}
       >
         <BackgroundLayer />
