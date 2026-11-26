@@ -2,6 +2,7 @@ import type { ComponentType, ReactNode } from 'react'
 import type { AnimationTrackId } from '../animation/layers'
 import type { ElementKind, PanelTab } from '../../types'
 import type { TKey } from '../../i18n'
+import type { DocumentState } from '../../store/types'
 
 export interface CanvasElementDefinition {
   kind: ElementKind
@@ -13,7 +14,7 @@ export interface CanvasElementDefinition {
   order: number
   useIsAvailable: () => boolean
   // For an element the user can hide: what puts it back, while it is hidden.
-  useShowAgain?: () => (() => void) | null
+  useShowAgain?: () => (() => ElementKind | void) | null
   // Wraps itself in a DraggableElement.
   Node: ComponentType
   Editor: ComponentType
@@ -22,6 +23,9 @@ export interface CanvasElementDefinition {
   subTab?: string
   // 'stats' when not set.
   animationTrack?: AnimationTrackId
+  useInstances?: () => ElementKind[]
+  remove?: (instance: ElementKind) => void
+  exists?: (doc: DocumentState, instance: ElementKind) => boolean
 }
 
 const definitions = new Map<ElementKind, CanvasElementDefinition>()
@@ -37,5 +41,5 @@ export function canvasElements(): readonly CanvasElementDefinition[] {
 }
 
 export function canvasElement(kind: ElementKind): CanvasElementDefinition | undefined {
-  return definitions.get(kind)
+  return definitions.get(kind) ?? definitions.get(kind.split(':')[0])
 }

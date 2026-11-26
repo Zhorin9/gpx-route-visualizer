@@ -10,8 +10,10 @@ import useSettled from '../../hooks/useSettled'
 import { renderMapImage } from '../map/maplibre'
 import { provideSharpener } from '../../utils/exportElement'
 import { DEFAULT_MAP } from '../map/types'
-import { DEFAULT_MAP_STICKER, LOOK_DRAWING, MAP_STICKER_KIND, STICKER_INK, resolvedShape } from './model'
-import { BORDER, stickerLayout } from './layout'
+import { DEFAULT_MAP_STICKER, LOOK_DRAWING, STICKER_INK, resolvedShape, stickerKind, type MapSticker } from './model'
+import { BORDER, panLimit, stickerLayout } from './layout'
+import { stageHandle } from '../../utils/exportImage'
+import type { MercatorFit } from '../../utils/gpx'
 import useCountryRings from './useCountryRings'
 import { labelSpan } from './labels'
 
@@ -32,8 +34,14 @@ function textWidth(text: string, fontFamily: string, fontSize: number, letterSpa
   return measureCanvas.measureText(text).width + letterSpacing * text.length
 }
 
-export default function MapStickerNode() {
-  const sticker = useAppStore((s) => s.mapSticker)
+interface RenderedMap {
+  canvas: HTMLCanvasElement
+  fit: MercatorFit
+}
+
+export default function MapStickerNode({ sticker }: { sticker: MapSticker }) {
+  const kind = stickerKind(sticker.id)
+  const updateMapSticker = useAppStore((s) => s.updateMapSticker)
   const aspectKey = useAppStore((s) => s.aspectKey)
   const track = useAppStore(selectTrack)
   const range = useAppStore((s) => s.range)
@@ -55,12 +63,15 @@ export default function MapStickerNode() {
   const country = useCountryRings(track?.points, lo, hi, shape === 'country')
   const countryRings = country?.rings ?? null
 
+  const zoom = sticker.zoom ?? 1
+  const [panDraft, setPanDraft] = useState<{ x: number; y: number } | null>(null)
+  const pan = panDraft ?? sticker.pan ?? DEFAULT_MAP_STICKER.pan
   const layout = useMemo(
-    () => (track ? stickerLayout({ points: track.points, lo, hi, day, parts, W, margin, countryRings }) : null),
-    [track, lo, hi, W, margin, day, parts, countryRings],
+    () => (track ? stickerLayout({ points: track.points, lo, hi, day, parts, W, margin, countryRings, zoom, pan: { x: pan.x, y: pan.y } }) : null),
+    [track, lo, hi, W, margin, day, parts, countryRings, zoom, pan.x, pan.y],
   )
 
-  const [map, setMap] = useState<HTMLCanvasElement | null>(null)
+  const [map, setMap] = useState<RenderedMap | null>(null)
   const sharpShown = useRef(false)
   const { styleId, palette } = sticker
   const current = useMemo(() => layout && { layout, W, styleId, palette }, [layout, W, styleId, palette])
@@ -71,7 +82,7 @@ export default function MapStickerNode() {
     const settings = { ...DEFAULT_MAP, styleId: wanted.styleId, palette: wanted.palette, labels: false }
     // Offline the sticker keeps its land colour; the route still shows.
     renderMapImage({ settings, fit: wanted.layout.fit, transform: IDENTITY_TRANSFORM }, wanted.W, wanted.layout.H, MAP_SCALE)
-      .then((canvas) => live && !sharpShown.current && setMap(canvas))
+      .then((canvas) => live && !sharpShown.current && setMap({ canvas, fit: wanted.layout.fit }))
       .catch(() => live && !sharpShown.current && setMap(null))
     return () => {
       live = false
@@ -82,32 +93,57 @@ export default function MapStickerNode() {
   latest.current = current
   useEffect(
     () =>
-      provideSharpener({ kind: 'element', element: MAP_STICKER_KIND }, async (filePxPerFramePx) => {
+      provideSharpener({ kind: 'element', element: kind }, async (filePxPerFramePx) => {
         const want = latest.current
         if (!want) return () => {}
         const settings = { ...DEFAULT_MAP, styleId: want.styleId, palette: want.palette, labels: false }
         const scale = Math.min(Math.max(filePxPerFramePx, MAP_SCALE), MAX_MAP_SIDE_PX / Math.max(want.W, want.layout.H))
         const sharp = await renderMapImage({ settings, fit: want.layout.fit, transform: IDENTITY_TRANSFORM }, want.W, want.layout.H, scale).catch(() => null)
         if (!sharp) return () => {}
-        let preview: HTMLCanvasElement | null = null
+        const shown = { canvas: sharp, fit: want.layout.fit }
+        let preview: RenderedMap | null = null
         sharpShown.current = true
-        setMap((current) => ((preview = current), sharp))
+        setMap((current) => ((preview = current), shown))
         return () => {
           sharpShown.current = false
-          setMap((current) => (current === sharp ? preview : current))
+          setMap((current) => (current === shown ? preview : current))
         }
       }),
-    [],
+    [kind],
   )
 
+  function panWithPointer(evt: MouseEvent | TouchEvent): boolean {
+    if (!(evt instanceof MouseEvent) || !evt.altKey || zoom <= 1) return false
+    const startX = evt.clientX
+    const startY = evt.clientY
+    const from = sticker.pan ?? DEFAULT_MAP_STICKER.pan
+    const framePx = 1 / (stageHandle.current?.scaleX() ?? 1)
+    const limit = panLimit(zoom)
+    const panAt = (e: PointerEvent) => ({
+      x: Math.min(limit, Math.max(-limit, from.x - ((e.clientX - startX) * framePx) / (W * zoom))),
+      y: Math.min(limit, Math.max(-limit, from.y - ((e.clientY - startY) * framePx) / ((layout?.H ?? W) * zoom))),
+    })
+    const move = (e: PointerEvent) => setPanDraft(panAt(e))
+    const end = (e: PointerEvent) => {
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', end)
+      setPanDraft(null)
+      updateMapSticker(sticker.id, { pan: panAt(e) })
+    }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', end)
+    return true
+  }
+
   if (!layout) return null
-  const { H, outlines, legs } = layout
+  const { H, outlines, legs, fit, cut } = layout
   const labelSize = W * LABEL_SIZE
   const labels = sticker.labels
     ? waypoints
         .filter((wp) => wp.kind !== 'icon' && wp.text.trim() && Math.round(wp.trackPos) >= layout.focusLo && Math.round(wp.trackPos) <= layout.focusHi)
-        .map((wp) => {
-          const [x, y] = layout.at(Math.round(wp.trackPos))
+        .map((wp) => ({ wp, at: layout.at(Math.round(wp.trackPos)) }))
+        .filter(({ at: [x, y] }) => !layout.cut || (x >= 0 && x <= W && y >= 0 && y <= layout.H))
+        .map(({ wp, at: [x, y] }) => {
           const text = wp.text.trim().toLocaleUpperCase()
           const spacing = labelSize * 0.04
           const span = labelSpan(x, textWidth(text, wp.fontFamily, labelSize, spacing), labelSize * 0.55, -W * margin, W * (1 + margin))
@@ -130,7 +166,9 @@ export default function MapStickerNode() {
 
   return (
     <DraggableElement
-      kind={MAP_STICKER_KIND}
+      kind={kind}
+      rotation={sticker.rotation ?? 0}
+      takesDrag={panWithPointer}
       width={W}
       height={H}
       defaultX={w - (safeZone?.right ?? 0) - W - w * 0.06}
@@ -160,7 +198,15 @@ export default function MapStickerNode() {
       ))}
       <Group clipFunc={clip} listening={false}>
         <Rect width={W} height={H} fill={sticker.palette.land} />
-        {map && <KonvaImage image={map} width={W} height={H} />}
+        {map && (
+          <KonvaImage
+            image={map.canvas}
+            x={(map.fit.x0 - fit.x0) * fit.scale}
+            y={(map.fit.y0 - fit.y0) * fit.scale}
+            width={(W * fit.scale) / map.fit.scale}
+            height={(H * fit.scale) / map.fit.scale}
+          />
+        )}
       </Group>
       {drawing.contourShare > 0 &&
         outlines.map((outline, i) => <Line key={`contour-${i}`} points={outline} closed stroke={STICKER_INK} strokeWidth={W * drawing.contourShare} lineJoin="round" listening={false} />)}
@@ -171,6 +217,7 @@ export default function MapStickerNode() {
           ))}
         </Group>
       )}
+      <Group listening={false} {...(cut ? { clipX: 0, clipY: 0, clipWidth: W, clipHeight: H } : null)}>
       {drawing.routeHalo &&
         legs.filter((leg) => leg.inFocus).map((leg) => (
           <Line key={`halo-${leg.id}`} points={leg.points} stroke={drawing.routeHalo ?? undefined} strokeWidth={routeWidth * 2.25} lineJoin="round" lineCap="round" listening={false} perfectDrawEnabled={false} />
@@ -191,6 +238,7 @@ export default function MapStickerNode() {
           </Group>
         )
       })}
+      </Group>
     </DraggableElement>
   )
 }

@@ -3,6 +3,7 @@ import SliderField from '../fields/SliderField'
 import CheckboxField from '../fields/CheckboxField'
 import ColorField from '../fields/ColorField'
 import Button from '../ui/Button'
+import { IconPlus } from '../icons'
 import Section from '../ui/Section'
 import Segmented from '../ui/Segmented'
 import { DEFAULT_ROUTE_STYLE, STYLE_PRESETS } from '../../store/defaults'
@@ -32,8 +33,7 @@ export default function StyleTab() {
   const style = useAppStore((s) => s.routeStyle)
   const update = useAppStore((s) => s.updateRouteStyle)
   const applyStylePreset = useAppStore((s) => s.applyStylePreset)
-  const mapSticker = useAppStore((s) => s.mapSticker)
-  const updateMapSticker = useAppStore((s) => s.updateMapSticker)
+  const addMapSticker = useAppStore((s) => s.addMapSticker)
   const isSchematic = style.shape === 'schematic'
   const casing = style.casing
   const setCasing = (patch: Partial<RouteCasing>) => update({ casing: { ...DEFAULT_CASING, ...casing, ...patch } })
@@ -82,7 +82,9 @@ export default function StyleTab() {
       </Section>
 
       <Section title={t('styleTab.mapSticker')}>
-        <CheckboxField label={t('styleTab.mapStickerShown')} checked={mapSticker.shown} onChange={(shown) => updateMapSticker({ shown })} />
+        <Button icon={<IconPlus />} onClick={addMapSticker}>
+          {t('styleTab.mapStickerAdd')}
+        </Button>
         <p className="hint">{t('styleTab.mapStickerHint')}</p>
       </Section>
 

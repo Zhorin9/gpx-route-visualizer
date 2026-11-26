@@ -1,10 +1,10 @@
 import { DEFAULT_COLLAGE, DEFAULT_ROUTE_STYLE, DEFAULT_STATS_STYLE } from '../store/defaults'
 import { STICKER_COLORS, STICKER_INK } from './sticker'
-import { DEFAULT_MAP_STICKER } from '../features/map-sticker/model'
+import { DEFAULT_MAP_STICKER, type MapStickerLookFields } from '../features/map-sticker/model'
 import i18n, { type TKey } from '../i18n'
 
-const { shown: _shown, size: _size, ...DEFAULT_MAP_STICKER_LOOK } = DEFAULT_MAP_STICKER
-const LEGACY_NOTES_STICKER = { ...DEFAULT_MAP_STICKER_LOOK, routeOutside: false, labels: false, shape: 'hull' as const }
+const { size: _size, margin: _margin, rotation: _rotation, zoom: _zoom, pan: _pan, scope: _scope, ...DEFAULT_MAP_STICKER_LOOK } = DEFAULT_MAP_STICKER
+const LEGACY_NOTES_STICKER: MapStickerLookFields = { ...DEFAULT_MAP_STICKER_LOOK, routeOutside: false, labels: false, shape: 'hull' }
 import type { BackgroundPattern, HardShadow, PhotoMarker, RouteCasing, RouteStyle, StyleTemplate } from '../types'
 
 const { shape: _shape, schematicSimplify: _simplify, ...DEFAULT_ROUTE_LOOK } = DEFAULT_ROUTE_STYLE

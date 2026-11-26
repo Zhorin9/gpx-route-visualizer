@@ -1,3 +1,4 @@
+import { useLayoutEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Button from './ui/Button'
 import { IconClose, IconCopy, IconDownload } from './icons'
@@ -18,18 +19,37 @@ function useTarget(): ElementTarget | null {
   return selection.kind === 'text' ? { kind: 'text', id: selection.id } : null
 }
 
-export default function ElementToolbar() {
-  const target = useTarget()
+interface Box {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+const sameBox = (a: Box | null, b: Box | null) => a === b || (!!a && !!b && a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height)
+
+function useDrawnBox(target: ElementTarget | null): Box | null {
   useAppStore((s) => s.placements)
   useAppStore((s) => s.texts)
+  useAppStore((s) => s.mapStickers)
+  const [box, setBox] = useState<Box | null>(null)
+  useLayoutEffect(() => {
+    const node = target && stageHandle.current?.findOne(`#${elementNodeId(target)}`)
+    const next = node ? node.getClientRect({ skipShadow: true }) : null
+    setBox((drawn) => (sameBox(drawn, next) ? drawn : next))
+  })
+  return target ? box : null
+}
+
+export default function ElementToolbar() {
+  const target = useTarget()
+  const rect = useDrawnBox(target)
   const select = useAppStore((s) => s.select)
   const png = useElementPng(target)
   const { t } = useTranslation()
 
   const stage = stageHandle.current
-  const node = target && stage?.findOne(`#${elementNodeId(target)}`)
-  if (!target || !stage || !node) return null
-  const rect = node.getClientRect({ skipShadow: true })
+  if (!target || !stage || !rect) return null
   const above = rect.y >= ROOM_ABOVE_PX
   const style = {
     left: clamp(rect.x + rect.width / 2, HALF_BAR_PX, stage.width() - HALF_BAR_PX),

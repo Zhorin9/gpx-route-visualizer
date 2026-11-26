@@ -1,7 +1,7 @@
 import type { IconFinish, IconId } from './components/place/icons'
 import type { StickerSettings } from './utils/sticker'
 import type { PhotoLook } from './utils/photoLook'
-import type { MapStickerSettings } from './features/map-sticker/model'
+import type { MapStickerLookFields } from './features/map-sticker/model'
 import type { ReactNode } from 'react'
 import type { Units } from './core/units'
 import type { TKey } from './i18n'
@@ -300,7 +300,7 @@ export interface StyleTemplate {
   stamp?: boolean
   kicker?: boolean
   // The route as a map sticker, in these colours; applied with the route.
-  mapSticker?: Omit<MapStickerSettings, 'shown' | 'size'>
+  mapSticker?: MapStickerLookFields
   // Saved templates have a group of their own.
   group?: TemplateGroup
   custom?: boolean

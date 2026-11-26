@@ -9,10 +9,12 @@ export type MapStickerShape = 'auto' | 'country' | 'hull'
 export type MapStickerScope = { kind: 'all' } | { kind: 'day'; day: number; only: boolean }
 
 export interface MapStickerSettings {
-  shown: boolean
   // Width as a share of the frame's; edge, route and dot grow with it.
   size: number
   margin: number
+  rotation: number
+  zoom: number
+  pan: { x: number; y: number }
   shape: MapStickerShape
   look: MapStickerLook
   edge: MapStickerEdge
@@ -26,6 +28,15 @@ export interface MapStickerSettings {
   route: string
   start: string
 }
+
+export interface MapSticker extends MapStickerSettings {
+  id: number
+}
+
+export type MapStickerLookFields = Omit<MapStickerSettings, 'size' | 'margin' | 'rotation' | 'zoom' | 'pan' | 'scope'>
+
+export const stickerKind = (id: number) => `${MAP_STICKER_KIND}:${id}`
+export const stickerIdOf = (kind: string): number | null => (kind.startsWith(`${MAP_STICKER_KIND}:`) ? Number(kind.slice(MAP_STICKER_KIND.length + 1)) : null)
 
 export const STICKER_INK = '#241a26'
 const COUNTRY_FROM_KM = 150
@@ -73,9 +84,11 @@ export const LOOK_DRAWING: Record<MapStickerLook, LookDrawing> = {
 
 // The style board's notebook sticker: soft green land, an orange route, a green start dot.
 export const DEFAULT_MAP_STICKER: MapStickerSettings = {
-  shown: false,
   size: 0.46,
   margin: 0.07,
+  rotation: 0,
+  zoom: 1,
+  pan: { x: 0, y: 0 },
   shape: 'auto',
   styleId: 'positron',
   routeOutside: true,

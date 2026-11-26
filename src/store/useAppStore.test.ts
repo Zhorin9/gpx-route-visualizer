@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { registerCanvasElement } from '../core/canvas/registry'
+import { registerMapSticker } from '../features/map-sticker'
 import { BUILT_IN_TEMPLATES } from '../utils/templates'
 import { selectRouteDays, selectTrack } from './derived'
 import { DOCUMENT_KEYS, pickDocument } from './document'
@@ -444,13 +445,37 @@ describe('style templates', () => {
     expect(get().stamp).toBe(false)
   })
 
-  it('shows the route as a map sticker with Notes z trasy at the size set by hand, and plain again with another style', () => {
+  it('puts a map sticker on with Notes z trasy, keeps its size set by hand, and takes it off with another style', () => {
     const notes = BUILT_IN_TEMPLATES.find((t) => t.id === 'notes')!
-    get().updateMapSticker({ size: 0.7 })
+    get().addMapSticker()
+    const id = get().mapStickers[0].id
+    get().updateMapSticker(id, { size: 0.7 })
     get().applyTemplate(notes, all)
-    expect(get().mapSticker).toMatchObject({ shown: true, route: '#e9572b', size: 0.7, look: 'notes', edge: 'white', shadow: 'soft', routeOutside: false })
+    expect(get().mapStickers).toHaveLength(1)
+    expect(get().mapStickers[0]).toMatchObject({ id, route: '#e9572b', size: 0.7, look: 'notes', edge: 'white', shadow: 'soft', routeOutside: false })
     get().applyTemplate(papier, all)
-    expect(get().mapSticker.shown).toBe(false)
+    expect(get().mapStickers).toEqual([])
+  })
+
+  it('duplicates a map sticker with its settings, a little off the original', () => {
+    const kind = get().addMapSticker()
+    const id = get().mapStickers[0].id
+    get().updateMapSticker(id, { look: 'sketch', zoom: 2, scope: { kind: 'day', day: 1, only: true } })
+    get().setPlacement(kind, { x: 100, y: 200 })
+    get().duplicateMapSticker(id)
+    const [original, copy] = get().mapStickers
+    expect(copy).toEqual({ ...original, id: copy.id })
+    expect(copy.id).not.toBe(original.id)
+    expect(get().placements[`mapSticker:${copy.id}`]).toEqual({ x: 140, y: 240 })
+    expect(get().selection).toEqual({ kind: 'element', element: `mapSticker:${copy.id}` })
+  })
+
+  it('drops the selection when undo takes away the selected map sticker', () => {
+    registerMapSticker()
+    get().addMapSticker()
+    get().undo()
+    expect(get().mapStickers).toEqual([])
+    expect(get().selection).toBeNull()
   })
 
   it('leaves saving and deleting a template out of undo', () => {

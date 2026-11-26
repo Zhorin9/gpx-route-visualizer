@@ -28,3 +28,31 @@ export function grown(hull: Pt[], margin: number): Pt[] {
     return [x + ((x - cx) / d) * margin, y + ((y - cy) / d) * margin]
   })
 }
+
+type Inside = (p: Pt) => boolean
+type Crossing = (a: Pt, b: Pt) => Pt
+
+function clipEdge(points: Pt[], inside: Inside, crossing: Crossing): Pt[] {
+  const out: Pt[] = []
+  points.forEach((p, i) => {
+    const prev = points[(i + points.length - 1) % points.length]
+    if (inside(p)) {
+      if (!inside(prev)) out.push(crossing(prev, p))
+      out.push(p)
+    } else if (inside(prev)) out.push(crossing(prev, p))
+  })
+  return out
+}
+
+const atX = (x: number) => (a: Pt, b: Pt): Pt => [x, a[1] + ((b[1] - a[1]) * (x - a[0])) / (b[0] - a[0])]
+const atY = (y: number) => (a: Pt, b: Pt): Pt => [a[0] + ((b[0] - a[0]) * (y - a[1])) / (b[1] - a[1]), y]
+
+export function clippedToBox(flat: number[], w: number, h: number): number[] {
+  let pts: Pt[] = []
+  for (let i = 0; i < flat.length; i += 2) pts.push([flat[i], flat[i + 1]])
+  pts = clipEdge(pts, (p) => p[0] >= 0, atX(0))
+  pts = clipEdge(pts, (p) => p[0] <= w, atX(w))
+  pts = clipEdge(pts, (p) => p[1] >= 0, atY(0))
+  pts = clipEdge(pts, (p) => p[1] <= h, atY(h))
+  return pts.flat()
+}

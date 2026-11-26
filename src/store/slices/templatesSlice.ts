@@ -1,3 +1,4 @@
+import { DEFAULT_MAP_STICKER, type MapSticker, type MapStickerLookFields } from '../../features/map-sticker/model'
 import { paletteFrom } from '../../features/map/model/styles'
 import { frameStyleFor } from '../../utils/layouts'
 import { routeFields } from '../../utils/wrappers'
@@ -88,13 +89,18 @@ export function withTemplate(s: TemplateTarget, template: StyleTemplate, parts: 
     waypoints,
     slides,
     map,
-    ...(parts.route ? { mapSticker: template.mapSticker ? { ...template.mapSticker, size: s.mapSticker.size, shown: true } : { ...s.mapSticker, shown: false } } : null),
+    ...(parts.route ? { mapStickers: stickersInStyle(s.mapStickers, template.mapSticker) } : null),
     ...(parts.route ? { routeStyle: { ...s.routeStyle, ...template.route, casing: template.route.casing, pen: template.route.pen, echo: template.route.echo } } : null),
     ...(parts.effects ? { iconFinish: template.iconFinish ?? 'sticker', stamp: !!template.stamp, kicker: { ...s.kicker, shown: !!template.kicker } } : null),
     ...(parts.colors ? { sticker: template.sticker ? { ...template.sticker } : null } : null),
     ...(parts.photo ? { photoLook: { ...(template.photoLook ?? NO_PHOTO_LOOK) } } : null),
     ...(parts.points && template.pointStyle ? { pointStyle: { ...template.pointStyle } } : null),
   }
+}
+
+function stickersInStyle(stickers: MapSticker[], look: MapStickerLookFields | undefined): MapSticker[] {
+  if (!look) return []
+  return stickers.length ? stickers.map((sticker) => ({ ...sticker, ...look })) : [{ ...DEFAULT_MAP_STICKER, ...look, id: 1 }]
 }
 
 const sameValue = (a: unknown, b: unknown) => a === b || JSON.stringify(a) === JSON.stringify(b)

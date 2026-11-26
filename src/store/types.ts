@@ -1,7 +1,7 @@
 import type { StickerSettings } from '../utils/sticker'
 import type { TKey } from '../i18n'
 import type { PhotoLook } from '../utils/photoLook'
-import type { MapStickerSettings } from '../features/map-sticker/model'
+import type { MapSticker, MapStickerSettings } from '../features/map-sticker/model'
 import type { IconFinish } from '../components/place/icons'
 import type { TextKind } from './textKinds'
 import type {
@@ -106,8 +106,7 @@ export interface DocumentState {
   stampTime: number | null
   // A short line over the title; its words stay when a style hides it.
   kicker: { shown: boolean; text: string }
-  // The route as a sticker of the map around it; while shown, the route itself is not drawn.
-  mapSticker: MapStickerSettings
+  mapStickers: MapSticker[]
 }
 
 // undo and redo are the history's own; anything else brings its handler.
@@ -251,7 +250,10 @@ export interface ElementsSlice {
   updatePhotoLook: (patch: Partial<PhotoLook>) => void
   setStamp: (on: boolean) => void
   setStampTime: (time: number | null) => void
-  updateMapSticker: (patch: Partial<MapStickerSettings>) => void
+  addMapSticker: () => string
+  duplicateMapSticker: (id: number) => void
+  removeMapSticker: (id: number) => void
+  updateMapSticker: (id: number, patch: Partial<MapStickerSettings>) => void
   setKicker: (patch: Partial<DocumentState['kicker']>) => void
   // Besides a plain text: a loose icon, a badge or a text bent over an icon; all move and turn like a text.
   addText: (kind?: TextKind) => number

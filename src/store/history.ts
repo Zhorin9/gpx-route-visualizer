@@ -1,3 +1,4 @@
+import { canvasElement } from '../core/canvas/registry'
 import i18n, { type TKey } from '../i18n'
 import { pickDocument } from './document'
 import type { AppState, Commit, DocumentState, GetState, HistorySlice, SetState } from './types'
@@ -76,7 +77,8 @@ function stepLabel(key: string): TKey {
 // Undo/redo restores a snapshot, so a selection may point at something gone.
 function validSelection(s: AppState, doc: DocumentState): Partial<AppState> {
   const sel = s.selection
-  if (!sel || sel.kind === 'element') return {}
+  if (!sel) return {}
+  if (sel.kind === 'element') return canvasElement(sel.element)?.exists?.(doc, sel.element) === false ? { selection: null } : {}
   if (sel.kind === 'slot') return doc.slides[sel.slide] ? {} : { selection: null }
   const list = sel.kind === 'text' ? doc.texts : doc.waypoints
   return list.some((item) => item.id === sel.id) ? {} : { selection: null }

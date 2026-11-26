@@ -17,6 +17,25 @@ import { useAppStore } from '../../store/useAppStore'
 import FontField from '../fields/FontField'
 import { FIELD_LABELS, wrapperFieldsOf } from '../../utils/wrappers'
 
+function InstanceRows({ def, useInstances }: { def: CanvasElementDefinition; useInstances: () => string[] }) {
+  const { t } = useTranslation()
+  const instances = useInstances()
+  const selection = useAppStore((s) => s.selection)
+  const select = useAppStore((s) => s.select)
+  return instances.map((kind, i) => (
+    <ElementRow
+      key={kind}
+      icon={def.icon}
+      label={instances.length > 1 ? `${t(def.label)} ${i + 1}` : t(def.label)}
+      meta={t(def.meta)}
+      active={selection?.kind === 'element' && selection.element === kind}
+      onClick={() => select({ kind: 'element', element: kind })}
+      onDelete={def.remove && (() => def.remove?.(kind))}
+      deleteLabel={t('elementsTab.deleteElement')}
+    />
+  ))
+}
+
 function RegisteredElementRow({ def }: { def: CanvasElementDefinition }) {
   const { t } = useTranslation()
   const available = def.useIsAvailable()
@@ -26,7 +45,7 @@ function RegisteredElementRow({ def }: { def: CanvasElementDefinition }) {
   return <ElementRow icon={def.icon} label={t(def.label)} meta={t(def.meta)} active={active} onClick={() => select({ kind: 'element', element: def.kind })} />
 }
 
-function ShowAgainButton({ def, useShowAgain }: { def: CanvasElementDefinition; useShowAgain: () => (() => void) | null }) {
+function ShowAgainButton({ def, useShowAgain }: { def: CanvasElementDefinition; useShowAgain: () => (() => string | void) | null }) {
   const { t } = useTranslation()
   const show = useShowAgain()
   const select = useAppStore((s) => s.select)
@@ -35,8 +54,8 @@ function ShowAgainButton({ def, useShowAgain }: { def: CanvasElementDefinition; 
     <Button
       icon={<IconPlus />}
       onClick={() => {
-        show()
-        select({ kind: 'element', element: def.kind })
+        const shown = show()
+        select({ kind: 'element', element: shown ?? def.kind })
       }}
     >
       {t(def.label)}
@@ -155,9 +174,9 @@ export default function ElementsTab() {
 
       <Section title={t('elementsTab.elements')}>
         <div className="item-list" role="listbox" aria-label={t('elementsTab.elements')}>
-          {canvasElements().map((def) => (
-            <RegisteredElementRow key={def.kind} def={def} />
-          ))}
+          {canvasElements().map((def) =>
+            def.useInstances ? <InstanceRows key={def.kind} def={def} useInstances={def.useInstances} /> : <RegisteredElementRow key={def.kind} def={def} />,
+          )}
           {texts.map((text) => (
             <ElementRow
               key={`t${text.id}`}

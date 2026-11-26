@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useRef, type ReactNode } from 'react'
 import { Group, Rect } from 'react-konva'
 import type Konva from 'konva'
 import SlideBox from '../../components/SlideBox'
@@ -23,11 +23,13 @@ export interface DraggableElementProps {
   defaultX: number
   defaultY: number
   rotation?: number
+  takesDrag?: (evt: MouseEvent | TouchEvent) => boolean
   children: ReactNode
 }
 
 // Children draw in a width × height box with the origin at its top-left corner.
-export default function DraggableElement({ kind, width, height, defaultX, defaultY, rotation = 0, children }: DraggableElementProps) {
+export default function DraggableElement({ kind, width, height, defaultX, defaultY, rotation = 0, takesDrag, children }: DraggableElementProps) {
+  const dragTaken = useRef(false)
   const placement = useAppStore((s) => s.placements[kind])
   const selected = useAppStore((s) => s.selection?.kind === 'element' && s.selection.element === kind)
   const select = useAppStore((s) => s.select)
@@ -39,7 +41,17 @@ export default function DraggableElement({ kind, width, height, defaultX, defaul
   const slide = useSlideAt(x)
   const onSelect = () => select({ kind: 'element', element: kind })
 
+  function handleDragStart(e: Konva.KonvaEventObject<DragEvent>) {
+    if (e.target !== e.currentTarget || !takesDrag?.(e.evt)) return
+    dragTaken.current = true
+    e.target.stopDrag()
+  }
+
   function handleDragEnd(e: Konva.KonvaEventObject<DragEvent>) {
+    if (dragTaken.current) {
+      dragTaken.current = false
+      return
+    }
     snapDragEnd(e)
     // Drags of inner parts (a stats chip) bubble up here too; those are handled where they start.
     if (e.target !== e.currentTarget) return
@@ -59,6 +71,7 @@ export default function DraggableElement({ kind, width, height, defaultX, defaul
         draggable
         onMouseDown={onSelect}
         onTouchStart={onSelect}
+        onDragStart={handleDragStart}
         onDragMove={snapDragMove}
         onDragEnd={handleDragEnd}
       >

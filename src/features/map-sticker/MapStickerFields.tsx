@@ -7,14 +7,27 @@ import { useRangeStats, useStickerColor } from '../../store/selectors'
 import { selectRouteDays, selectTrack } from '../../store/derived'
 import { archiveBaseName } from '../../utils/exportImage'
 import type { ElementVariant } from '../../utils/exportElement'
-import { DEFAULT_MAP_STICKER, MAP_STICKER_KIND, resolvedShape, withLook, type MapStickerEdge, type MapStickerLook, type MapStickerShadow } from './model'
+import { DEFAULT_MAP_STICKER, resolvedShape, stickerIdOf, stickerKind, withLook, type MapSticker, type MapStickerEdge, type MapStickerLook, type MapStickerScope, type MapStickerSettings, type MapStickerShadow } from './model'
+import RotationField from '../../components/fields/RotationField'
+import { IconCopy, IconTrash } from '../../components/icons'
 import Button from '../../components/ui/Button'
 import ElementPngSection from '../../components/panel/ElementPngSection'
 import { useAppStore } from '../../store/useAppStore'
 
 export default function MapStickerFields() {
-  const sticker = useAppStore((s) => s.mapSticker)
-  const update = useAppStore((s) => s.updateMapSticker)
+  const sticker = useAppStore((s) => {
+    const id = s.selection?.kind === 'element' ? stickerIdOf(s.selection.element) : null
+    return s.mapStickers.find((m) => m.id === id)
+  })
+  return sticker ? <StickerFields sticker={sticker} /> : null
+}
+
+function StickerFields({ sticker }: { sticker: MapSticker }) {
+  const updateSticker = useAppStore((s) => s.updateMapSticker)
+  const duplicate = useAppStore((s) => s.duplicateMapSticker)
+  const remove = useAppStore((s) => s.removeMapSticker)
+  const update = (patch: Partial<MapStickerSettings>) => updateSticker(sticker.id, patch)
+  const kind = stickerKind(sticker.id)
   const { t } = useTranslation()
   const styleStickerColor = useStickerColor(0)
   const dayCount = useAppStore((s) => selectRouteDays(s).length)
@@ -23,12 +36,15 @@ export default function MapStickerFields() {
   const shape = resolvedShape(sticker.shape ?? DEFAULT_MAP_STICKER.shape, useRangeStats()?.distanceKm ?? 0)
   const scopeValue = scope.kind === 'day' && scope.day < dayCount ? String(scope.day) : 'all'
   const fileBase = `naklejka-mapa-${archiveBaseName(trackName)}`
+  const withScope = (other: MapStickerScope) => ({
+    mapStickers: useAppStore.getState().mapStickers.map((m) => (m.id === sticker.id ? { ...m, scope: other } : m)),
+  })
   const dayVariants = (): ElementVariant[] => [
     ...Array.from({ length: dayCount }, (_, day) => ({
       name: `${fileBase}-dzien-${day + 1}.png`,
-      change: { mapSticker: { ...sticker, scope: { kind: 'day' as const, day, only: scope.kind === 'day' && scope.only } } },
+      change: withScope({ kind: 'day', day, only: scope.kind === 'day' && scope.only }),
     })),
-    { name: `${fileBase}.png`, change: { mapSticker: { ...sticker, scope: { kind: 'all' as const } } } },
+    { name: `${fileBase}.png`, change: withScope({ kind: 'all' }) },
   ]
   const size = sticker.size ?? DEFAULT_MAP_STICKER.size
   const margin = sticker.margin ?? DEFAULT_MAP_STICKER.margin
@@ -92,6 +108,17 @@ export default function MapStickerFields() {
         defaultValue={Math.round(DEFAULT_MAP_STICKER.size * 100)}
         onChange={(v) => update({ size: v / 100 })}
       />
+      <SliderField
+        label={t('mapSticker.zoom')}
+        unit="%"
+        min={100}
+        max={400}
+        value={Math.round((sticker.zoom ?? 1) * 100)}
+        defaultValue={100}
+        onChange={(v) => update(v === 100 ? { zoom: 1, pan: { x: 0, y: 0 } } : { zoom: v / 100 })}
+      />
+      {(sticker.zoom ?? 1) > 1 && <p className="hint">{t('mapSticker.panHint')}</p>}
+      <RotationField value={sticker.rotation ?? 0} onChange={(rotation) => update({ rotation })} />
       {shape === 'hull' && (
         <SliderField
           label={t('mapSticker.margin')}
@@ -109,10 +136,17 @@ export default function MapStickerFields() {
       {sticker.labels && <ColorField label={t('mapSticker.labelColor')} value={sticker.labelColor} onChange={(labelColor) => update({ labelColor })} />}
       <CheckboxField label={t('mapSticker.routeOutside')} checked={sticker.routeOutside ?? false} onChange={(routeOutside) => update({ routeOutside })} />
       <p className="hint">{t('mapSticker.hint')}</p>
-      <Button onClick={() => update({ shown: false })}>{t('mapSticker.back')}</Button>
+      <div className="button-row">
+        <Button icon={<IconCopy />} onClick={() => duplicate(sticker.id)}>
+          {t('mapSticker.duplicate')}
+        </Button>
+        <Button variant="danger" icon={<IconTrash />} onClick={() => remove(sticker.id)}>
+          {t('mapSticker.remove')}
+        </Button>
+      </div>
       <h6 className="subhead">{t('elementExport.heading')}</h6>
       <ElementPngSection
-        target={{ kind: 'element', element: MAP_STICKER_KIND }}
+        target={{ kind: 'element', element: kind }}
         more={(png) =>
           dayCount > 1 && (
             <Button block disabled={png.busy} onClick={() => png.downloadVariants(dayVariants(), fileBase)}>
